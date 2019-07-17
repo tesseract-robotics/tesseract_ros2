@@ -29,11 +29,11 @@
 #include <tesseract_common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <ros/console.h>
-#include <visualization_msgs/Marker.h>
-#include <visualization_msgs/MarkerArray.h>
+#include <visualization_msgs/msg/marker.hpp>
+#include <visualization_msgs/msg/marker_array.hpp>
 #include <ros/publisher.h>
-#include <tesseract_msgs/Trajectory.h>
-#include <tesseract_msgs/TesseractState.h>
+#include <tesseract_msgs/msg/trajectory.hpp>
+#include <tesseract_msgs/msg/tesseract_state.hpp>
 #include <Eigen/Geometry>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
@@ -53,16 +53,16 @@ public:
   {
     ros::NodeHandle nh;
 
-    trajectory_pub_ = nh.advertise<tesseract_msgs::Trajectory>("/trajopt/display_tesseract_trajectory", 1, true);
-    collisions_pub_ = nh.advertise<visualization_msgs::MarkerArray>("/trajopt/display_collisions", 1, true);
-    arrows_pub_ = nh.advertise<visualization_msgs::MarkerArray>("/trajopt/display_arrows", 1, true);
-    axes_pub_ = nh.advertise<visualization_msgs::MarkerArray>("/trajopt/display_axes", 1, true);
+    trajectory_pub_ = nh.advertise<tesseract_msgs::msg::Trajectory>("/trajopt/display_tesseract_trajectory", 1, true);
+    collisions_pub_ = nh.advertise<visualization_msgs::msg::MarkerArray>("/trajopt/display_collisions", 1, true);
+    arrows_pub_ = nh.advertise<visualization_msgs::msg::MarkerArray>("/trajopt/display_arrows", 1, true);
+    axes_pub_ = nh.advertise<visualization_msgs::msg::MarkerArray>("/trajopt/display_axes", 1, true);
   }
 
   void plotTrajectory(const std::vector<std::string>& joint_names,
                       const Eigen::Ref<const tesseract_common::TrajArray>& traj) override
   {
-    tesseract_msgs::Trajectory msg;
+    tesseract_msgs::msg::Trajectory msg;
 
     // Set tesseract state information
     toMsg(msg.tesseract_state, *env_);
@@ -77,7 +77,7 @@ public:
                           const tesseract_collision::ContactResultVector& dist_results,
                           const Eigen::Ref<const Eigen::VectorXd>& safety_distances) override
   {
-    visualization_msgs::MarkerArray msg;
+    visualization_msgs::msg::MarkerArray msg;
     for (unsigned i = 0; i < dist_results.size(); ++i)
     {
       const tesseract_collision::ContactResult& dist = dist_results[i];
@@ -137,14 +137,14 @@ public:
                  const Eigen::Ref<const Eigen::Vector4d>& rgba,
                  double scale) override
   {
-    visualization_msgs::MarkerArray msg;
+    visualization_msgs::msg::MarkerArray msg;
     msg.markers.push_back(getMarkerArrowMsg(pt1, pt2, rgba, scale));
     arrows_pub_.publish(msg);
   }
 
   void plotAxis(const Eigen::Isometry3d& axis, double scale) override
   {
-    visualization_msgs::MarkerArray msg;
+    visualization_msgs::msg::MarkerArray msg;
     Eigen::Vector3d x_axis = axis.matrix().block<3, 1>(0, 0);
     Eigen::Vector3d y_axis = axis.matrix().block<3, 1>(0, 1);
     Eigen::Vector3d z_axis = axis.matrix().block<3, 1>(0, 2);
@@ -160,14 +160,14 @@ public:
   {
     // Remove old arrows
     marker_counter_ = 0;
-    visualization_msgs::MarkerArray msg;
-    visualization_msgs::Marker marker;
+    visualization_msgs::msg::MarkerArray msg;
+    visualization_msgs::msg::Marker marker;
     marker.header.frame_id = env_->getSceneGraph()->getRoot();
     marker.header.stamp = ros::Time();
     marker.ns = "trajopt";
     marker.id = 0;
-    marker.type = visualization_msgs::Marker::ARROW;
-    marker.action = visualization_msgs::Marker::DELETEALL;
+    marker.type = visualization_msgs::msg::Marker::ARROW;
+    marker.action = visualization_msgs::msg::Marker::DELETEALL;
     msg.markers.push_back(marker);
     collisions_pub_.publish(msg);
     arrows_pub_.publish(msg);
@@ -191,18 +191,18 @@ private:
   ros::Publisher arrows_pub_;                        /**< Used for publishing arrow markers */
   ros::Publisher axes_pub_;                          /**< Used for publishing axis markers */
 
-  visualization_msgs::Marker getMarkerArrowMsg(const Eigen::Ref<const Eigen::Vector3d>& pt1,
-                                               const Eigen::Ref<const Eigen::Vector3d>& pt2,
-                                               const Eigen::Ref<const Eigen::Vector4d>& rgba,
-                                               double scale)
+  visualization_msgs::msg::Marker getMarkerArrowMsg(const Eigen::Ref<const Eigen::Vector3d>& pt1,
+                                                    const Eigen::Ref<const Eigen::Vector3d>& pt2,
+                                                    const Eigen::Ref<const Eigen::Vector4d>& rgba,
+                                                    double scale)
   {
-    visualization_msgs::Marker marker;
+    visualization_msgs::msg::Marker marker;
     marker.header.frame_id = env_->getSceneGraph()->getRoot();
     marker.header.stamp = ros::Time::now();
     marker.ns = "trajopt";
     marker.id = ++marker_counter_;
-    marker.type = visualization_msgs::Marker::ARROW;
-    marker.action = visualization_msgs::Marker::ADD;
+    marker.type = visualization_msgs::msg::Marker::ARROW;
+    marker.action = visualization_msgs::msg::Marker::ADD;
 
     Eigen::Vector3d x, y, z;
     x = (pt2 - pt1).normalized();
@@ -235,18 +235,18 @@ private:
     return marker;
   }
 
-  visualization_msgs::Marker getMarkerCylinderMsg(const Eigen::Ref<const Eigen::Vector3d>& pt1,
-                                                  const Eigen::Ref<const Eigen::Vector3d>& pt2,
-                                                  const Eigen::Ref<const Eigen::Vector4d>& rgba,
-                                                  double scale)
+  visualization_msgs::msg::Marker getMarkerCylinderMsg(const Eigen::Ref<const Eigen::Vector3d>& pt1,
+                                                       const Eigen::Ref<const Eigen::Vector3d>& pt2,
+                                                       const Eigen::Ref<const Eigen::Vector4d>& rgba,
+                                                       double scale)
   {
-    visualization_msgs::Marker marker;
+    visualization_msgs::msg::Marker marker;
     marker.header.frame_id = env_->getSceneGraph()->getName();
     marker.header.stamp = ros::Time::now();
     marker.ns = "trajopt";
     marker.id = ++marker_counter_;
-    marker.type = visualization_msgs::Marker::CYLINDER;
-    marker.action = visualization_msgs::Marker::ADD;
+    marker.type = visualization_msgs::msg::Marker::CYLINDER;
+    marker.action = visualization_msgs::msg::Marker::ADD;
 
     double length = scale * std::abs((pt2 - pt1).norm());
     Eigen::Vector3d x, y, z, center;

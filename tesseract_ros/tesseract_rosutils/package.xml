@@ -7,10 +7,11 @@
   <license>Apache 2.0</license>
   <author>Levi Armstrong</author>
 
-  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
   <depend>eigen</depend>
   <depend>eigen_conversions</depend>
-  <depend>roscpp</depend>
+  <depend>rclcpp</depend>
   <depend>roslib</depend>
   <depend>tesseract_collision</depend>
   <depend>tesseract_msgs</depend>
@@ -21,5 +22,6 @@
   <depend>tesseract_process_planners</depend>
 
   <export>
+    <build_type>ament_cmake</build_type>
   </export>
 </package>

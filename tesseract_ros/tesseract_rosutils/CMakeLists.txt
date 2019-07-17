@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 3.5.0)
-project(tesseract_rosutils)
+project(tesseract_rosutils VERSION 0.1.0 LANGUAGES CXX)
 
-find_package(catkin REQUIRED COMPONENTS
-  tesseract_msgs
-  roscpp
-  eigen_conversions
-)
+# ROS packages
+find_package(rclcpp REQUIRED)
+find_package(tesseract_msgs REQUIRED)
+find_package(eigen_conversions REQUIRED)
 
+# Non-ROS packages
 find_package(Eigen3 REQUIRED)
 find_package(tesseract_scene_graph REQUIRED)
 find_package(tesseract_geometry REQUIRED) # This should not be required, must be doing something wrong when creating targets
@@ -15,31 +15,19 @@ find_package(tesseract_collision REQUIRED)
 find_package(tesseract_common REQUIRED)
 find_package(tesseract_process_planners REQUIRED)
 
-
-catkin_package(
-  INCLUDE_DIRS
-    include
-    ${EIGEN3_INCLUDE_DIRS}
-#  LIBRARIES
-  CATKIN_DEPENDS
-    tesseract_msgs
-    roscpp
-    eigen_conversions
-    roslib
-  DEPENDS
-    EIGEN3
-    tesseract_scene_graph
-    tesseract_geometry
-    tesseract_visualization
-    tesseract_collision
-    tesseract_common
-    tesseract_process_planners
-)
-
 list(FIND CMAKE_CXX_COMPILE_FEATURES cxx_std_11 CXX_FEATURE_FOUND)
 
 add_library(${PROJECT_NAME} INTERFACE)
-target_link_libraries(${PROJECT_NAME} INTERFACE tesseract::tesseract_scene_graph tesseract::tesseract_geometry tesseract::tesseract_collision_core tesseract::tesseract_visualization tesseract::tesseract_common tesseract::tesseract_process_planners ${catkin_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} INTERFACE
+    tesseract::tesseract_scene_graph
+    tesseract::tesseract_geometry
+    tesseract::tesseract_collision_core
+    tesseract::tesseract_visualization
+    tesseract::tesseract_common
+    tesseract::tesseract_process_planners
+    ${rclcpp_LIBRARIES}
+    ${tesseract_msgs_LIBRARIES}
+    ${eigen_conversions_LIBRARIES})
 target_compile_options(${PROJECT_NAME} INTERFACE -Wall -Wextra -Wsuggest-override -Wconversion -Wsign-conversion)
 if(CXX_FEATURE_FOUND EQUAL "-1")
     target_compile_options(${PROJECT_NAME} INTERFACE -std=c++11)
@@ -48,21 +36,68 @@ else()
 endif()
 target_include_directories(${PROJECT_NAME} INTERFACE
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-    "$<INSTALL_INTERFACE:include>")
+    "$<INSTALL_INTERFACE:include>"
+    )
 target_include_directories(${PROJECT_NAME} SYSTEM INTERFACE
-    ${catkin_INCLUDE_DIRS}
-    ${EIGEN3_INCLUDE_DIRS})
+    ${rclcpp_INCLUDE_DIRS}
+    ${tesseract_msgs_INCLUDE_DIRS}
+    ${eigen_conversions_INCLUDE_DIRS}
+    ${EIGEN3_INCLUDE_DIRS},
+    $<TARGET_PROPERTY:tesseract::tesseract_rosutils,INTERFACE_INCLUDE_DIRECTORIES>)
+
+list (APPEND PACKAGE_LIBRARIES ${PROJECT_NAME})
+
+ament_export_dependencies(
+    EIGEN3
+    tesseract_msgs
+    rclcpp
+    eigen_conversions
+    roslib
+    tesseract_scene_graph
+    tesseract_geometry
+    tesseract_visualization
+    tesseract_collision
+    tesseract_common
+    tesseract_process_planners
+    )
+
+ament_export_include_directories(
+    include
+    ${EIGEN3_INCLUDE_DIRS}
+    )
+
+ament_package()
+
+install(TARGETS ${PACKAGE_LIBRARIES} EXPORT ${PROJECT_NAME}-targets DESTINATION lib)
+install(EXPORT ${PROJECT_NAME}-targets NAMESPACE tesseract:: DESTINATION lib/cmake/${PROJECT_NAME})
 
 install(
   TARGETS ${PROJECT_NAME}
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
 )
 
 # Mark cpp header files for installation
 install(DIRECTORY include/${PROJECT_NAME}/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+  DESTINATION include
   FILES_MATCHING PATTERN "*.h"
   PATTERN ".svn" EXCLUDE
  )
+
+# Create cmake config files
+include(CMakePackageConfigHelpers)
+configure_package_config_file(${CMAKE_CURRENT_LIST_DIR}/cmake/${PROJECT_NAME}-config.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config.cmake
+  INSTALL_DESTINATION lib/cmake/${PROJECT_NAME}
+  NO_CHECK_REQUIRED_COMPONENTS_MACRO)
+
+write_basic_package_version_file(${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
+  VERSION ${PROJECT_VERSION} COMPATIBILITY ExactVersion)
+
+install(FILES
+  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config.cmake"
+  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake"
+  DESTINATION lib/cmake/${PROJECT_NAME})
+
+export(EXPORT ${PROJECT_NAME}-targets FILE ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-targets.cmake)

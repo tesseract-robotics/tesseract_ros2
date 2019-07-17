@@ -1,0 +1,18 @@
+@PACKAGE_INIT@
+
+set(@PROJECT_NAME@_FOUND ON)
+set_and_check(@PROJECT_NAME@_INCLUDE_DIRS "${PACKAGE_PREFIX_DIR}/include")
+set_and_check(@PROJECT_NAME@_LIBRARY_DIRS "${PACKAGE_PREFIX_DIR}/lib")
+
+include(CMakeFindDependencyMacro)
+find_dependency(Eigen3)
+find_dependency(rclcpp)
+find_dependency(roslib)
+find_dependency(eigen_conversions)
+find_dependency(tesseract_scene_graph)
+find_dependency(tesseract_common)
+find_dependency(tesseract_visualization)
+find_dependency(tesseract_collision)
+find_dependency(tesseract_process_planners)
+
+include("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@-targets.cmake")

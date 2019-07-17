@@ -42,8 +42,8 @@ target_include_directories(${PROJECT_NAME} SYSTEM INTERFACE
     ${rclcpp_INCLUDE_DIRS}
     ${tesseract_msgs_INCLUDE_DIRS}
     ${eigen_conversions_INCLUDE_DIRS}
-    ${EIGEN3_INCLUDE_DIRS},
-    $<TARGET_PROPERTY:tesseract::tesseract_rosutils,INTERFACE_INCLUDE_DIRECTORIES>)
+    ${EIGEN3_INCLUDE_DIRS}
+    )
 
 list (APPEND PACKAGE_LIBRARIES ${PROJECT_NAME})
 
@@ -79,7 +79,7 @@ install(
 )
 
 # Mark cpp header files for installation
-install(DIRECTORY include/${PROJECT_NAME}/
+install(DIRECTORY include/${PROJECT_NAME}
   DESTINATION include
   FILES_MATCHING PATTERN "*.h"
   PATTERN ".svn" EXCLUDE

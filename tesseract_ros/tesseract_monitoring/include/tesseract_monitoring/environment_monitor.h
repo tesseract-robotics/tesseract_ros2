@@ -40,41 +40,50 @@
 #include <tesseract_common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <pluginlib/class_loader.hpp>
-#include <ros/ros.h>
-#include <tf/tf.h>
-#include <tf/message_filter.h>
-#include <message_filters/subscriber.h>
+#include <rclcpp/rclcpp.hpp>
+#include <rclcpp/service.hpp>
+//#include <tf/tf.h>
+//#include <tf/message_filter.h>
+//#include <message_filters/subscriber.h>
 #include <boost/noncopyable.hpp>
+#include <boost/thread.hpp>
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/thread/recursive_mutex.hpp>
 #include <memory>
-#include <tesseract_msgs/TesseractState.h>
-#include <tesseract_msgs/ModifyEnvironment.h>
-#include <tesseract_msgs/GetEnvironmentChanges.h>
-#include <tesseract_msgs/GetEnvironmentInformation.h>
-#include <tesseract_msgs/SaveSceneGraph.h>
+#include <tesseract_msgs/msg/tesseract_state.hpp>
+#include <tesseract_msgs/srv/modify_environment.hpp>
+#include <tesseract_msgs/srv/get_environment_changes.hpp>
+#include <tesseract_msgs/srv/get_environment_information.hpp>
+#include <tesseract_msgs/srv/save_scene_graph.hpp>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_collision/core/discrete_contact_manager.h>
 #include <tesseract_collision/core/continuous_contact_manager.h>
 #include <tesseract_environment/core/environment.h>
+
 #include <tesseract_monitoring/current_state_monitor.h>
-#include <tesseract_rosutils/utils.h>
-#include <tesseract_monitoring/environment_monitor.h>
+
+//#include <tesseract_rosutils/conversions.h>
+//#include <tesseract_rosutils/utils.h>
+#include <tesseract_rosutils/plotting.h>
+
+//#include <tesseract_monitoring/environment_monitor.h>
+
 #include <tesseract_scene_graph/graph.h>
 #include <tesseract_scene_graph/parser/urdf_parser.h>
 #include <tesseract_scene_graph/parser/srdf_parser.h>
 #include <tesseract_kinematics/core/forward_kinematics.h>
 
-class DynamicReconfigureImpl;
+// TODO: Dynamic reconfigure deprecated in ROS 2. Use parameter updates instead.
+//class DynamicReconfigureImpl;
 
 namespace tesseract_monitoring
 {
-typedef pluginlib::ClassLoader<tesseract_collision::DiscreteContactManager> DiscreteContactManagerPluginLoader;
-typedef std::shared_ptr<DiscreteContactManagerPluginLoader> DiscreteContactManagerPluginLoaderPtr;
+//typedef pluginlib::ClassLoader<tesseract_collision::DiscreteContactManager> DiscreteContactManagerPluginLoader;
+//typedef std::shared_ptr<DiscreteContactManagerPluginLoader> DiscreteContactManagerPluginLoaderPtr;
 
-typedef pluginlib::ClassLoader<tesseract_collision::ContinuousContactManager> ContinuousContactManagerPluginLoader;
-typedef std::shared_ptr<ContinuousContactManagerPluginLoader> ContinuousContactManagerPluginLoaderPtr;
+//typedef pluginlib::ClassLoader<tesseract_collision::ContinuousContactManager> ContinuousContactManagerPluginLoader;
+//typedef std::shared_ptr<ContinuousContactManagerPluginLoader> ContinuousContactManagerPluginLoaderPtr;
 
 /**
  * @brief TesseractMonitor
@@ -126,7 +135,8 @@ public:
    *  @param tf A pointer to a tf::Transformer
    *  @param name A name identifying this planning scene monitor
    */
-  EnvironmentMonitor(const std::string& robot_description,
+  EnvironmentMonitor(rclcpp::Node::SharedPtr node,
+                     const std::string& robot_description,
                      const std::string& name,
                      const std::string& discrete_plugin = "",
                      const std::string& continuous_plugin = "");
@@ -136,7 +146,8 @@ public:
    *  @param tf A pointer to a tf::Transformer
    *  @param name A name identifying this planning scene monitor
    */
-  EnvironmentMonitor(tesseract::Tesseract::Ptr tesseract,
+  EnvironmentMonitor(rclcpp::Node::SharedPtr node,
+                     tesseract::Tesseract::Ptr tesseract,
                      const std::string& name,
                      const std::string& discrete_plugin = "",
                      const std::string& continuous_plugin = "");
@@ -177,7 +188,6 @@ public:
       the pointer of the scene is the same as the one maintained,
       or if a parent of the scene is the one maintained. */
   bool updatesEnvironment(const tesseract_environment::Environment::ConstPtr& env) const;
-
   /** @brief Return true if the scene \e scene can be updated directly
       or indirectly by this monitor. This function will return true if
       the pointer of the scene is the same as the one maintained,
@@ -230,8 +240,8 @@ public:
   /** @brief Get the maximum frequency (Hz) at which the current state of the planning scene is updated.*/
   double getStateUpdateFrequency() const
   {
-    if (!dt_state_update_.isZero())
-      return 1.0 / dt_state_update_.toSec();
+    if (!dt_state_update_.seconds() == 0)
+      return 1.0 / dt_state_update_.seconds();
     else
       return 0.0;
   }
@@ -243,7 +253,7 @@ public:
   void clearUpdateCallbacks();
 
   /** \brief Return the time when the last update was made to the planning scene (by \e any monitor) */
-  const ros::Time& getLastUpdateTime() const { return last_update_time_; }
+  const rclcpp::Time& getLastUpdateTime() const { return last_update_time_; }
 
   /** @brief This function is called every time there is a change to the planning scene */
   void triggerEnvironmentUpdateEvent(EnvironmentUpdateType update_type);
@@ -253,7 +263,7 @@ public:
    * If there is no state monitor active, there will be no scene updates.
    * Hence, you can specify a timeout to wait for those updates. Default is 1s.
    */
-  bool waitForCurrentState(const ros::Time& t, double wait_time = 1.);
+  bool waitForCurrentState(const rclcpp::Time& t, double wait_time = 1.);
 
   /** \brief Lock the scene for reading (multiple threads can lock for reading at the same time) */
   void lockEnvironmentRead();
@@ -284,21 +294,22 @@ protected:
   std::string discrete_plugin_name_;
   std::string continuous_plugin_name_;
 
-  DiscreteContactManagerPluginLoaderPtr discrete_manager_loader_;
-  ContinuousContactManagerPluginLoaderPtr continuous_manager_loader_;
+//  DiscreteContactManagerPluginLoader::Ptr discrete_manager_loader_;
+//  ContinuousContactManagerPluginLoader::Ptr continuous_manager_loader_;
 
   tesseract::Tesseract::Ptr tesseract_;
   boost::shared_mutex scene_update_mutex_;  /// mutex for stored scene
-  ros::Time last_update_time_;              /// Last time the state was updated
-  ros::Time last_robot_motion_time_;        /// Last time the robot has moved
+  rclcpp::Time last_update_time_;              /// Last time the state was updated
+  rclcpp::Time last_robot_motion_time_;        /// Last time the robot has moved
   bool enforce_next_state_update_;          /// flag to enforce immediate state update in onStateUpdate()
 
-  ros::NodeHandle nh_;
-  ros::NodeHandle root_nh_;
+//  ros::NodeHandle nh_;
+//  ros::NodeHandle root_nh_;
+  rclcpp::Node::SharedPtr node_;
   std::string robot_description_;
 
   // variables for planning scene publishing
-  ros::Publisher environment_publisher_;
+  rclcpp::Publisher<tesseract_msgs::msg::TesseractState>::SharedPtr environment_publisher_;
   std::unique_ptr<boost::thread> publish_environment_;
   double publish_environment_frequency_;
   EnvironmentUpdateType publish_update_types_;
@@ -306,16 +317,20 @@ protected:
   boost::condition_variable_any new_environment_update_condition_;
 
   // host a service for modifying the environment
-  ros::ServiceServer modify_environment_server_;
+//  ros::ServiceServer modify_environment_server_;
+  rclcpp::Service<tesseract_msgs::srv::ModifyEnvironment>::SharedPtr modify_environment_server_;
 
   // host a service for getting the environment changes
-  ros::ServiceServer get_environment_changes_server_;
+//  ros::ServiceServer get_environment_changes_server_;
+  rclcpp::Service<tesseract_msgs::srv::GetEnvironmentChanges>::SharedPtr get_environment_changes_server_;
 
   // host a service for getting the environment information
-  ros::ServiceServer get_environment_information_server_;
+//  ros::ServiceServer get_environment_information_server_;
+  rclcpp::Service<tesseract_msgs::srv::GetEnvironmentInformation>::SharedPtr get_environment_information_server_;
 
   // host a service for saving the scene graph to a DOT file
-  ros::ServiceServer save_scene_graph_server_;
+//  ros::ServiceServer save_scene_graph_server_;
+  rclcpp::Service<tesseract_msgs::srv::SaveSceneGraph>::SharedPtr save_scene_graph_server_;
 
   // include a current state monitor
   CurrentStateMonitorPtr current_state_monitor_;
@@ -327,39 +342,40 @@ protected:
                                                                                  /// are received
 
 private:
-  void getUpdatedFrameTransforms(std::vector<geometry_msgs::TransformStamped>& transforms);
+  void getUpdatedFrameTransforms(std::vector<geometry_msgs::msg::TransformStamped>& transforms);
 
   // publish environment update diffs (runs in its own thread)
   void environmentPublishingThread();
 
   // called by current_state_monitor_ when robot state (as monitored on joint state topic) changes
-  void onStateUpdate(const sensor_msgs::JointStateConstPtr& joint_state);
+  void onStateUpdate(const sensor_msgs::msg::JointState::SharedPtr joint_state);
 
   // called by state_update_timer_ when a state update it pending
-  void stateUpdateTimerCallback(const ros::WallTimerEvent& event);
+  void stateUpdateTimerCallback();
 
   // Callback for a new state msg
-  void newStateCallback(const tesseract_msgs::TesseractStateConstPtr& env);
+  void newStateCallback(const std::shared_ptr<tesseract_msgs::msg::TesseractState> env);
 
   /** @brief Callback for modifying the environment via service request */
-  bool modifyEnvironmentCallback(tesseract_msgs::ModifyEnvironmentRequest& req,
-                                 tesseract_msgs::ModifyEnvironmentResponse& res);
+  void modifyEnvironmentCallback(const std::shared_ptr<tesseract_msgs::srv::ModifyEnvironment::Request> req,
+                                 std::shared_ptr<tesseract_msgs::srv::ModifyEnvironment::Response> res);
 
   /** @brief Callback for get the environment changes via service request */
-  bool getEnvironmentChangesCallback(tesseract_msgs::GetEnvironmentChangesRequest& req,
-                                     tesseract_msgs::GetEnvironmentChangesResponse& res);
+  void getEnvironmentChangesCallback(const std::shared_ptr<tesseract_msgs::srv::GetEnvironmentChanges::Request> req,
+                                     std::shared_ptr<tesseract_msgs::srv::GetEnvironmentChanges::Response> res);
 
   /** @brief Callback for get the environment information via service request */
-  bool getEnvironmentInformationCallback(tesseract_msgs::GetEnvironmentInformationRequest& req,
-                                         tesseract_msgs::GetEnvironmentInformationResponse& res);
+  void getEnvironmentInformationCallback(const std::shared_ptr<tesseract_msgs::srv::GetEnvironmentInformation::Request> req,
+                                         std::shared_ptr<tesseract_msgs::srv::GetEnvironmentInformation::Response> res);
 
   /** @brief Callback to save the scene graph to a DOT via a service request */
-  bool saveSceneGraphCallback(tesseract_msgs::SaveSceneGraphRequest& req, tesseract_msgs::SaveSceneGraphResponse& res);
+  void saveSceneGraphCallback(const std::shared_ptr<tesseract_msgs::srv::SaveSceneGraph::Request> req,
+                              std::shared_ptr<tesseract_msgs::srv::SaveSceneGraph::Response> res);
 
   // Called when new service request is called to modify the environment.
   bool applyEnvironmentCommandsMessage(std::string id,
                                        int revision,
-                                       const std::vector<tesseract_msgs::EnvironmentCommand>& commands);
+                                       const std::vector<tesseract_msgs::msg::EnvironmentCommand>& commands);
 
   // Lock for state_update_pending_ and dt_state_update_
   boost::mutex state_pending_mutex_;
@@ -370,23 +386,23 @@ private:
 
   /// the amount of time to wait in between updates to the robot state
   // This field is protected by state_pending_mutex_
-  ros::WallDuration dt_state_update_;
+  std::chrono::duration<double> dt_state_update_;
 
   /// the amount of time to wait when looking up transforms
   // Setting this to a non-zero value resolves issues when the sensor data is
   // arriving so fast that it is preceding the transform state.
-  ros::Duration shape_transform_cache_lookup_wait_time_;
+  rclcpp::Duration shape_transform_cache_lookup_wait_time_;
 
   /// timer for state updates.
   // Check if last_state_update_ is true and if so call updateSceneWithCurrentState()
   // Not safe to access from callback functions.
-  ros::WallTimer state_update_timer_;
+  rclcpp::TimerBase::SharedPtr state_update_timer_;
 
   /// Last time the state was updated from current_state_monitor_
   // Only access this from callback functions (and constructor)
-  ros::WallTime last_robot_state_update_wall_time_;
+  rclcpp::Time last_robot_state_update_wall_time_;
 
-  DynamicReconfigureImpl* reconfigure_impl_;
+//  DynamicReconfigureImpl* reconfigure_impl_;
 };
 typedef std::shared_ptr<EnvironmentMonitor> EnvironmentMonitorPtr;
 typedef std::shared_ptr<const EnvironmentMonitor> EnvironmentMonitorConstPtr;

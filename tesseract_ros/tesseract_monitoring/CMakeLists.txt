@@ -41,7 +41,8 @@ include_directories(
 #target_include_directories(${PROJECT_NAME}_contacts_node SYSTEM PUBLIC ${catkin_INCLUDE_DIRS})
 
 add_library(${PROJECT_NAME}_environment SHARED
-#    src/environment_monitor_node.cpp
+    src/environment_monitor_node.cpp
+    src/environment_monitor.cpp
     src/current_state_monitor.cpp
     )
 target_link_libraries(${PROJECT_NAME}_environment PUBLIC

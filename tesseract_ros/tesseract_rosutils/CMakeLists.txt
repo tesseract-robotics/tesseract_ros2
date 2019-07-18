@@ -14,6 +14,7 @@ find_package(tesseract_visualization REQUIRED)
 find_package(tesseract_collision REQUIRED)
 find_package(tesseract_common REQUIRED)
 find_package(tesseract_process_planners REQUIRED)
+find_package(tf2_eigen REQUIRED)
 
 list(FIND CMAKE_CXX_COMPILE_FEATURES cxx_std_11 CXX_FEATURE_FOUND)
 
@@ -27,7 +28,10 @@ target_link_libraries(${PROJECT_NAME} INTERFACE
     tesseract::tesseract_process_planners
     ${rclcpp_LIBRARIES}
     ${tesseract_msgs_LIBRARIES}
-    ${eigen_conversions_LIBRARIES})
+    ${eigen_conversions_LIBRARIES}
+    ${ament_index_cpp_LIBRARIES}
+    ${tf2_eigen_LIBRARIES}
+    )
 target_compile_options(${PROJECT_NAME} INTERFACE -Wall -Wextra -Wsuggest-override -Wconversion -Wsign-conversion)
 if(CXX_FEATURE_FOUND EQUAL "-1")
     target_compile_options(${PROJECT_NAME} INTERFACE -std=c++11)
@@ -43,6 +47,9 @@ target_include_directories(${PROJECT_NAME} SYSTEM INTERFACE
     ${tesseract_msgs_INCLUDE_DIRS}
     ${eigen_conversions_INCLUDE_DIRS}
     ${EIGEN3_INCLUDE_DIRS}
+    ${ament_index_cpp_INCLUDE_DIRS}
+    ${tf2_eigen_INCLUDE_DIRS}
+
     )
 
 list (APPEND PACKAGE_LIBRARIES ${PROJECT_NAME})

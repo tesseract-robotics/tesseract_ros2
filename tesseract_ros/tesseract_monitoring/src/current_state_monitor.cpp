@@ -36,26 +36,33 @@
 
 #include <tesseract_common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
-#include <ros/console.h>
+#include <rclcpp/rclcpp.hpp>
 #include <limits>
-#include <geometry_msgs/TransformStamped.h>
+#include <geometry_msgs/msg/transform_stamped.hpp>
+#include <sensor_msgs/msg/joint_state.hpp>
 #include <tf2_eigen/tf2_eigen.h>
+#include <tf2_ros/transform_broadcaster.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_monitoring/current_state_monitor.h>
+#include <tesseract_rosutils/conversions.h>
+#include <tesseract_rosutils/utils.h>
+
+using std::placeholders::_1;
+using std::placeholders::_2;
 
 namespace tesseract_monitoring
 {
 CurrentStateMonitor::CurrentStateMonitor(const tesseract_environment::Environment::ConstPtr& env,
                                          const tesseract::ForwardKinematicsManager::ConstPtr& kinematics_manager)
-  : CurrentStateMonitor(env, kinematics_manager, ros::NodeHandle())
+  : CurrentStateMonitor(env, kinematics_manager, std::make_shared<rclcpp::Node>("current_state_monitor"))
 {
 }
 
 CurrentStateMonitor::CurrentStateMonitor(const tesseract_environment::Environment::ConstPtr& env,
                                          const tesseract::ForwardKinematicsManager::ConstPtr& kinematics_manager,
-                                         ros::NodeHandle nh)
-  : nh_(nh)
+                                         rclcpp::Node::SharedPtr node)
+  : node_(node)
   , env_(env)
   , env_state_(*env->getCurrentState())
   , last_environment_revision_(env_->getRevision())
@@ -63,7 +70,9 @@ CurrentStateMonitor::CurrentStateMonitor(const tesseract_environment::Environmen
   , state_monitor_started_(false)
   , copy_dynamics_(false)
   , error_(std::numeric_limits<double>::epsilon())
+  , tf_broadcaster_(node_)
 {
+//  joint_state_subscriber_ = node_->create_subscription<std_msgs::msg::JointState>()
 }
 
 CurrentStateMonitor::~CurrentStateMonitor() { stopStateMonitor(); }
@@ -73,13 +82,13 @@ tesseract_environment::EnvState::Ptr CurrentStateMonitor::getCurrentState() cons
   return std::make_shared<tesseract_environment::EnvState>(env_state_);
 }
 
-ros::Time CurrentStateMonitor::getCurrentStateTime() const
+rclcpp::Time CurrentStateMonitor::getCurrentStateTime() const
 {
   boost::mutex::scoped_lock slock(state_update_lock_);
   return current_state_time_;
 }
 
-std::pair<tesseract_environment::EnvState::Ptr, ros::Time> CurrentStateMonitor::getCurrentStateAndTime() const
+std::pair<tesseract_environment::EnvState::Ptr, rclcpp::Time> CurrentStateMonitor::getCurrentStateAndTime() const
 {
   boost::mutex::scoped_lock slock(state_update_lock_);
   return std::make_pair(std::make_shared<tesseract_environment::EnvState>(env_state_), current_state_time_);
@@ -105,12 +114,15 @@ void CurrentStateMonitor::startStateMonitor(const std::string& joint_states_topi
   {
     joint_time_.clear();
     if (joint_states_topic.empty())
-      ROS_ERROR("The joint states topic cannot be an empty string");
+      RCLCPP_ERROR(node_->get_logger(), "The joint states topic cannot be an empty string");
     else
-      joint_state_subscriber_ = nh_.subscribe(joint_states_topic, 25, &CurrentStateMonitor::jointStateCallback, this);
+    {
+      joint_state_subscriber_ = node_->create_subscription<sensor_msgs::msg::JointState>(
+            joint_states_topic, 25, std::bind(&CurrentStateMonitor::jointStateCallback, this, std::placeholders::_1));
+    }
     state_monitor_started_ = true;
-    monitor_start_time_ = ros::Time::now();
-    ROS_DEBUG("Listening to joint states on topic '%s'", nh_.resolveName(joint_states_topic).c_str());
+    monitor_start_time_ = node_->now();
+//    ROS_DEBUG("Listening to joint states on topic '%s'", nh_.resolveName(joint_states_topic).c_str());
   }
 }
 
@@ -119,8 +131,8 @@ void CurrentStateMonitor::stopStateMonitor()
 {
   if (state_monitor_started_)
   {
-    joint_state_subscriber_.shutdown();
-    ROS_DEBUG("No longer listening o joint states");
+    joint_state_subscriber_.reset();  // BUG: Right way to do this>
+    RCLCPP_DEBUG(node_->get_logger(), "No longer listening o joint states");
     state_monitor_started_ = false;
   }
 }
@@ -128,7 +140,7 @@ void CurrentStateMonitor::stopStateMonitor()
 std::string CurrentStateMonitor::getMonitoredTopic() const
 {
   if (joint_state_subscriber_)
-    return joint_state_subscriber_.getTopic();
+    return joint_state_subscriber_->get_topic_name();
   else
     return "";
 }
@@ -168,7 +180,7 @@ bool CurrentStateMonitor::haveCompleteState() const
     {
       if (!isPassiveOrMimicDOF(joint.first))
       {
-        ROS_DEBUG("Joint variable '%s' has never been updated", joint.first.c_str());
+        RCLCPP_DEBUG(node_->get_logger(), "Joint variable '%s' has never been updated", joint.first.c_str());
         result = false;
       }
     }
@@ -189,60 +201,62 @@ bool CurrentStateMonitor::haveCompleteState(std::vector<std::string>& missing_st
   return result;
 }
 
-bool CurrentStateMonitor::haveCompleteState(const ros::Duration& age) const
+bool CurrentStateMonitor::haveCompleteState(const rclcpp::Duration& age) const
 {
   bool result = true;
-  ros::Time now = ros::Time::now();
-  ros::Time old = now - age;
+  rclcpp::Time now = node_->now();
+  rclcpp::Time old = now - age;
   boost::mutex::scoped_lock slock(state_update_lock_);
   for (const auto& joint : env_state_.joints)
   {
     if (isPassiveOrMimicDOF(joint.first))
       continue;
-    std::map<std::string, ros::Time>::const_iterator it = joint_time_.find(joint.first);
+    std::map<std::string, rclcpp::Time>::const_iterator it = joint_time_.find(joint.first);
     if (it == joint_time_.end())
     {
-      ROS_DEBUG("Joint variable '%s' has never been updated", joint.first.c_str());
+      RCLCPP_DEBUG(node_->get_logger(), "Joint variable '%s' has never been updated", joint.first.c_str());
       result = false;
     }
     else if (it->second < old)
     {
-      ROS_DEBUG("Joint variable '%s' was last updated %0.3lf seconds ago "
-                "(older than the allowed %0.3lf seconds)",
-                joint.first.c_str(),
-                (now - it->second).toSec(),
-                age.toSec());
+      RCLCPP_DEBUG(node_->get_logger(),
+                   "Joint variable '%s' was last updated %0.3lf seconds ago "
+                   "(older than the allowed %0.3lf seconds)",
+                   joint.first.c_str(),
+                   (now - it->second).seconds(),
+                   age.seconds());
       result = false;
     }
   }
   return result;
 }
 
-bool CurrentStateMonitor::haveCompleteState(const ros::Duration& age, std::vector<std::string>& missing_states) const
+bool CurrentStateMonitor::haveCompleteState(const rclcpp::Duration& age, std::vector<std::string>& missing_states) const
 {
   bool result = true;
-  ros::Time now = ros::Time::now();
-  ros::Time old = now - age;
+  rclcpp::Time now = node_->now();
+  rclcpp::Time old = now - age;
   boost::mutex::scoped_lock slock(state_update_lock_);
 
   for (const auto& joint : env_state_.joints)
   {
     if (isPassiveOrMimicDOF(joint.first))
       continue;
-    std::map<std::string, ros::Time>::const_iterator it = joint_time_.find(joint.first);
+    std::map<std::string, rclcpp::Time>::const_iterator it = joint_time_.find(joint.first);
     if (it == joint_time_.end())
     {
-      ROS_DEBUG("Joint variable '%s' has never been updated", joint.first.c_str());
+     RCLCPP_DEBUG(node_->get_logger(), "Joint variable '%s' has never been updated", joint.first.c_str());
       missing_states.push_back(joint.first);
       result = false;
     }
     else if (it->second < old)
     {
-      ROS_DEBUG("Joint variable '%s' was last updated %0.3lf seconds ago "
-                "(older than the allowed %0.3lf seconds)",
-                joint.first.c_str(),
-                (now - it->second).toSec(),
-                age.toSec());
+      RCLCPP_DEBUG(node_->get_logger(),
+                   "Joint variable '%s' was last updated %0.3lf seconds ago "
+                   "(older than the allowed %0.3lf seconds)",
+                   joint.first.c_str(),
+                   (now - it->second).seconds(),
+                   age.seconds());
       missing_states.push_back(joint.first);
       result = false;
     }
@@ -250,17 +264,17 @@ bool CurrentStateMonitor::haveCompleteState(const ros::Duration& age, std::vecto
   return result;
 }
 
-bool CurrentStateMonitor::waitForCurrentState(const ros::Time t, double wait_time) const
+bool CurrentStateMonitor::waitForCurrentState(const rclcpp::Time t, double wait_time) const
 {
-  ros::WallTime start = ros::WallTime::now();
-  ros::WallDuration elapsed(0, 0);
-  ros::WallDuration timeout(wait_time);
+  rclcpp::Time start = node_->now();
+  rclcpp::Duration elapsed(0, 0);
+  rclcpp::Duration timeout(wait_time);
 
   boost::mutex::scoped_lock slock(state_update_lock_);
   while (current_state_time_ < t)
   {
-    state_update_condition_.wait_for(slock, boost::chrono::nanoseconds((timeout - elapsed).toNSec()));
-    elapsed = ros::WallTime::now() - start;
+    state_update_condition_.wait_for(slock, boost::chrono::nanoseconds((timeout - elapsed).nanoseconds()));
+    elapsed = node_->now() - start;
     if (elapsed > timeout)
       return false;
   }
@@ -271,10 +285,9 @@ bool CurrentStateMonitor::waitForCompleteState(double wait_time) const
 {
   double slept_time = 0.0;
   double sleep_step_s = std::min(0.05, wait_time / 10.0);
-  ros::Duration sleep_step(sleep_step_s);
   while (!haveCompleteState() && slept_time < wait_time)
   {
-    sleep_step.sleep();
+    rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(sleep_step_s)));  // TODO: this seems unnecessarily clunky
     slept_time += sleep_step_s;
   }
   return haveCompleteState();
@@ -308,14 +321,11 @@ bool CurrentStateMonitor::waitForCompleteState(const std::string& manip, double 
   return ok;
 }
 
-void CurrentStateMonitor::jointStateCallback(const sensor_msgs::JointStateConstPtr& joint_state)
+void CurrentStateMonitor::jointStateCallback(const sensor_msgs::msg::JointState::SharedPtr joint_state)
 {
   if (joint_state->name.size() != joint_state->position.size())
   {
-    ROS_ERROR_THROTTLE(1,
-                       "State monitor received invalid joint state (number "
-                       "of joint names does not match number of "
-                       "positions)");
+    RCLCPP_ERROR_ONCE(node_->get_logger(), "State monitor received invalid joint state (number of joint names does not match number of positions)");
     return;
   }
   bool update = false;
@@ -347,13 +357,22 @@ void CurrentStateMonitor::jointStateCallback(const sensor_msgs::JointStateConstP
       env_state_ = tesseract_environment::EnvState(*(env_->getState(env_state_.joints)));
 
     std::string base_link = env_->getRootLinkName();
-    std::vector<geometry_msgs::TransformStamped> transforms;
+    std::vector<geometry_msgs::msg::TransformStamped> transforms;
     transforms.reserve(env_state_.joints.size());
     for (const auto& pose : env_state_.transforms)
     {
       if (pose.first != base_link)
       {
-        geometry_msgs::TransformStamped tf = tf2::eigenToTransform(pose.second);
+        geometry_msgs::msg::TransformStamped tf;  // TODO: should be implemented as a tf2::toMsg() function
+        Eigen::Quaterniond q(pose.second.linear());
+        tf.transform.rotation.x = q.x();
+        tf.transform.rotation.y = q.y();
+        tf.transform.rotation.z = q.z();
+        tf.transform.rotation.w = q.w();
+        tf.transform.translation.x = pose.second.translation().x();
+        tf.transform.translation.y = pose.second.translation().y();
+        tf.transform.translation.z = pose.second.translation().z();
+
         tf.header.stamp = current_state_time_;
         tf.header.frame_id = base_link;
         tf.child_frame_id = pose.first;

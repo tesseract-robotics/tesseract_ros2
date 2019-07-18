@@ -26,9 +26,9 @@ target_link_libraries(${PROJECT_NAME} INTERFACE
     tesseract::tesseract_visualization
     tesseract::tesseract_common
     tesseract::tesseract_process_planners
+    Eigen3::Eigen
     ${rclcpp_LIBRARIES}
     ${tesseract_msgs_LIBRARIES}
-    ${eigen_conversions_LIBRARIES}
     ${ament_index_cpp_LIBRARIES}
     ${tf2_eigen_LIBRARIES}
     )
@@ -45,8 +45,6 @@ target_include_directories(${PROJECT_NAME} INTERFACE
 target_include_directories(${PROJECT_NAME} SYSTEM INTERFACE
     ${rclcpp_INCLUDE_DIRS}
     ${tesseract_msgs_INCLUDE_DIRS}
-    ${eigen_conversions_INCLUDE_DIRS}
-    ${EIGEN3_INCLUDE_DIRS}
     ${ament_index_cpp_INCLUDE_DIRS}
     ${tf2_eigen_INCLUDE_DIRS}
 

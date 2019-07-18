@@ -5,7 +5,7 @@
  * @author Levi Armstrong
  * @date April 15, 2018
  * @version TODO
- * @bug No known bugs
+ * @bug Timestamped messages generated from non-timestamped data will be assigned times that do not correlate with the ROS time.
  *
  * @copyright Copyright (c) 2013, Southwest Research Institute
  *
@@ -30,9 +30,8 @@
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <octomap_msgs/conversions.h>
 #include <std_msgs/msg/int32.hpp>
-//#include <eigen_conversions/eigen_msg.h>
+#include <geometry_msgs/msg/transform_stamped.hpp>
 #include <tf2_eigen/tf2_eigen.h>
-//#include <ros/console.h>
 #include <ament_index_cpp/get_package_share_directory.hpp>
 #include <trajectory_msgs/msg/joint_trajectory.hpp>
 #include <tesseract_msgs/msg/tesseract_state.hpp>
@@ -54,13 +53,23 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <tesseract_msgs/msg/joint_safety.hpp>
 
 #include <tesseract_environment/core/environment.h>
-
 #include <Eigen/Geometry>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_scene_graph/link.h>
 #include <tesseract_geometry/geometries.h>
 #include <tesseract_collision/core/common.h>
+
+//namespace tf2
+//{
+//  inline
+//  geometry_msgs::msg::TransformStamped toMsg(const Eigen::Transform3d& in)
+//  {
+//    geometry_msgs::msg::TransformStamped msg;
+
+//    return msg;
+//  }
+//}
 
 namespace tesseract_rosutils
 {
@@ -249,7 +258,7 @@ static inline bool isIdentical(const tesseract_geometry::Geometry& shape1, const
       break;
     }
     default:
-      ROS_ERROR("This geometric shape type (%d) is not supported", static_cast<int>(shape1.getType()));
+//      ROS_ERROR("This geometric shape type (%d) is not supported", static_cast<int>(shape1.getType()));
       return false;
   }
 
@@ -468,8 +477,8 @@ static inline bool toMsg(tesseract_msgs::msg::Geometry& geometry_msgs, const tes
     }
     default:
     {
-      ROS_ERROR("Unable to construct primitive shape message for shape of type %d",
-                static_cast<int>(geometry.getType()));
+//      ROS_ERROR("Unable to construct primitive shape message for shape of type %d",
+//                static_cast<int>(geometry.getType()));
       return false;
     }
   }
@@ -579,8 +588,9 @@ static inline bool fromMsg(tesseract_geometry::Geometry::Ptr& geometry, const te
         om, tesseract_geometry::Octree::SubType::BOX));  // TODO: Need to include SubShapeType in message
   }
 
-  if (geometry == nullptr)
-    ROS_ERROR("Unable to construct shape corresponding to shape_msg of type %d", static_cast<int>(geometry_msg.type));
+  // BUG: Should report an error here
+//  if (geometry == nullptr)
+//    ROS_ERROR("Unable to construct shape corresponding to shape_msg of type %d", static_cast<int>(geometry_msg.type));
 }
 
 static inline bool toMsg(tesseract_msgs::msg::Material& material_msg, const tesseract_scene_graph::Material::Ptr& material)

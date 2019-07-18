@@ -4,6 +4,8 @@ project(tesseract_rosutils VERSION 0.1.0 LANGUAGES CXX)
 # ROS packages
 find_package(rclcpp REQUIRED)
 find_package(tesseract_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
+
 find_package(eigen_conversions REQUIRED)
 
 # Non-ROS packages
@@ -29,6 +31,7 @@ target_link_libraries(${PROJECT_NAME} INTERFACE
     Eigen3::Eigen
     ${rclcpp_LIBRARIES}
     ${tesseract_msgs_LIBRARIES}
+    ${geometry_msgs_LIBRARIES}
     ${ament_index_cpp_LIBRARIES}
     ${tf2_eigen_LIBRARIES}
     )
@@ -47,6 +50,7 @@ target_include_directories(${PROJECT_NAME} SYSTEM INTERFACE
     ${tesseract_msgs_INCLUDE_DIRS}
     ${ament_index_cpp_INCLUDE_DIRS}
     ${tf2_eigen_INCLUDE_DIRS}
+    ${geometry_msgs_INCLUDE_DIRS}
 
     )
 

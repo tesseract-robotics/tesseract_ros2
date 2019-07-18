@@ -175,13 +175,13 @@ public:
   }
 
 private:
-  tesseract_environment::Environment::ConstPtr env_; /**< The Env */
-  int marker_counter_;                               /**< Counter when plotting */
-//  rclcpp::Publisher scene_pub_;                         /**< Scene publisher */  // TODO: Unused?
-  rclcpp::Publisher<tesseract_msgs::msg::Trajectory>::SharedPtr trajectory_pub_;  /**< Trajectory publisher */
-  rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr collisions_pub_;  /**< Collision Data publisher */
-  rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr arrows_pub_;  /**< Used for publishing arrow markers */
-  rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr axes_pub_;  /**< Used for publishing axis markers */
+  tesseract_environment::Environment::ConstPtr env_;                                  /**< The Env */
+  int marker_counter_;                                                                /**< Counter when plotting */
+//  rclcpp::Publisher scene_pub_;                                                     /**< Scene publisher */  // TODO: Unused?
+  rclcpp::Publisher<tesseract_msgs::msg::Trajectory>::SharedPtr trajectory_pub_;      /**< Trajectory publisher */
+  rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr collisions_pub_; /**< Collision Data publisher */
+  rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr arrows_pub_;     /**< Used for publishing arrow markers */
+  rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr axes_pub_;       /**< Used for publishing axis markers */
 
   visualization_msgs::msg::Marker getMarkerArrowMsg(const Eigen::Ref<const Eigen::Vector3d>& pt1,
                                                     const Eigen::Ref<const Eigen::Vector3d>& pt2,

@@ -145,7 +145,7 @@ geometry_msgs::msg::PoseArray toPoseArray(const std::vector<tesseract_motion_pla
     }
     else
     {
-      ROS_ERROR("toPoseArray only support Cartesian Waypoints at this time.");
+//      ROS_ERROR("toPoseArray only support Cartesian Waypoints at this time.");  // BUG: Throw something here
     }
   }
 

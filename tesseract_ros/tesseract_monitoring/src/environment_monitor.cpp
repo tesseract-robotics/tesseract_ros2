@@ -38,6 +38,7 @@
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 //#include <ros/console.h>
 //#include <dynamic_reconfigure/server.h>
+#include <shared_mutex>
 #include <memory>
 #include <numeric>
 //#include <tesseract_monitoring/EnvironmentMonitorDynamicReconfigureConfig.h>
@@ -330,7 +331,7 @@ void EnvironmentMonitor::environmentPublishingThread()
     bool publish_msg = false;
     rclcpp::Rate rate(publish_environment_frequency_);
     {
-      boost::unique_lock<boost::shared_mutex> ulock(scene_update_mutex_);
+      std::unique_lock<boost::shared_mutex> ulock(scene_update_mutex_);
       while (new_environment_update_ == UPDATE_NONE && publish_environment_)
         new_environment_update_condition_.wait(ulock);
       if (new_environment_update_ != UPDATE_NONE)
@@ -570,8 +571,8 @@ bool EnvironmentMonitor::waitForCurrentState(const rclcpp::Time& t, double wait_
          timeout > boost::chrono::duration<double>::zero())
   {
     RCLCPP_DEBUG(node_->get_logger(), "last robot motion: %f ago", (t - last_robot_motion_time_).to_chrono<std::chrono::duration<double>>().count());
-    new_environment_update_condition_.wait_for(lock, timeout);
-    timeout = timeout - (node_->now() - start).to_chrono<std::chrono::duration<double>>();  // compute remaining wait_time  // TODO: fix boost/std chrono conversion
+    new_environment_update_condition_.wait_for(lock, std::chrono::duration<double>(timeout.count()));
+    timeout = boost::chrono::duration<double>(timeout.count() - (node_->now() - start).to_chrono<std::chrono::duration<double>>().count());  // compute remaining wait_time  // TODO: this probably introduces some weird error
   }
   bool success = last_robot_motion_time_ >= t;
   // suppress warning if we received an update at all
@@ -581,6 +582,7 @@ bool EnvironmentMonitor::waitForCurrentState(const rclcpp::Time& t, double wait_
 //  ROS_DEBUG_STREAM_NAMED(LOGNAME,
 //                         "sync done: robot motion: " << (t - last_robot_motion_time_).seconds()
 //                                                     << " scene update: " << (t - last_update_time_).seconds());  // TODO: implement
+
   return success;
 }
 

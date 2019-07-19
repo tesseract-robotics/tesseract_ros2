@@ -30,7 +30,7 @@ int main(int argc, char** argv)
   node->declare_parameter("monitored_environment_topic");
 
   node->get_parameter_or<std::string>("robot_description", robot_description, "");
-  node->get_parameter_or<std::string>("descrete_plugin", descrete_plugin, "");
+  node->get_parameter_or<std::string>("descrete_plugin", descrete_plugin, "");  // BUG: typo
   node->get_parameter_or<std::string>("continuous_plugin", continuous_plugin, "");
   node->get_parameter_or<std::string>("joint_state_topic", joint_state_topic, "");
   node->get_parameter_or<std::string>("monitored_environment_topic", monitored_environment_topic, "");

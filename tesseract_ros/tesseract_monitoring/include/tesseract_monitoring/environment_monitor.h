@@ -47,6 +47,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 //#include <message_filters/subscriber.h>
 
 #include <condition_variable>
+#include <shared_mutex>
 
 #include <boost/noncopyable.hpp>
 #include <boost/thread.hpp>
@@ -82,11 +83,11 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 namespace tesseract_monitoring
 {
-//typedef pluginlib::ClassLoader<tesseract_collision::DiscreteContactManager> DiscreteContactManagerPluginLoader;
-//typedef std::shared_ptr<DiscreteContactManagerPluginLoader> DiscreteContactManagerPluginLoaderPtr;
+typedef pluginlib::ClassLoader<tesseract_collision::DiscreteContactManager> DiscreteContactManagerPluginLoader;
+typedef std::shared_ptr<DiscreteContactManagerPluginLoader> DiscreteContactManagerPluginLoaderPtr;
 
-//typedef pluginlib::ClassLoader<tesseract_collision::ContinuousContactManager> ContinuousContactManagerPluginLoader;
-//typedef std::shared_ptr<ContinuousContactManagerPluginLoader> ContinuousContactManagerPluginLoaderPtr;
+typedef pluginlib::ClassLoader<tesseract_collision::ContinuousContactManager> ContinuousContactManagerPluginLoader;
+typedef std::shared_ptr<ContinuousContactManagerPluginLoader> ContinuousContactManagerPluginLoaderPtr;
 
 /**
  * @brief TesseractMonitor
@@ -297,8 +298,8 @@ protected:
   std::string discrete_plugin_name_;
   std::string continuous_plugin_name_;
 
-//  DiscreteContactManagerPluginLoader::Ptr discrete_manager_loader_;
-//  ContinuousContactManagerPluginLoader::Ptr continuous_manager_loader_;
+  DiscreteContactManagerPluginLoaderPtr discrete_manager_loader_;
+  ContinuousContactManagerPluginLoaderPtr continuous_manager_loader_;
 
   tesseract::Tesseract::Ptr tesseract_;
   boost::shared_mutex scene_update_mutex_;  /// mutex for stored scene
@@ -317,7 +318,7 @@ protected:
   double publish_environment_frequency_;
   EnvironmentUpdateType publish_update_types_;
   EnvironmentUpdateType new_environment_update_;
-  boost::condition_variable_any new_environment_update_condition_;
+  std::condition_variable_any new_environment_update_condition_;
 
   // host a service for modifying the environment
 //  ros::ServiceServer modify_environment_server_;

@@ -1,9 +1,8 @@
 cmake_minimum_required(VERSION 3.5.0)
-project(tesseract_monitoring)
+project(tesseract_monitoring VERSION 0.1.0 LANGUAGES CXX)
 
 find_package(tesseract REQUIRED)
 find_package(orocos_kdl REQUIRED)
-
 find_package(Eigen3 REQUIRED)
 
 list(FIND CMAKE_CXX_COMPILE_FEATURES cxx_std_17 CXX_FEATURE_FOUND)
@@ -12,7 +11,6 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(tesseract_msgs REQUIRED)
 find_package(tesseract_rosutils REQUIRED)
-find_package(dynamic_reconfigure REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(tf2_eigen REQUIRED)
@@ -45,6 +43,7 @@ target_include_directories(${PROJECT_NAME}_contacts_node SYSTEM PUBLIC
     ${sensor_msgs_INCLUDE_DIRS}
     ${Boost_INCLUDE_DIRS}
 )
+list (APPEND PACKAGE_LIBRARIES ${PROJECT_NAME}_contacts_node)
 
 add_library(${PROJECT_NAME}_environment SHARED
     src/environment_monitor_node.cpp
@@ -71,9 +70,10 @@ target_include_directories(${PROJECT_NAME}_environment SYSTEM PUBLIC
     ${tesseract_msgs_INCLUDE_DIRS}
     ${tf2_ros_INCLUDE_DIRS}
     ${pluginlib_INCLUDE_DIRS}
-
-#    ${tesseract_rosutils_INCLUDE_DIRS}
     )
+list (APPEND PACKAGE_LIBRARIES ${PROJECT_NAME}_environment)
+
+
 #add_dependencies(${PROJECT_NAME}_environment ${PROJECT_NAME}_gencfg)
 
 #add_executable(demo_scene demos/demo_scene.cpp)
@@ -97,6 +97,7 @@ target_compile_options(${PROJECT_NAME}_environment_node PRIVATE -Wall -Wextra -W
 set_target_properties(${PROJECT_NAME}_environment_node PROPERTIES CXX_STANDARD 17)
 target_include_directories(${PROJECT_NAME}_environment_node PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>")
 target_include_directories(${PROJECT_NAME}_environment_node SYSTEM PUBLIC ${catkin_INCLUDE_DIRS})
+list (APPEND PACKAGE_LIBRARIES ${PROJECT_NAME}_environment_node)
 
 ament_export_dependencies(
     roscpp
@@ -116,11 +117,14 @@ ament_export_libraries(${PROJECT_NAME}_environment)
 
 ament_package()
 
+install(TARGETS ${PACKAGE_LIBRARIES} EXPORT ${PROJECT_NAME}-targets DESTINATION lib)
+install(EXPORT ${PROJECT_NAME}-targets NAMESPACE tesseract:: DESTINATION lib/cmake/${PROJECT_NAME})
+
 # Mark executables and/or libraries for installation
 install(TARGETS
     ${PROJECT_NAME}_environment
-#    ${PROJECT_NAME}_contacts_node
-#    ${PROJECT_NAME}_environment_node
+    ${PROJECT_NAME}_contacts_node
+    ${PROJECT_NAME}_environment_node
 #    demo_scene
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
@@ -137,3 +141,27 @@ install(DIRECTORY include/${PROJECT_NAME}/
 install(DIRECTORY launch
   DESTINATION share
 )
+
+## Mark cpp header files for installation
+#install(DIRECTORY include/${PROJECT_NAME}
+#  DESTINATION include
+#  FILES_MATCHING PATTERN "*.h"
+#  PATTERN ".svn" EXCLUDE
+# )
+
+# Create cmake config files
+include(CMakePackageConfigHelpers)
+configure_package_config_file(${CMAKE_CURRENT_LIST_DIR}/cmake/${PROJECT_NAME}-config.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config.cmake
+  INSTALL_DESTINATION lib/cmake/${PROJECT_NAME}
+  NO_CHECK_REQUIRED_COMPONENTS_MACRO)
+
+write_basic_package_version_file(${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
+  VERSION ${PROJECT_VERSION} COMPATIBILITY ExactVersion)
+
+install(FILES
+  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config.cmake"
+  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake"
+  DESTINATION lib/cmake/${PROJECT_NAME})
+
+export(EXPORT ${PROJECT_NAME}-targets FILE ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-targets.cmake)

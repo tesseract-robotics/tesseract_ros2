@@ -3,10 +3,12 @@ project(tesseract_rosutils VERSION 0.1.0 LANGUAGES CXX)
 
 # ROS packages
 find_package(rclcpp REQUIRED)
+find_package(ament_index_cpp REQUIRED)
 find_package(tesseract_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
-
 find_package(eigen_conversions REQUIRED)
+find_package(tf2_eigen REQUIRED)
+
 
 # Non-ROS packages
 find_package(Eigen3 REQUIRED)
@@ -16,9 +18,8 @@ find_package(tesseract_visualization REQUIRED)
 find_package(tesseract_collision REQUIRED)
 find_package(tesseract_common REQUIRED)
 find_package(tesseract_process_planners REQUIRED)
-find_package(tf2_eigen REQUIRED)
 
-list(FIND CMAKE_CXX_COMPILE_FEATURES cxx_std_14 CXX_FEATURE_FOUND)
+list(FIND CMAKE_CXX_COMPILE_FEATURES cxx_std_17 CXX_FEATURE_FOUND)
 
 add_library(${PROJECT_NAME} INTERFACE)
 target_link_libraries(${PROJECT_NAME} INTERFACE
@@ -37,9 +38,9 @@ target_link_libraries(${PROJECT_NAME} INTERFACE
     )
 target_compile_options(${PROJECT_NAME} INTERFACE -Wall -Wextra -Wsuggest-override -Wconversion -Wsign-conversion)
 if(CXX_FEATURE_FOUND EQUAL "-1")
-    target_compile_options(${PROJECT_NAME} INTERFACE -std=c++14)
+    target_compile_options(${PROJECT_NAME} INTERFACE -std=c++17)
 else()
-    target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_14)
+    target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_17)
 endif()
 target_include_directories(${PROJECT_NAME} INTERFACE
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"

@@ -39,6 +39,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 //#include <ros/console.h>
 //#include <dynamic_reconfigure/server.h>
 #include <memory>
+#include <numeric>
 //#include <tesseract_monitoring/EnvironmentMonitorDynamicReconfigureConfig.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <rclcpp/rclcpp.hpp>
@@ -166,7 +167,7 @@ EnvironmentMonitor::EnvironmentMonitor(rclcpp::Node::SharedPtr node,
   , discrete_plugin_name_(discrete_plugin)
   , continuous_plugin_name_(continuous_plugin)
   , tesseract_(std::move(tesseract))
-  , dt_state_update_(0, 0)
+  , dt_state_update_(0.0)
   , shape_transform_cache_lookup_wait_time_(0, 0)
 {
   initialize();
@@ -266,7 +267,7 @@ void EnvironmentMonitor::initialize()
 
   state_update_pending_ = false;
 
-  state_update_timer_ = node_->create_wall_timer(dt_state_update_, std::bind<&EnvironmentMonitor::stateUpdateTimerCallback, this>);
+  state_update_timer_ = node_->create_wall_timer(dt_state_update_, std::bind(&EnvironmentMonitor::stateUpdateTimerCallback, this));
 
 //  reconfigure_impl_ = new DynamicReconfigureImpl(this);
 
@@ -530,7 +531,7 @@ bool EnvironmentMonitor::waitForCurrentState(const rclcpp::Time& t, double wait_
   if (t.seconds() == 0)
     return false;
   rclcpp::Time start = node_->now();
-  rclcpp::Duration timeout(std::chrono::duration<double>(wait_time));
+  boost::chrono::duration<double> timeout(wait_time);
 
   RCLCPP_DEBUG(node_->get_logger(), "sync robot state to: %.3fs", fmod(t.seconds(), 10.));
 
@@ -566,11 +567,11 @@ bool EnvironmentMonitor::waitForCurrentState(const rclcpp::Time& t, double wait_
   boost::shared_lock<boost::shared_mutex> lock(scene_update_mutex_);
   rclcpp::Time prev_robot_motion_time = last_robot_motion_time_;
   while (last_robot_motion_time_ < t &&  // Wait until the state update actually reaches the scene.
-         timeout > rclcpp::Duration())
+         timeout > boost::chrono::duration<double>::zero())
   {
-//    ROS_DEBUG_STREAM_NAMED(LOGNAME, "last robot motion: " << (t - last_robot_motion_time_).seconds() << " ago"); // TODO: implement
-    new_environment_update_condition_.wait_for(lock, boost::chrono::nanoseconds(timeout.nanoseconds()));
-    timeout -= node_->now() - start;  // compute remaining wait_time
+    RCLCPP_DEBUG(node_->get_logger(), "last robot motion: %f ago", (t - last_robot_motion_time_).to_chrono<std::chrono::duration<double>>().count());
+    new_environment_update_condition_.wait_for(lock, timeout);
+    timeout = timeout - (node_->now() - start).to_chrono<std::chrono::duration<double>>();  // compute remaining wait_time  // TODO: fix boost/std chrono conversion
   }
   bool success = last_robot_motion_time_ >= t;
   // suppress warning if we received an update at all
@@ -602,7 +603,7 @@ void EnvironmentMonitor::startStateMonitor(const std::string& joint_states_topic
 
     {
       boost::mutex::scoped_lock lock(state_pending_mutex_);
-      if (!dt_state_update_.isZero())
+      if (dt_state_update_ != std::chrono::duration<double>::zero())
         state_update_timer_->reset();  // BUG was .start(), does ->reset() do the same thing?
     }
   }
@@ -625,10 +626,11 @@ void EnvironmentMonitor::stopStateMonitor()
   }
 }
 
-void EnvironmentMonitor::onStateUpdate(const sensor_msgs::JointStateConstPtr& /* joint_state */)
+void EnvironmentMonitor::onStateUpdate(const sensor_msgs::msg::JointState::SharedPtr /* joint_state */)
 {
-  const ros::WallTime& n = ros::WallTime::now();
-  ros::WallDuration dt = n - last_robot_state_update_wall_time_;
+  const rclcpp::Time& n = node_->now();
+  rclcpp::Duration dt = n - last_robot_state_update_wall_time_;
+
 
   bool update = enforce_next_state_update_;
   {
@@ -688,7 +690,8 @@ void EnvironmentMonitor::setStateUpdateFrequency(double hz)
   {
     boost::mutex::scoped_lock lock(state_pending_mutex_);
     dt_state_update_ = std::chrono::duration<double>(1.0 / hz);
-    state_update_timer_.reset(node_->create_wall_timer(std::chrono::duration<double>(dt_state_update_), std::bind<&EnvironmentMonitor::stateUpdateTimerCallback, this>));
+    state_update_timer_.reset();
+    state_update_timer_ = node_->create_wall_timer(std::chrono::duration<double>(dt_state_update_), std::bind(&EnvironmentMonitor::stateUpdateTimerCallback, this));
   }
   else
   {
@@ -696,7 +699,8 @@ void EnvironmentMonitor::setStateUpdateFrequency(double hz)
 //    state_update_timer_.stop();
     boost::mutex::scoped_lock lock(state_pending_mutex_);
     dt_state_update_ = std::chrono::duration<double>(0.0);
-    state_update_timer_.reset(node_->create_wall_timer(std::chrono::duration<double>(dt_state_update_), std::bind<&EnvironmentMonitor::stateUpdateTimerCallback, this>));
+    state_update_timer_.reset();
+    state_update_timer_ = node_->create_wall_timer(std::chrono::duration<double>(dt_state_update_), std::bind(&EnvironmentMonitor::stateUpdateTimerCallback, this));
     if (state_update_pending_)
       update = true;
   }
@@ -715,6 +719,7 @@ void EnvironmentMonitor::updateEnvironmentWithCurrentState()
         (node_->now() - current_state_monitor_->getMonitorStartTime()).seconds() > 1.0)
     {
       std::string missing_str = boost::algorithm::join(missing, ", ");
+      // std::string missing_str = std::accumulate(std::begin(missing), std::end(missing), std::string(), [] (std::string &ss, std::string &s){return ss.empty() ? s : ss + "," + s});  // non-boost variation
       RCLCPP_WARN_ONCE(node_->get_logger(), "The complete state of the robot is not yet known.  Missing %s", missing_str.c_str());
     }
 

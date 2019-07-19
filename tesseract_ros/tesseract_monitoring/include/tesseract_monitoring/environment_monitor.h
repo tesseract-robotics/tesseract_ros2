@@ -45,6 +45,9 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 //#include <tf/tf.h>
 //#include <tf/message_filter.h>
 //#include <message_filters/subscriber.h>
+
+#include <condition_variable>
+
 #include <boost/noncopyable.hpp>
 #include <boost/thread.hpp>
 #include <boost/thread/shared_mutex.hpp>
@@ -240,8 +243,8 @@ public:
   /** @brief Get the maximum frequency (Hz) at which the current state of the planning scene is updated.*/
   double getStateUpdateFrequency() const
   {
-    if (!dt_state_update_.seconds() == 0)
-      return 1.0 / dt_state_update_.seconds();
+    if (dt_state_update_ != std::chrono::duration<double>::zero())
+      return 1.0 / dt_state_update_.count();
     else
       return 0.0;
   }

@@ -6,7 +6,7 @@ find_package(orocos_kdl REQUIRED)
 
 find_package(Eigen3 REQUIRED)
 
-list(FIND CMAKE_CXX_COMPILE_FEATURES cxx_std_14 CXX_FEATURE_FOUND)
+list(FIND CMAKE_CXX_COMPILE_FEATURES cxx_std_17 CXX_FEATURE_FOUND)
 
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
@@ -56,9 +56,9 @@ target_link_libraries(${PROJECT_NAME}_environment PUBLIC
     )
 target_compile_options(${PROJECT_NAME}_environment PRIVATE -Wall -Wextra -Wsuggest-override -Wconversion -Wsign-conversion)
 if(CXX_FEATURE_FOUND EQUAL "-1")
-    target_compile_options(${PROJECT_NAME}_environment PUBLIC -std=c++14)
+    target_compile_options(${PROJECT_NAME}_environment PUBLIC -std=c++17)
 else()
-    target_compile_features(${PROJECT_NAME}_environment PUBLIC cxx_std_14)
+    target_compile_features(${PROJECT_NAME}_environment PUBLIC cxx_std_17)
 endif()
 target_include_directories(${PROJECT_NAME}_environment PUBLIC
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"

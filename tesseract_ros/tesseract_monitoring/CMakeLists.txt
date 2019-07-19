@@ -27,18 +27,24 @@ include_directories(
 )
 
 # Tesseract ROS Nodes
-#add_executable(${PROJECT_NAME}_contacts_node src/contact_monitor.cpp)
-#target_link_libraries(${PROJECT_NAME}_contacts_node PRIVATE
-#    tesseract::tesseract
-#    ${catkin_LIBRARIES})
-#target_compile_options(${PROJECT_NAME}_contacts_node PRIVATE -Wall -Wextra -Wsuggest-override -Wconversion -Wsign-conversion)
-#if(CXX_FEATURE_FOUND EQUAL "-1")
-#    target_compile_options(${PROJECT_NAME}_contacts_node PRIVATE -std=c++11)
-#else()
-#    target_compile_features(${PROJECT_NAME}_contacts_node PRIVATE cxx_std_11)
-#endif()
-#target_include_directories(${PROJECT_NAME}_contacts_node PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>")
-#target_include_directories(${PROJECT_NAME}_contacts_node SYSTEM PUBLIC ${catkin_INCLUDE_DIRS})
+add_executable(${PROJECT_NAME}_contacts_node src/contact_monitor.cpp)
+target_link_libraries(${PROJECT_NAME}_contacts_node PRIVATE
+    tesseract::tesseract
+    tesseract::tesseract_rosutils
+    ${rclcpp_LIBRARIES}
+    ${tesseract_msgs_LIBRARIES}
+    ${sensor_msgs_LIBRARIES}
+    ${Boost_LIBRARIES}
+    )
+target_compile_options(${PROJECT_NAME}_contacts_node PRIVATE -Wall -Wextra -Wsuggest-override -Wconversion -Wsign-conversion)
+set_target_properties(${PROJECT_NAME}_contacts_node PROPERTIES CXX_STANDARD 14)
+target_include_directories(${PROJECT_NAME}_contacts_node PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>")
+target_include_directories(${PROJECT_NAME}_contacts_node SYSTEM PUBLIC
+    ${rclcpp_INCLUDE_DIRS}
+    ${tesseract_msgs_INCLUDE_DIRS}
+    ${sensor_msgs_INCLUDE_DIRS}
+    ${Boost_INCLUDE_DIRS}
+)
 
 add_library(${PROJECT_NAME}_environment SHARED
     src/environment_monitor_node.cpp
@@ -53,10 +59,9 @@ target_link_libraries(${PROJECT_NAME}_environment PUBLIC
     ${tesseract_msgs_LIBRARIES}
     ${tf2_ros_LIBRARIES}
     ${pluginlib_LIBRARIES}
-
     )
 target_compile_options(${PROJECT_NAME}_environment PRIVATE -Wall -Wextra -Wsuggest-override -Wconversion -Wsign-conversion)
-set_target_properties(${PROJECT_NAME}_environment PROPERTIES CXX_STANDARD 17)
+set_target_properties(${PROJECT_NAME}_environment PROPERTIES CXX_STANDARD 14)
 target_include_directories(${PROJECT_NAME}_environment PUBLIC
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
     "$<INSTALL_INTERFACE:include>")

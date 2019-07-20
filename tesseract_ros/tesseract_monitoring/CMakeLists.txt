@@ -54,6 +54,7 @@ target_link_libraries(${PROJECT_NAME}_environment PUBLIC
     ${rclcpp_LIBRARIES}
     tesseract::tesseract
     tesseract::tesseract_rosutils
+    tesseract::tesseract_collision_core
     ${Boost_LIBRARIES}
     ${tesseract_msgs_LIBRARIES}
     ${tf2_ros_LIBRARIES}
@@ -89,15 +90,15 @@ list (APPEND PACKAGE_LIBRARIES ${PROJECT_NAME}_environment)
 #target_include_directories(demo_scene PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>")
 #target_include_directories(demo_scene SYSTEM PUBLIC ${catkin_INCLUDE_DIRS})
 
-add_executable(${PROJECT_NAME}_environment_node src/environment_monitor_node.cpp)
-target_link_libraries(${PROJECT_NAME}_environment_node PRIVATE
-    ${PROJECT_NAME}_environment
-    ${catkin_LIBRARIES})
-target_compile_options(${PROJECT_NAME}_environment_node PRIVATE -Wall -Wextra -Wsuggest-override -Wconversion -Wsign-conversion)
-set_target_properties(${PROJECT_NAME}_environment_node PROPERTIES CXX_STANDARD 17)
-target_include_directories(${PROJECT_NAME}_environment_node PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>")
-target_include_directories(${PROJECT_NAME}_environment_node SYSTEM PUBLIC ${catkin_INCLUDE_DIRS})
-list (APPEND PACKAGE_LIBRARIES ${PROJECT_NAME}_environment_node)
+#add_executable(${PROJECT_NAME}_environment_node src/environment_monitor_node.cpp)
+#target_link_libraries(${PROJECT_NAME}_environment_node PRIVATE
+#    ${PROJECT_NAME}_environment
+#    ${catkin_LIBRARIES})
+#target_compile_options(${PROJECT_NAME}_environment_node PRIVATE -Wall -Wextra -Wsuggest-override -Wconversion -Wsign-conversion)
+#set_target_properties(${PROJECT_NAME}_environment_node PROPERTIES CXX_STANDARD 17)
+#target_include_directories(${PROJECT_NAME}_environment_node PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>")
+#target_include_directories(${PROJECT_NAME}_environment_node SYSTEM PUBLIC ${catkin_INCLUDE_DIRS})
+#list (APPEND PACKAGE_LIBRARIES ${PROJECT_NAME}_environment_node)
 
 ament_export_dependencies(
     roscpp
@@ -124,7 +125,7 @@ install(EXPORT ${PROJECT_NAME}-targets NAMESPACE tesseract:: DESTINATION lib/cma
 install(TARGETS
     ${PROJECT_NAME}_environment
     ${PROJECT_NAME}_contacts_node
-    ${PROJECT_NAME}_environment_node
+#    ${PROJECT_NAME}_environment_node
 #    demo_scene
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
@@ -132,7 +133,7 @@ install(TARGETS
 )
 
 # Mark cpp header files for installation
-install(DIRECTORY include/${PROJECT_NAME}/
+install(DIRECTORY include/${PROJECT_NAME}
   DESTINATION include
   FILES_MATCHING PATTERN "*.h"
   PATTERN ".svn" EXCLUDE

@@ -92,7 +92,7 @@ typedef std::shared_ptr<ContinuousContactManagerPluginLoader> ContinuousContactM
 /**
  * @brief TesseractMonitor
  * Subscribes to the topic \e tesseract_environment */
-class EnvironmentMonitor : private boost::noncopyable
+class EnvironmentMonitor : private boost::noncopyable, rclcpp::Node
 {
 public:
   enum EnvironmentUpdateType
@@ -139,8 +139,7 @@ public:
    *  @param tf A pointer to a tf::Transformer
    *  @param name A name identifying this planning scene monitor
    */
-  EnvironmentMonitor(rclcpp::Node::SharedPtr node,
-                     const std::string& robot_description,
+  EnvironmentMonitor(const std::string& robot_description,
                      const std::string& name,
                      const std::string& discrete_plugin = "",
                      const std::string& continuous_plugin = "");
@@ -150,8 +149,7 @@ public:
    *  @param tf A pointer to a tf::Transformer
    *  @param name A name identifying this planning scene monitor
    */
-  EnvironmentMonitor(rclcpp::Node::SharedPtr node,
-                     tesseract::Tesseract::Ptr tesseract,
+  EnvironmentMonitor(tesseract::Tesseract::Ptr tesseract,
                      const std::string& name,
                      const std::string& discrete_plugin = "",
                      const std::string& continuous_plugin = "");
@@ -309,7 +307,6 @@ protected:
 
 //  ros::NodeHandle nh_;
 //  ros::NodeHandle root_nh_;
-  rclcpp::Node::SharedPtr node_;
   std::string robot_description_;
 
   // variables for planning scene publishing

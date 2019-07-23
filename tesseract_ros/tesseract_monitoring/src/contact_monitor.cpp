@@ -21,7 +21,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <tesseract_environment/core/utils.h>
 #include <tesseract_rosutils/utils.h>
 
-// TODO: Reimplement all this as a class with member functions
+// TODO Joe: Reimplement all this as a class with member functions
 
 using namespace tesseract;
 using namespace tesseract_environment;
@@ -140,7 +140,7 @@ void callbackTesseractEnvDiff(const tesseract_msgs::msg::TesseractState::SharedP
   boost::mutex::scoped_lock(modify_mutex);
   if (!processMsg(*(tess->getEnvironment()), *state))
   {
-//    ROS_ERROR("Invalid TesseractState diff message");  // TODO: re-enable
+//    ROS_ERROR("Invalid TesseractState diff message");  // TODO Joe: re-enable
   }
 
   // Create a new manager

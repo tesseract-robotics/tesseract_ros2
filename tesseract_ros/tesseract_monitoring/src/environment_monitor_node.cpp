@@ -12,8 +12,9 @@ const std::string ROBOT_DESCRIPTION_PARAM = "robot_description"; /**< Default RO
 
 int main(int argc, char** argv)
 {
-//  rclcpp::init(argc, argv);
-////  auto node = rclcpp::Node::make_shared("tesseract_environment_monitor");
+  // TODO Joe: Revisit implementation of this node, since EnvironmentMonitor theoretically now contains its own node.
+  rclcpp::init(argc, argv);
+  auto monitor = std::make_shared<tesseract_monitoring::EnvironmentMonitor>("tesseract_environment_monitor");
 
 //////  ros::init(argc, argv, "tesseract_environment_monitor");
 //////  ros::NodeHandle pnh("~");
@@ -40,20 +41,20 @@ int main(int argc, char** argv)
 ////  tesseract_monitoring::EnvironmentMonitor monitor(node, robot_description, "", descrete_plugin, continuous_plugin);
 
 //  if (monitored_environment_topic.empty())
-//    monitor.startPublishingEnvironment(tesseract_monitoring::EnvironmentMonitor::UPDATE_ENVIRONMENT);
+//    monitor->startPublishingEnvironment(tesseract_monitoring::EnvironmentMonitor::UPDATE_ENVIRONMENT);
 //  else
-//    monitor.startPublishingEnvironment(tesseract_monitoring::EnvironmentMonitor::UPDATE_ENVIRONMENT,
-//                                       monitored_environment_topic);
+//    monitor->startPublishingEnvironment(tesseract_monitoring::EnvironmentMonitor::UPDATE_ENVIRONMENT,
+//                                        monitored_environment_topic);
 
 //  if (joint_state_topic.empty())
-//    monitor.startStateMonitor();
+//    monitor->startStateMonitor();
 //  else
-//    monitor.startStateMonitor(joint_state_topic);
+//    monitor->startStateMonitor(joint_state_topic);
 
 //////  ros::AsyncSpinner spinner(4);
 //////  spinner.start();
 
 //  rclcpp::spin(monitor);
-//  rclcpp::shutdown();
+  rclcpp::shutdown();
   return 0;
 }

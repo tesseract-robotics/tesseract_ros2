@@ -9,7 +9,6 @@ find_package(geometry_msgs REQUIRED)
 find_package(eigen_conversions REQUIRED)
 find_package(tf2_eigen REQUIRED)
 
-
 # Non-ROS packages
 find_package(Eigen3 REQUIRED)
 find_package(tesseract_scene_graph REQUIRED)

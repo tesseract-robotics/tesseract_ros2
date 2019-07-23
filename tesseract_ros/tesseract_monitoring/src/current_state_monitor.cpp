@@ -72,7 +72,6 @@ CurrentStateMonitor::CurrentStateMonitor(const tesseract_environment::Environmen
   , error_(std::numeric_limits<double>::epsilon())
   , tf_broadcaster_(node_)
 {
-//  joint_state_subscriber_ = node_->create_subscription<std_msgs::msg::JointState>()
 }
 
 CurrentStateMonitor::~CurrentStateMonitor() { stopStateMonitor(); }
@@ -131,7 +130,7 @@ void CurrentStateMonitor::stopStateMonitor()
 {
   if (state_monitor_started_)
   {
-    joint_state_subscriber_.reset();  // BUG: Right way to do this>
+    joint_state_subscriber_.reset();  // BUG Joe: Right way to do this>
     RCLCPP_DEBUG(node_->get_logger(), "No longer listening o joint states");
     state_monitor_started_ = false;
   }
@@ -287,7 +286,7 @@ bool CurrentStateMonitor::waitForCompleteState(double wait_time) const
   double sleep_step_s = std::min(0.05, wait_time / 10.0);
   while (!haveCompleteState() && slept_time < wait_time)
   {
-    rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(sleep_step_s)));  // TODO: this seems unnecessarily clunky
+    rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(sleep_step_s)));  // TODO Joe: this seems unnecessarily clunky
     slept_time += sleep_step_s;
   }
   return haveCompleteState();
@@ -363,7 +362,7 @@ void CurrentStateMonitor::jointStateCallback(const sensor_msgs::msg::JointState:
     {
       if (pose.first != base_link)
       {
-        geometry_msgs::msg::TransformStamped tf;  // TODO: should be implemented as a tf2::toMsg() function
+        geometry_msgs::msg::TransformStamped tf;  // TODO Joe: should be implemented as a tf2::toMsg() function
         Eigen::Quaterniond q(pose.second.linear());
         tf.transform.rotation.x = q.x();
         tf.transform.rotation.y = q.y();

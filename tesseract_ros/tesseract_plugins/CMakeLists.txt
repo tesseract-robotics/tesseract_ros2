@@ -1,36 +1,14 @@
 cmake_minimum_required(VERSION 3.5.0)
 project(tesseract_plugins VERSION 0.1.0 LANGUAGES CXX)
 
-#find_package(catkin REQUIRED COMPONENTS
-#  tesseract_msgs
-#  roscpp
-#  eigen_conversions
-#  pluginlib
-#)
-
 find_package(tesseract_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(tf2_eigen REQUIRED)
 find_package(pluginlib REQUIRED)
-
 find_package(Eigen3 REQUIRED)
 find_package(tesseract_collision REQUIRED)
 
 list(FIND CMAKE_CXX_COMPILE_FEATURES cxx_std_11 CXX_FEATURE_FOUND)
-
-#catkin_package(
-#  INCLUDE_DIRS
-#    ${EIGEN3_INCLUDE_DIRS}
-#  LIBRARIES
-#  CATKIN_DEPENDS
-#    tesseract_msgs
-#    roscpp
-#    eigen_conversions
-#    pluginlib
-#  DEPENDS
-#    EIGEN3
-#    tesseract_collision
-#)
 
 add_library(tesseract_collision_bullet_plugin src/plugins/bullet_plugin.cpp)
 target_link_libraries(tesseract_collision_bullet_plugin PRIVATE
@@ -93,13 +71,6 @@ install(TARGETS tesseract_collision_bullet_plugin tesseract_collision_fcl_plugin
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
 )
-
-## Mark cpp header files for installation
-#install(DIRECTORY include/${PROJECT_NAME}/
-#  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-#  FILES_MATCHING PATTERN "*.h"
-#  PATTERN ".svn" EXCLUDE
-# )
 
 install(FILES tesseract_collision_bullet_plugin_description.xml tesseract_collision_fcl_plugin_description.xml
   DESTINATION share

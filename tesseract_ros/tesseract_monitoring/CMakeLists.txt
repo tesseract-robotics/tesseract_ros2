@@ -15,10 +15,6 @@ find_package(pluginlib REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(tf2_eigen REQUIRED)
 
-#generate_dynamic_reconfigure_options(
-#  cfg/EnvironmentMonitorDynamicReconfigure.cfg
-#)
-
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
@@ -74,9 +70,7 @@ target_include_directories(${PROJECT_NAME}_environment SYSTEM PUBLIC
     )
 list (APPEND PACKAGE_LIBRARIES ${PROJECT_NAME}_environment)
 
-
-#add_dependencies(${PROJECT_NAME}_environment ${PROJECT_NAME}_gencfg)
-
+# TODO Joe: Migrate demo
 #add_executable(demo_scene demos/demo_scene.cpp)
 #target_link_libraries(demo_scene PRIVATE
 #    ${PROJECT_NAME}_environment
@@ -90,6 +84,7 @@ list (APPEND PACKAGE_LIBRARIES ${PROJECT_NAME}_environment)
 #target_include_directories(demo_scene PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>")
 #target_include_directories(demo_scene SYSTEM PUBLIC ${catkin_INCLUDE_DIRS})
 
+# TODO Joe: Migrate this node(?)
 #add_executable(${PROJECT_NAME}_environment_node src/environment_monitor_node.cpp)
 #target_link_libraries(${PROJECT_NAME}_environment_node PRIVATE
 #    ${PROJECT_NAME}_environment

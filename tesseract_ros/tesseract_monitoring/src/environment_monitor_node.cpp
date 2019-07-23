@@ -14,7 +14,7 @@ int main(int argc, char** argv)
 {
   // TODO Joe: Revisit implementation of this node, since EnvironmentMonitor theoretically now contains its own node.
   rclcpp::init(argc, argv);
-  auto monitor = std::make_shared<tesseract_monitoring::EnvironmentMonitor>("tesseract_environment_monitor");
+//  auto monitor = std::make_shared<tesseract_monitoring::EnvironmentMonitor>("tesseract_environment_monitor");
 
 //////  ros::init(argc, argv, "tesseract_environment_monitor");
 //////  ros::NodeHandle pnh("~");

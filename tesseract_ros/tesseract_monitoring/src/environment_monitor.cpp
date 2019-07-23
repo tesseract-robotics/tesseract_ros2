@@ -209,8 +209,11 @@ void EnvironmentMonitor::initialize()
   {
     try
     {
-      discrete_manager_loader_.reset(
-          new DiscreteContactManagerPluginLoader("tesseract_collision", "tesseract_collision::DiscreteContactManager"));  // BUG: package 'tesseract_collision' not found
+      // BUG: ROS 2 version of pluginlib ClassLoader can't find non-Ament packages.
+      // Woraround is to manually add the path to tesseract_collision install dir to AMENT_PREFIX_PATH env variable.
+      discrete_manager_loader_.reset(new DiscreteContactManagerPluginLoader("tesseract_collision",
+                                                                            "tesseract_collision::"
+                                                                            "DiscreteContactManager"));
       for (auto plugin : discrete_manager_loader_->getDeclaredClasses())
       {
         auto fn = [&]() -> tesseract_collision::DiscreteContactManager::Ptr {

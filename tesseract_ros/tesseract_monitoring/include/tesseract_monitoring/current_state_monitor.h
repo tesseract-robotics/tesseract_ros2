@@ -190,7 +190,6 @@ private:
   rclcpp::Time monitor_start_time_;
   double error_;
   rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_state_subscriber_;
-//  ros::Subscriber joint_state_subscriber_;
   tf2_ros::TransformBroadcaster tf_broadcaster_;
   rclcpp::Time current_state_time_;
   rclcpp::Time last_tf_update_;

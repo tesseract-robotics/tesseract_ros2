@@ -71,8 +71,6 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 //#include <tesseract_rosutils/utils.h>
 #include <tesseract_rosutils/plotting.h>
 
-//#include <tesseract_monitoring/environment_monitor.h>
-
 #include <tesseract_scene_graph/graph.h>
 #include <tesseract_scene_graph/parser/urdf_parser.h>
 #include <tesseract_scene_graph/parser/srdf_parser.h>
@@ -305,8 +303,6 @@ protected:
   rclcpp::Time last_robot_motion_time_;        /// Last time the robot has moved
   bool enforce_next_state_update_;          /// flag to enforce immediate state update in onStateUpdate()
 
-//  ros::NodeHandle nh_;
-//  ros::NodeHandle root_nh_;
   std::string robot_description_;
 
   // variables for planning scene publishing
@@ -318,19 +314,15 @@ protected:
   std::condition_variable_any new_environment_update_condition_;
 
   // host a service for modifying the environment
-//  ros::ServiceServer modify_environment_server_;
   rclcpp::Service<tesseract_msgs::srv::ModifyEnvironment>::SharedPtr modify_environment_server_;
 
   // host a service for getting the environment changes
-//  ros::ServiceServer get_environment_changes_server_;
   rclcpp::Service<tesseract_msgs::srv::GetEnvironmentChanges>::SharedPtr get_environment_changes_server_;
 
   // host a service for getting the environment information
-//  ros::ServiceServer get_environment_information_server_;
   rclcpp::Service<tesseract_msgs::srv::GetEnvironmentInformation>::SharedPtr get_environment_information_server_;
 
   // host a service for saving the scene graph to a DOT file
-//  ros::ServiceServer save_scene_graph_server_;
   rclcpp::Service<tesseract_msgs::srv::SaveSceneGraph>::SharedPtr save_scene_graph_server_;
 
   // include a current state monitor
@@ -338,9 +330,7 @@ protected:
 
   /// lock access to update_callbacks_
   boost::recursive_mutex update_lock_;
-  std::vector<boost::function<void(EnvironmentUpdateType)> > update_callbacks_;  /// List of callbacks to trigger when
-                                                                                 /// updates
-                                                                                 /// are received
+  std::vector<boost::function<void(EnvironmentUpdateType)> > update_callbacks_;  /// List of callbacks to trigger when updates are received
 
 private:
   void getUpdatedFrameTransforms(std::vector<geometry_msgs::msg::TransformStamped>& transforms);

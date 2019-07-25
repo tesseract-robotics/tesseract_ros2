@@ -41,6 +41,8 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <shared_mutex>
 #include <memory>
 #include <numeric>
+#include <iostream>
+
 //#include <tesseract_monitoring/EnvironmentMonitorDynamicReconfigureConfig.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <rclcpp/rclcpp.hpp>
@@ -110,6 +112,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 namespace tesseract_monitoring
 {
 static const std::string LOGNAME = "environment_monitor";
+const std::string DEFAULT_ROBOT_DESCRIPTION_PARAM = "robot_description"; /**< Default ROS parameter for robot description */
 const std::string EnvironmentMonitor::DEFAULT_JOINT_STATES_TOPIC = "joint_states";
 const std::string EnvironmentMonitor::DEFAULT_GET_ENVIRONMENT_CHANGES_SERVICE = "get_tesseract_changes";
 const std::string EnvironmentMonitor::DEFAULT_GET_ENVIRONMENT_INFORMATION_SERVICE = "get_tesseract_information";
@@ -117,31 +120,30 @@ const std::string EnvironmentMonitor::DEFAULT_MODIFY_ENVIRONMENT_SERVICE = "modi
 const std::string EnvironmentMonitor::DEFAULT_SAVE_SCENE_GRAPH_SERVICE = "save_scene_graph";
 const std::string EnvironmentMonitor::MONITORED_ENVIRONMENT_TOPIC = "monitored_tesseract";
 
-EnvironmentMonitor::EnvironmentMonitor(const std::string& robot_description,
-                                       const std::string& name,
-                                       const std::string& discrete_plugin,
-                                       const std::string& continuous_plugin)
+EnvironmentMonitor::EnvironmentMonitor(const std::string& name)
   : Node("environment_monitor")
   , monitor_name_(name)
-  , discrete_plugin_name_(discrete_plugin)
-  , continuous_plugin_name_(continuous_plugin)
   , dt_state_update_(0)
   , shape_transform_cache_lookup_wait_time_(0)
 {
   // Initial setup
-  std::string urdf_xml_string, srdf_xml_string;
+  std::string robot_description;
 
-  this->declare_parameter("robot_description");
-  this->declare_parameter("descrete_plugin");  // BUG: typo
+  this->declare_parameter("desc_param");
+
+  this->get_parameter_or<std::string>("desc_param", robot_description, DEFAULT_ROBOT_DESCRIPTION_PARAM);
+
+  this->declare_parameter(robot_description);
+  this->declare_parameter(robot_description + "_semantic");
+  this->declare_parameter("discrete_plugin");
   this->declare_parameter("continuous_plugin");
   this->declare_parameter("joint_state_topic");
   this->declare_parameter("monitored_environment_topic");
 
-  //  node->get_parameter_or<std::string>("robot_description", robot_description, "");
-  //  node->get_parameter_or<std::string>("descrete_plugin", descrete_plugin, "");  // BUG: typo
-  //  node->get_parameter_or<std::string>("continuous_plugin", continuous_plugin, "");
-  //  node->get_parameter_or<std::string>("joint_state_topic", joint_state_topic, "");
-  //  node->get_parameter_or<std::string>("monitored_environment_topic", monitored_environment_topic, "");
+  this->get_parameter_or<std::string>("discrete_plugin", discrete_plugin_name_, "");
+  this->get_parameter_or<std::string>("continuous_plugin", continuous_plugin_name_, "");
+  this->get_parameter_or<std::string>("joint_state_topic", joint_state_topic_, "");
+  this->get_parameter_or<std::string>("monitored_environment_topic", monitored_environment_topic_, "");
 
 
   if (!this->has_parameter(robot_description))
@@ -156,32 +158,39 @@ EnvironmentMonitor::EnvironmentMonitor(const std::string& robot_description,
     return;
   }
 
-  this->get_parameter(robot_description, urdf_xml_string);
-  this->get_parameter(robot_description + "_semantic", srdf_xml_string);
+  std::string urdf_path, srdf_path;
+  this->get_parameter(robot_description, urdf_path);
+  this->get_parameter(robot_description + "_semantic", srdf_path);
+
+  std::stringstream urdf_xml_string, srdf_xml_string;
+  std::ifstream urdf_in(urdf_path);
+  urdf_xml_string << urdf_in.rdbuf();
+  std::ifstream srdf_in(srdf_path);
+  srdf_xml_string << srdf_in.rdbuf();
 
 
   tesseract_ = std::make_shared<tesseract::Tesseract>();
   tesseract_scene_graph::ResourceLocatorFn locator = tesseract_rosutils::locateResource;
-  if (!tesseract_->init(urdf_xml_string, srdf_xml_string, locator))
+  if (!tesseract_->init(urdf_xml_string.str(), srdf_xml_string.str(), locator))
     return;
 
   initialize();
 }
 
-EnvironmentMonitor::EnvironmentMonitor(tesseract::Tesseract::Ptr tesseract,
-                                       const std::string& name,
-                                       const std::string& discrete_plugin,
-                                       const std::string& continuous_plugin)
-  : Node("environment_monitor")
-  , monitor_name_(name)
-  , discrete_plugin_name_(discrete_plugin)
-  , continuous_plugin_name_(continuous_plugin)
-  , tesseract_(std::move(tesseract))
-  , dt_state_update_(0.0)
-  , shape_transform_cache_lookup_wait_time_(0, 0)
-{
-  initialize();
-}
+//EnvironmentMonitor::EnvironmentMonitor(tesseract::Tesseract::Ptr tesseract,
+//                                       const std::string& name,
+//                                       const std::string& discrete_plugin,
+//                                       const std::string& continuous_plugin)
+//  : Node("environment_monitor")
+//  , monitor_name_(name)
+//  , discrete_plugin_name_(discrete_plugin)
+//  , continuous_plugin_name_(continuous_plugin)
+//  , tesseract_(std::move(tesseract))
+//  , dt_state_update_(0.0)
+//  , shape_transform_cache_lookup_wait_time_(0, 0)
+//{
+//  initialize();
+//}
 
 EnvironmentMonitor::~EnvironmentMonitor()
 {
@@ -295,6 +304,20 @@ void EnvironmentMonitor::initialize()
 
   save_scene_graph_server_ = this->create_service<tesseract_msgs::srv::SaveSceneGraph>(
         DEFAULT_SAVE_SCENE_GRAPH_SERVICE, std::bind(&EnvironmentMonitor::saveSceneGraphCallback, this, std::placeholders::_1, std::placeholders::_2));
+}
+
+void EnvironmentMonitor::postInitialize()
+{
+  if (monitored_environment_topic_.empty())
+      this->startPublishingEnvironment(tesseract_monitoring::EnvironmentMonitor::UPDATE_ENVIRONMENT);
+  else
+      this->startPublishingEnvironment(tesseract_monitoring::EnvironmentMonitor::UPDATE_ENVIRONMENT,
+                                       monitored_environment_topic_);
+
+  if (joint_state_topic_.empty())
+      this->startStateMonitor();
+  else
+      this->startStateMonitor(joint_state_topic_);
 }
 
 void EnvironmentMonitor::stopPublishingEnvironment()

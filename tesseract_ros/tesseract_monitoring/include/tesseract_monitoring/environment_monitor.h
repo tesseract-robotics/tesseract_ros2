@@ -90,7 +90,7 @@ typedef std::shared_ptr<ContinuousContactManagerPluginLoader> ContinuousContactM
 /**
  * @brief TesseractMonitor
  * Subscribes to the topic \e tesseract_environment */
-class EnvironmentMonitor : private boost::noncopyable, rclcpp::Node
+class EnvironmentMonitor : public rclcpp::Node, private boost::noncopyable
 {
 public:
   enum EnvironmentUpdateType
@@ -137,22 +137,19 @@ public:
    *  @param tf A pointer to a tf::Transformer
    *  @param name A name identifying this planning scene monitor
    */
-  EnvironmentMonitor(const std::string& robot_description,
-                     const std::string& name,
-                     const std::string& discrete_plugin = "",
-                     const std::string& continuous_plugin = "");
+  explicit EnvironmentMonitor(const std::string& name);
 
   /** @brief Constructor
    *  @param rml A pointer to a kinematic model loader
    *  @param tf A pointer to a tf::Transformer
    *  @param name A name identifying this planning scene monitor
    */
-  EnvironmentMonitor(tesseract::Tesseract::Ptr tesseract,
-                     const std::string& name,
-                     const std::string& discrete_plugin = "",
-                     const std::string& continuous_plugin = "");
+//  EnvironmentMonitor(tesseract::Tesseract::Ptr tesseract,
+//                     const std::string& name,
+//                     const std::string& discrete_plugin = "",
+//                     const std::string& continuous_plugin = "");
 
-  ~EnvironmentMonitor();
+  virtual ~EnvironmentMonitor();
 
   /** \brief Get the name of this monitor */
   const std::string& getName() const { return monitor_name_; }
@@ -283,6 +280,8 @@ public:
 
   void getMonitoredTopics(std::vector<std::string>& topics) const;
 
+  void postInitialize();
+
 protected:
   /** @brief Initialize the planning scene monitor
    *  @param scene The scene instance to fill with data (an instance is allocated if the one passed in is not allocated)
@@ -293,6 +292,8 @@ protected:
   std::string monitor_name_;
   std::string discrete_plugin_name_;
   std::string continuous_plugin_name_;
+  std::string joint_state_topic_;
+  std::string monitored_environment_topic_;
 
   DiscreteContactManagerPluginLoaderPtr discrete_manager_loader_;
   ContinuousContactManagerPluginLoaderPtr continuous_manager_loader_;

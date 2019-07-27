@@ -6,7 +6,6 @@ find_package(rclcpp REQUIRED)
 find_package(ament_index_cpp REQUIRED)
 find_package(tesseract_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
-find_package(eigen_conversions REQUIRED)
 find_package(tf2_eigen REQUIRED)
 
 # Non-ROS packages
@@ -60,8 +59,6 @@ ament_export_dependencies(
     EIGEN3
     tesseract_msgs
     rclcpp
-    eigen_conversions
-    roslib
     tesseract_scene_graph
     tesseract_geometry
     tesseract_visualization

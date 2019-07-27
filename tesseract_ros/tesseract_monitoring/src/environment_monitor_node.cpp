@@ -13,9 +13,11 @@ int main(int argc, char** argv)
   auto monitor = std::make_shared<tesseract_monitoring::EnvironmentMonitor>("env");
   monitor->postInitialize();
 
-  rclcpp::executors::MultiThreadedExecutor multi_executor;
-  multi_executor.add_node(monitor);
-  multi_executor.spin();
+//  rclcpp::executors::MultiThreadedExecutor multi_executor;
+//  multi_executor.add_node(monitor);
+//  multi_executor.spin();
+
+  rclcpp::spin(monitor);
   rclcpp::shutdown();
   return 0;
 }

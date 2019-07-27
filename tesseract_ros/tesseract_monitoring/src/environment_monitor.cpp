@@ -145,22 +145,18 @@ EnvironmentMonitor::EnvironmentMonitor(const std::string& name)
   this->get_parameter_or<std::string>("joint_state_topic", joint_state_topic_, "");
   this->get_parameter_or<std::string>("monitored_environment_topic", monitored_environment_topic_, "");
 
-
-  if (!this->has_parameter(robot_description))
-  {
-    RCLCPP_ERROR(this->get_logger(), "Failed to find parameter: %s", robot_description.c_str());
-    return;
-  }
-
-  if (!this->has_parameter(robot_description + "_semantic"))
-  {
-    RCLCPP_ERROR(this->get_logger(), "Failed to find parameter: %s", (robot_description + "_semantic").c_str());
-    return;
-  }
-
   std::string urdf_path, srdf_path;
-  this->get_parameter(robot_description, urdf_path);
-  this->get_parameter(robot_description + "_semantic", srdf_path);
+  if (!this->get_parameter(robot_description, urdf_path))
+  {
+    RCLCPP_ERROR(this->get_logger(), "Failed to find required parameter: %s", robot_description.c_str());
+    return;
+  }
+
+  if (!this->get_parameter(robot_description + "_semantic", srdf_path))
+  {
+    RCLCPP_ERROR(this->get_logger(), "Failed to find required parameter: %s", (robot_description + "_semantic").c_str());
+    return;
+  }
 
   std::stringstream urdf_xml_string, srdf_xml_string;
   std::ifstream urdf_in(urdf_path);

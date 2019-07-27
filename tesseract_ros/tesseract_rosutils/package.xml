@@ -10,9 +10,7 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <depend>eigen</depend>
-  <depend>eigen_conversions</depend>
   <depend>rclcpp</depend>
-  <depend>roslib</depend>
   <depend>tesseract_collision</depend>
   <depend>tesseract_msgs</depend>
   <depend>tesseract_scene_graph</depend>

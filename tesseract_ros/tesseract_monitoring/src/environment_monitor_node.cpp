@@ -10,6 +10,7 @@ using namespace tesseract_environment;
 int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
+  rclcpp::sleep_for(std::chrono::seconds(3));
   auto monitor = std::make_shared<tesseract_monitoring::EnvironmentMonitor>("env");
   monitor->postInitialize();
 
@@ -19,5 +20,6 @@ int main(int argc, char** argv)
 
   rclcpp::spin(monitor);
   rclcpp::shutdown();
+  monitor.reset();
   return 0;
 }

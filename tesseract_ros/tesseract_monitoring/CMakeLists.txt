@@ -139,7 +139,7 @@ install(DIRECTORY include/${PROJECT_NAME}
  )
 
 install(DIRECTORY launch
-  DESTINATION share
+  DESTINATION share/${PROJECT_NAME}/
 )
 
 ## Mark cpp header files for installation

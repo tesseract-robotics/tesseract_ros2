@@ -42,7 +42,7 @@ target_include_directories(${PROJECT_NAME}_contacts_node SYSTEM PUBLIC
 list (APPEND PACKAGE_LIBRARIES ${PROJECT_NAME}_contacts_node)
 
 add_library(${PROJECT_NAME}_environment SHARED
-    src/environment_monitor_node.cpp
+#    src/environment_monitor_node.cpp
     src/environment_monitor.cpp
     src/current_state_monitor.cpp
     )
@@ -85,15 +85,14 @@ list (APPEND PACKAGE_LIBRARIES ${PROJECT_NAME}_environment)
 #target_include_directories(demo_scene SYSTEM PUBLIC ${catkin_INCLUDE_DIRS})
 
 # TODO Joe: Migrate this node(?)
-#add_executable(${PROJECT_NAME}_environment_node src/environment_monitor_node.cpp)
-#target_link_libraries(${PROJECT_NAME}_environment_node PRIVATE
-#    ${PROJECT_NAME}_environment
-#    ${catkin_LIBRARIES})
-#target_compile_options(${PROJECT_NAME}_environment_node PRIVATE -Wall -Wextra -Wsuggest-override -Wconversion -Wsign-conversion)
-#set_target_properties(${PROJECT_NAME}_environment_node PROPERTIES CXX_STANDARD 17)
-#target_include_directories(${PROJECT_NAME}_environment_node PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>")
-#target_include_directories(${PROJECT_NAME}_environment_node SYSTEM PUBLIC ${catkin_INCLUDE_DIRS})
-#list (APPEND PACKAGE_LIBRARIES ${PROJECT_NAME}_environment_node)
+add_executable(${PROJECT_NAME}_environment_node src/environment_monitor_node.cpp)
+target_link_libraries(${PROJECT_NAME}_environment_node PRIVATE
+    ${PROJECT_NAME}_environment)
+target_compile_options(${PROJECT_NAME}_environment_node PRIVATE -Wall -Wextra -Wsuggest-override -Wconversion -Wsign-conversion)
+set_target_properties(${PROJECT_NAME}_environment_node PROPERTIES CXX_STANDARD 14)
+target_include_directories(${PROJECT_NAME}_environment_node PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>")
+#target_include_directories(${PROJECT_NAME}_environment_node SYSTEM PUBLIC ${rclcpp_INCLUDE_DIRS})
+list (APPEND PACKAGE_LIBRARIES ${PROJECT_NAME}_environment_node)
 
 ament_export_dependencies(
     roscpp
@@ -117,15 +116,20 @@ install(TARGETS ${PACKAGE_LIBRARIES} EXPORT ${PROJECT_NAME}-targets DESTINATION 
 install(EXPORT ${PROJECT_NAME}-targets NAMESPACE tesseract:: DESTINATION lib/cmake/${PROJECT_NAME})
 
 # Mark executables and/or libraries for installation
-install(TARGETS
-    ${PROJECT_NAME}_environment
-    ${PROJECT_NAME}_contacts_node
+#install(TARGETS
+#    ${PROJECT_NAME}_environment
+#    ${PROJECT_NAME}_contacts_node
 #    ${PROJECT_NAME}_environment_node
-#    demo_scene
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib
-  RUNTIME DESTINATION bin
-)
+##    demo_scene
+#  ARCHIVE DESTINATION lib
+#  LIBRARY DESTINATION lib
+#  RUNTIME DESTINATION bin
+#)
+
+install(TARGETS
+   ${PROJECT_NAME}_environment
+   ${PROJECT_NAME}_environment_node
+   DESTINATION lib/${PROJECT_NAME})
 
 # Mark cpp header files for installation
 install(DIRECTORY include/${PROJECT_NAME}
@@ -135,7 +139,7 @@ install(DIRECTORY include/${PROJECT_NAME}
  )
 
 install(DIRECTORY launch
-  DESTINATION share
+  DESTINATION share/${PROJECT_NAME}/
 )
 
 ## Mark cpp header files for installation

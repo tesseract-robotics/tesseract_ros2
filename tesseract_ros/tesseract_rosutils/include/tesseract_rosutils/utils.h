@@ -1253,7 +1253,7 @@ static inline void toMsg(const trajectory_msgs::msg::JointTrajectory::Ptr& traj_
   toMsg(*traj_msg, joint_names, traj);
 }
 
-static inline bool processMsg(tesseract_environment::Environment& env, const sensor_msgs::msg::JointState& joint_state_msg)
+inline bool processMsg(tesseract_environment::Environment& env, const sensor_msgs::msg::JointState& joint_state_msg)
 {
   if (!isMsgEmpty(joint_state_msg))
   {
@@ -1268,7 +1268,7 @@ static inline bool processMsg(tesseract_environment::Environment& env, const sen
   return false;
 }
 
-static inline bool processMsg(tesseract_environment::Environment& env,
+inline bool processMsg(tesseract_environment::Environment& env,
                               const std::vector<tesseract_msgs::msg::EnvironmentCommand>& env_command_msg)
 {
   bool success = true;
@@ -1360,13 +1360,13 @@ static inline bool processMsg(tesseract_environment::Environment& env,
   return success;
 }
 
-static inline bool processMsg(const tesseract_environment::Environment::Ptr& env,
+inline bool processMsg(const tesseract_environment::Environment::Ptr& env,
                               const sensor_msgs::msg::JointState& joint_state_msg)
 {
   return processMsg(*env, joint_state_msg);
 }
 
-static inline bool processMsg(tesseract_environment::Environment& env, const tesseract_msgs::msg::TesseractState& state_msg)
+inline bool processMsg(tesseract_environment::Environment& env, const tesseract_msgs::msg::TesseractState& state_msg)
 {
   if (state_msg.id != env.getName() || env.getRevision() > state_msg.revision)
     return false;
@@ -1380,7 +1380,7 @@ static inline bool processMsg(tesseract_environment::Environment& env, const tes
   return true;
 }
 
-static inline bool processMsg(const tesseract_environment::Environment::Ptr& env,
+inline bool processMsg(const tesseract_environment::Environment::Ptr& env,
                               const tesseract_msgs::msg::TesseractState& state_msg)
 {
   return processMsg(*env, state_msg);

@@ -53,11 +53,11 @@ using std::placeholders::_2;
 
 namespace tesseract_monitoring
 {
-CurrentStateMonitor::CurrentStateMonitor(const tesseract_environment::Environment::ConstPtr& env,
-                                         const tesseract::ForwardKinematicsManager::ConstPtr& kinematics_manager)
-  : CurrentStateMonitor(env, kinematics_manager, std::make_shared<rclcpp::Node>("current_state_monitor"))
-{
-}
+//CurrentStateMonitor::CurrentStateMonitor(const tesseract_environment::Environment::ConstPtr& env,
+//                                         const tesseract::ForwardKinematicsManager::ConstPtr& kinematics_manager)
+//  : CurrentStateMonitor(env, kinematics_manager, std::make_shared<rclcpp::Node>("current_state_monitor"))
+//{
+//}
 
 CurrentStateMonitor::CurrentStateMonitor(const tesseract_environment::Environment::ConstPtr& env,
                                          const tesseract::ForwardKinematicsManager::ConstPtr& kinematics_manager,

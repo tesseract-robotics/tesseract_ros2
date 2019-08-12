@@ -19,6 +19,8 @@
   <depend>tesseract_common</depend>
   <depend>tesseract_process_planners</depend>
 
+  <depend>octomap</depend>
+
   <export>
     <build_type>ament_cmake</build_type>
   </export>

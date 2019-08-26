@@ -16,6 +16,7 @@ find_package(tesseract_visualization REQUIRED)
 find_package(tesseract_collision REQUIRED)
 find_package(tesseract_common REQUIRED)
 find_package(tesseract_process_planners REQUIRED)
+find_package(visualization_msgs REQUIRED)
 
 list(FIND CMAKE_CXX_COMPILE_FEATURES cxx_std_17 CXX_FEATURE_FOUND)
 
@@ -33,6 +34,7 @@ target_link_libraries(${PROJECT_NAME} INTERFACE
     ${geometry_msgs_LIBRARIES}
     ${ament_index_cpp_LIBRARIES}
     ${tf2_eigen_LIBRARIES}
+    ${visualization_msgs_LIBRARIES}
     )
 target_compile_options(${PROJECT_NAME} INTERFACE -Wall -Wextra -Wsuggest-override -Wconversion -Wsign-conversion)
 if(CXX_FEATURE_FOUND EQUAL "-1")
@@ -58,6 +60,7 @@ list (APPEND PACKAGE_LIBRARIES ${PROJECT_NAME})
 ament_export_dependencies(
     EIGEN3
     tesseract_msgs
+    visualization_msgs
     rclcpp
     tesseract_scene_graph
     tesseract_geometry

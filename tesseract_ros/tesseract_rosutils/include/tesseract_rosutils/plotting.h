@@ -42,20 +42,22 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <rclcpp/rclcpp.hpp>
 
+#include <thread>
+
 namespace tesseract_rosutils
 {
 /** @brief The BasicPlotting class */
-class ROSPlotting : public tesseract_visualization::Visualization, rclcpp::Node
+class ROSPlotting : public tesseract_visualization::Visualization
 {
 public:
-  ROSPlotting(tesseract_environment::Environment::ConstPtr env)
-    : Node("tesseract_plotting_node")
+  ROSPlotting(rclcpp::Node::SharedPtr node, tesseract_environment::Environment::ConstPtr env)
+    : node_(node)
     , env_(std::move(env))
   {
-    trajectory_pub_ = this->create_publisher<tesseract_msgs::msg::Trajectory>("/trajopt/display_tesseract_trajectory", 1);
-    collisions_pub_ = this->create_publisher<visualization_msgs::msg::MarkerArray>("/trajopt/display_collisions", 1);
-    arrows_pub_ = this->create_publisher<visualization_msgs::msg::MarkerArray>("/trajopt/display_arrows", 1);
-    axes_pub_ = this->create_publisher<visualization_msgs::msg::MarkerArray>("/trajopt/display_axes", 1);
+    trajectory_pub_ = node->create_publisher<tesseract_msgs::msg::Trajectory>("/trajopt/display_tesseract_trajectory", 1);
+    collisions_pub_ = node->create_publisher<visualization_msgs::msg::MarkerArray>("/trajopt/display_collisions", 1);
+    arrows_pub_ = node->create_publisher<visualization_msgs::msg::MarkerArray>("/trajopt/display_arrows", 1);
+    axes_pub_ = node->create_publisher<visualization_msgs::msg::MarkerArray>("/trajopt/display_axes", 1);
   }
 
   void plotTrajectory(const std::vector<std::string>& joint_names,
@@ -155,7 +157,7 @@ public:
     visualization_msgs::msg::MarkerArray msg;
     visualization_msgs::msg::Marker marker;
     marker.header.frame_id = env_->getSceneGraph()->getRoot();
-    marker.header.stamp = this->now();
+    marker.header.stamp = node_->now();
     marker.ns = "trajopt";
     marker.id = 0;
     marker.type = visualization_msgs::msg::Marker::ARROW;
@@ -170,11 +172,12 @@ public:
 
   void waitForInput() override
   {
-    RCLCPP_ERROR(this->get_logger(), "Hit enter key to step optimization!");
-    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    RCLCPP_ERROR(node_->get_logger(), "Waiting 5 seconds while you examine things...");
+    std::this_thread::sleep_for(std::chrono::seconds(5));
   }
 
 private:
+  rclcpp::Node::SharedPtr node_;
   tesseract_environment::Environment::ConstPtr env_;                                  /**< The Env */
   int marker_counter_;                                                                /**< Counter when plotting */
 //  rclcpp::Publisher scene_pub_;                                                     /**< Scene publisher */  // TODO: Unused?
@@ -190,7 +193,7 @@ private:
   {
     visualization_msgs::msg::Marker marker;
     marker.header.frame_id = env_->getSceneGraph()->getRoot();
-    marker.header.stamp = this->now();
+    marker.header.stamp = node_->now();
     marker.ns = "trajopt";
     marker.id = ++marker_counter_;
     marker.type = visualization_msgs::msg::Marker::ARROW;
@@ -233,8 +236,8 @@ private:
                                                        double scale)
   {
     visualization_msgs::msg::Marker marker;
-    marker.header.frame_id = env_->getSceneGraph()->getName();
-    marker.header.stamp = this->now();
+    marker.header.frame_id = env_->getSceneGraph()->getRoot();
+    marker.header.stamp = node_->now();
     marker.ns = "trajopt";
     marker.id = ++marker_counter_;
     marker.type = visualization_msgs::msg::Marker::CYLINDER;

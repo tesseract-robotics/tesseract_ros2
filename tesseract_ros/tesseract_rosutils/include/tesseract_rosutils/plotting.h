@@ -77,7 +77,7 @@ public:
     trajectory_pub_->publish(msg);
 
     sensor_msgs::msg::JointState joint_state;
-    joint_state.name = joint_names;
+    joint_state.name = msg.joint_trajectory.joint_names;
     for (auto point : msg.joint_trajectory.points)
     {
       joint_state.header.stamp = clock_->now();

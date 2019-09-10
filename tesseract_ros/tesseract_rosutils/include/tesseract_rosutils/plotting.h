@@ -83,7 +83,7 @@ public:
       joint_state.header.stamp = clock_->now();
       joint_state.position = point.positions;
       joint_state_pub_->publish(joint_state);
-      std::this_thread::sleep_for(std::chrono::milliseconds(200));
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
   }
 

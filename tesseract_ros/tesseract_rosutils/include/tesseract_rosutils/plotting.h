@@ -60,7 +60,7 @@ public:
     collisions_pub_ = node->create_publisher<visualization_msgs::msg::MarkerArray>("/trajopt/display_collisions", 1);
     arrows_pub_ = node->create_publisher<visualization_msgs::msg::MarkerArray>("/trajopt/display_arrows", 1);
     axes_pub_ = node->create_publisher<visualization_msgs::msg::MarkerArray>("/trajopt/display_axes", 1);
-    joint_state_pub_ = node->create_publisher<sensor_msgs::msg::JointState>("/joint_states", 1);
+    joint_state_pub_ = node->create_publisher<sensor_msgs::msg::JointState>("/trajectory_preview", 1);
   }
 
   void plotTrajectory(const std::vector<std::string>& joint_names,

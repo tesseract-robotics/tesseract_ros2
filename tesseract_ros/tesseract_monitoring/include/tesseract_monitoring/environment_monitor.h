@@ -90,7 +90,7 @@ typedef std::shared_ptr<ContinuousContactManagerPluginLoader> ContinuousContactM
 /**
  * @brief TesseractMonitor
  * Subscribes to the topic \e tesseract_environment */
-class EnvironmentMonitor : public rclcpp::Node, private boost::noncopyable
+class EnvironmentMonitor : private boost::noncopyable
 {
 public:
   enum EnvironmentUpdateType
@@ -137,7 +137,8 @@ public:
    *  @param tf A pointer to a tf::Transformer
    *  @param name A name identifying this planning scene monitor
    */
-  explicit EnvironmentMonitor(const std::string& name);
+  explicit EnvironmentMonitor(const std::string& name,
+                              rclcpp::Node::SharedPtr node);
 
   /** @brief Constructor
    *  @param rml A pointer to a kinematic model loader
@@ -180,6 +181,19 @@ public:
   {
     return tesseract_->getEnvironmentConst();
   }
+
+  /**
+   * @brief Get Tesseract Non Const
+   * @return A shared point to a tesseract object
+   */
+  const tesseract::Tesseract::Ptr& getTesseract() { return tesseract_; }
+
+  /**
+   * @brief Get Tesseract Const
+   * @return A shared point to a const tesseract object
+   */
+  tesseract::Tesseract::ConstPtr getTesseractConst() const { return tesseract_; }
+
   /** @brief Return true if the scene \e scene can be updated directly
       or indirectly by this monitor. This function will return true if
       the pointer of the scene is the same as the one maintained,
@@ -334,6 +348,10 @@ protected:
   std::vector<boost::function<void(EnvironmentUpdateType)> > update_callbacks_;  /// List of callbacks to trigger when updates are received
 
 private:
+  rclcpp::Node::SharedPtr node_;
+
+  rclcpp::Clock::SharedPtr clock_;
+
   void getUpdatedFrameTransforms(std::vector<geometry_msgs::msg::TransformStamped>& transforms);
 
   // publish environment update diffs (runs in its own thread)

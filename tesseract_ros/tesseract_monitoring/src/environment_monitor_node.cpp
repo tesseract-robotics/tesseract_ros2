@@ -11,14 +11,11 @@ int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
   rclcpp::sleep_for(std::chrono::seconds(3));
-  auto monitor = std::make_shared<tesseract_monitoring::EnvironmentMonitor>("env");
+  auto node = std::make_shared<rclcpp::Node>("env_monitor");
+  auto monitor = std::make_shared<tesseract_monitoring::EnvironmentMonitor>("env", node);
   monitor->postInitialize();
 
-//  rclcpp::executors::MultiThreadedExecutor multi_executor;
-//  multi_executor.add_node(monitor);
-//  multi_executor.spin();
-
-  rclcpp::spin(monitor);
+  rclcpp::spin(node);
   rclcpp::shutdown();
   monitor.reset();
   return 0;

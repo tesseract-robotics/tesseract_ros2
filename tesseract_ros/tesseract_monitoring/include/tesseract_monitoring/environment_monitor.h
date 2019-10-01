@@ -90,7 +90,7 @@ typedef std::shared_ptr<ContinuousContactManagerPluginLoader> ContinuousContactM
 /**
  * @brief TesseractMonitor
  * Subscribes to the topic \e tesseract_environment */
-class EnvironmentMonitor : public rclcpp::Node, private boost::noncopyable
+class EnvironmentMonitor : private boost::noncopyable
 {
 public:
   enum EnvironmentUpdateType
@@ -137,7 +137,8 @@ public:
    *  @param tf A pointer to a tf::Transformer
    *  @param name A name identifying this planning scene monitor
    */
-  explicit EnvironmentMonitor(const std::string& name);
+  explicit EnvironmentMonitor(const std::string& name,
+                              rclcpp::Node::SharedPtr node);
 
   /** @brief Constructor
    *  @param rml A pointer to a kinematic model loader
@@ -334,6 +335,8 @@ protected:
   std::vector<boost::function<void(EnvironmentUpdateType)> > update_callbacks_;  /// List of callbacks to trigger when updates are received
 
 private:
+  rclcpp::Node::SharedPtr node_;
+
   void getUpdatedFrameTransforms(std::vector<geometry_msgs::msg::TransformStamped>& transforms);
 
   // publish environment update diffs (runs in its own thread)

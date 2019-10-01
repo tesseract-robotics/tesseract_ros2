@@ -350,6 +350,8 @@ protected:
 private:
   rclcpp::Node::SharedPtr node_;
 
+  rclcpp::Clock::SharedPtr clock_;
+
   void getUpdatedFrameTransforms(std::vector<geometry_msgs::msg::TransformStamped>& transforms);
 
   // publish environment update diffs (runs in its own thread)

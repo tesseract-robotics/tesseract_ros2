@@ -123,6 +123,7 @@ const std::string EnvironmentMonitor::MONITORED_ENVIRONMENT_TOPIC = "monitored_t
 EnvironmentMonitor::EnvironmentMonitor(const std::string& name,
                                        rclcpp::Node::SharedPtr node)
   : node_(node)
+  , clock_(std::make_shared<rclcpp::Clock>(RCL_ROS_TIME))
   , monitor_name_(name)
   , dt_state_update_(0)
   , shape_transform_cache_lookup_wait_time_(0)
@@ -280,8 +281,8 @@ void EnvironmentMonitor::initialize()
   publish_environment_frequency_ = 2.0;
   new_environment_update_ = UPDATE_NONE;
 
-  last_update_time_ = last_robot_motion_time_ = node_->now();
-  last_robot_state_update_wall_time_ = node_->now();
+  last_update_time_ = last_robot_motion_time_ = clock_->now();
+  last_robot_state_update_wall_time_ = clock_->now();
   dt_state_update_ = std::chrono::duration<double>(0.1);
 
   state_update_pending_ = false;
@@ -421,7 +422,7 @@ void EnvironmentMonitor::newStateCallback(const std::shared_ptr<tesseract_msgs::
   {
     boost::unique_lock<boost::shared_mutex> ulock(scene_update_mutex_);
 
-    last_update_time_ = node_->now();
+    last_update_time_ = clock_->now();
     last_robot_motion_time_ = env->joint_state.header.stamp;
     RCLCPP_DEBUG(node_->get_logger(), "environment update: %d, robot stamp: %d",
                  fmod(last_update_time_.seconds(), 10.),
@@ -563,7 +564,7 @@ bool EnvironmentMonitor::waitForCurrentState(const rclcpp::Time& t, double wait_
 {
   if (t.seconds() == 0)
     return false;
-  rclcpp::Time start = node_->now();
+  rclcpp::Time start = clock_->now();
   boost::chrono::duration<double> timeout(wait_time);
 
   RCLCPP_DEBUG(node_->get_logger(), "sync robot state to: %.3fs", fmod(t.seconds(), 10.));
@@ -604,7 +605,7 @@ bool EnvironmentMonitor::waitForCurrentState(const rclcpp::Time& t, double wait_
   {
     RCLCPP_DEBUG(node_->get_logger(), "last robot motion: %f ago", (t - last_robot_motion_time_).to_chrono<std::chrono::duration<double>>().count());
     new_environment_update_condition_.wait_for(lock, std::chrono::duration<double>(timeout.count()));
-    timeout = boost::chrono::duration<double>(timeout.count() - (node_->now() - start).to_chrono<std::chrono::duration<double>>().count());  // compute remaining wait_time  // TODO: this probably introduces some weird error
+    timeout = boost::chrono::duration<double>(timeout.count() - (clock_->now() - start).to_chrono<std::chrono::duration<double>>().count());  // compute remaining wait_time  // TODO: this probably introduces some weird error
   }
   bool success = last_robot_motion_time_ >= t;
   // suppress warning if we received an update at all
@@ -662,9 +663,8 @@ void EnvironmentMonitor::stopStateMonitor()
 
 void EnvironmentMonitor::onStateUpdate(const sensor_msgs::msg::JointState::SharedPtr /* joint_state */)
 {
-  const rclcpp::Time& n = node_->now();
+  const rclcpp::Time& n = clock_->now();
   rclcpp::Duration dt = n - last_robot_state_update_wall_time_;
-
 
   bool update = enforce_next_state_update_;
   {
@@ -692,8 +692,10 @@ void EnvironmentMonitor::stateUpdateTimerCallback()
   {
     bool update = false;
 
-    const rclcpp::Time& n = node_->now();
+    const rclcpp::Time& n = clock_->now();
     rclcpp::Duration dt = n - last_robot_state_update_wall_time_;
+
+    std::cout<< n.nanoseconds() << std::endl;
 
     {
       // lock for access to dt_state_update_ and state_update_pending_
@@ -701,7 +703,7 @@ void EnvironmentMonitor::stateUpdateTimerCallback()
       if (state_update_pending_ && dt >= dt_state_update_)
       {
         state_update_pending_ = false;
-        last_robot_state_update_wall_time_ = node_->now();
+        last_robot_state_update_wall_time_ = clock_->now();
         update = true;
 //        ROS_DEBUG_STREAM_NAMED(LOGNAME,
 //                               "performPendingStateUpdate: " << fmod(last_robot_state_update_wall_time_.toSec(), 10)); // TODO: implement
@@ -750,7 +752,7 @@ void EnvironmentMonitor::updateEnvironmentWithCurrentState()
   {
     std::vector<std::string> missing;
     if (!current_state_monitor_->haveCompleteState(missing) &&
-        (node_->now() - current_state_monitor_->getMonitorStartTime()).seconds() > 1.0)
+        (clock_->now() - current_state_monitor_->getMonitorStartTime()).seconds() > 1.0)
     {
       std::string missing_str = boost::algorithm::join(missing, ", ");
       // std::string missing_str = std::accumulate(std::begin(missing), std::end(missing), std::string(), [] (std::string &ss, std::string &s){return ss.empty() ? s : ss + "," + s});  // non-boost variation

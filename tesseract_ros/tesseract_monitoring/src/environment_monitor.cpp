@@ -695,8 +695,6 @@ void EnvironmentMonitor::stateUpdateTimerCallback()
     const rclcpp::Time& n = clock_->now();
     rclcpp::Duration dt = n - last_robot_state_update_wall_time_;
 
-    std::cout<< n.nanoseconds() << std::endl;
-
     {
       // lock for access to dt_state_update_ and state_update_pending_
       boost::mutex::scoped_lock lock(state_pending_mutex_);

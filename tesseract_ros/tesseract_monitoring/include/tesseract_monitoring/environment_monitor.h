@@ -413,6 +413,9 @@ private:
   rclcpp::Time last_robot_state_update_wall_time_;
 
 //  DynamicReconfigureImpl* reconfigure_impl_;
+
+  rclcpp::callback_group::CallbackGroup::SharedPtr callback_group_;
+
 };
 typedef std::shared_ptr<EnvironmentMonitor> EnvironmentMonitorPtr;
 typedef std::shared_ptr<const EnvironmentMonitor> EnvironmentMonitorConstPtr;

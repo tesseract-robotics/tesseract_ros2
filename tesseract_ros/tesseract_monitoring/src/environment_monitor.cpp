@@ -127,6 +127,7 @@ EnvironmentMonitor::EnvironmentMonitor(const std::string& name,
   , monitor_name_(name)
   , dt_state_update_(0)
   , shape_transform_cache_lookup_wait_time_(0)
+  , callback_group_(node_->create_callback_group(rclcpp::callback_group::CallbackGroupType::MutuallyExclusive))
 {
   // Initial setup
   std::string robot_description;
@@ -287,21 +288,21 @@ void EnvironmentMonitor::initialize()
 
   state_update_pending_ = false;
 
-  state_update_timer_ = node_->create_wall_timer(dt_state_update_, std::bind(&EnvironmentMonitor::stateUpdateTimerCallback, this));
+  state_update_timer_ = node_->create_wall_timer(dt_state_update_, std::bind(&EnvironmentMonitor::stateUpdateTimerCallback, this), callback_group_);
 
 //  reconfigure_impl_ = new DynamicReconfigureImpl(this);
 
   modify_environment_server_ = node_->create_service<tesseract_msgs::srv::ModifyEnvironment>(
-        DEFAULT_MODIFY_ENVIRONMENT_SERVICE, std::bind(&EnvironmentMonitor::modifyEnvironmentCallback, this, std::placeholders::_1, std::placeholders::_2));
+        DEFAULT_MODIFY_ENVIRONMENT_SERVICE, std::bind(&EnvironmentMonitor::modifyEnvironmentCallback, this, std::placeholders::_1, std::placeholders::_2), rmw_qos_profile_services_default, callback_group_);
 
   get_environment_changes_server_ = node_->create_service<tesseract_msgs::srv::GetEnvironmentChanges>(
-        DEFAULT_GET_ENVIRONMENT_CHANGES_SERVICE, std::bind(&EnvironmentMonitor::getEnvironmentChangesCallback, this, std::placeholders::_1, std::placeholders::_2));
+        DEFAULT_GET_ENVIRONMENT_CHANGES_SERVICE, std::bind(&EnvironmentMonitor::getEnvironmentChangesCallback, this, std::placeholders::_1, std::placeholders::_2), rmw_qos_profile_services_default, callback_group_);
 
   get_environment_information_server_ = node_->create_service<tesseract_msgs::srv::GetEnvironmentInformation>(
-        DEFAULT_GET_ENVIRONMENT_INFORMATION_SERVICE, std::bind(&EnvironmentMonitor::getEnvironmentInformationCallback, this, std::placeholders::_1, std::placeholders::_2));
+        DEFAULT_GET_ENVIRONMENT_INFORMATION_SERVICE, std::bind(&EnvironmentMonitor::getEnvironmentInformationCallback, this, std::placeholders::_1, std::placeholders::_2), rmw_qos_profile_services_default, callback_group_);
 
   save_scene_graph_server_ = node_->create_service<tesseract_msgs::srv::SaveSceneGraph>(
-        DEFAULT_SAVE_SCENE_GRAPH_SERVICE, std::bind(&EnvironmentMonitor::saveSceneGraphCallback, this, std::placeholders::_1, std::placeholders::_2));
+        DEFAULT_SAVE_SCENE_GRAPH_SERVICE, std::bind(&EnvironmentMonitor::saveSceneGraphCallback, this, std::placeholders::_1, std::placeholders::_2), rmw_qos_profile_services_default, callback_group_);
 }
 
 void EnvironmentMonitor::postInitialize()

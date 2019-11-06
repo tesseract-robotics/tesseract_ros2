@@ -378,7 +378,14 @@ void CurrentStateMonitor::jointStateCallback(const sensor_msgs::msg::JointState:
         transforms.push_back(tf);
       }
     }
-    tf_broadcaster_.sendTransform(transforms);
+    try
+    {
+      tf_broadcaster_.sendTransform(transforms);
+    }
+    catch(std::exception &e)
+    {
+      RCLCPP_ERROR(node_->get_logger(), "%s", e);
+    }
   }
 
   // callbacks, if needed

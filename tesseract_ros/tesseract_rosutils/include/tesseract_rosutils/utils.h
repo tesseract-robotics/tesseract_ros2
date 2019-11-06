@@ -1269,11 +1269,13 @@ inline bool processMsg(tesseract_environment::Environment& env, const sensor_msg
 }
 
 inline bool processMsg(tesseract_environment::Environment& env,
-                              const std::vector<tesseract_msgs::msg::EnvironmentCommand>& env_command_msg)
+                       const std::vector<tesseract_msgs::msg::EnvironmentCommand>& env_command_msg,
+                       const int& past_revision = 0)
 {
   bool success = true;
-  for (const auto& command : env_command_msg)
+  for (int i = past_revision; i < env_command_msg.size(); i++)
   {
+    const auto& command = env_command_msg[i];
     switch (command.command)
     {
       case tesseract_msgs::msg::EnvironmentCommand::ADD:
@@ -1368,10 +1370,13 @@ inline bool processMsg(const tesseract_environment::Environment::Ptr& env,
 
 inline bool processMsg(tesseract_environment::Environment& env, const tesseract_msgs::msg::TesseractState& state_msg)
 {
-  if (state_msg.id != env.getName() || env.getRevision() > state_msg.revision)
+  if (state_msg.id != env.getName())
     return false;
 
-  if (!processMsg(env, state_msg.commands))
+  if (env.getRevision() > state_msg.revision)
+    return false;
+
+  if (!processMsg(env, state_msg.commands, env.getRevision()))
     return false;
 
   if (!processMsg(env, state_msg.joint_state))

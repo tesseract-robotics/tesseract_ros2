@@ -15,6 +15,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <tesseract/tesseract.h>
 #include <tesseract_scene_graph/graph.h>
 #include <tesseract_scene_graph/utils.h>
+#include <tesseract_scene_graph/resource_locator.h>
 #include <tesseract_urdf/urdf_parser.h>
 #include <tesseract_scene_graph/parser/srdf_parser.h>
 #include <tesseract_environment/kdl/kdl_env.h>
@@ -205,7 +206,7 @@ int main(int argc, char** argv)
   node->get_parameter(robot_description + "_semantic", srdf_xml_string);
 
   tess = std::make_shared<tesseract::Tesseract>();
-  ResourceLocatorFn locator = tesseract_rosutils::locateResource;
+  tesseract_scene_graph::ResourceLocator::Ptr locator = std::make_shared<tesseract_rosutils::ROSResourceLocator>();
   if (!tess->init(urdf_xml_string, srdf_xml_string, locator))
   {
     RCLCPP_ERROR(node->get_logger(), "Failed to initialize environment.");

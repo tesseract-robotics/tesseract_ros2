@@ -53,6 +53,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <tesseract_kinematics/kdl/kdl_fwd_kin_chain.h>
 #include <tesseract_kinematics/kdl/kdl_fwd_kin_tree.h>
 #include <tesseract_scene_graph/utils.h>
+#include <tesseract_scene_graph/resource_locator.h>
 
 // TODO: Dynamic reconfigure deprecated in ROS 2. Use parameter updates instead.
 //class DynamicReconfigureImpl
@@ -169,7 +170,7 @@ EnvironmentMonitor::EnvironmentMonitor(const std::string& name,
 
 
   tesseract_ = std::make_shared<tesseract::Tesseract>();
-  tesseract_scene_graph::ResourceLocatorFn locator = tesseract_rosutils::locateResource;
+  tesseract_scene_graph::ResourceLocator::Ptr locator = std::make_shared<tesseract_rosutils::ROSResourceLocator>();
   if (!tesseract_->init(urdf_xml_string.str(), srdf_xml_string.str(), locator))
     return;
 

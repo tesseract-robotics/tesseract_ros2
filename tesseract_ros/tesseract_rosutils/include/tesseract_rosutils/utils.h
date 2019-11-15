@@ -59,6 +59,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <tesseract_scene_graph/link.h>
 #include <tesseract_geometry/geometries.h>
 #include <tesseract_collision/core/common.h>
+#include <tesseract_scene_graph/resource_locator.h>
 
 //namespace tf2
 //{
@@ -108,6 +109,12 @@ static inline std::string locateResource(const std::string& url)
 
   return mod_url;
 }
+
+class ROSResourceLocator : public tesseract_scene_graph::SimpleResourceLocator
+{
+public:
+  ROSResourceLocator() : SimpleResourceLocator(::tesseract_rosutils::locateResource) {}
+};
 
 static inline bool isMsgEmpty(const sensor_msgs::msg::JointState& msg)
 {
@@ -384,7 +391,10 @@ static inline bool toMsg(tesseract_msgs::msg::Geometry& geometry_msgs, const tes
       for (size_t i = 0; i < faces.size(); ++i)
         geometry_msgs.mesh.faces[i] = faces[i];
 
-      geometry_msgs.mesh.file_path = mesh.getFilePath();
+      if (mesh.getResource() && mesh.getResource()->isFile())
+      {
+        geometry_msgs.mesh.file_path = mesh.getResource()->getFilePath();
+      }
       if (geometry_msgs.mesh.file_path.empty())
       {
         geometry_msgs.mesh.scale[0] = 1;
@@ -421,7 +431,10 @@ static inline bool toMsg(tesseract_msgs::msg::Geometry& geometry_msgs, const tes
       for (size_t i = 0; i < faces.size(); ++i)
         geometry_msgs.mesh.faces[i] = faces[i];
 
-      geometry_msgs.mesh.file_path = mesh.getFilePath();
+      if (mesh.getResource() && mesh.getResource()->isFile())
+      {
+        geometry_msgs.mesh.file_path = mesh.getResource()->getFilePath();
+      }
       if (geometry_msgs.mesh.file_path.empty())
       {
         geometry_msgs.mesh.scale[0] = 1;
@@ -458,7 +471,10 @@ static inline bool toMsg(tesseract_msgs::msg::Geometry& geometry_msgs, const tes
       for (size_t i = 0; i < faces.size(); ++i)
         geometry_msgs.mesh.faces[i] = faces[i];
 
-      geometry_msgs.mesh.file_path = mesh.getFilePath();
+      if (mesh.getResource() && mesh.getResource()->isFile())
+      {
+        geometry_msgs.mesh.file_path = mesh.getResource()->getFilePath();
+      }
       if (geometry_msgs.mesh.file_path.empty())
       {
         geometry_msgs.mesh.scale[0] = 1;
@@ -532,7 +548,8 @@ static inline bool fromMsg(tesseract_geometry::Geometry::Ptr& geometry, const te
       geometry = tesseract_geometry::Mesh::Ptr(new tesseract_geometry::Mesh(
           vertices,
           faces,
-          geometry_msg.mesh.file_path,
+          std::make_shared<tesseract_scene_graph::SimpleLocatedResource>(geometry_msg.mesh.file_path,
+                                                                         geometry_msg.mesh.file_path),
           Eigen::Vector3d(geometry_msg.mesh.scale[0], geometry_msg.mesh.scale[1], geometry_msg.mesh.scale[2])));
     else
       geometry = tesseract_geometry::Mesh::Ptr(new tesseract_geometry::Mesh(vertices, faces));
@@ -554,7 +571,8 @@ static inline bool fromMsg(tesseract_geometry::Geometry::Ptr& geometry, const te
       geometry = tesseract_geometry::ConvexMesh::Ptr(new tesseract_geometry::ConvexMesh(
           vertices,
           faces,
-          geometry_msg.mesh.file_path,
+          std::make_shared<tesseract_scene_graph::SimpleLocatedResource>(geometry_msg.mesh.file_path,
+                                                                         geometry_msg.mesh.file_path),
           Eigen::Vector3d(geometry_msg.mesh.scale[0], geometry_msg.mesh.scale[1], geometry_msg.mesh.scale[2])));
     else
       geometry = tesseract_geometry::ConvexMesh::Ptr(new tesseract_geometry::ConvexMesh(vertices, faces));
@@ -576,7 +594,8 @@ static inline bool fromMsg(tesseract_geometry::Geometry::Ptr& geometry, const te
       geometry = tesseract_geometry::SDFMesh::Ptr(new tesseract_geometry::SDFMesh(
           vertices,
           faces,
-          geometry_msg.mesh.file_path,
+          std::make_shared<tesseract_scene_graph::SimpleLocatedResource>(geometry_msg.mesh.file_path,
+                                                                         geometry_msg.mesh.file_path),
           Eigen::Vector3d(geometry_msg.mesh.scale[0], geometry_msg.mesh.scale[1], geometry_msg.mesh.scale[2])));
     else
       geometry = tesseract_geometry::SDFMesh::Ptr(new tesseract_geometry::SDFMesh(vertices, faces));

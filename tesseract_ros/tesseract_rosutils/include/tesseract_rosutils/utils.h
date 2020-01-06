@@ -1410,12 +1410,43 @@ inline bool processMsg(const tesseract_environment::Environment::Ptr& env,
   return processMsg(*env, state_msg);
 }
 
-static inline void toMsg(tesseract_msgs::msg::ContactResult& contact_result_msg,
-                         const tesseract_collision::ContactResult& contact_result)
+/**
+ * @brief Convert Geometry Pose Message to Eigen
+ * @param pose Eigen type to filled out
+ * @param pose_msg The message to be converted
+ * @return True if successful, otherwise false
+ */
+inline bool fromMsg(Eigen::Isometry3d& pose, const geometry_msgs::msg::Pose& pose_msg)
+{
+  tf2::fromMsg(pose_msg, pose);
+  return true;
+}
+
+/**
+ * @brief Convert Eigen to Geometry Pose Message
+ * @param pose_msg Geometry Pose Message to filled out
+ * @param pose The Eigen type to be converted
+ * @return True if successful, otherwise false
+ */
+inline bool toMsg(geometry_msgs::msg::Pose& pose_msg, const Eigen::Isometry3d& pose)
+{
+  pose_msg = tf2::toMsg(pose);
+  return true;
+}
+
+
+inline void toMsg(tesseract_msgs::msg::ContactResult& contact_result_msg,
+                  const tesseract_collision::ContactResult& contact_result)
 {
   contact_result_msg.distance = contact_result.distance;
+  contact_result_msg.type_id[0] = static_cast<unsigned char>(contact_result.type_id[0]);
+  contact_result_msg.type_id[1] = static_cast<unsigned char>(contact_result.type_id[1]);
   contact_result_msg.link_names[0] = contact_result.link_names[0];
   contact_result_msg.link_names[1] = contact_result.link_names[1];
+  contact_result_msg.shape_id[0] = static_cast<size_t>(contact_result.shape_id[0]);
+  contact_result_msg.shape_id[1] = static_cast<size_t>(contact_result.shape_id[1]);
+  contact_result_msg.subshape_id[0] = static_cast<size_t>(contact_result.subshape_id[0]);
+  contact_result_msg.subshape_id[1] = static_cast<size_t>(contact_result.subshape_id[1]);
   contact_result_msg.normal.x = contact_result.normal[0];
   contact_result_msg.normal.y = contact_result.normal[1];
   contact_result_msg.normal.z = contact_result.normal[2];
@@ -1425,25 +1456,36 @@ static inline void toMsg(tesseract_msgs::msg::ContactResult& contact_result_msg,
   contact_result_msg.nearest_points[1].x = contact_result.nearest_points[1][0];
   contact_result_msg.nearest_points[1].y = contact_result.nearest_points[1][1];
   contact_result_msg.nearest_points[1].z = contact_result.nearest_points[1][2];
-  contact_result_msg.cc_time = contact_result.cc_time;
-  contact_result_msg.cc_nearest_points[0].x = contact_result.cc_nearest_points[0][0];
-  contact_result_msg.cc_nearest_points[0].y = contact_result.cc_nearest_points[0][1];
-  contact_result_msg.cc_nearest_points[0].z = contact_result.cc_nearest_points[0][2];
-  contact_result_msg.cc_nearest_points[1].x = contact_result.cc_nearest_points[1][0];
-  contact_result_msg.cc_nearest_points[1].y = contact_result.cc_nearest_points[1][1];
-  contact_result_msg.cc_nearest_points[1].z = contact_result.cc_nearest_points[1][2];
+  contact_result_msg.nearest_points_local[0].x = contact_result.nearest_points_local[0][0];
+  contact_result_msg.nearest_points_local[0].y = contact_result.nearest_points_local[0][1];
+  contact_result_msg.nearest_points_local[0].z = contact_result.nearest_points_local[0][2];
+  contact_result_msg.nearest_points_local[1].x = contact_result.nearest_points_local[1][0];
+  contact_result_msg.nearest_points_local[1].y = contact_result.nearest_points_local[1][1];
+  contact_result_msg.nearest_points_local[1].z = contact_result.nearest_points_local[1][2];
+  toMsg(contact_result_msg.transform[0], contact_result.transform[0]);
+  toMsg(contact_result_msg.transform[1], contact_result.transform[1]);
+  contact_result_msg.cc_time[0] = contact_result.cc_time[0];
+  contact_result_msg.cc_time[1] = contact_result.cc_time[1];
+  toMsg(contact_result_msg.cc_transform[0], contact_result.cc_transform[0]);
+  toMsg(contact_result_msg.cc_transform[1], contact_result.cc_transform[1]);
 
-  contact_result_msg.type_id[0] = static_cast<char>(contact_result.type_id[0]);
-  contact_result_msg.type_id[1] = static_cast<char>(contact_result.type_id[1]);
-
-  if (contact_result.cc_type == tesseract_collision::ContinouseCollisionType::CCType_Time0)
-    contact_result_msg.cc_type = 1;
-  else if (contact_result.cc_type == tesseract_collision::ContinouseCollisionType::CCType_Time1)
-    contact_result_msg.cc_type = 2;
-  else if (contact_result.cc_type == tesseract_collision::ContinouseCollisionType::CCType_Between)
-    contact_result_msg.cc_type = 3;
+  if (contact_result.cc_type[0] == tesseract_collision::ContinuousCollisionType::CCType_Time0)
+    contact_result_msg.cc_type[0] = tesseract_msgs::msg::ContactResult::CCTYPE_TIME0;
+  else if (contact_result.cc_type[0] == tesseract_collision::ContinuousCollisionType::CCType_Time1)
+    contact_result_msg.cc_type[0] = tesseract_msgs::msg::ContactResult::CCTYPE_TIME1;
+  else if (contact_result.cc_type[0] == tesseract_collision::ContinuousCollisionType::CCType_Between)
+    contact_result_msg.cc_type[0] = tesseract_msgs::msg::ContactResult::CCTYPE_BETWEEN;
   else
-    contact_result_msg.cc_type = 0;
+    contact_result_msg.cc_type[0] = tesseract_msgs::msg::ContactResult::CCTYPE_NONE;
+
+  if (contact_result.cc_type[1] == tesseract_collision::ContinuousCollisionType::CCType_Time0)
+    contact_result_msg.cc_type[1] = tesseract_msgs::msg::ContactResult::CCTYPE_TIME0;
+  else if (contact_result.cc_type[1] == tesseract_collision::ContinuousCollisionType::CCType_Time1)
+    contact_result_msg.cc_type[1] = tesseract_msgs::msg::ContactResult::CCTYPE_TIME1;
+  else if (contact_result.cc_type[1] == tesseract_collision::ContinuousCollisionType::CCType_Between)
+    contact_result_msg.cc_type[1] = tesseract_msgs::msg::ContactResult::CCTYPE_BETWEEN;
+  else
+    contact_result_msg.cc_type[1] = tesseract_msgs::msg::ContactResult::CCTYPE_NONE;
 }
 
 static inline void toMsg(const tesseract_msgs::msg::ContactResult::Ptr& contact_result_msg,

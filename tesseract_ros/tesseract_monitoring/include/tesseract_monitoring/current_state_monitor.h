@@ -39,8 +39,9 @@
 
 #include <tesseract_common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
-#include <ros/ros.h>
-#include <sensor_msgs/JointState.h>
+#include <rclcpp/rclcpp.hpp>
+#include <rclcpp/subscription.hpp>
+#include <sensor_msgs/msg/joint_state.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition_variable.hpp>
 #include <memory>
@@ -56,7 +57,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 namespace tesseract_monitoring
 {
-typedef std::function<void(const sensor_msgs::JointStateConstPtr& joint_state)> JointStateUpdateCallback;
+typedef std::function<void(const sensor_msgs::msg::JointState::SharedPtr& joint_state)> JointStateUpdateCallback;
 
 /** @class CurrentStateMonitor
     @brief Monitors the joint_states topic and tf to maintain the current state of the robot. */
@@ -68,8 +69,8 @@ public:
    * @param robot_model The current kinematic model to build on
    * @param tf A pointer to the tf transformer to use
    */
-  CurrentStateMonitor(const tesseract_environment::Environment::ConstPtr& env,
-                      const tesseract::ForwardKinematicsManager::ConstPtr& kinematics_manager);
+//  CurrentStateMonitor(const tesseract_environment::Environment::ConstPtr& env,
+//                      const tesseract::ForwardKinematicsManager::ConstPtr& kinematics_manager);
 
   /** @brief Constructor.
    *  @param robot_model The current kinematic model to build on
@@ -78,7 +79,7 @@ public:
    */
   CurrentStateMonitor(const tesseract_environment::Environment::ConstPtr& env,
                       const tesseract::ForwardKinematicsManager::ConstPtr& kinematics_manager,
-                      ros::NodeHandle nh);
+                      rclcpp::Node::SharedPtr node);
 
   ~CurrentStateMonitor();
 
@@ -108,7 +109,7 @@ public:
    *  @return False if we have no joint state information for one of the joints or if our state
    *  information is more than \e age old
    */
-  bool haveCompleteState(const ros::Duration& age) const;
+  bool haveCompleteState(const rclcpp::Duration& age) const;
 
   /** @brief Query whether we have joint state information for all DOFs in the kinematic model
    *  @param missing_joints Returns the list of joints that are missing
@@ -121,18 +122,18 @@ public:
    *  @param missing_states Returns the list of joints that are missing
    *  @return False if we have no joint state information for one of the joints or if our state
    *  information is more than \e age old*/
-  bool haveCompleteState(const ros::Duration& age, std::vector<std::string>& missing_states) const;
+  bool haveCompleteState(const rclcpp::Duration& age, std::vector<std::string>& missing_states) const;
 
   /** @brief Get the current state
    *  @return Returns the current state */
   tesseract_environment::EnvState::Ptr getCurrentState() const;
 
   /** @brief Get the time stamp for the current state */
-  ros::Time getCurrentStateTime() const;
+  rclcpp::Time getCurrentStateTime() const;
 
   /** @brief Get the current state and its time stamp
    *  @return Returns a pair of the current state and its time stamp */
-  std::pair<tesseract_environment::EnvState::Ptr, ros::Time> getCurrentStateAndTime() const;
+  std::pair<tesseract_environment::EnvState::Ptr, rclcpp::Time> getCurrentStateAndTime() const;
 
   /** @brief Get the current state values as a map from joint names to joint state values
    *  @return Returns the map from joint names to joint state values*/
@@ -141,7 +142,7 @@ public:
   /** @brief Wait for at most \e wait_time seconds (default 1s) for a robot state more recent than t
    *  @return true on success, false if up-to-date robot state wasn't received within \e wait_time
    */
-  bool waitForCurrentState(const ros::Time t = ros::Time::now(), double wait_time = 1.0) const;
+  bool waitForCurrentState(const rclcpp::Time t /*= node_->now()*/, double wait_time = 1.0) const;  // BUG: fixme!
 
   /** @brief Wait for at most \e wait_time seconds until the complete robot state is known.
       @return true if the full state is known */
@@ -152,7 +153,7 @@ public:
   bool waitForCompleteState(const std::string& manip, double wait_time) const;
 
   /** @brief Get the time point when the monitor was started */
-  const ros::Time& getMonitorStartTime() const { return monitor_start_time_; }
+  const rclcpp::Time& getMonitorStartTime() const { return monitor_start_time_; }
   /** @brief Add a function that will be called whenever the joint state is updated*/
   void addUpdateCallback(const JointStateUpdateCallback& fn);
 
@@ -175,23 +176,23 @@ public:
   void enableCopyDynamics(bool enabled) { copy_dynamics_ = enabled; }
 
 private:
-  void jointStateCallback(const sensor_msgs::JointStateConstPtr& joint_state);
+  void jointStateCallback(const sensor_msgs::msg::JointState::SharedPtr joint_state);
   bool isPassiveOrMimicDOF(const std::string& dof) const;
 
-  ros::NodeHandle nh_;
+  rclcpp::Node::SharedPtr node_;
   tesseract_environment::Environment::ConstPtr env_;
   tesseract_environment::EnvState env_state_;
   int last_environment_revision_;
   tesseract::ForwardKinematicsManager::ConstPtr kinematics_manager_;
-  std::map<std::string, ros::Time> joint_time_;
+  std::map<std::string, rclcpp::Time> joint_time_;
   bool state_monitor_started_;
   bool copy_dynamics_;  // Copy velocity and effort from joint_state
-  ros::Time monitor_start_time_;
+  rclcpp::Time monitor_start_time_;
   double error_;
-  ros::Subscriber joint_state_subscriber_;
+  rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_state_subscriber_;
   tf2_ros::TransformBroadcaster tf_broadcaster_;
-  ros::Time current_state_time_;
-  ros::Time last_tf_update_;
+  rclcpp::Time current_state_time_;
+  rclcpp::Time last_tf_update_;
 
   mutable boost::mutex state_update_lock_;
   mutable boost::condition_variable state_update_condition_;

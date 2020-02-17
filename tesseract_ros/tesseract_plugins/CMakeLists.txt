@@ -10,7 +10,7 @@ find_package(tesseract_collision REQUIRED)
 
 list(FIND CMAKE_CXX_COMPILE_FEATURES cxx_std_11 CXX_FEATURE_FOUND)
 
-add_library(tesseract_collision_bullet_plugin src/plugins/bullet_plugin.cpp)
+add_library(tesseract_collision_bullet_plugin SHARED src/plugins/bullet_plugin.cpp)
 target_link_libraries(tesseract_collision_bullet_plugin PRIVATE
     tesseract::tesseract_collision_core
     tesseract::tesseract_collision_bullet
@@ -32,7 +32,7 @@ target_include_directories(tesseract_collision_bullet_plugin SYSTEM PRIVATE
     )
 
 
-add_library(tesseract_collision_fcl_plugin src/plugins/fcl_plugin.cpp)
+add_library(tesseract_collision_fcl_plugin SHARED src/plugins/fcl_plugin.cpp)
 target_link_libraries(tesseract_collision_fcl_plugin PRIVATE
     tesseract::tesseract_collision_core
     tesseract::tesseract_collision_fcl

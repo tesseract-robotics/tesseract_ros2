@@ -18,6 +18,7 @@
   <depend>tesseract_visualization</depend>
   <depend>tesseract_common</depend>
   <depend>tesseract_process_planners</depend>
+  <depend>visualization_msgs</depend>
 
   <depend>octomap</depend>
 

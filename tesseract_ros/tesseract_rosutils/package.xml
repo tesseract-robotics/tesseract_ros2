@@ -18,7 +18,11 @@
   <depend>tesseract_visualization</depend>
   <depend>tesseract_common</depend>
   <depend>tesseract_process_planners</depend>
+
   <depend>visualization_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>tf2_eigen</depend>
+  <depend>ament_index_cpp</depend>
 
   <depend>octomap</depend>
 

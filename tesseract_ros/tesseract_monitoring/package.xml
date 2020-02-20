@@ -13,6 +13,7 @@
   <build_export_depend>rclcpp</build_export_depend>
   <exec_depend>rclcpp</exec_depend>
   <depend>eigen</depend>
+  <depend>orocos-kdl</depend>
   <depend>tesseract</depend>
   <depend>tesseract_rosutils</depend>
   <depend>tesseract_msgs</depend>

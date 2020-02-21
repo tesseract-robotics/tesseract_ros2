@@ -17,6 +17,8 @@
   <depend>tesseract_collision</depend>
   <depend>pluginlib</depend>
 
+  <depend>eigen</depend>
+
   <!-- The export tag contains other, unspecified, tags -->
   <export>
       <build_type>ament_cmake</build_type>

@@ -204,7 +204,7 @@ inline tesseract_motion_planners::Waypoint::Ptr toWaypoint(const sensor_msgs::ms
  * @param file_path The location to save the file
  * @return true if successful
  */
-bool toCSVFile(const trajectory_msgs::msg::JointTrajectory& joint_trajectory, const std::string& file_path)
+inline bool toCSVFile(const trajectory_msgs::msg::JointTrajectory& joint_trajectory, const std::string& file_path)
 {
   std::ofstream myfile;
   myfile.open(file_path);

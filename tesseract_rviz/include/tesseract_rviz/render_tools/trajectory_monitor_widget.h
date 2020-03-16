@@ -39,25 +39,30 @@
 
 #include <tesseract_common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
-#include <rviz/display.h>
-#include <rviz/panel_dock_widget.h>
+#include <rviz_common/display.hpp>
+#include <rviz_common/panel_dock_widget.hpp>
 #include <boost/thread/mutex.hpp>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #ifndef Q_MOC_RUN
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
-#include <ros/ros.h>
-#include <tesseract_msgs/Trajectory.h>
-#include <tesseract_environment/environment.h>
-#include <tesseract_common/types.h>
+#include <rclcpp/rclcpp.hpp>
+#include <tesseract_msgs/msg/trajectory.hpp>
+#include <tesseract/tesseract.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #endif
 
-#include <tesseract_rviz/render_tools/visualize_trajectory_widget.h>
+#include <tesseract_rviz/render_tools/visualization_widget.h>
+#include <tesseract_rviz/render_tools/trajectory_panel.h>
 
-namespace rviz
+namespace rviz_rendering
 {
 class Shape;
+class MovableText;
+}
+
+namespace rviz_common::properties
+{
 class Property;
 class IntProperty;
 class StringProperty;
@@ -67,7 +72,6 @@ class RosTopicProperty;
 class EditableEnumProperty;
 class EnumProperty;
 class ColorProperty;
-class MovableText;
 }  // namespace rviz
 
 namespace tesseract_rviz
@@ -77,53 +81,73 @@ class TrajectoryMonitorWidget : public QObject
   Q_OBJECT
 
 public:
-  using Ptr = std::shared_ptr<TrajectoryMonitorWidget>;
-  using ConstPtr = std::shared_ptr<const TrajectoryMonitorWidget>;
+  using SharedPtr = std::shared_ptr<TrajectoryMonitorWidget>;
+  using ConstSharedPtr = std::shared_ptr<const TrajectoryMonitorWidget>;
 
-  TrajectoryMonitorWidget(rviz::Property* widget, rviz::Display* display);
+  TrajectoryMonitorWidget(rviz_common::properties::Property* widget, rviz_common::Display* display);
 
   virtual ~TrajectoryMonitorWidget();
 
-  void onInitialize(VisualizationWidget::Ptr visualization,
-                    tesseract_environment::Environment::Ptr env,
-                    rviz::DisplayContext* context,
-                    const ros::NodeHandle& update_nh);
+  void onInitialize(VisualizationWidget::SharedPtr visualization,
+                    tesseract::Tesseract::Ptr tesseract,
+                    rviz_common::DisplayContext* context,
+                    rclcpp::Node::SharedPtr update_node);
 
   void onEnable();
   void onDisable();
-  void onReset();
   void onUpdate(float wall_dt);
+  void onReset();
   void onNameChange(const QString& name);
 
-private Q_SLOTS:
-  void changedTrajectoryTopic();
+  void dropTrajectory();
 
-public:
-  void incomingDisplayTrajectory(const tesseract_msgs::Trajectory::ConstPtr& msg);
+public Q_SLOTS:
+  void interruptCurrentDisplay();
+
+private Q_SLOTS:
+  void changedDisplayMode();
+  void changedTrailStepSize();
+  void changedTrajectoryTopic();
+  void changedStateDisplayTime();
+  void trajectorySliderPanelVisibilityChange(bool enable);
 
 protected:
-  rviz::Property* widget_;
-  rviz::Display* display_;
-  rviz::DisplayContext* context_;
-  ros::NodeHandle nh_;
-  VisualizeTrajectoryWidget::Ptr visualize_trajectory_widget_;
+  void incomingDisplayTrajectory(const tesseract_msgs::msg::Trajectory::ConstSharedPtr msg);
+  float getStateDisplayTime();
+  void clearTrajectoryTrail();
+  void createTrajectoryTrail();
 
-  /**
-   * @brief These are the command that were pushed to motion planning
-   * @details Visualization only supports moving objects around in a trajectory visualization.
-   * If it includes commands which delete or adds links visualization may not be correct.
-   * @todo Need to maintain two environments one which tracks the monitored environment and then
-   * when new request are recieved it clones this environment an applys the commands througout the
-   * trajectory widget.
-   */
-  tesseract_environment::Commands trajectory_env_commands_;
+  rviz_common::properties::Property* widget_;
+  rviz_common::Display* display_;
+  rviz_common::DisplayContext* context_;
+  VisualizationWidget::SharedPtr visualization_;
+  tesseract::Tesseract::Ptr tesseract_;
+  rclcpp::Node::SharedPtr node_;
+  bool cached_visible_; /**< @brief This caches if the trajectory was visible for enable and disble calls */
 
-  ros::Subscriber trajectory_topic_sub_;
+  tesseract_msgs::msg::Trajectory::SharedPtr displaying_trajectory_message_;
+  tesseract_msgs::msg::Trajectory::SharedPtr trajectory_message_to_display_;
+
+  rclcpp::Subscription<tesseract_msgs::msg::Trajectory>::SharedPtr trajectory_topic_sub_;
   boost::mutex update_trajectory_message_;
 
+  // Pointers from parent display that we save
+  bool animating_path_;
+  bool drop_displaying_trajectory_;
+  int current_state_;
+  float current_state_time_;
+  TrajectoryPanel* trajectory_slider_panel_;
+  rviz_common::PanelDockWidget* trajectory_slider_dock_panel_;
+  int previous_display_mode_;
+  size_t num_trajectory_waypoints_;
+
   // Properties
-  rviz::Property* main_property_;
-  rviz::RosTopicProperty* trajectory_topic_property_;
+  rviz_common::properties::Property* main_property_;
+  rviz_common::properties::EditableEnumProperty* state_display_time_property_;
+  rviz_common::properties::RosTopicProperty* trajectory_topic_property_;
+  rviz_common::properties::EnumProperty* display_mode_property_;
+  rviz_common::properties::BoolProperty* interrupt_display_property_;
+  rviz_common::properties::IntProperty* trail_step_size_property_;
 };
 
 }  // namespace tesseract_rviz

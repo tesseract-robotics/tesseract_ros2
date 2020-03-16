@@ -29,18 +29,17 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <boost/algorithm/string/replace.hpp>
 #include <functional>
 
-#include <rviz/display_context.h>
-#include <rviz/properties/property.h>
-#include <rviz/properties/enum_property.h>
-#include <rviz/properties/ros_topic_property.h>
-#include <rviz/properties/float_property.h>
-#include <rviz/properties/bool_property.h>
-#include <rviz/properties/string_property.h>
+#include <rviz_common/display_context.hpp>
+#include <rviz_common/properties/property.hpp>
+#include <rviz_common/properties/enum_property.hpp>
+#include <rviz_common/properties/ros_topic_property.hpp>
+#include <rviz_common/properties/float_property.hpp>
+#include <rviz_common/properties/bool_property.hpp>
+#include <rviz_common/properties/string_property.hpp>
 
-#include <rviz/window_manager_interface.h>
+#include <rviz_common/window_manager_interface.hpp>
 
 #include <tesseract_rosutils/utils.h>
-#include <tesseract_motion_planners/robot_config.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_rviz/markers/utils.h>
@@ -53,16 +52,17 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 namespace tesseract_rviz
 {
-ManipulationWidget::ManipulationWidget(rviz::Property* widget, rviz::Display* display)
-  : root_interactive_node_(nullptr)
-  , widget_(widget)
+ManipulationWidget::ManipulationWidget(rviz_common::properties::Property* widget, rviz_common::Display* display)
+  : widget_(widget)
+  , root_interactive_node_(nullptr)
   , display_(display)
   , visualization_(nullptr)
-  , env_(nullptr)
+  , tesseract_(nullptr)
   , state_(ManipulatorState::START)
   , env_revision_(0)
-  , tcp_offset_(Eigen::Isometry3d::Identity())
+  , env_state_(nullptr)
   , enabled_(false)
+  , tcp_(Eigen::Isometry3d::Identity())
 //  , trajectory_slider_panel_(nullptr)
 //  , trajectory_slider_dock_panel_(nullptr)
 {
@@ -75,7 +75,7 @@ ManipulationWidget::ManipulationWidget(rviz::Property* widget, rviz::Display* di
 
   main_property_->setCaptions("Reset");
 
-  joint_state_topic_property_ = new rviz::RosTopicProperty("Topic",
+  joint_state_topic_property_ = new rviz_common::properties::RosTopicProperty("Topic",
                                                            "/tesseract/manipulation_joint_states",
                                                            ros::message_traits::datatype<sensor_msgs::JointState>(),
                                                            "The topic on which the sensor_msgs::JointState messages "
@@ -84,22 +84,20 @@ ManipulationWidget::ManipulationWidget(rviz::Property* widget, rviz::Display* di
                                                            SLOT(changedJointStateTopic()),
                                                            this);
 
-  manipulator_property_ = new rviz::EnumProperty(
+  manipulator_property_ = new rviz_common::properties::EnumProperty(
       "Manipulator", "", "The manipulator to move around.", main_property_, SLOT(changedManipulator()), this);
 
-  tcp_frame_property_ = new rviz::EnumProperty(
-      "TCP Frame", "", "The tool center point frame", main_property_, SLOT(changedTCPFrame()), this);
-  tcp_offset_property_ = new rviz::EnumProperty(
-      "TCP Offset", "", "The tool center point offset", main_property_, SLOT(changedTCPOffset()), this);
+  tcp_property_ =
+      new rviz_common::properties::EnumProperty("TCP Link", "", "The tool center point link", main_property_, SLOT(changedTCP()), this);
 
-  cartesian_manipulation_property_ = new rviz::BoolProperty("Cartesian Manipulation",
+  cartesian_manipulation_property_ = new rviz_common::properties::BoolProperty("Cartesian Manipulation",
                                                             true,
                                                             "Tool for cartesian manipulation of kinematics objects",
                                                             main_property_,
                                                             SLOT(changedCartesianManipulationEnabled()),
                                                             this);
 
-  cartesian_marker_scale_property_ = new rviz::FloatProperty("Marker Scale",
+  cartesian_marker_scale_property_ = new rviz_common::properties::FloatProperty("Marker Scale",
                                                              0.5,
                                                              "Change the scale of the cartesian interactive marker",
                                                              cartesian_manipulation_property_,
@@ -107,14 +105,14 @@ ManipulationWidget::ManipulationWidget(rviz::Property* widget, rviz::Display* di
                                                              this);
   cartesian_marker_scale_property_->setMin(0.001f);
 
-  joint_manipulation_property_ = new rviz::BoolProperty("Joint Manipulation",
+  joint_manipulation_property_ = new rviz_common::properties::BoolProperty("Joint Manipulation",
                                                         true,
                                                         "Tool for joint manipulation of kinematics objects",
                                                         main_property_,
                                                         SLOT(changedJointManipulationEnabled()),
                                                         this);
 
-  joint_marker_scale_property_ = new rviz::FloatProperty("Marker Scale",
+  joint_marker_scale_property_ = new rviz_common::properties::FloatProperty("Marker Scale",
                                                          0.5,
                                                          "Change the scale of the joint interactive markers",
                                                          joint_manipulation_property_,
@@ -123,27 +121,9 @@ ManipulationWidget::ManipulationWidget(rviz::Property* widget, rviz::Display* di
   joint_marker_scale_property_->setMin(0.001f);
 
   joint_values_property_ =
-      new rviz::Property("Joint Values", "", "Shows current joint values", main_property_, nullptr, this);
+      new rviz_common::properties::Property("Joint Values", "", "Shows current joint values", main_property_, nullptr, this);
 
-  joint_config_property_ = new rviz::StringProperty(
-      "Joint Config", "Unknown", "Shows current joint configuration", main_property_, nullptr, this);
-  joint_config_property_->setReadOnly(true);
-  joint_config_base_link_property_ = new rviz::EnumProperty(
-      "Robot Base Link", "", "This is the base link of the industrial robot.", joint_config_property_, nullptr, this);
-  joint_config_tip_link_property_ = new rviz::EnumProperty(
-      "Robot Tip Link", "", "This is the tip link of the industrial robot", joint_config_property_, nullptr, this);
-
-  joint3_sign_property_ =
-      new rviz::EnumProperty("Joint 3 Sign Correction", "+1", "", joint_config_property_, nullptr, this);
-  joint3_sign_property_->addOptionStd("+1", 1);
-  joint3_sign_property_->addOptionStd("-1", -1);
-  joint3_sign_property_->setShouldBeSaved(true);
-
-  joint5_sign_property_ =
-      new rviz::EnumProperty("Joint 5 Sign Correction", "+1", "", joint_config_property_, nullptr, this);
-  joint5_sign_property_->addOptionStd("+1", 1);
-  joint5_sign_property_->addOptionStd("-1", -1);
-  joint5_sign_property_->setShouldBeSaved(true);
+  joint_values_property_->setReadOnly(true);
 }
 
 ManipulationWidget::~ManipulationWidget()
@@ -156,35 +136,36 @@ ManipulationWidget::~ManipulationWidget()
 }
 
 void ManipulationWidget::onInitialize(Ogre::SceneNode* root_node,
-                                      rviz::DisplayContext* context,
-                                      VisualizationWidget::Ptr visualization,
-                                      tesseract_environment::Environment::Ptr env,
-                                      const ros::NodeHandle& update_nh,
+                                      rviz_common::DisplayContext* context,
+                                      VisualizationWidget::SharedPtr visualization,
+                                      tesseract::Tesseract::Ptr tesseract,
+                                      ros::NodeHandle update_nh,
                                       ManipulatorState state,
-                                      const QString& joint_state_topic)
+                                      QString joint_state_topic)
 {
   // Save pointers for later use
   visualization_ = std::move(visualization);
-  env_ = std::move(env);
+  tesseract_ = std::move(tesseract);
   context_ = context;
   nh_ = update_nh;
   state_ = state;
 
   root_interactive_node_ = root_node->createChildSceneNode();
-  if (env_->isInitialized())
+  if (tesseract_->isInitialized())
   {
     int cnt = 0;
     available_manipulators_.clear();
-    for (const auto& manip : env_->getGroupNames())
+    for (const auto& manip : tesseract_->getInvKinematicsManagerConst()->getAvailableInvKinematicsManipulators())
     {
       available_manipulators_.push_back(QString::fromStdString(manip));
       manipulator_property_->addOptionStd(manip, cnt);
       ++cnt;
     }
 
-    env_revision_ = env_->getRevision();
-    env_state_ = env_->getState();
-    joints_ = env_state_.joints;
+    env_revision_ = tesseract_->getEnvironmentConst()->getRevision();
+    env_state_ =
+        std::make_shared<tesseract_environment::EnvState>(*(tesseract_->getEnvironmentConst()->getCurrentState()));
+    joints_ = env_state_->joints;
   }
 
   joint_state_topic_property_->setValue(joint_state_topic);
@@ -229,7 +210,7 @@ void ManipulationWidget::onEnable()
   for (auto& joint_marker : joint_interactive_markers_)
     joint_marker.second->setVisible(enabled_ && joint_manipulation_property_->getBool());
 
-  env_state_ = tesseract_scene_graph::SceneState();
+  env_state_ = nullptr;
 }
 
 void ManipulationWidget::onDisable()
@@ -255,12 +236,10 @@ void ManipulationWidget::onReset()
   // Clear manipulators
   manipulator_property_->clearOptions();
   available_manipulators_.clear();
-  available_working_frames_.clear();
-  available_tcp_frames_.clear();
-  available_tcp_offsets_.clear();
+  available_tcp_links_.clear();
 }
 
-void ManipulationWidget::onNameChange(const QString& /*name*/)
+void ManipulationWidget::onNameChange(const QString& name)
 {
   //  if (trajectory_slider_dock_panel_)
   //    trajectory_slider_dock_panel_->setWindowTitle(name + " - Slider");
@@ -280,135 +259,80 @@ void ManipulationWidget::enableJointManipulation(bool enabled)
   joint_manipulation_property_->setBool(enabled);
 }
 
-void ManipulationWidget::resetToCurrentState() { env_state_ = tesseract_scene_graph::SceneState(); }
+void ManipulationWidget::resetToCurrentState() { env_state_ = nullptr; }
 
-bool ManipulationWidget::changeManipulator(const QString& manipulator)
+bool ManipulationWidget::changeManipulator(QString manipulator)
 {
-  if (env_->isInitialized())
+  if (tesseract_->isInitialized())
   {
-    manip_ = env_->getKinematicGroup(manipulator.toStdString());
-    if (manip_ == nullptr)
+    inv_kin_ = tesseract_->getInvKinematicsManagerConst()->getInvKinematicSolver(manipulator.toStdString());
+    if (inv_kin_ == nullptr)
       return false;
 
     manipulator_property_->setString(manipulator);
 
-    const auto& scene_graph = env_->getSceneGraph();
-    std::vector<std::string> joint_names = manip_->getJointNames();
-    const Eigen::MatrixX2d& limits = manip_->getLimits().joint_limits;
-    inv_seed_.resize(manip_->numJoints());
+    const auto& scene_graph = tesseract_->getEnvironmentConst()->getSceneGraph();
+    std::vector<std::string> joint_names = inv_kin_->getJointNames();
+    inv_seed_.resize(inv_kin_->numJoints());
     int i = 0;
     joint_values_property_->removeChildren();
     for (auto& j : joint_names)
     {
-      inv_seed_[i] = joints_[j];
-      QString joint_description =
-          QString("Limits: [%1, %2]").arg(QString("%1").arg(limits(i, 0)), QString("%1").arg(limits(i, 1)));
+      inv_seed_[i++] = joints_[j];
+      const auto& joint = scene_graph->getJoint(j);
+      QString joint_description = "Limits: [inf, inf]";
+      if (joint->limits)
+        joint_description = QString("Limits: [%1, %2]")
+                                .arg(QString("%1").arg(joint->limits->lower), QString("%1").arg(joint->limits->upper));
 
-      rviz::FloatProperty* joint_value_property = new rviz::FloatProperty(QString::fromStdString(j),
-                                                                          static_cast<float>(joints_[j]),
-                                                                          joint_description,
-                                                                          nullptr,
-                                                                          SLOT(userInputJointValuesChanged()),
-                                                                          this);
-
-      joint_value_property->setMin(static_cast<float>(limits(i, 0)));
-      joint_value_property->setMax(static_cast<float>(limits(i, 1)));
+      rviz_common::properties::FloatProperty* joint_value_property = new rviz_common::properties::FloatProperty(
+          QString::fromStdString(j), static_cast<float>(joints_[j]), joint_description, nullptr, nullptr, this);
+      joint_value_property->setReadOnly(true);
       joint_values_property_->addChild(joint_value_property);
-      ++i;
     }
 
     // Need to update state information (transforms) because manipulator changes and
-    env_state_ = env_->getState(joints_);
-    updateJointConfig();
+    env_state_ = tesseract_->getEnvironmentConst()->getState(joints_);
 
     // Get available TCP's
-    QString current_tcp_frame = tcp_frame_property_->getString();
-    QString current_tcp_offset = tcp_offset_property_->getString();
+    QString current_tcp = tcp_property_->getString();
+    std::vector<std::string> tcp_links =
+        tesseract_->getEnvironmentConst()->getSceneGraph()->getLinkChildrenNames(inv_kin_->getTipLinkName());
+    tcp_links.push_back(inv_kin_->getTipLinkName());
 
-    QString current_robot_config_base_link = joint_config_base_link_property_->getString();
-    QString current_robot_config_tip_link = joint_config_tip_link_property_->getString();
-
-    std::vector<std::string> tcp_frames = manip_->getAllPossibleTipLinkNames();
-    available_tcp_frames_.clear();
-    tcp_frame_property_->clearOptions();
-    for (const auto& tcp_frame : tcp_frames)
+    available_tcp_links_.clear();
+    tcp_property_->clearOptions();
+    for (const auto& tcp_link : tcp_links)
     {
-      available_tcp_frames_.push_back(QString::fromStdString(tcp_frame));
-      tcp_frame_property_->addOptionStd(tcp_frame);
-      joint_config_tip_link_property_->addOptionStd(tcp_frame);
+      available_tcp_links_.push_back(QString::fromStdString(tcp_link));
+      tcp_property_->addOptionStd(tcp_link);
     }
 
-    std::vector<std::string> working_frames = manip_->getAllValidWorkingFrames();
-    available_working_frames_.clear();
-    joint_config_base_link_property_->clearOptions();
-    for (const auto& working_frame : working_frames)
+    if (current_tcp.isEmpty() || !available_tcp_links_.contains(current_tcp))
     {
-      available_working_frames_.push_back(QString::fromStdString(working_frame));
-      joint_config_base_link_property_->addOptionStd(working_frame);
-    }
-
-    available_tcp_offsets_.clear();
-    tcp_offset_property_->clearOptions();
-    auto group_tcp_offsets = env_->getKinematicsInformation().group_tcps;
-    auto it = group_tcp_offsets.find(manipulator.toStdString());
-    if (it != group_tcp_offsets.end())
-    {
-      available_tcp_offsets_ = it->second;
-      for (const auto& tcp_offset : available_tcp_offsets_)
-        tcp_frame_property_->addOptionStd(tcp_offset.first);
-    }
-
-    if (current_tcp_frame.isEmpty() || !available_tcp_frames_.contains(current_tcp_frame))
-      tcp_frame_property_->setString(available_tcp_frames_[0]);
-    else
-      tcp_frame_property_->setString(current_tcp_frame);
-
-    Q_EMIT availableTCPFramesChanged(available_tcp_frames_);
-
-    if (current_tcp_offset.isEmpty() ||
-        (available_tcp_offsets_.find(current_tcp_offset.toStdString()) == available_tcp_offsets_.end()))
-    {
-      if (available_tcp_offsets_.empty())
-      {
-        tcp_offset_property_->setStdString("");
-        tcp_offset_ = Eigen::Isometry3d::Identity();
-      }
-      else
-      {
-        tcp_offset_property_->setStdString(available_tcp_offsets_.begin()->first);
-        tcp_offset_ = available_tcp_offsets_.begin()->second;
-      }
+      tcp_property_->setStdString(inv_kin_->getTipLinkName());
+      tcp_ = Eigen::Isometry3d::Identity();
     }
     else
     {
-      tcp_offset_property_->setString(current_tcp_offset);
-      tcp_offset_ = available_tcp_offsets_.at(current_tcp_offset.toStdString());
+      tcp_property_->setString(current_tcp);
+      tcp_ = env_state_->link_transforms[inv_kin_->getTipLinkName()].inverse() *
+             env_state_->link_transforms[current_tcp.toStdString()];
     }
 
-    Q_EMIT availableTCPOffsetsChanged(available_tcp_offsets_);
-
-    if (current_robot_config_base_link.isEmpty() || !available_working_frames_.contains(current_robot_config_base_link))
-      joint_config_base_link_property_->setString(available_working_frames_[0]);
-    else
-      joint_config_base_link_property_->setString(current_robot_config_base_link);
-
-    if (current_robot_config_tip_link.isEmpty() || !available_tcp_frames_.contains(current_robot_config_tip_link))
-      joint_config_tip_link_property_->setString(available_tcp_frames_[0]);
-    else
-      joint_config_tip_link_property_->setString(current_robot_config_tip_link);
+    Q_EMIT availableTCPLinksChanged(available_tcp_links_);
 
     // Add 6 DOF interactive marker at the end of the manipulator
     interactive_marker_ = boost::make_shared<InteractiveMarker>("6DOF",
                                                                 "Move Robot",
-                                                                env_->getRootLinkName(),
+                                                                tesseract_->getEnvironmentConst()->getRootLinkName(),
                                                                 root_interactive_node_,
                                                                 context_,
                                                                 true,
                                                                 cartesian_marker_scale_property_->getFloat());
     make6Dof(*interactive_marker_);
 
-    Eigen::Isometry3d pose =
-        env_state_.link_transforms.at(tcp_frame_property_->getString().toStdString()) * tcp_offset_;
+    Eigen::Isometry3d pose = env_state_->link_transforms[inv_kin_->getTipLinkName()] * tcp_;
     Ogre::Vector3 position;
     Ogre::Quaternion orientation;
     toOgre(position, orientation, pose);
@@ -420,20 +344,20 @@ bool ManipulationWidget::changeManipulator(const QString& manipulator)
     interactive_marker_->setVisible(enabled_ && cartesian_manipulation_property_->getBool());
 
     connect(interactive_marker_.get(),
-            SIGNAL(userFeedback(std::string, const Eigen::Isometry3d&, const Eigen::Vector3d&, bool)),
+            SIGNAL(userFeedback(std::string, Eigen::Isometry3d, Eigen::Vector3d, bool)),
             this,
-            SLOT(markerFeedback(std::string, const Eigen::Isometry3d&, const Eigen::Vector3d&, bool)));
+            SLOT(markerFeedback(std::string, Eigen::Isometry3d, Eigen::Vector3d, bool)));
 
     // Add joint specific interactive marker
     joint_interactive_markers_.clear();
-    for (const auto& joint_name : manip_->getJointNames())
+    for (const auto& joint_name : inv_kin_->getJointNames())
     {
       std::string name = joint_name + "_interactive_marker";
       std::string disc = "Move joint: " + joint_name;
-      InteractiveMarker::Ptr interactive_marker =
+      InteractiveMarker::SharedPtr interactive_marker =
           boost::make_shared<InteractiveMarker>(name,
                                                 disc,
-                                                env_->getRootLinkName(),
+                                                tesseract_->getEnvironmentConst()->getRootLinkName(),
                                                 root_interactive_node_,
                                                 context_,
                                                 true,
@@ -447,7 +371,7 @@ bool ManipulationWidget::changeManipulator(const QString& manipulator)
           Eigen::Vector3d disc_axis(1, 0, 0);
           Eigen::Quaternionf q = Eigen::Quaterniond::FromTwoVectors(disc_axis, joint->axis).cast<float>();
 
-          InteractiveMarkerControl::Ptr control =
+          InteractiveMarkerControl::SharedPtr control =
               interactive_marker->createInteractiveControl("move_" + joint_name,
                                                            "Move prismatic joint: " + joint_name,
                                                            InteractiveMode::MOVE_AXIS,
@@ -463,22 +387,7 @@ bool ManipulationWidget::changeManipulator(const QString& manipulator)
         {
           Eigen::Vector3d disc_axis(1, 0, 0);
           Eigen::Quaternionf q = Eigen::Quaterniond::FromTwoVectors(disc_axis, joint->axis).cast<float>();
-          InteractiveMarkerControl::Ptr control =
-              interactive_marker->createInteractiveControl("rotate_x",
-                                                           "Rotate around X Axis",
-                                                           InteractiveMode::ROTATE_AXIS,
-                                                           OrientationMode::INHERIT,
-                                                           true,
-                                                           Ogre::Quaternion(q.w(), q.x(), q.y(), q.z()));
-          makeDisc(*control, 0.3f);
-          joint_interactive_markers_[joint_name] = interactive_marker;
-          break;
-        }
-        case tesseract_scene_graph::JointType::CONTINUOUS:
-        {
-          Eigen::Vector3d disc_axis(1, 0, 0);
-          Eigen::Quaternionf q = Eigen::Quaterniond::FromTwoVectors(disc_axis, joint->axis).cast<float>();
-          InteractiveMarkerControl::Ptr control =
+          InteractiveMarkerControl::SharedPtr control =
               interactive_marker->createInteractiveControl("rotate_x",
                                                            "Rotate around X Axis",
                                                            InteractiveMode::ROTATE_AXIS,
@@ -493,7 +402,7 @@ bool ManipulationWidget::changeManipulator(const QString& manipulator)
           assert(false);
       }
 
-      Eigen::Isometry3d pose = env_state_.link_transforms.at(joint->child_link_name);
+      Eigen::Isometry3d pose = env_state_->link_transforms[joint->child_link_name];
       Ogre::Vector3 position;
       Ogre::Quaternion orientation;
       toOgre(position, orientation, pose);
@@ -519,61 +428,32 @@ bool ManipulationWidget::changeManipulator(const QString& manipulator)
   return false;
 }
 
-bool ManipulationWidget::changeTCPFrame(const QString& tcp_frame)
+bool ManipulationWidget::changeTCP(QString tcp_link)
 {
   bool success = false;
-  if (tcp_frame.isEmpty() || !available_tcp_frames_.contains(tcp_frame))
+  if (!env_state_ || tcp_link.isEmpty() || !available_tcp_links_.contains(tcp_link))
   {
-    if (manip_)
-    {
-      if (available_tcp_frames_.empty())
-        tcp_frame_property_->setString("");
-      else
-        tcp_frame_property_->setString(available_tcp_frames_[0]);
-    }
-  }
-  else
-  {
-    tcp_frame_property_->setString(tcp_frame);
-    success = true;
-  }
+    if (inv_kin_)
+      tcp_property_->setStdString(inv_kin_->getTipLinkName());
 
-  if (manip_ && !env_state_.link_transforms.empty() && interactive_marker_)
-  {
-    updateCartesianMarkerVisualization();
-  }
-
-  return success;
-}
-
-bool ManipulationWidget::changeTCPOffset(const QString& tcp_offset)
-{
-  bool success = false;
-  if (tcp_offset.isEmpty() || (available_tcp_offsets_.find(tcp_offset.toStdString()) == available_tcp_offsets_.end()))
-  {
-    if (available_tcp_offsets_.empty())
-    {
-      tcp_offset_property_->setString("");
-      tcp_offset_ = Eigen::Isometry3d::Identity();
-    }
-    else
-    {
-      tcp_offset_property_->setStdString(available_tcp_offsets_.begin()->first);
-      tcp_offset_ = available_tcp_offsets_.begin()->second;
-    }
-
+    tcp_ = Eigen::Isometry3d::Identity();
     success = false;
   }
   else
   {
-    tcp_offset_property_->setString(tcp_offset);
-    tcp_offset_ = available_tcp_offsets_.at(tcp_offset.toStdString());
+    tcp_property_->setString(tcp_link);
+    tcp_ = env_state_->link_transforms[inv_kin_->getTipLinkName()].inverse() *
+           env_state_->link_transforms[tcp_link.toStdString()];
     success = true;
   }
 
-  if (manip_ && !env_state_.link_transforms.empty() && interactive_marker_)
+  if (inv_kin_ && env_state_ && interactive_marker_)
   {
-    updateCartesianMarkerVisualization();
+    Eigen::Isometry3d pose = env_state_->link_transforms[inv_kin_->getTipLinkName()] * tcp_;
+    Ogre::Vector3 position;
+    Ogre::Quaternion orientation;
+    toOgre(position, orientation, pose);
+    interactive_marker_->setPose(position, orientation, "");
   }
 
   return success;
@@ -602,8 +482,7 @@ void ManipulationWidget::changedManipulator()
   //  }
 }
 
-void ManipulationWidget::changedTCPFrame() { changeTCPFrame(tcp_frame_property_->getString()); }
-void ManipulationWidget::changedTCPOffset() { changeTCPOffset(tcp_offset_property_->getString()); }
+void ManipulationWidget::changedTCP() { changeTCP(tcp_property_->getString()); }
 
 void ManipulationWidget::changedCartesianMarkerScale()
 {
@@ -636,58 +515,99 @@ void ManipulationWidget::changedJointStateTopic()
   }
 }
 
-void ManipulationWidget::markerFeedback(const std::string& reference_frame,
-                                        const Eigen::Isometry3d& transform,
-                                        const Eigen::Vector3d& /*mouse_point*/,
-                                        bool /*mouse_point_valid*/)
+void ManipulationWidget::markerFeedback(std::string reference_frame,
+                                        Eigen::Isometry3d transform,
+                                        Eigen::Vector3d mouse_point,
+                                        bool mouse_point_valid)
 {
-  if (manip_ && !env_state_.link_transforms.empty())
+  if (inv_kin_ && env_state_)
   {
-    tesseract_kinematics::KinGroupIKInput ik_input(
-        transform * tcp_offset_.inverse(), reference_frame, tcp_frame_property_->getStdString());
-    tesseract_kinematics::IKSolutions solutions = manip_->calcInvKin({ ik_input }, inv_seed_);
-    if (!solutions.empty())
+    const Eigen::Isometry3d& ref = env_state_->link_transforms[reference_frame];
+    const Eigen::Isometry3d& base = env_state_->link_transforms[inv_kin_->getBaseLinkName()];
+
+    Eigen::Isometry3d local_tf = (base.inverse() * ref * transform) * tcp_.inverse();
+    Eigen::VectorXd solutions;
+    if (inv_kin_->calcInvKin(solutions, local_tf, inv_seed_))
     {
-      const Eigen::VectorXd& temp_seed = solutions[0];
-      if (!tesseract_common::satisfiesPositionLimits(temp_seed, manip_->getLimits().joint_limits))
+      Eigen::VectorXd temp_seed = solutions.head(inv_kin_->numJoints());
+      if (!tesseract_kinematics::isWithinLimits(temp_seed, inv_kin_->getLimits()))
         return;
 
       inv_seed_ = temp_seed;
       int i = 0;
-      for (const auto& j : manip_->getJointNames())
+      for (auto j : inv_kin_->getJointNames())
       {
         joints_[j] = inv_seed_[i];
-        bool oldState = joint_values_property_->childAt(i)->blockSignals(true);
         joint_values_property_->childAt(i)->setValue(inv_seed_[i]);
-        joint_values_property_->childAt(i)->blockSignals(oldState);
-
         ++i;
       }
 
-      env_state_ = env_->getState(joints_);
-      updateJointConfig();
-      updateEnvironmentVisualization();
-      updateCartesianMarkerVisualization();
-      udpateJointMarkerVisualization();
-      publishJointStates();
-    }
-    else
-    {
-      updateCartesianMarkerVisualization();
+      env_state_ = tesseract_->getEnvironmentConst()->getState(joints_);
+      if (state_ == ManipulatorState::START)
+      {
+        for (auto& link_pair : visualization_->getLinks())
+        {
+          LinkWidget* link = link_pair.second;
+          auto it = env_state_->link_transforms.find(link->getName());
+          if (it != env_state_->link_transforms.end())
+          {
+            link->setStartTransform(it->second);
+          }
+        }
+
+        const auto& scene_graph = tesseract_->getEnvironmentConst()->getSceneGraph();
+        for (auto& joint_marker : joint_interactive_markers_)
+        {
+          const auto& joint = scene_graph->getJoint(joint_marker.first);
+          Eigen::Isometry3d pose = env_state_->link_transforms[joint->child_link_name];
+          Ogre::Vector3 position;
+          Ogre::Quaternion orientation;
+          toOgre(position, orientation, pose);
+
+          joint_marker.second->setPose(position, orientation, "");
+        }
+      }
+      else
+      {
+        for (auto& link_pair : visualization_->getLinks())
+        {
+          LinkWidget* link = link_pair.second;
+          auto it = env_state_->link_transforms.find(link->getName());
+          if (it != env_state_->link_transforms.end())
+          {
+            link->setEndTransform(it->second);
+          }
+        }
+
+        const auto& scene_graph = tesseract_->getEnvironmentConst()->getSceneGraph();
+        for (auto& joint_marker : joint_interactive_markers_)
+        {
+          const auto& joint = scene_graph->getJoint(joint_marker.first);
+          Eigen::Isometry3d pose = env_state_->link_transforms[joint->child_link_name];
+          Ogre::Vector3 position;
+          Ogre::Quaternion orientation;
+          toOgre(position, orientation, pose);
+
+          joint_marker.second->setPose(position, orientation, "");
+        }
+      }
+      sensor_msgs::JointState joint_state;
+      tesseract_rosutils::toMsg(joint_state, *env_state_);
+      joint_state_pub_.publish(joint_state);
     }
   }
 }
 
-void ManipulationWidget::jointMarkerFeedback(const std::string& joint_name,
-                                             const std::string& /*reference_frame*/,
-                                             const Eigen::Isometry3d& transform,
-                                             const Eigen::Vector3d& /*mouse_point*/,
-                                             bool /*mouse_point_valid*/)
+void ManipulationWidget::jointMarkerFeedback(std::string joint_name,
+                                             std::string reference_frame,
+                                             Eigen::Isometry3d transform,
+                                             Eigen::Vector3d mouse_point,
+                                             bool mouse_point_valid)
 {
-  const auto& scene_graph = env_->getSceneGraph();
+  const auto& scene_graph = tesseract_->getEnvironmentConst()->getSceneGraph();
   const auto& joint = scene_graph->getJoint(joint_name);
-  double current_joint_value = env_state_.joints.at(joint_name);
-  Eigen::Isometry3d child_pose = env_state_.link_transforms.at(joint->child_link_name);
+  double current_joint_value = env_state_->joints[joint_name];
+  Eigen::Isometry3d child_pose = env_state_->link_transforms[joint->child_link_name];
   Eigen::Isometry3d delta_pose = child_pose.inverse() * transform;
 
   Eigen::Vector3d delta_axis;
@@ -709,15 +629,6 @@ void ManipulationWidget::jointMarkerFeedback(const std::string& joint_name,
       delta_joint_value = delta_rotation.angle();
       break;
     }
-    case tesseract_scene_graph::JointType::CONTINUOUS:
-    {
-      Eigen::AngleAxisd delta_rotation;
-      delta_rotation.fromRotationMatrix(delta_pose.rotation());
-
-      delta_axis = delta_rotation.axis();
-      delta_joint_value = delta_rotation.angle();
-      break;
-    }
     default:
       assert(false);
   }
@@ -728,109 +639,175 @@ void ManipulationWidget::jointMarkerFeedback(const std::string& joint_name,
   else
     new_joint_value = current_joint_value - delta_joint_value;
 
-  Eigen::MatrixX2d limits = manip_->getLimits().joint_limits;
+  if (joint->limits)
+  {
+    if (new_joint_value > joint->limits->upper)
+    {
+      new_joint_value = joint->limits->upper;
+    }
+    else if (new_joint_value < joint->limits->lower)
+    {
+      new_joint_value = joint->limits->lower;
+    }
+  }
+
   int i = 0;
-  for (const auto& j : manip_->getJointNames())
+  for (auto j : inv_kin_->getJointNames())
   {
     if (joint_name == j)
     {
-      if (new_joint_value > limits(i, 1))
-      {
-        new_joint_value = limits(i, 1);
-      }
-      else if (new_joint_value < limits(i, 0))
-      {
-        new_joint_value = limits(i, 0);
-      }
-
       joints_[j] = new_joint_value;
       inv_seed_[i] = new_joint_value;
-
-      bool oldState = joint_values_property_->childAt(i)->blockSignals(true);
       joint_values_property_->childAt(i)->setValue(inv_seed_[i]);
-      joint_values_property_->childAt(i)->blockSignals(oldState);
       break;
     }
 
     ++i;
   }
 
-  env_state_ = env_->getState(joints_);
-  updateJointConfig();
-  updateEnvironmentVisualization();
-  updateCartesianMarkerVisualization();
-  udpateJointMarkerVisualization();
-  publishJointStates();
-}
-
-void ManipulationWidget::userInputJointValuesChanged()
-{
-  if (joint_values_property_->numChildren() != static_cast<int>(manip_->numJoints()))
-    return;
-
-  int i = 0;
-  for (const auto& j : manip_->getJointNames())
+  env_state_ = tesseract_->getEnvironmentConst()->getState(joints_);
+  if (state_ == ManipulatorState::START)
   {
-    double new_joint_value = joint_values_property_->childAt(i)->getValue().toDouble();
+    for (auto& link_pair : visualization_->getLinks())
+    {
+      LinkWidget* link = link_pair.second;
+      auto it = env_state_->link_transforms.find(link->getName());
+      if (it != env_state_->link_transforms.end())
+      {
+        link->setStartTransform(it->second);
+      }
+    }
 
-    joints_[j] = new_joint_value;
-    inv_seed_[i] = new_joint_value;
+    const auto& scene_graph = tesseract_->getEnvironmentConst()->getSceneGraph();
+    for (auto& joint_marker : joint_interactive_markers_)
+    {
+      const auto& joint = scene_graph->getJoint(joint_marker.first);
+      Eigen::Isometry3d pose = env_state_->link_transforms[joint->child_link_name];
+      Ogre::Vector3 position;
+      Ogre::Quaternion orientation;
+      toOgre(position, orientation, pose);
 
-    ++i;
+      joint_marker.second->setPose(position, orientation, "");
+    }
+  }
+  else
+  {
+    for (auto& link_pair : visualization_->getLinks())
+    {
+      LinkWidget* link = link_pair.second;
+      auto it = env_state_->link_transforms.find(link->getName());
+      if (it != env_state_->link_transforms.end())
+      {
+        link->setEndTransform(it->second);
+      }
+    }
+
+    const auto& scene_graph = tesseract_->getEnvironmentConst()->getSceneGraph();
+    for (auto& joint_marker : joint_interactive_markers_)
+    {
+      const auto& joint = scene_graph->getJoint(joint_marker.first);
+      Eigen::Isometry3d pose = env_state_->link_transforms[joint->child_link_name];
+      Ogre::Vector3 position;
+      Ogre::Quaternion orientation;
+      toOgre(position, orientation, pose);
+
+      joint_marker.second->setPose(position, orientation, "");
+    }
   }
 
-  env_state_ = env_->getState(joints_);
-  updateJointConfig();
-  updateEnvironmentVisualization();
-  updateCartesianMarkerVisualization();
-  udpateJointMarkerVisualization();
-  publishJointStates();
+  Eigen::Isometry3d pose = env_state_->link_transforms[inv_kin_->getTipLinkName()] * tcp_;
+  Ogre::Vector3 position;
+  Ogre::Quaternion orientation;
+  toOgre(position, orientation, pose);
+  interactive_marker_->setPose(position, orientation, "");
+
+  sensor_msgs::JointState joint_state;
+  tesseract_rosutils::toMsg(joint_state, *env_state_);
+  joint_state_pub_.publish(joint_state);
 }
 
 void ManipulationWidget::onUpdate(float wall_dt)
 {
-  if (!env_->isInitialized() || !visualization_)
+  if (!tesseract_->isInitialized() || !visualization_)
     return;
 
-  if (env_->isInitialized())
+  if (tesseract_->isInitialized())
   {
-    if (env_revision_ != env_->getRevision() || env_state_.link_transforms.empty())
+    if (env_revision_ != tesseract_->getEnvironmentConst()->getRevision() || !env_state_)
     {
-      env_revision_ = env_->getRevision();
-      env_state_ = env_->getState();
-      joints_ = env_state_.joints;
-      updateEnvironmentVisualization();
-
-      if (manip_)
+      env_revision_ = tesseract_->getEnvironmentConst()->getRevision();
+      env_state_ =
+          std::make_shared<tesseract_environment::EnvState>(*(tesseract_->getEnvironmentConst()->getCurrentState()));
+      joints_ = env_state_->joints;
+      if (state_ == ManipulatorState::START)
       {
-        inv_seed_.resize(manip_->numJoints());
+        for (auto& link_pair : visualization_->getLinks())
+        {
+          LinkWidget* link = link_pair.second;
+          auto it = env_state_->link_transforms.find(link->getName());
+          if (it != env_state_->link_transforms.end())
+          {
+            link->setStartTransform(it->second);
+          }
+        }
+      }
+      else
+      {
+        for (auto& link_pair : visualization_->getLinks())
+        {
+          LinkWidget* link = link_pair.second;
+          auto it = env_state_->link_transforms.find(link->getName());
+          if (it != env_state_->link_transforms.end())
+          {
+            link->setEndTransform(it->second);
+          }
+        }
+      }
+      if (inv_kin_)
+      {
+        inv_seed_.resize(inv_kin_->numJoints());
         int i = 0;
-        for (const auto& j : manip_->getJointNames())
+        for (auto j : inv_kin_->getJointNames())
         {
           inv_seed_[i] = joints_[j];
-          bool oldState = joint_values_property_->childAt(i)->blockSignals(true);
           joint_values_property_->childAt(i)->setValue(inv_seed_[i]);
-          joint_values_property_->childAt(i)->blockSignals(oldState);
           ++i;
         }
-        updateJointConfig();
-        updateCartesianMarkerVisualization();
-        udpateJointMarkerVisualization();
+
+        Eigen::Isometry3d pose = env_state_->link_transforms[inv_kin_->getTipLinkName()] * tcp_;
+        Ogre::Vector3 position;
+        Ogre::Quaternion orientation;
+        toOgre(position, orientation, pose);
+        interactive_marker_->setPose(position, orientation, "");
+
+        const auto& scene_graph = tesseract_->getEnvironmentConst()->getSceneGraph();
+        for (auto& joint_marker : joint_interactive_markers_)
+        {
+          const auto& joint = scene_graph->getJoint(joint_marker.first);
+
+          Eigen::Isometry3d pose = env_state_->link_transforms[joint->child_link_name];
+          Ogre::Vector3 position;
+          Ogre::Quaternion orientation;
+          toOgre(position, orientation, pose);
+
+          joint_marker.second->setPose(position, orientation, "");
+        }
       }
     }
 
-    if (!manip_)
+    if (!inv_kin_)
       changedManipulator();
 
     std::string current_manipulator = manipulator_property_->getStdString();
-    std::set<std::string> manipulators = env_->getGroupNames();
+    std::vector<std::string> manipulators =
+        tesseract_->getInvKinematicsManagerConst()->getAvailableInvKinematicsManipulators();
 
     if (manipulators_.size() != manipulators.size() && !manipulators.empty())
     {
       int cnt = 0;
       manipulator_property_->clearOptions();
       available_manipulators_.clear();
-      for (const auto& manip : manipulators)
+      for (const auto& manip : tesseract_->getInvKinematicsManagerConst()->getAvailableInvKinematicsManipulators())
       {
         available_manipulators_.push_back(QString::fromStdString(manip));
         manipulator_property_->addOptionStd(manip, cnt);
@@ -839,7 +816,7 @@ void ManipulationWidget::onUpdate(float wall_dt)
       auto it = std::find(manipulators.begin(), manipulators.end(), current_manipulator);
 
       if (it == manipulators.end())
-        manipulator_property_->setStringStd(*std::next(manipulators.begin(), 0));
+        manipulator_property_->setStringStd(manipulators[0]);
       else
         manipulator_property_->setStringStd(current_manipulator);
 
@@ -853,90 +830,6 @@ void ManipulationWidget::onUpdate(float wall_dt)
 
   for (auto& joint_marker : joint_interactive_markers_)
     joint_marker.second->update(wall_dt);
-}
-
-void ManipulationWidget::updateJointConfig()
-{
-  // calculate robot config
-  if (manip_->numJoints() == 6)
-  {
-    Eigen::IOFormat eigen_format(Eigen::StreamPrecision, Eigen::DontAlignCols, "", "");
-
-    Eigen::Vector2i sign_correction;
-    sign_correction[0] = joint3_sign_property_->getOptionInt();
-    sign_correction[1] = joint5_sign_property_->getOptionInt();
-
-    auto config = tesseract_planning::getRobotConfig<double>(*manip_,
-                                                             joint_config_base_link_property_->getStdString(),
-                                                             joint_config_tip_link_property_->getStdString(),
-                                                             inv_seed_,
-                                                             sign_correction);
-    Eigen::VectorXi turns = tesseract_planning::getJointTurns<double>(inv_seed_).transpose();
-
-    std::stringstream config_string;
-    config_string << tesseract_planning::RobotConfigString[static_cast<std::size_t>(config)];
-    config_string << " " << turns.format(eigen_format);
-    joint_config_property_->setStdString(config_string.str());
-  }
-  else
-  {
-    joint_config_property_->setString("Unknown");
-  }
-}
-
-void ManipulationWidget::updateEnvironmentVisualization()
-{
-  if (state_ == ManipulatorState::START)
-  {
-    for (auto& link_pair : visualization_->getLinks())
-    {
-      LinkWidget* link = link_pair.second;
-      auto it = env_state_.link_transforms.find(link->getName());
-      if (it != env_state_.link_transforms.end())
-        link->setStartTransform(it->second);
-    }
-  }
-  else
-  {
-    for (auto& link_pair : visualization_->getLinks())
-    {
-      LinkWidget* link = link_pair.second;
-      auto it = env_state_.link_transforms.find(link->getName());
-      if (it != env_state_.link_transforms.end())
-        link->setEndTransform(it->second);
-    }
-  }
-}
-
-void ManipulationWidget::updateCartesianMarkerVisualization()
-{
-  Eigen::Isometry3d pose = env_state_.link_transforms.at(tcp_frame_property_->getString().toStdString()) * tcp_offset_;
-  Ogre::Vector3 position;
-  Ogre::Quaternion orientation;
-  toOgre(position, orientation, pose);
-  interactive_marker_->setPose(position, orientation, "");
-}
-
-void ManipulationWidget::udpateJointMarkerVisualization()
-{
-  const auto& scene_graph = env_->getSceneGraph();
-  for (auto& joint_marker : joint_interactive_markers_)
-  {
-    const auto& joint = scene_graph->getJoint(joint_marker.first);
-    Eigen::Isometry3d pose = env_state_.link_transforms.at(joint->child_link_name);
-    Ogre::Vector3 position;
-    Ogre::Quaternion orientation;
-    toOgre(position, orientation, pose);
-
-    joint_marker.second->setPose(position, orientation, "");
-  }
-}
-
-void ManipulationWidget::publishJointStates()
-{
-  sensor_msgs::JointState joint_state;
-  tesseract_rosutils::toMsg(joint_state, env_state_.joints);
-  joint_state_pub_.publish(joint_state);
 }
 
 // void TrajectoryMonitorWidget::trajectorySliderPanelVisibilityChange(bool enable)

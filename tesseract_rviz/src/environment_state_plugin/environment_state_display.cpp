@@ -35,42 +35,41 @@
 /* Author: Ioan Sucan */
 #include <tesseract_common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
-#include <ros/package.h>
 
-#include <eigen_conversions/eigen_msg.h>
-#include <rviz/display_context.h>
-#include <rviz/frame_manager.h>
-#include <rviz/visualization_manager.h>
+//#include <eigen_conversions/eigen_msg.h>
+#include <rviz_common/display_context.hpp>
+#include <rviz_common/frame_manager_iface.hpp>
+//#include <rviz_common/visualization_manager.hpp>
 
 #include <OgreSceneManager.h>
 #include <OgreSceneNode.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
-#include <tesseract_rviz/environment_state_plugin/environment_state_display.h>
+#include <tesseract_rviz/tesseract_state_plugin/tesseract_state_display.h>
 
 namespace tesseract_rviz
 {
-EnvironmentStateDisplay::EnvironmentStateDisplay()
+TesseractStateDisplay::TesseractStateDisplay() : Display(), node_(new rclcpp::Node("tesseract_state_display"))
 {
-  env_ = std::make_shared<tesseract_environment::Environment>();
+  tesseract_ = std::make_shared<tesseract::Tesseract>();
   environment_monitor_ = std::make_shared<EnvironmentWidget>(this, this);
   state_monitor_ = std::make_shared<JointStateMonitorWidget>(this, this);
 }
 
-EnvironmentStateDisplay::~EnvironmentStateDisplay() = default;
+TesseractStateDisplay::~TesseractStateDisplay() {}
 
-void EnvironmentStateDisplay::onInitialize()
+void TesseractStateDisplay::onInitialize()
 {
   Display::onInitialize();
   visualization_ = std::make_shared<VisualizationWidget>(scene_node_, context_, "Tesseract State", this);
 
-  environment_monitor_->onInitialize(visualization_, env_, context_, nh_, false);
-  state_monitor_->onInitialize(visualization_, env_, context_, nh_);
+  environment_monitor_->onInitialize(visualization_, tesseract_, context_, node_, false);
+  state_monitor_->onInitialize(visualization_, tesseract_, context_, node_);
 
   visualization_->setVisible(false);
 }
 
-void EnvironmentStateDisplay::reset()
+void TesseractStateDisplay::reset()
 {
   visualization_->clear();
   Display::reset();
@@ -79,7 +78,7 @@ void EnvironmentStateDisplay::reset()
   state_monitor_->onReset();
 }
 
-void EnvironmentStateDisplay::onEnable()
+void TesseractStateDisplay::onEnable()
 {
   Display::onEnable();
 
@@ -87,7 +86,7 @@ void EnvironmentStateDisplay::onEnable()
   state_monitor_->onEnable();
 }
 
-void EnvironmentStateDisplay::onDisable()
+void TesseractStateDisplay::onDisable()
 {
   environment_monitor_->onDisable();
   state_monitor_->onDisable();
@@ -95,7 +94,7 @@ void EnvironmentStateDisplay::onDisable()
   Display::onDisable();
 }
 
-void EnvironmentStateDisplay::update(float wall_dt, float ros_dt)
+void TesseractStateDisplay::update(float wall_dt, float ros_dt)
 {
   Display::update(wall_dt, ros_dt);
 
@@ -106,7 +105,7 @@ void EnvironmentStateDisplay::update(float wall_dt, float ros_dt)
 // ******************************************************************************************
 // Calculate Offset Position
 // ******************************************************************************************
-// void EnvironmentStateDisplay::calculateOffsetPosition()
+// void TesseractStateDisplay::calculateOffsetPosition()
 //{
 //  if (!env_)
 //    return;
@@ -119,7 +118,7 @@ void EnvironmentStateDisplay::update(float wall_dt, float ros_dt)
 //  scene_node_->setOrientation(orientation);
 //}
 
-// void EnvironmentStateDisplay::fixedFrameChanged()
+// void TesseractStateDisplay::fixedFrameChanged()
 //{
 //  Display::fixedFrameChanged();
 //  calculateOffsetPosition();

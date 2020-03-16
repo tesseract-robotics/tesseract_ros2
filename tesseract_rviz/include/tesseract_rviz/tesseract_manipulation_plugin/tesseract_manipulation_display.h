@@ -31,7 +31,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <rviz/display.h>
 #ifndef Q_MOC_RUN
 #include <ros/ros.h>
-#include <tesseract_environment/environment.h>
+#include <tesseract/tesseract.h>
 #endif
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
@@ -41,7 +41,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 namespace tesseract_rviz
 {
-class TesseractManipulationDisplay : public rviz::Display
+class TesseractManipulationDisplay : public rviz_common::Display
 {
   Q_OBJECT
 
@@ -63,10 +63,10 @@ protected:
   // ROS Node Handle
   ros::NodeHandle nh_;
 
-  tesseract_environment::Environment::Ptr env_;
-  VisualizationWidget::Ptr visualization_;
-  EnvironmentWidget::Ptr environment_monitor_;
-  ManipulationWidget::Ptr manipulation_;
+  tesseract::Tesseract::Ptr tesseract_;
+  VisualizationWidget::SharedPtr visualization_;
+  EnvironmentWidget::SharedPtr environment_monitor_;
+  ManipulationWidget::SharedPtr manipulation_;
 };
 
 }  // namespace tesseract_rviz

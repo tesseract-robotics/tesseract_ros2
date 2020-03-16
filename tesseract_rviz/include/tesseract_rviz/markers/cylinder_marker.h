@@ -32,7 +32,7 @@
 #include <string>
 #endif
 
-namespace rviz
+namespace rviz_rendering
 {
 class Shape;
 }
@@ -42,12 +42,12 @@ namespace tesseract_rviz
 class CylinderMarker : public MarkerBase
 {
 public:
-  using Ptr = boost::shared_ptr<CylinderMarker>;
-  using ConstPtr = boost::shared_ptr<const CylinderMarker>;
+  using SharedPtr = std::shared_ptr<CylinderMarker>;
+  using ConstSharedPtr = std::shared_ptr<const CylinderMarker>;
 
   CylinderMarker(const std::string& ns,
                  const int id,
-                 rviz::DisplayContext* context,
+                 rviz_common::DisplayContext* context,
                  Ogre::SceneNode* parent_node,
                  float radius = 1,
                  float height = 2);
@@ -67,7 +67,7 @@ public:
   std::set<Ogre::MaterialPtr> getMaterials() override;
 
 protected:
-  rviz::Shape* shape_;
+  rviz_rendering::Shape* shape_;
   Ogre::Vector3 scale_;
   float radius_;
   float height_;

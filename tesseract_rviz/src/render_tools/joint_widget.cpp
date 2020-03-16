@@ -35,13 +35,13 @@
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <OgreSceneNode.h>
 
-#include "rviz/load_resource.h"
-#include "rviz/ogre_helpers/arrow.h"
-#include "rviz/ogre_helpers/axes.h"
-#include "rviz/properties/float_property.h"
-#include "rviz/properties/quaternion_property.h"
-#include "rviz/properties/string_property.h"
-#include "rviz/properties/vector_property.h"
+#include "rviz_common/load_resource.hpp"
+#include "rviz_rendering/objects/arrow.hpp"
+#include "rviz_rendering/objects/axes.hpp"
+#include "rviz_common/properties/float_property.hpp"
+#include "rviz_common/properties/quaternion_property.hpp"
+#include "rviz_common/properties/string_property.hpp"
+#include "rviz_common/properties/vector_property.hpp"
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_rviz/conversions.h>
@@ -58,28 +58,28 @@ JointWidget::JointWidget(VisualizationWidget* env, const tesseract_scene_graph::
   , axes_(nullptr)
   , axis_(nullptr)
 {
-  joint_property_ = new rviz::Property(name_.c_str(), true, "", nullptr, SLOT(updateChildVisibility()), this);
-  joint_property_->setIcon(rviz::loadPixmap("package://rviz/icons/classes/RobotJoint.png"));
+  joint_property_ = new rviz_common::properties::Property(name_.c_str(), true, "", nullptr, SLOT(updateChildVisibility()), this);
+  joint_property_->setIcon(rviz_common::loadPixmap("package://rviz/icons/classes/RobotJoint.png"));
 
-  details_ = new rviz::Property("Details", QVariant(), "", nullptr);
+  details_ = new rviz_common::properties::Property("Details", QVariant(), "", nullptr);
 
-  axes_property_ = new rviz::Property(
+  axes_property_ = new rviz_common::properties::Property(
       "Show Axes", false, "Enable/disable showing the axes of this joint.", joint_property_, SLOT(updateAxes()), this);
 
-  position_property_ = new rviz::VectorProperty("Position",
+  position_property_ = new rviz_common::properties::VectorProperty("Position",
                                                 Ogre::Vector3::ZERO,
                                                 "Position of this joint, in the current Fixed Frame.  (Not editable)",
                                                 joint_property_);
   position_property_->setReadOnly(true);
 
-  orientation_property_ = new rviz::QuaternionProperty("Orientation",
+  orientation_property_ = new rviz_common::properties::QuaternionProperty("Orientation",
                                                        Ogre::Quaternion::IDENTITY,
                                                        "Orientation of this joint, in the current Fixed Frame.  (Not "
                                                        "editable)",
                                                        joint_property_);
   orientation_property_->setReadOnly(true);
 
-  std::string type;
+  std::string type = "";
   if (joint.type == tesseract_scene_graph::JointType::UNKNOWN)
     type = "unknown";
   else if (joint.type == tesseract_scene_graph::JointType::REVOLUTE)
@@ -95,7 +95,7 @@ JointWidget::JointWidget(VisualizationWidget* env, const tesseract_scene_graph::
   else if (joint.type == tesseract_scene_graph::JointType::FIXED)
     type = "fixed";
 
-  type_property_ = new rviz::StringProperty(
+  type_property_ = new rviz_common::properties::StringProperty(
       "Type", QString::fromStdString(type), "Type of this joint.  (Not editable)", joint_property_);
   type_property_->setReadOnly(true);
 
@@ -103,13 +103,13 @@ JointWidget::JointWidget(VisualizationWidget* env, const tesseract_scene_graph::
   {
     // continuous joints have lower limit and upper limits of zero,
     // which means this isn't very useful but show it anyhow.
-    lower_limit_property_ = new rviz::FloatProperty("Lower Limit",
+    lower_limit_property_ = new rviz_common::properties::FloatProperty("Lower Limit",
                                                     static_cast<float>(joint.limits->lower),
                                                     "Lower limit of this joint.  (Not editable)",
                                                     joint_property_);
     lower_limit_property_->setReadOnly(true);
 
-    upper_limit_property_ = new rviz::FloatProperty("Upper Limit",
+    upper_limit_property_ = new rviz_common::properties::FloatProperty("Upper Limit",
                                                     static_cast<float>(joint.limits->upper),
                                                     "Upper limit of this joint.  (Not editable)",
                                                     joint_property_);
@@ -118,14 +118,14 @@ JointWidget::JointWidget(VisualizationWidget* env, const tesseract_scene_graph::
 
   if ((type == "continuous") || (type == "revolute") || (type == "prismatic") || (type == "planar"))
   {
-    show_axis_property_ = new rviz::Property("Show Joint Axis",
+    show_axis_property_ = new rviz_common::properties::Property("Show Joint Axis",
                                              false,
                                              "Enable/disable showing the axis of this joint.",
                                              joint_property_,
                                              SLOT(updateAxis()),
                                              this);
 
-    axis_property_ = new rviz::VectorProperty("Joint Axis",
+    axis_property_ = new rviz_common::properties::VectorProperty("Joint Axis",
                                               Ogre::Vector3(static_cast<float>(joint.axis(0)),
                                                             static_cast<float>(joint.axis(1)),
                                                             static_cast<float>(joint.axis(2))),
@@ -147,9 +147,9 @@ JointWidget::JointWidget(VisualizationWidget* env, const tesseract_scene_graph::
 
 JointWidget::~JointWidget()
 {
-  assert(details_->getParent() == nullptr);
-  assert(joint_property_->getParent() == nullptr);
-
+  delete axes_;
+  if (axis_)
+    delete axis_;
   delete details_;
   delete joint_property_;
 }
@@ -197,7 +197,7 @@ void JointWidget::setJointPropertyDescription()
   joint_property_->setDescription(desc.str().c_str());
 }
 
-void JointWidget::setJointCheckbox(const QVariant& val)
+void JointWidget::setJointCheckbox(QVariant val)
 {
   // setting doing_set_checkbox_ to true prevents updateChildVisibility() from
   // updating child link enables.
@@ -347,7 +347,7 @@ void JointWidget::updateAxes()
   {
     if (!axes_)
     {
-      axes_ = std::make_unique<rviz::Axes>(env_->getSceneManager(), env_->getOtherNode(), 0.1f, 0.01f);
+      axes_ = new rviz_rendering::Axes(env_->getSceneManager(), env_->getOtherNode(), 0.1f, 0.01f);
       axes_->getSceneNode()->setVisible(getEnabled());
 
       axes_->setPosition(position_property_->getVector());
@@ -357,7 +357,10 @@ void JointWidget::updateAxes()
   else
   {
     if (axes_)
+    {
+      delete axes_;
       axes_ = nullptr;
+    }
   }
 }
 
@@ -367,7 +370,7 @@ void JointWidget::updateAxis()
   {
     if (!axis_)
     {
-      axis_ = std::make_unique<rviz::Arrow>(env_->getSceneManager(), env_->getOtherNode(), 0.15f, 0.05f, 0.05f, 0.08f);
+      axis_ = new rviz_rendering::Arrow(env_->getSceneManager(), env_->getOtherNode(), 0.15f, 0.05f, 0.05f, 0.08f);
       axis_->getSceneNode()->setVisible(getEnabled());
 
       axis_->setPosition(position_property_->getVector());
@@ -381,7 +384,10 @@ void JointWidget::updateAxis()
   else
   {
     if (axis_)
+    {
+      delete axis_;
       axis_ = nullptr;
+    }
   }
 }
 
@@ -409,39 +415,23 @@ void JointWidget::setTransforms(const Ogre::Vector3& parent_link_position,
 
 void JointWidget::hideSubProperties(bool hide)
 {
-  details_->setHidden(hide);
   position_property_->setHidden(hide);
   orientation_property_->setHidden(hide);
-  type_property_->setHidden(hide);
-
-  if (axes_property_)
-    axes_property_->setHidden(hide);
-
-  if (show_axis_property_)
-    show_axis_property_->setHidden(hide);
-
-  if (axis_property_)
-    axis_property_->setHidden(hide);
-
-  if (lower_limit_property_)
-    lower_limit_property_->setHidden(hide);
-
-  if (upper_limit_property_)
-    upper_limit_property_->setHidden(hide);
+  axes_property_->setHidden(hide);
+  show_axis_property_->setHidden(hide);
+  axis_property_->setHidden(hide);
 }
 
 Ogre::Vector3 JointWidget::getPosition() { return position_property_->getVector(); }
 Ogre::Quaternion JointWidget::getOrientation() { return orientation_property_->getQuaternion(); }
-void JointWidget::setParentProperty(rviz::Property* new_parent)
+void JointWidget::setParentProperty(rviz_common::properties::Property* new_parent)
 {
-  rviz::Property* old_parent = joint_property_->getParent();
+  rviz_common::properties::Property* old_parent = joint_property_->getParent();
   if (old_parent)
     old_parent->takeChild(joint_property_);
 
   if (new_parent)
     new_parent->addChild(joint_property_);
-
-  joint_property_->setParent(new_parent);
 }
 
 // if use_detail:
@@ -452,7 +442,7 @@ void JointWidget::setParentProperty(rviz::Property* new_parent)
 //    details_ property does not have a parent.
 void JointWidget::useDetailProperty(bool use_detail)
 {
-  rviz::Property* old_parent = details_->getParent();
+  rviz_common::properties::Property* old_parent = details_->getParent();
   if (old_parent)
     old_parent->takeChild(details_);
 
@@ -460,7 +450,7 @@ void JointWidget::useDetailProperty(bool use_detail)
   {
     while (joint_property_->numChildren() > 0)
     {
-      rviz::Property* child = joint_property_->childAt(0);
+      rviz_common::properties::Property* child = joint_property_->childAt(0);
       joint_property_->takeChild(child);
       details_->addChild(child);
     }
@@ -471,7 +461,7 @@ void JointWidget::useDetailProperty(bool use_detail)
   {
     while (details_->numChildren() > 0)
     {
-      rviz::Property* child = details_->childAt(0);
+      rviz_common::properties::Property* child = details_->childAt(0);
       details_->takeChild(child);
       joint_property_->addChild(child);
     }
@@ -480,7 +470,7 @@ void JointWidget::useDetailProperty(bool use_detail)
 
 void JointWidget::expandDetails(bool expand)
 {
-  rviz::Property* parent = details_->getParent() ? details_ : joint_property_;
+  rviz_common::properties::Property* parent = details_->getParent() ? details_ : joint_property_;
   if (expand)
   {
     parent->expand();

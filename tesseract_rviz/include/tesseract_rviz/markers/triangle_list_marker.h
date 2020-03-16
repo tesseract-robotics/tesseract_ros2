@@ -40,9 +40,12 @@ namespace Ogre
 class SceneNode;
 }
 
-namespace rviz
+namespace rviz_rendering
 {
 class Arrow;
+}
+
+namespace rviz_common {
 class DisplayContext;
 }  // namespace rviz
 
@@ -51,12 +54,12 @@ namespace tesseract_rviz
 class TriangleListMarker : public MarkerBase
 {
 public:
-  using Ptr = boost::shared_ptr<TriangleListMarker>;
-  using ConstPtr = boost::shared_ptr<const TriangleListMarker>;
+  using SharedPtr = std::shared_ptr<TriangleListMarker>;
+  using ConstSharedPtr = std::shared_ptr<const TriangleListMarker>;
 
   TriangleListMarker(const std::string& ns,
                      const int id,
-                     rviz::DisplayContext* context,
+                     rviz_common::DisplayContext* context,
                      Ogre::SceneNode* parent_node,
                      const Ogre::ColourValue color,
                      const std::vector<Ogre::Vector3>& points,

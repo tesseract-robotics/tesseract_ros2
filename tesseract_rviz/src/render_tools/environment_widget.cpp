@@ -1,78 +1,78 @@
 #include <tesseract_common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
-#include <rviz/display_context.h>
-#include <rviz/properties/bool_property.h>
-#include <rviz/properties/color_property.h>
-#include <rviz/properties/float_property.h>
-#include <rviz/properties/property.h>
-#include <rviz/properties/ros_topic_property.h>
-#include <rviz/properties/string_property.h>
-#include <rviz/properties/enum_property.h>
-#include <rviz/window_manager_interface.h>
+#include <rviz_common/display_context.hpp>
+#include <rviz_common/properties/bool_property.hpp>
+#include <rviz_common/properties/color_property.hpp>
+#include <rviz_common/properties/float_property.hpp>
+#include <rviz_common/properties/property.hpp>
+#include <rviz_common/properties/ros_topic_property.hpp>
+#include <rviz_common/properties/string_property.hpp>
+#include <rviz_common/properties/enum_property.hpp>
+#include <rviz_common/window_manager_interface.hpp>
 
-#include <tesseract_rosutils/utils.h>
+
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_rosutils/utils.h>
-
-#include <tesseract_environment/environment.h>
-
 #include <tesseract_rviz/render_tools/visualization_widget.h>
 #include <tesseract_rviz/render_tools/link_widget.h>
 #include <tesseract_rviz/render_tools/environment_widget.h>
+
+#include <std_msgs/msg/color_rgba.hpp>
 
 namespace tesseract_rviz
 {
 const std::string DEFAULT_GET_ENVIRONMENT_CHANGES_SERVICE = "get_tesseract_changes_rviz";
 const std::string DEFAULT_MODIFY_ENVIRONMENT_SERVICE = "modify_tesseract_rviz";
 
-EnvironmentWidget::EnvironmentWidget(rviz::Property* widget, rviz::Display* display, const std::string& widget_ns)
+EnvironmentWidget::EnvironmentWidget(rviz_common::properties::Property* widget, rviz_common::Display* display, const std::string& widget_ns)
   : widget_(widget)
   , display_(display)
   , visualization_(nullptr)
-  , env_(nullptr)
+  , tesseract_(nullptr)
   , update_required_(false)
   , update_state_(true)
-  , load_tesseract_(true)
+  , load_tesseract_(false)
 {
   environment_widget_counter_++;
-  if (widget_ns.empty())
+  if (widget_ns == std::string())
   {
     environment_widget_id_ = environment_widget_counter_;
-    widget_ns_ = "env_widget_" + std::to_string(environment_widget_id_);
+    widget_ns_ = "env_widget_" + std::to_string(environment_widget_id_) + "/";
   }
   else
   {
     widget_ns_ = widget_ns;
   }
 
-  main_property_ = new rviz::Property("Environment", "", "Tesseract Environment", widget_, nullptr, this);
+  main_property_ = new rviz_common::properties::Property("Environment", "", "Tesseract Environment", widget_, nullptr, this);
 
-  display_mode_property_ = new rviz::EnumProperty("Display Mode",
-                                                  "URDF",
-                                                  "Leverage URDF or connect to monitor namespace",
-                                                  main_property_,
-                                                  SLOT(changedDisplayMode()),
-                                                  this);
+  urdf_description_property_ = new rviz_common::properties::StringProperty("URDF Description",
+                                                        "robot_description",
+                                                        "The name of the ROS parameter where the URDF for the robot is "
+                                                        "loaded",
+                                                        main_property_,
+                                                        SLOT(changedURDFDescription()),
+                                                        this);
 
-  display_mode_property_->addOptionStd("URDF", 0);
-  display_mode_property_->addOptionStd("Monitor", 1);
-
-  environment_namespace_property_ = new rviz::StringProperty("Interface Namespace",
+  environment_namespace_property_ = new rviz_common::properties::StringProperty("Interface Namespace",
                                                              QString::fromUtf8(widget_ns_.c_str()),
                                                              "The namespace used for the service interface associated "
-                                                             "with this rviz plugin environment monitor",
-                                                             main_property_);
-  environment_namespace_property_->setReadOnly(true);
+                                                             "with the environment",
+                                                             main_property_,
+                                                             SLOT(changedEnvironmentNamespace()),
+                                                             this);
 
-  display_mode_string_property_ = new rviz::StringProperty("Monitor Namespace",
-                                                           "tesseract_environment",
-                                                           "This will monitor this namespace for changes",
-                                                           main_property_,
-                                                           SLOT(changedDisplayModeString()),
-                                                           this);
+  tesseract_state_topic_property_ =
+      new rviz_common::properties::RosTopicProperty("Tesseract State Topic",
+                                 "display_tesseract_state",
+                                 "tesseract_msgs::TesseractState",
+                                 "The topic on which the tesseract_msgs::TesseractState messages are received",
+                                 main_property_,
+                                 SLOT(changedTesseractStateTopic()),
+                                 this);
 
-  root_link_name_property_ = new rviz::StringProperty("Root Link",
+  root_link_name_property_ = new rviz_common::properties::StringProperty("Root Link",
                                                       "",
                                                       "Shows the name of the root link for the urdf",
                                                       main_property_,
@@ -80,7 +80,7 @@ EnvironmentWidget::EnvironmentWidget(rviz::Property* widget, rviz::Display* disp
                                                       this);
   root_link_name_property_->setReadOnly(true);
 
-  alpha_property_ = new rviz::FloatProperty("Alpha",
+  alpha_property_ = new rviz_common::properties::FloatProperty("Alpha",
                                             1.0f,
                                             "Specifies the alpha for the links with geometry",
                                             main_property_,
@@ -89,20 +89,20 @@ EnvironmentWidget::EnvironmentWidget(rviz::Property* widget, rviz::Display* disp
   alpha_property_->setMin(0.0);
   alpha_property_->setMax(1.0);
 
-  enable_link_highlight_ = new rviz::BoolProperty("Show Highlights",
+  enable_link_highlight_ = new rviz_common::properties::BoolProperty("Show Highlights",
                                                   true,
                                                   "Specifies whether link highlighting is enabled",
                                                   main_property_,
                                                   SLOT(changedEnableLinkHighlight()),
                                                   this);
-  enable_visual_visible_ = new rviz::BoolProperty("Show Visual",
+  enable_visual_visible_ = new rviz_common::properties::BoolProperty("Show Visual",
                                                   true,
                                                   "Whether to display the visual representation of the environment.",
                                                   main_property_,
                                                   SLOT(changedEnableVisualVisible()),
                                                   this);
 
-  enable_collision_visible_ = new rviz::BoolProperty("Show Collision",
+  enable_collision_visible_ = new rviz_common::properties::BoolProperty("Show Collision",
                                                      false,
                                                      "Whether to display the collision "
                                                      "representation of the environment.",
@@ -110,43 +110,53 @@ EnvironmentWidget::EnvironmentWidget(rviz::Property* widget, rviz::Display* disp
                                                      SLOT(changedEnableCollisionVisible()),
                                                      this);
 
-  show_all_links_ = new rviz::BoolProperty(
+  show_all_links_ = new rviz_common::properties::BoolProperty(
       "Show All Links", true, "Toggle all links visibility on or off.", main_property_, SLOT(changedAllLinks()), this);
 }
 
-EnvironmentWidget::~EnvironmentWidget() = default;
+EnvironmentWidget::~EnvironmentWidget() {}
 
-void EnvironmentWidget::onInitialize(VisualizationWidget::Ptr visualization,
-                                     tesseract_environment::Environment::Ptr env,
-                                     rviz::DisplayContext* /*context*/,
-                                     const ros::NodeHandle& update_nh,
-                                     bool update_state)
+void EnvironmentWidget::onInitialize(VisualizationWidget::SharedPtr visualization,
+                                     tesseract::Tesseract::Ptr tesseract,
+                                     rviz_common::DisplayContext* context,
+                                     rclcpp::Node::SharedPtr update_node,
+                                     bool update_state,
+                                     QString tesseract_state_topic)
 {
   visualization_ = std::move(visualization);
-  env_ = std::move(env);
-  nh_ = update_nh;
+  tesseract_ = std::move(tesseract);
+  node_ = update_node;
   update_state_ = update_state;
 
-  if (!visualization_->isInitialized())
-    visualization_->initialize(true, true, true, true);
+  auto rviz_ros_node = context->getRosNodeAbstraction();
+  tesseract_state_topic_property_->initialize(rviz_ros_node);
+  tesseract_state_topic_property_->setString(tesseract_state_topic);
 
-  //  environment_state_topic_property_->setString(environment_state_topic);
+  using std::placeholders::_1;
+  using std::placeholders::_2;
+  using std::placeholders::_3;
+
+  widget_ns_ = environment_namespace_property_->getStdString();
+  modify_environment_server_ = node_->create_service<tesseract_msgs::srv::ModifyEnvironment>(
+      widget_ns_ + DEFAULT_MODIFY_ENVIRONMENT_SERVICE, std::bind(&EnvironmentWidget::modifyEnvironmentCallback, this, _1, _2, _3));
+
+  get_environment_changes_server_ = node_->create_service<tesseract_msgs::srv::GetEnvironmentChanges>(
+      widget_ns_ + DEFAULT_GET_ENVIRONMENT_CHANGES_SERVICE, std::bind(&EnvironmentWidget::getEnvironmentChangesCallback, this, _1, _2, _3));
 
   changedEnableVisualVisible();
   changedEnableCollisionVisible();
-  changedDisplayMode();
+  changedTesseractStateTopic();
 }
 
 void EnvironmentWidget::onEnable()
 {
   load_tesseract_ = true;  // allow loading of robot model in update()
-  if (visualization_)
-    visualization_->setVisible(true);
+  //  calculateOffsetPosition();
 }
 
 void EnvironmentWidget::onDisable()
 {
-  monitor_->stopMonitoringEnvironment();
+  tesseract_state_subscriber_.reset();
   if (visualization_)
     visualization_->setVisible(false);
 }
@@ -159,32 +169,12 @@ void EnvironmentWidget::onUpdate()
     update_required_ = true;
   }
 
-  std::shared_lock<std::shared_mutex> lock;
-  if (monitor_ != nullptr)
-    lock = monitor_->lockEnvironmentRead();
+  //  calculateOffsetPosition();
 
-  if (visualization_ && env_->isInitialized())
+  if (visualization_ && update_required_ && tesseract_->getEnvironment())
   {
-    int monitor_revision = env_->getRevision();
-    if (monitor_revision > revision_)
-    {
-      tesseract_environment::Commands commands = env_->getCommandHistory();
-      for (std::size_t i = static_cast<std::size_t>(revision_); i < static_cast<std::size_t>(monitor_revision); ++i)
-        applyEnvironmentCommands(*commands[i]);
-
-      revision_ = monitor_revision;
-      visualization_->update();
-    }
-  }
-
-  if (visualization_ && env_->isInitialized())
-  {
-    if (update_required_ || state_timestamp_ != env_->getCurrentStateTimestamp())
-    {
-      update_required_ = false;
-      visualization_->update(env_->getState().link_transforms);
-      state_timestamp_ = env_->getCurrentStateTimestamp();
-    }
+    update_required_ = false;
+    visualization_->update(tesseract_->getEnvironment()->getCurrentState()->link_transforms);
   }
 }
 
@@ -192,17 +182,17 @@ void EnvironmentWidget::onReset() { load_tesseract_ = true; }
 
 void EnvironmentWidget::changedAllLinks()
 {
-  rviz::Property* links_prop = widget_->subProp("Links");
+  rviz_common::properties::Property* links_prop = widget_->subProp("Links");
   QVariant value(show_all_links_->getBool());
 
   for (int i = 0; i < links_prop->numChildren(); ++i)
   {
-    rviz::Property* link_prop = links_prop->childAt(i);
+    rviz_common::properties::Property* link_prop = links_prop->childAt(i);
     link_prop->setValue(value);
   }
 }
 
-// void EnvironmentStateDisplay::setHighlightedLink(const std::string& link_name, const std_msgs::ColorRGBA& color)
+// void TesseractStateDisplay::setHighlightedLink(const std::string& link_name, const std_msgs::ColorRGBA& color)
 //{
 //  RobotLink* link = state_->getRobot().getLink(link_name);
 //  if (link)
@@ -212,7 +202,7 @@ void EnvironmentWidget::changedAllLinks()
 //  }
 //}
 
-// void EnvironmentStateDisplay::unsetHighlightedLink(const std::string& link_name)
+// void TesseractStateDisplay::unsetHighlightedLink(const std::string& link_name)
 //{
 //  RobotLink* link = state_->getRobot().getLink(link_name);
 //  if (link)
@@ -252,37 +242,36 @@ void EnvironmentWidget::changedEnableCollisionVisible()
   visualization_->setCollisionVisible(enable_collision_visible_->getBool());
 }
 
-// static bool operator!=(const std_msgs::ColorRGBA& a, const std_msgs::ColorRGBA& b)
-//{
-//  return a.r != b.r || a.g != b.g || a.b != b.b || a.a != b.a;
-//}
+static bool operator!=(const std_msgs::msg::ColorRGBA& a, const std_msgs::msg::ColorRGBA& b)
+{
+  return a.r != b.r || a.g != b.g || a.b != b.b || a.a != b.a;
+}
+
+void EnvironmentWidget::changedURDFDescription()
+{
+  if (display_->isEnabled())
+    onReset();
+}
+
+void EnvironmentWidget::changedEnvironmentNamespace()
+{
+  using std::placeholders::_1;
+  using std::placeholders::_2;
+  using std::placeholders::_3;
+
+  // Need to kill services and relaunch with new name
+  modify_environment_server_.reset();
+  get_environment_changes_server_.reset();
+
+  widget_ns_ = environment_namespace_property_->getStdString();
+  modify_environment_server_ = node_->create_service<tesseract_msgs::srv::ModifyEnvironment>(
+      widget_ns_ + DEFAULT_MODIFY_ENVIRONMENT_SERVICE, std::bind(&EnvironmentWidget::modifyEnvironmentCallback, this, _1, _2, _3));
+
+  get_environment_changes_server_ = node_->create_service<tesseract_msgs::srv::GetEnvironmentChanges>(
+      widget_ns_ + DEFAULT_GET_ENVIRONMENT_CHANGES_SERVICE, std::bind(&EnvironmentWidget::getEnvironmentChangesCallback, this, _1, _2, _3));
+}
 
 void EnvironmentWidget::changedRootLinkName() {}
-
-void EnvironmentWidget::changedDisplayMode()
-{
-  if (display_mode_property_->getOptionInt() == 0)
-  {
-    display_mode_string_property_->setName("URDF Parameter");
-    display_mode_string_property_->setDescription("The URDF parameter to use for creating the environment within RViz");
-    display_mode_string_property_->setValue("robot_description");
-  }
-  else if (display_mode_property_->getOptionInt() == 1)
-  {
-    display_mode_string_property_->setName("Monitor Namespace");
-    display_mode_string_property_->setDescription("This will monitor this namespace for changes.");
-    display_mode_string_property_->setValue("tesseract_environment");
-  }
-
-  if (display_->isEnabled())
-    onReset();
-}
-
-void EnvironmentWidget::changedDisplayModeString()
-{
-  if (display_->isEnabled())
-    onReset();
-}
 void EnvironmentWidget::changedURDFSceneAlpha()
 {
   if (visualization_)
@@ -292,203 +281,289 @@ void EnvironmentWidget::changedURDFSceneAlpha()
   }
 }
 
-bool EnvironmentWidget::applyEnvironmentCommands(const tesseract_environment::Command& command)
+bool EnvironmentWidget::applyEnvironmentCommands(const std::vector<tesseract_msgs::msg::EnvironmentCommand>& commands)
 {
   update_required_ = true;
-  switch (command.getType())
+  for (const auto& command : commands)
   {
-    case tesseract_environment::CommandType::ADD_LINK:
+    switch (command.command)
     {
-      const auto& cmd = static_cast<const tesseract_environment::AddLinkCommand&>(command);
-
-      bool link_exists = false;
-      bool joint_exists = false;
-      std::string link_name, joint_name;
-
-      if (cmd.getLink() != nullptr)
+      case tesseract_msgs::msg::EnvironmentCommand::ADD:
       {
-        link_name = cmd.getLink()->getName();
-        link_exists = visualization_->getLink(link_name) != nullptr;
-      }
+        tesseract_scene_graph::Link link = tesseract_rosutils::fromMsg(command.add_link);
+        tesseract_scene_graph::Joint joint = tesseract_rosutils::fromMsg(command.add_joint);
 
-      if (cmd.getJoint() != nullptr)
-      {
-        joint_name = cmd.getJoint()->getName();
-        joint_exists = visualization_->getJoint(joint_name) != nullptr;
-      }
-
-      // These check are handled by the environment but just as a precaution adding asserts here
-      assert(!(link_exists && !cmd.replaceAllowed()));
-      assert(!(joint_exists && !cmd.replaceAllowed()));
-      assert(!(link_exists && cmd.getJoint() && !joint_exists));
-      assert(!(!link_exists && joint_exists));
-
-      if (link_exists && joint_exists)
-      {
-        if (!visualization_->addLink(cmd.getLink()->clone(), true) ||
-            !visualization_->addJoint(cmd.getJoint()->clone(), true))
+        if (!visualization_->addLink(link) || !visualization_->addJoint(joint))
           return false;
-      }
-      else if (link_exists && cmd.replaceAllowed())
-      {
-        if (!visualization_->addLink(cmd.getLink()->clone(), true))
+
+        if (!tesseract_->getEnvironment()->addLink(std::move(link), std::move(joint)))
           return false;
+
+        break;
       }
-      else if (!link_exists)
+    case tesseract_msgs::msg::EnvironmentCommand::MOVE_LINK:
       {
-        if (!visualization_->addLink(cmd.getLink()->clone()) || !visualization_->addJoint(cmd.getJoint()->clone()))
+        tesseract_scene_graph::Joint joint = tesseract_rosutils::fromMsg(command.move_link_joint);
+
+        std::vector<tesseract_scene_graph::Joint::ConstPtr> joints =
+            tesseract_->getEnvironment()->getSceneGraph()->getInboundJoints(joint.child_link_name);
+        assert(joints.size() == 1);
+
+        if (!visualization_->removeJoint(joints[0]->getName()) || !visualization_->addJoint(joint))
           return false;
-      }
-      else
-      {
-        return false;
-      }
 
-      break;
-    }
-    case tesseract_environment::CommandType::ADD_SCENE_GRAPH:
-    {
-      // Done
-      const auto& cmd = static_cast<const tesseract_environment::AddSceneGraphCommand&>(command);
-
-      if (cmd.getJoint() == nullptr)
-      {
-        if (!visualization_->addSceneGraph(*(cmd.getSceneGraph()), cmd.getPrefix()))
+        if (!tesseract_->getEnvironment()->moveLink(std::move(joint)))
           return false;
+
+        break;
       }
-      else
+    case tesseract_msgs::msg::EnvironmentCommand::MOVE_JOINT:
       {
-        if (!visualization_->addSceneGraph(*(cmd.getSceneGraph()), cmd.getJoint()->clone(), cmd.getPrefix()))
+        if (!visualization_->moveJoint(command.move_joint_name, command.move_joint_parent_link))
           return false;
+
+        if (!tesseract_->getEnvironment()->moveJoint(command.move_joint_name, command.move_joint_parent_link))
+          return false;
+
+        break;
       }
+    case tesseract_msgs::msg::EnvironmentCommand::REMOVE_LINK:
+      {
+        if (tesseract_->getEnvironment()->getLink(command.remove_link) == nullptr)
+        {
+          CONSOLE_BRIDGE_logWarn("Tried to remove link (%s) that does not exist", command.remove_link.c_str());
+          return false;
+        }
 
-      break;
-    }
-    case tesseract_environment::CommandType::MOVE_LINK:
-    {
-      const auto& cmd = static_cast<const tesseract_environment::MoveLinkCommand&>(command);
-      if (!visualization_->moveLink(cmd.getJoint()->clone()))
+        std::vector<tesseract_scene_graph::Joint::ConstPtr> joints =
+            tesseract_->getEnvironment()->getSceneGraph()->getInboundJoints(command.remove_link);
+        assert(joints.size() <= 1);
+
+        // get child link names to remove
+        std::vector<std::string> child_link_names =
+            tesseract_->getEnvironment()->getSceneGraph()->getLinkChildrenNames(command.remove_link);
+
+        if (!visualization_->removeLink(command.remove_link))
+          return false;
+
+        if (!visualization_->removeJoint(joints[0]->getName()))
+          return false;
+
+        for (const auto& link_name : child_link_names)
+        {
+          if (!visualization_->removeLink(link_name))
+            return false;
+
+          std::vector<tesseract_scene_graph::Joint::ConstPtr> joints =
+              tesseract_->getEnvironment()->getSceneGraph()->getInboundJoints(link_name);
+          if (joints.size() == 1)
+          {
+            if (!visualization_->removeJoint(joints[0]->getName()))
+              return false;
+          }
+        }
+
+        if (!tesseract_->getEnvironment()->removeLink(command.remove_link))
+          return false;
+
+        break;
+      }
+    case tesseract_msgs::msg::EnvironmentCommand::REMOVE_JOINT:
+      {
+        tesseract_scene_graph::Joint::ConstPtr remove_joint =
+            tesseract_->getEnvironment()->getJoint(command.remove_joint);
+        std::vector<tesseract_scene_graph::Joint::ConstPtr> joints =
+            tesseract_->getEnvironment()->getSceneGraph()->getInboundJoints(remove_joint->child_link_name);
+        assert(joints.size() <= 1);
+
+        // get child link names to remove
+        std::vector<std::string> child_link_names =
+            tesseract_->getEnvironment()->getSceneGraph()->getLinkChildrenNames(remove_joint->child_link_name);
+
+        if (!visualization_->removeLink(command.remove_link))
+          return false;
+
+        if (!visualization_->removeJoint(joints[0]->getName()))
+          return false;
+
+        for (const auto& link_name : child_link_names)
+        {
+          if (!visualization_->removeLink(link_name))
+            return false;
+
+          std::vector<tesseract_scene_graph::Joint::ConstPtr> joints =
+              tesseract_->getEnvironment()->getSceneGraph()->getInboundJoints(link_name);
+          if (joints.size() == 1)
+          {
+            if (!visualization_->removeJoint(joints[0]->getName()))
+              return false;
+          }
+        }
+
+        if (!tesseract_->getEnvironment()->removeJoint(command.remove_joint))
+          return false;
+
+        break;
+      }
+    case tesseract_msgs::msg::EnvironmentCommand::CHANGE_LINK_ORIGIN:
+      {
+        assert(false);
+      }
+    case tesseract_msgs::msg::EnvironmentCommand::CHANGE_JOINT_ORIGIN:
+      {
+        Eigen::Isometry3d pose;
+        CONSOLE_BRIDGE_logError("changeJointOrigin has not been fully implemented. Someone needs to figure out eigen_conversions");
         return false;
+//        tf::poseMsgToEigen(command.change_joint_origin_pose, pose);
+        tesseract_->getEnvironment()->changeJointOrigin(command.change_joint_origin_name, pose);
+        break;
+      }
+    case tesseract_msgs::msg::EnvironmentCommand::CHANGE_LINK_COLLISION_ENABLED:
+      {
+        visualization_->setLinkCollisionEnabled(command.change_link_collision_enabled_name,
+                                                command.change_link_collision_enabled_value);
 
-      break;
-    }
-    case tesseract_environment::CommandType::MOVE_JOINT:
-    {
-      // Done
-      const auto& cmd = static_cast<const tesseract_environment::MoveJointCommand&>(command);
-      if (!visualization_->moveJoint(cmd.getJointName(), cmd.getParentLink()))
-        return false;
+        tesseract_->getEnvironment()->setLinkCollisionEnabled(command.change_link_collision_enabled_name,
+                                                              command.change_link_collision_enabled_value);
+        break;
+      }
+    case tesseract_msgs::msg::EnvironmentCommand::CHANGE_LINK_VISIBILITY:
+      {
+        // TODO:: Need to update visualization.
+        tesseract_->getEnvironment()->setLinkVisibility(command.change_link_visibility_name,
+                                                        command.change_link_visibility_value);
+        break;
+      }
+    case tesseract_msgs::msg::EnvironmentCommand::ADD_ALLOWED_COLLISION:
+      {
+        visualization_->addAllowedCollision(command.add_allowed_collision.link_1,
+                                            command.add_allowed_collision.link_2,
+                                            command.add_allowed_collision.reason);
 
-      break;
-    }
-    case tesseract_environment::CommandType::REMOVE_LINK:
-    {
-      // Done
-      const auto& cmd = static_cast<const tesseract_environment::RemoveLinkCommand&>(command);
-      if (!visualization_->removeLink(cmd.getLinkName()))
-        return false;
+        tesseract_->getEnvironment()->addAllowedCollision(command.add_allowed_collision.link_1,
+                                                          command.add_allowed_collision.link_2,
+                                                          command.add_allowed_collision.reason);
+        break;
+      }
+    case tesseract_msgs::msg::EnvironmentCommand::REMOVE_ALLOWED_COLLISION:
+      {
+        visualization_->removeAllowedCollision(command.add_allowed_collision.link_1,
+                                               command.add_allowed_collision.link_2);
 
-      break;
-    }
-    case tesseract_environment::CommandType::REMOVE_JOINT:
-    {
-      // Done
-      const auto& cmd = static_cast<const tesseract_environment::RemoveJointCommand&>(command);
-      if (!visualization_->removeJoint(cmd.getJointName()))
-        return false;
+        tesseract_->getEnvironment()->removeAllowedCollision(command.add_allowed_collision.link_1,
+                                                             command.add_allowed_collision.link_2);
+        break;
+      }
+    case tesseract_msgs::msg::EnvironmentCommand::REMOVE_ALLOWED_COLLISION_LINK:
+      {
+        visualization_->removeAllowedCollision(command.remove_allowed_collision_link);
 
-      break;
-    }
-    case tesseract_environment::CommandType::REPLACE_JOINT:
-    {
-      // Done
-      const auto& cmd = static_cast<const tesseract_environment::ReplaceJointCommand&>(command);
-      if (!visualization_->addJoint(cmd.getJoint()->clone(), true))
-        return false;
+        tesseract_->getEnvironment()->removeAllowedCollision(command.remove_allowed_collision_link);
+        break;
+      }
+    case tesseract_msgs::msg::EnvironmentCommand::UPDATE_JOINT_STATE:
+      {
+        if (!tesseract_rosutils::processMsg(*(tesseract_->getEnvironment()), command.joint_state))
+          return false;
 
-      break;
-    }
-    case tesseract_environment::CommandType::CHANGE_LINK_ORIGIN:
-    {
-      assert(false);
-      break;
-    }
-    case tesseract_environment::CommandType::CHANGE_JOINT_ORIGIN:
-    {
-      // Done
-      const auto& cmd = static_cast<const tesseract_environment::ChangeJointOriginCommand&>(command);
-      if (!visualization_->changeJointOrigin(cmd.getJointName(), cmd.getOrigin()))
-        return false;
-
-      break;
-    }
-    case tesseract_environment::CommandType::CHANGE_LINK_COLLISION_ENABLED:
-    {
-      // Done
-      const auto& cmd = static_cast<const tesseract_environment::ChangeLinkCollisionEnabledCommand&>(command);
-      visualization_->setLinkCollisionEnabled(cmd.getLinkName(), cmd.getEnabled());
-      break;
-    }
-    case tesseract_environment::CommandType::CHANGE_LINK_VISIBILITY:
-    {
-      // Done
-      const auto& cmd = static_cast<const tesseract_environment::ChangeLinkVisibilityCommand&>(command);
-      visualization_->setLinkCollisionEnabled(cmd.getLinkName(), cmd.getEnabled());
-      break;
-    }
-    case tesseract_environment::CommandType::ADD_ALLOWED_COLLISION:
-    {
-      // Done
-      const auto& cmd = static_cast<const tesseract_environment::AddAllowedCollisionCommand&>(command);
-
-      visualization_->addAllowedCollision(cmd.getLinkName1(), cmd.getLinkName2(), cmd.getReason());
-      break;
-    }
-    case tesseract_environment::CommandType::REMOVE_ALLOWED_COLLISION:
-    {
-      // Done
-      const auto& cmd = static_cast<const tesseract_environment::RemoveAllowedCollisionCommand&>(command);
-      visualization_->removeAllowedCollision(cmd.getLinkName1(), cmd.getLinkName2());
-      break;
-    }
-    case tesseract_environment::CommandType::REMOVE_ALLOWED_COLLISION_LINK:
-    {
-      // Done
-      const auto& cmd = static_cast<const tesseract_environment::RemoveAllowedCollisionLinkCommand&>(command);
-      visualization_->removeAllowedCollision(cmd.getLinkName());
-      break;
-    }
-    case tesseract_environment::CommandType::CHANGE_JOINT_POSITION_LIMITS:
-    {
-      // Done
-      // const auto& cmd = static_cast<const tesseract_environment::ChangeJointPositionLimitsCommand&>(command);
-      break;
-    }
-    case tesseract_environment::CommandType::CHANGE_JOINT_VELOCITY_LIMITS:
-    {
-      // Done
-      // const auto& cmd = static_cast<const tesseract_environment::ChangeJointVelocityLimitsCommand&>(command);
-      break;
-    }
-    case tesseract_environment::CommandType::CHANGE_JOINT_ACCELERATION_LIMITS:
-    {
-      // Done
-      // const auto& cmd = static_cast<const tesseract_environment::ChangeJointAccelerationLimitsCommand&>(command);
-      break;
-    }
-    case tesseract_environment::CommandType::ADD_KINEMATICS_INFORMATION:
-    case tesseract_environment::CommandType::CHANGE_COLLISION_MARGINS:
-    {
-      break;
+        break;
+      }
     }
   }
   return true;
 }
 
-// void EnvironmentStateDisplay::setLinkColor(const tesseract_msgs::EnvironmentState::_object_colors_type& link_colors)
+bool EnvironmentWidget::modifyEnvironmentCallback(const std::shared_ptr<rmw_request_id_t> request_header,
+tesseract_msgs::srv::ModifyEnvironment::Request::SharedPtr req,
+                           tesseract_msgs::srv::ModifyEnvironment::Response::SharedPtr res)
+{
+  if (!tesseract_->getEnvironment() || req->id != tesseract_->getEnvironment()->getName() ||
+      req->revision != tesseract_->getEnvironment()->getRevision())
+    return false;
+
+  return applyEnvironmentCommands(req->commands);
+}
+
+bool EnvironmentWidget::getEnvironmentChangesCallback(const std::shared_ptr<rmw_request_id_t> request_header,
+                                                      tesseract_msgs::srv::GetEnvironmentChanges::Request::SharedPtr req,
+                                                      tesseract_msgs::srv::GetEnvironmentChanges::Response::SharedPtr res)
+{
+  if (req->revision > tesseract_->getEnvironment()->getRevision())
+  {
+    res->success = false;
+    return false;
+  }
+
+  res->id = tesseract_->getEnvironment()->getName();
+  res->revision = tesseract_->getEnvironment()->getRevision();
+  const tesseract_environment::Commands& commands = tesseract_->getEnvironment()->getCommandHistory();
+  for (int i = (req->revision - 1); i < commands.size(); ++i)
+  {
+    tesseract_msgs::msg::EnvironmentCommand command_msg;
+    if (!tesseract_rosutils::toMsg(command_msg, *(commands[i])))
+    {
+      res->success = false;
+      return false;
+    }
+
+    res->commands.push_back(command_msg);
+  }
+
+  res->success = true;
+  return res->success;
+}
+
+void EnvironmentWidget::changedTesseractStateTopic()
+{
+  if(tesseract_state_topic_property_ && tesseract_state_topic_property_->getStdString() != "")
+  {
+  tesseract_state_subscriber_.reset();
+
+  // reset model to default state, we don't want to show previous messages
+  //  current_state_ = nullptr;
+  update_required_ = true;
+
+
+  tesseract_state_subscriber_ = node_->create_subscription<tesseract_msgs::msg::TesseractState>(
+      tesseract_state_topic_property_->getStdString(), 10, std::bind(&EnvironmentWidget::newTesseractStateCallback, this, std::placeholders::_1));
+  }
+  else
+    CONSOLE_BRIDGE_logWarn("Tesseract state topic is invalid");
+}
+
+void EnvironmentWidget::newTesseractStateCallback(const tesseract_msgs::msg::TesseractState::ConstSharedPtr state_msg)
+{
+  if (!tesseract_->getEnvironment())
+    return;
+
+  int current_version = tesseract_->getEnvironment()->getRevision();
+  if (!tesseract_->getEnvironment() || state_msg->id != tesseract_->getEnvironment()->getName() ||
+      current_version > state_msg->revision)
+    return;
+
+  if (update_state_)
+    if (tesseract_rosutils::processMsg(tesseract_->getEnvironment(), state_msg->joint_state))
+      update_required_ = true;
+
+  if (state_msg->revision > current_version)
+  {
+    std::vector<tesseract_msgs::msg::EnvironmentCommand> commands;
+    for (int i = (current_version == 0 ? 0 : current_version - 1); i < state_msg->revision; ++i)
+      commands.push_back(state_msg->commands[i]);
+
+    if (!commands.empty())
+      applyEnvironmentCommands(commands);
+  }
+
+  //  setLinkColor(state_msg->object_colors);
+  //  setHighlightedLinks(state_msg->highlight_links);
+  //  update_state_ = true;
+}
+
+// void TesseractStateDisplay::setLinkColor(const tesseract_msgs::TesseractState::_object_colors_type& link_colors)
 //{
 //  assert(false);
-//  for (tesseract_msgs::EnvironmentState::_object_colors_type::const_iterator it = link_colors.begin();
+//  for (tesseract_msgs::TesseractState::_object_colors_type::const_iterator it = link_colors.begin();
 //       it != link_colors.end();
 //       ++it)
 //  {
@@ -499,17 +574,17 @@ bool EnvironmentWidget::applyEnvironmentCommands(const tesseract_environment::Co
 //  }
 //}
 
-// void EnvironmentStateDisplay::setLinkColor(const std::string& link_name, const QColor& color)
+// void TesseractStateDisplay::setLinkColor(const std::string& link_name, const QColor& color)
 //{
 //  setLinkColor(&state_->getRobot(), link_name, color);
 //}
 
-// void EnvironmentStateDisplay::unsetLinkColor(const std::string& link_name)
+// void TesseractStateDisplay::unsetLinkColor(const std::string& link_name)
 //{
 //  unsetLinkColor(&state_->getRobot(), link_name);
 //}
 
-// void EnvironmentStateDisplay::setLinkColor(Robot* robot, const std::string& link_name, const QColor& color)
+// void TesseractStateDisplay::setLinkColor(Robot* robot, const std::string& link_name, const QColor& color)
 //{
 //  RobotLink* link = robot->getLink(link_name);
 
@@ -519,7 +594,7 @@ bool EnvironmentWidget::applyEnvironmentCommands(const tesseract_environment::Co
 //        static_cast<float>(color.redF()), static_cast<float>(color.greenF()), static_cast<float>(color.blueF()));
 //}
 
-// void EnvironmentStateDisplay::unsetLinkColor(Robot* robot, const std::string& link_name)
+// void TesseractStateDisplay::unsetLinkColor(Robot* robot, const std::string& link_name)
 //{
 //  RobotLink* link = robot->getLink(link_name);
 
@@ -531,69 +606,39 @@ bool EnvironmentWidget::applyEnvironmentCommands(const tesseract_environment::Co
 void EnvironmentWidget::loadEnvironment()
 {
   load_tesseract_ = false;
+  // Initial setup
+  std::string urdf_xml_string, srdf_xml_string;
+  node_->get_parameter(urdf_description_property_->getString().toStdString(), urdf_xml_string);
+  node_->get_parameter(urdf_description_property_->getString().toStdString() + "_semantic", srdf_xml_string);
 
-  env_->clear();
-  visualization_->clear();
-  if (display_mode_property_->getOptionInt() == 0)
+  // Load URDF model
+  if (urdf_xml_string.empty())
   {
-    // Initial setup
-    std::string urdf_xml_string, srdf_xml_string;
-    nh_.getParam(display_mode_string_property_->getStdString(), urdf_xml_string);
-    nh_.getParam(display_mode_string_property_->getStdString() + "_semantic", srdf_xml_string);
-
-    // Load URDF model
-    if (urdf_xml_string.empty())
+    load_tesseract_ = true;
+    // TODO:
+    //    setStatus(rviz::StatusProperty::Error, "TesseractState", "No URDF model loaded");
+  }
+  else
+  {
+    auto locator = std::make_shared<tesseract_rosutils::ROSResourceLocator>();
+    if (tesseract_->init(urdf_xml_string, srdf_xml_string, locator))
     {
-      load_tesseract_ = true;
-      // TODO:
-      //    setStatus(rviz::StatusProperty::Error, "EnvironmentState", "No URDF model loaded");
+      visualization_->clear();
+      visualization_->load(tesseract_->getEnvironment()->getSceneGraph(), true, true, true, true);
+      bool oldState = root_link_name_property_->blockSignals(true);
+      root_link_name_property_->setStdString(tesseract_->getEnvironment()->getRootLinkName());
+      root_link_name_property_->blockSignals(oldState);
+      update_required_ = true;
+      //        setStatus(rviz::StatusProperty::Ok, "Tesseract", "Tesseract Environment Loaded Successfully");
+
+      changedEnableVisualVisible();
+      changedEnableCollisionVisible();
+      visualization_->setVisible(true);
     }
     else
     {
-      auto locator = std::make_shared<tesseract_rosutils::ROSResourceLocator>();
-      if (env_->init(urdf_xml_string, srdf_xml_string, locator))
-      {
-        if (monitor_ != nullptr)
-          monitor_->shutdown();
-
-        monitor_ = std::make_unique<tesseract_monitoring::EnvironmentMonitor>(env_, widget_ns_);
-        revision_ = env_->getRevision();
-        //        setStatus(rviz::StatusProperty::Ok, "Tesseract", "Tesseract Environment Loaded Successfully");
-      }
-      else
-      {
-        load_tesseract_ = true;
-        //      setStatus(rviz::StatusProperty::Error, "Tesseract", "URDF file failed to parse");
-      }
+      //      setStatus(rviz::StatusProperty::Error, "Tesseract", "URDF file failed to parse");
     }
-  }
-  else if (display_mode_property_->getOptionInt() == 1)
-  {
-    if (monitor_ != nullptr)
-      monitor_->shutdown();
-
-    monitor_ = std::make_unique<tesseract_monitoring::EnvironmentMonitor>(env_, widget_ns_);
-    if (env_->isInitialized())
-      revision_ = env_->getRevision();
-    else
-      revision_ = 0;
-
-    if (monitor_ != nullptr)
-      monitor_->startMonitoringEnvironment(display_mode_string_property_->getStdString());
-  }
-
-  if (load_tesseract_ == false && env_->isInitialized())
-  {
-    visualization_->addSceneGraph(*(env_->getSceneGraph()));
-    visualization_->update();
-    bool oldState = root_link_name_property_->blockSignals(true);
-    root_link_name_property_->setStdString(env_->getRootLinkName());
-    root_link_name_property_->blockSignals(oldState);
-    update_required_ = true;
-
-    changedEnableVisualVisible();
-    changedEnableCollisionVisible();
-    visualization_->setVisible(true);
   }
 
   highlights_.clear();

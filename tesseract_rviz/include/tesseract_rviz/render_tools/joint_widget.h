@@ -45,8 +45,8 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <tesseract_scene_graph/joint.h>
 #endif
 
-#include <rviz/ogre_helpers/object.h>
-#include <rviz/selection/forwards.h>
+#include <rviz_rendering/objects/object.hpp>
+#include <rviz_common/interaction/forwards.hpp>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 namespace Ogre
@@ -55,18 +55,25 @@ class SceneManager;
 class Entity;
 class SubEntity;
 class SceneNode;
-class Vector3;
+//class Vector3;
 class Quaternion;
 class Any;
 class RibbonTrail;
 }  // namespace Ogre
 
-namespace rviz
+namespace rviz_rendering
 {
 class Shape;
 class Arrow;
 class Axes;
+}
+
+namespace rviz_common {
 class DisplayContext;
+}
+
+namespace rviz_common::properties
+{
 class FloatProperty;
 class Property;
 class BoolProperty;
@@ -98,12 +105,12 @@ public:
   const std::string& getParentLinkName() const { return parent_link_name_; }
 
   const std::string& getChildLinkName() const { return child_link_name_; }
-  const rviz::Property* getJointProperty() const { return joint_property_; }
-  rviz::Property* getJointProperty() { return joint_property_; }
+  const rviz_common::properties::Property* getJointProperty() const { return joint_property_; }
+  rviz_common::properties::Property* getJointProperty() { return joint_property_; }
   void hideSubProperties(bool hide);
 
   // Remove joint_property_ from its old parent and add to new_parent.  If new_parent==nullptr then leav unparented.
-  void setParentProperty(rviz::Property* new_parent);
+  void setParentProperty(rviz_common::properties::Property* new_parent);
 
   void setTransforms(const Ogre::Vector3& parent_link_position, const Ogre::Quaternion& parent_link_orientation);
   Ogre::Vector3 getPosition();
@@ -148,7 +155,7 @@ private:
                          bool recursive) const;           // True: all descendant links.  False: just single child link.
 
   // set the value of the enable checkbox without touching child joints/links
-  void setJointCheckbox(const QVariant& val);
+  void setJointCheckbox(QVariant val);
 
 protected:
   VisualizationWidget* env_;
@@ -157,17 +164,17 @@ protected:
   std::string child_link_name_;
 
   // properties
-  rviz::Property* joint_property_;
-  rviz::Property* details_;
-  rviz::VectorProperty* position_property_;
-  rviz::QuaternionProperty* orientation_property_;
-  rviz::Property* axes_property_;
+  rviz_common::properties::Property* joint_property_;
+  rviz_common::properties::Property* details_;
+  rviz_common::properties::VectorProperty* position_property_;
+  rviz_common::properties::QuaternionProperty* orientation_property_;
+  rviz_common::properties::Property* axes_property_;
   // The joint axis if any, as opposed to the frame in which the joint exists above
-  rviz::VectorProperty* axis_property_;
-  rviz::Property* show_axis_property_;
-  rviz::StringProperty* type_property_;
-  rviz::FloatProperty* lower_limit_property_;
-  rviz::FloatProperty* upper_limit_property_;
+  rviz_common::properties::VectorProperty* axis_property_;
+  rviz_common::properties::Property* show_axis_property_;
+  rviz_common::properties::StringProperty* type_property_;
+  rviz_common::properties::FloatProperty* lower_limit_property_;
+  rviz_common::properties::FloatProperty* upper_limit_property_;
 
 private:
   Ogre::Vector3 joint_origin_pos_;
@@ -176,8 +183,8 @@ private:
 
   bool doing_set_checkbox_;  // prevents updateChildVisibility() from  touching children
 
-  std::unique_ptr<rviz::Axes> axes_;
-  std::unique_ptr<rviz::Arrow> axis_;
+  rviz_rendering::Axes* axes_;
+  rviz_rendering::Arrow* axis_;
 };
 
 }  // namespace tesseract_rviz

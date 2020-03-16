@@ -38,24 +38,20 @@
 */
 
 #include <tesseract_common/macros.h>
-TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
-#include <ros/package.h>
-#include <tesseract_rosutils/utils.h>
-TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_rviz/tesseract_trajectory_plugin/tesseract_trajectory_display.h>
 
 namespace tesseract_rviz
 {
-TesseractTrajectoryDisplay::TesseractTrajectoryDisplay()
+TesseractTrajectoryDisplay::TesseractTrajectoryDisplay() : Display() , node_(new rclcpp::Node("tesseract_trajectory_display"))
 {
-  env_ = std::make_shared<tesseract_environment::Environment>();
+  tesseract_ = std::make_shared<tesseract::Tesseract>();
   environment_monitor_ = std::make_shared<EnvironmentWidget>(this, this);
   state_monitor_ = std::make_shared<JointStateMonitorWidget>(this, this);
   trajectory_monitor_ = std::make_shared<TrajectoryMonitorWidget>(this, this);
 }
 
-TesseractTrajectoryDisplay::~TesseractTrajectoryDisplay() = default;
+TesseractTrajectoryDisplay::~TesseractTrajectoryDisplay() {}
 void TesseractTrajectoryDisplay::onInitialize()
 {
   Display::onInitialize();
@@ -63,9 +59,9 @@ void TesseractTrajectoryDisplay::onInitialize()
   visualization_ = std::make_shared<VisualizationWidget>(scene_node_, context_, "Tesseract State", this);
   visualization_->setCurrentStateVisible(false);
 
-  environment_monitor_->onInitialize(visualization_, env_, context_, nh_, false);
-  state_monitor_->onInitialize(visualization_, env_, context_, nh_);
-  trajectory_monitor_->onInitialize(visualization_, env_, context_, nh_);
+  environment_monitor_->onInitialize(visualization_, tesseract_, context_, node_, false);
+  state_monitor_->onInitialize(visualization_, tesseract_, context_, node_);
+  trajectory_monitor_->onInitialize(visualization_, tesseract_, context_, node_);
 
   visualization_->setVisible(false);
 }
@@ -106,10 +102,10 @@ void TesseractTrajectoryDisplay::update(float wall_dt, float ros_dt)
   trajectory_monitor_->onUpdate(wall_dt);
 }
 
-void TesseractTrajectoryDisplay::setName(const QString& name)
-{
-  BoolProperty::setName(name);
-  trajectory_monitor_->onNameChange(name);
-}
+//void TesseractTrajectoryDisplay::setName(const QString& name)
+//{
+//  BoolProperty::setName(name);
+//  trajectory_monitor_->onNameChange(name);
+//}
 
 }  // namespace tesseract_rviz

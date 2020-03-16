@@ -41,15 +41,15 @@
 #include "tesseract_rviz/render_tools/octomap_render.h"
 #include "tesseract_rviz/render_tools/state_visualization.h"
 
-#include <rviz/display_context.h>
+#include <rviz_common/display_context.hpp>
 #include <rviz/frame_manager.h>
-#include <rviz/properties/bool_property.h>
-#include <rviz/properties/color_property.h>
-#include <rviz/properties/enum_property.h>
-#include <rviz/properties/float_property.h>
-#include <rviz/properties/property.h>
-#include <rviz/properties/ros_topic_property.h>
-#include <rviz/properties/string_property.h>
+#include <rviz_common/properties/bool_property.hpp>
+#include <rviz_common/properties/color_property.hpp>
+#include <rviz_common/properties/enum_property.hpp>
+#include <rviz_common/properties/float_property.hpp>
+#include <rviz_common/properties/property.hpp>
+#include <rviz_common/properties/ros_topic_property.hpp>
+#include <rviz_common/properties/string_property.hpp>
 #include <rviz/visualization_manager.h>
 #include <tf/transform_listener.h>
 
@@ -64,14 +64,14 @@ namespace tesseract_rviz
 TesseractSceneDisplay::TesseractSceneDisplay(bool listen_to_planning_scene, bool show_scene_robot)
   : Display(), model_is_loading_(false), tesseract_scene_needs_render_(true), current_scene_time_(0.0f)
 {
-  move_group_ns_property_ = new rviz::StringProperty("Move Group Namespace",
+  move_group_ns_property_ = new rviz_common::properties::StringProperty("Move Group Namespace",
                                                      "",
                                                      "The name of the ROS namespace in "
                                                      "which the move_group node is running",
                                                      this,
                                                      SLOT(changedMoveGroupNS()),
                                                      this);
-  robot_description_property_ = new rviz::StringProperty("Robot Description",
+  robot_description_property_ = new rviz_common::properties::StringProperty("Robot Description",
                                                          "robot_description",
                                                          "The name of the ROS parameter where the URDF for the robot "
                                                          "is loaded",
@@ -81,7 +81,7 @@ TesseractSceneDisplay::TesseractSceneDisplay(bool listen_to_planning_scene, bool
 
   if (listen_to_planning_scene)
     planning_scene_topic_property_ =
-        new rviz::RosTopicProperty("Planning Scene Topic",
+        new rviz_common::properties::RosTopicProperty("Planning Scene Topic",
                                    "move_group/monitored_planning_scene",
                                    ros::message_traits::datatype<moveit_msgs::PlanningScene>(),
                                    "The topic on which the moveit_msgs::PlanningScene messages are "
@@ -94,23 +94,23 @@ TesseractSceneDisplay::TesseractSceneDisplay(bool listen_to_planning_scene, bool
 
   // Planning scene category
   // -------------------------------------------------------------------------------------------
-  scene_category_ = new rviz::Property("Scene Geometry", QVariant(), "", this);
+  scene_category_ = new rviz_common::properties::Property("Scene Geometry", QVariant(), "", this);
 
-  scene_name_property_ = new rviz::StringProperty("Scene Name",
+  scene_name_property_ = new rviz_common::properties::StringProperty("Scene Name",
                                                   "(noname)",
                                                   "Shows the name of the planning scene",
                                                   scene_category_,
                                                   SLOT(changedSceneName()),
                                                   this);
   scene_name_property_->setShouldBeSaved(false);
-  scene_enabled_property_ = new rviz::BoolProperty("Show Scene Geometry",
+  scene_enabled_property_ = new rviz_common::properties::BoolProperty("Show Scene Geometry",
                                                    true,
                                                    "Indicates whether planning scenes should be displayed",
                                                    scene_category_,
                                                    SLOT(changedSceneEnabled()),
                                                    this);
 
-  scene_alpha_property_ = new rviz::FloatProperty("Scene Alpha",
+  scene_alpha_property_ = new rviz_common::properties::FloatProperty("Scene Alpha",
                                                   0.9f,
                                                   "Specifies the alpha for the scene geometry",
                                                   scene_category_,
@@ -127,7 +127,7 @@ TesseractSceneDisplay::TesseractSceneDisplay(bool listen_to_planning_scene, bool
                                                   SLOT(changedSceneColor()),
                                                   this);
 
-  octree_render_property_ = new rviz::EnumProperty("Voxel Rendering",
+  octree_render_property_ = new rviz_common::properties::EnumProperty("Voxel Rendering",
                                                    "Occupied Voxels",
                                                    "Select voxel type.",
                                                    scene_category_,
@@ -138,13 +138,13 @@ TesseractSceneDisplay::TesseractSceneDisplay(bool listen_to_planning_scene, bool
   octree_render_property_->addOption("Free Voxels", OCTOMAP_FREE_VOXELS);
   octree_render_property_->addOption("All Voxels", OCTOMAP_FREE_VOXELS | OCTOMAP_OCCUPIED_VOXELS);
 
-  octree_coloring_property_ = new rviz::EnumProperty(
+  octree_coloring_property_ = new rviz_common::properties::EnumProperty(
       "Voxel Coloring", "Z-Axis", "Select voxel coloring mode", scene_category_, SLOT(changedOctreeColorMode()), this);
 
   octree_coloring_property_->addOption("Z-Axis", OCTOMAP_Z_AXIS_COLOR);
   octree_coloring_property_->addOption("Cell Probability", OCTOMAP_PROBABLILTY_COLOR);
 
-  scene_display_time_property_ = new rviz::FloatProperty("Scene Display Time",
+  scene_display_time_property_ = new rviz_common::properties::FloatProperty("Scene Display Time",
                                                          0.2f,
                                                          "The amount of wall-time to wait in between rendering "
                                                          "updates to the planning scene (if any)",
@@ -155,9 +155,9 @@ TesseractSceneDisplay::TesseractSceneDisplay(bool listen_to_planning_scene, bool
 
   if (show_scene_robot)
   {
-    robot_category_ = new rviz::Property("Scene Robot", QVariant(), "", this);
+    robot_category_ = new rviz_common::properties::Property("Scene Robot", QVariant(), "", this);
 
-    scene_robot_visual_enabled_property_ = new rviz::BoolProperty("Show Robot Visual",
+    scene_robot_visual_enabled_property_ = new rviz_common::properties::BoolProperty("Show Robot Visual",
                                                                   true,
                                                                   "Indicates whether the robot state specified by the "
                                                                   "planning scene "
@@ -167,7 +167,7 @@ TesseractSceneDisplay::TesseractSceneDisplay(bool listen_to_planning_scene, bool
                                                                   SLOT(changedSceneRobotVisualEnabled()),
                                                                   this);
 
-    scene_robot_collision_enabled_property_ = new rviz::BoolProperty("Show Robot Collision",
+    scene_robot_collision_enabled_property_ = new rviz_common::properties::BoolProperty("Show Robot Collision",
                                                                      false,
                                                                      "Indicates whether the robot state specified by "
                                                                      "the planning scene "
@@ -178,7 +178,7 @@ TesseractSceneDisplay::TesseractSceneDisplay(bool listen_to_planning_scene, bool
                                                                      SLOT(changedSceneRobotCollisionEnabled()),
                                                                      this);
 
-    robot_alpha_property_ = new rviz::FloatProperty("Robot Alpha",
+    robot_alpha_property_ = new rviz_common::properties::FloatProperty("Robot Alpha",
                                                     1.0f,
                                                     "Specifies the alpha for the robot links",
                                                     robot_category_,

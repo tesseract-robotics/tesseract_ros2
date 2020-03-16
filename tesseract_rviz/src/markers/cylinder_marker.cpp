@@ -27,10 +27,10 @@
 #include <tesseract_rviz/markers/marker_selection_handler.h>
 #include <tesseract_rviz/markers/utils.h>
 
-#include <rviz/display_context.h>
-#include <rviz/selection/selection_manager.h>
+#include <rviz_common/display_context.hpp>
+#include <rviz_common/interaction/selection_manager.hpp>
 
-#include <rviz/ogre_helpers/shape.h>
+#include <rviz_rendering/objects/shape.hpp>
 
 #include <OgreSceneNode.h>
 #include <OgreMatrix3.h>
@@ -39,7 +39,7 @@ namespace tesseract_rviz
 {
 CylinderMarker::CylinderMarker(const std::string& ns,
                                const int id,
-                               rviz::DisplayContext* context,
+                               rviz_common::DisplayContext* context,
                                Ogre::SceneNode* parent_node,
                                float radius,
                                float height)
@@ -49,7 +49,7 @@ CylinderMarker::CylinderMarker(const std::string& ns,
   , radius_(radius)
   , height_(height)
 {
-  shape_ = new rviz::Shape(rviz::Shape::Cylinder, context_->getSceneManager(), scene_node_);
+  shape_ = new rviz_rendering::Shape(rviz_rendering::Shape::Cylinder, context_->getSceneManager(), scene_node_);
   setScale(scale_);
 
   handler_.reset(new MarkerSelectionHandler(this, MarkerID(ns_, id_), context_));

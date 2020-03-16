@@ -28,21 +28,21 @@
  */
 #ifndef TESSERACT_RVIZ_MARKERS_MARKER_SELECTION_HANDLER_H
 #define TESSERACT_RVIZ_MARKERS_MARKER_SELECTION_HANDLER_H
-#include "rviz/selection/forwards.h"
-#include "rviz/selection/selection_manager.h"
+#include "rviz_common/interaction/forwards.hpp"
+#include "rviz_common/interaction/selection_manager.hpp"
 
 namespace tesseract_rviz
 {
 class MarkerBase;
 typedef std::pair<std::string, int32_t> MarkerID;
 
-class MarkerSelectionHandler : public rviz::SelectionHandler
+class MarkerSelectionHandler : public rviz_common::interaction::SelectionHandler
 {
 public:
-  using Ptr = boost::shared_ptr<MarkerSelectionHandler>;
-  using ConstPtr = boost::shared_ptr<const MarkerSelectionHandler>;
+  using SharedPtr = std::shared_ptr<MarkerSelectionHandler>;
+  using ConstSharedPtr = std::shared_ptr<const MarkerSelectionHandler>;
 
-  MarkerSelectionHandler(const MarkerBase* marker, MarkerID id, rviz::DisplayContext* context);
+  MarkerSelectionHandler(const MarkerBase* marker, MarkerID id, rviz_common::DisplayContext* context);
   virtual ~MarkerSelectionHandler();
 
   virtual void setPosition(const Ogre::Vector3& position);

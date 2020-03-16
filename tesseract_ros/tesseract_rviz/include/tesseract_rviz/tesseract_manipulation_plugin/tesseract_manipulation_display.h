@@ -41,7 +41,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 namespace tesseract_rviz
 {
-class TesseractManipulationDisplay : public rviz::Display
+class TesseractManipulationDisplay : public rviz_common::Display
 {
   Q_OBJECT
 
@@ -64,9 +64,9 @@ protected:
   ros::NodeHandle nh_;
 
   tesseract::Tesseract::Ptr tesseract_;
-  VisualizationWidget::Ptr visualization_;
-  EnvironmentWidget::Ptr environment_monitor_;
-  ManipulationWidget::Ptr manipulation_;
+  VisualizationWidget::SharedPtr visualization_;
+  EnvironmentWidget::SharedPtr environment_monitor_;
+  ManipulationWidget::SharedPtr manipulation_;
 };
 
 }  // namespace tesseract_rviz

@@ -30,10 +30,10 @@
 #include "tesseract_rviz/markers/marker_base.h"
 #include <tesseract_rviz/markers/marker_selection_handler.h>
 
-#include <rviz/display_context.h>
-#include <rviz/selection/selection_manager.h>
-#include <rviz/frame_manager.h>
-#include <rviz/interactive_object.h>
+#include <rviz_common/display_context.hpp>
+#include <rviz_common/interaction/selection_manager.hpp>
+#include <rviz_common/frame_manager_iface.hpp>
+#include <rviz_common/interactive_object.hpp>
 
 #include <OgreSceneNode.h>
 #include <OgreSceneManager.h>
@@ -43,14 +43,14 @@
 
 namespace tesseract_rviz
 {
-MarkerBase::MarkerBase(const std::string& ns, const int id, rviz::DisplayContext* context, Ogre::SceneNode* parent_node)
+MarkerBase::MarkerBase(const std::string& ns, const int id, rviz_common::DisplayContext* context, Ogre::SceneNode* parent_node)
   : ns_(ns), id_(id), context_(context), scene_node_(parent_node->createChildSceneNode())
 {
 }
 
 MarkerBase::~MarkerBase() { context_->getSceneManager()->destroySceneNode(scene_node_); }
 
-void MarkerBase::setInteractiveObject(rviz::InteractiveObjectWPtr control)
+void MarkerBase::setInteractiveObject(rviz_common::InteractiveObjectWPtr control)
 {
   if (handler_)
   {

@@ -28,8 +28,8 @@
 
 #include <tesseract_common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
-#include <rviz/display.h>
-#include <rviz/panel_dock_widget.h>
+#include <rviz_common/display.hpp>
+#include <rviz_common//panel_dock_widget.hpp>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #ifndef Q_MOC_RUN
@@ -69,8 +69,8 @@ class ManipulationWidget : public QObject
   Q_OBJECT
 
 public:
-  using Ptr = std::shared_ptr<ManipulationWidget>;
-  using ConstPtr = std::shared_ptr<const ManipulationWidget>;
+  using SharedPtr = std::shared_ptr<ManipulationWidget>;
+  using ConstSharedPtr = std::shared_ptr<const ManipulationWidget>;
 
   enum class ManipulatorState
   {
@@ -78,13 +78,13 @@ public:
     END = 1
   };
 
-  ManipulationWidget(rviz::Property* widget, rviz::Display* display);
+  ManipulationWidget(rviz_common::properties::Property* widget, rviz_common::Display* display);
 
   virtual ~ManipulationWidget();
 
   void onInitialize(Ogre::SceneNode* root_node,
-                    rviz::DisplayContext* context,
-                    VisualizationWidget::Ptr visualization,
+                    rviz_common::DisplayContext* context,
+                    VisualizationWidget::SharedPtr visualization,
                     tesseract::Tesseract::Ptr tesseract,
                     ros::NodeHandle update_nh,
                     ManipulatorState state,
@@ -130,17 +130,17 @@ private Q_SLOTS:
 
 protected:
   Ogre::SceneNode* root_interactive_node_;
-  rviz::Property* widget_;
-  rviz::Display* display_;
-  rviz::DisplayContext* context_;
-  VisualizationWidget::Ptr visualization_;
+  rviz_common::properties::Property* widget_;
+  rviz_common::Display* display_;
+  rviz_common::DisplayContext* context_;
+  VisualizationWidget::SharedPtr visualization_;
   tesseract::Tesseract::Ptr tesseract_;
   ros::NodeHandle nh_;
   ManipulatorState state_;
-  InteractiveMarker::Ptr interactive_marker_;
-  std::map<std::string, InteractiveMarker::Ptr> joint_interactive_markers_;
+  InteractiveMarker::SharedPtr interactive_marker_;
+  std::map<std::string, InteractiveMarker::SharedPtr> joint_interactive_markers_;
   std::vector<std::string> manipulators_;
-  tesseract_kinematics::InverseKinematics::Ptr inv_kin_;
+  tesseract_kinematics::InverseKinematics::SharedPtr inv_kin_;
   Eigen::VectorXd inv_seed_;
   int env_revision_;
   std::unordered_map<std::string, double> joints_;
@@ -157,14 +157,14 @@ protected:
   // Properties
   bool enabled_;
   ButtonProperty* main_property_;
-  rviz::EnumProperty* manipulator_property_;
-  rviz::RosTopicProperty* joint_state_topic_property_;
-  rviz::BoolProperty* cartesian_manipulation_property_;
-  rviz::BoolProperty* joint_manipulation_property_;
-  rviz::FloatProperty* cartesian_marker_scale_property_;
-  rviz::FloatProperty* joint_marker_scale_property_;
-  rviz::EnumProperty* tcp_property_;
-  rviz::Property* joint_values_property_;
+  rviz_common::properties::EnumProperty* manipulator_property_;
+  rviz_common::properties::RosTopicProperty* joint_state_topic_property_;
+  rviz_common::properties::BoolProperty* cartesian_manipulation_property_;
+  rviz_common::properties::BoolProperty* joint_manipulation_property_;
+  rviz_common::properties::FloatProperty* cartesian_marker_scale_property_;
+  rviz_common::properties::FloatProperty* joint_marker_scale_property_;
+  rviz_common::properties::EnumProperty* tcp_property_;
+  rviz_common::properties::Property* joint_values_property_;
 };
 }  // namespace tesseract_rviz
 

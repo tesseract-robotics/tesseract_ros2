@@ -29,15 +29,15 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <boost/algorithm/string/replace.hpp>
 #include <functional>
 
-#include <rviz/display_context.h>
-#include <rviz/properties/property.h>
-#include <rviz/properties/enum_property.h>
-#include <rviz/properties/ros_topic_property.h>
-#include <rviz/properties/float_property.h>
-#include <rviz/properties/bool_property.h>
-#include <rviz/properties/string_property.h>
+#include <rviz_common/display_context.hpp>
+#include <rviz_common/properties/property.hpp>
+#include <rviz_common/properties/enum_property.hpp>
+#include <rviz_common/properties/ros_topic_property.hpp>
+#include <rviz_common/properties/float_property.hpp>
+#include <rviz_common/properties/bool_property.hpp>
+#include <rviz_common/properties/string_property.hpp>
 
-#include <rviz/window_manager_interface.h>
+#include <rviz_common/window_manager_interface.hpp>
 
 #include <tesseract_rosutils/utils.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
@@ -52,7 +52,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 namespace tesseract_rviz
 {
-ManipulationWidget::ManipulationWidget(rviz::Property* widget, rviz::Display* display)
+ManipulationWidget::ManipulationWidget(rviz_common::properties::Property* widget, rviz_common::Display* display)
   : widget_(widget)
   , root_interactive_node_(nullptr)
   , display_(display)
@@ -75,7 +75,7 @@ ManipulationWidget::ManipulationWidget(rviz::Property* widget, rviz::Display* di
 
   main_property_->setCaptions("Reset");
 
-  joint_state_topic_property_ = new rviz::RosTopicProperty("Topic",
+  joint_state_topic_property_ = new rviz_common::properties::RosTopicProperty("Topic",
                                                            "/tesseract/manipulation_joint_states",
                                                            ros::message_traits::datatype<sensor_msgs::JointState>(),
                                                            "The topic on which the sensor_msgs::JointState messages "
@@ -84,20 +84,20 @@ ManipulationWidget::ManipulationWidget(rviz::Property* widget, rviz::Display* di
                                                            SLOT(changedJointStateTopic()),
                                                            this);
 
-  manipulator_property_ = new rviz::EnumProperty(
+  manipulator_property_ = new rviz_common::properties::EnumProperty(
       "Manipulator", "", "The manipulator to move around.", main_property_, SLOT(changedManipulator()), this);
 
   tcp_property_ =
-      new rviz::EnumProperty("TCP Link", "", "The tool center point link", main_property_, SLOT(changedTCP()), this);
+      new rviz_common::properties::EnumProperty("TCP Link", "", "The tool center point link", main_property_, SLOT(changedTCP()), this);
 
-  cartesian_manipulation_property_ = new rviz::BoolProperty("Cartesian Manipulation",
+  cartesian_manipulation_property_ = new rviz_common::properties::BoolProperty("Cartesian Manipulation",
                                                             true,
                                                             "Tool for cartesian manipulation of kinematics objects",
                                                             main_property_,
                                                             SLOT(changedCartesianManipulationEnabled()),
                                                             this);
 
-  cartesian_marker_scale_property_ = new rviz::FloatProperty("Marker Scale",
+  cartesian_marker_scale_property_ = new rviz_common::properties::FloatProperty("Marker Scale",
                                                              0.5,
                                                              "Change the scale of the cartesian interactive marker",
                                                              cartesian_manipulation_property_,
@@ -105,14 +105,14 @@ ManipulationWidget::ManipulationWidget(rviz::Property* widget, rviz::Display* di
                                                              this);
   cartesian_marker_scale_property_->setMin(0.001f);
 
-  joint_manipulation_property_ = new rviz::BoolProperty("Joint Manipulation",
+  joint_manipulation_property_ = new rviz_common::properties::BoolProperty("Joint Manipulation",
                                                         true,
                                                         "Tool for joint manipulation of kinematics objects",
                                                         main_property_,
                                                         SLOT(changedJointManipulationEnabled()),
                                                         this);
 
-  joint_marker_scale_property_ = new rviz::FloatProperty("Marker Scale",
+  joint_marker_scale_property_ = new rviz_common::properties::FloatProperty("Marker Scale",
                                                          0.5,
                                                          "Change the scale of the joint interactive markers",
                                                          joint_manipulation_property_,
@@ -121,7 +121,7 @@ ManipulationWidget::ManipulationWidget(rviz::Property* widget, rviz::Display* di
   joint_marker_scale_property_->setMin(0.001f);
 
   joint_values_property_ =
-      new rviz::Property("Joint Values", "", "Shows current joint values", main_property_, nullptr, this);
+      new rviz_common::properties::Property("Joint Values", "", "Shows current joint values", main_property_, nullptr, this);
 
   joint_values_property_->setReadOnly(true);
 }
@@ -136,8 +136,8 @@ ManipulationWidget::~ManipulationWidget()
 }
 
 void ManipulationWidget::onInitialize(Ogre::SceneNode* root_node,
-                                      rviz::DisplayContext* context,
-                                      VisualizationWidget::Ptr visualization,
+                                      rviz_common::DisplayContext* context,
+                                      VisualizationWidget::SharedPtr visualization,
                                       tesseract::Tesseract::Ptr tesseract,
                                       ros::NodeHandle update_nh,
                                       ManipulatorState state,
@@ -285,7 +285,7 @@ bool ManipulationWidget::changeManipulator(QString manipulator)
         joint_description = QString("Limits: [%1, %2]")
                                 .arg(QString("%1").arg(joint->limits->lower), QString("%1").arg(joint->limits->upper));
 
-      rviz::FloatProperty* joint_value_property = new rviz::FloatProperty(
+      rviz_common::properties::FloatProperty* joint_value_property = new rviz_common::properties::FloatProperty(
           QString::fromStdString(j), static_cast<float>(joints_[j]), joint_description, nullptr, nullptr, this);
       joint_value_property->setReadOnly(true);
       joint_values_property_->addChild(joint_value_property);
@@ -354,7 +354,7 @@ bool ManipulationWidget::changeManipulator(QString manipulator)
     {
       std::string name = joint_name + "_interactive_marker";
       std::string disc = "Move joint: " + joint_name;
-      InteractiveMarker::Ptr interactive_marker =
+      InteractiveMarker::SharedPtr interactive_marker =
           boost::make_shared<InteractiveMarker>(name,
                                                 disc,
                                                 tesseract_->getEnvironmentConst()->getRootLinkName(),
@@ -371,7 +371,7 @@ bool ManipulationWidget::changeManipulator(QString manipulator)
           Eigen::Vector3d disc_axis(1, 0, 0);
           Eigen::Quaternionf q = Eigen::Quaterniond::FromTwoVectors(disc_axis, joint->axis).cast<float>();
 
-          InteractiveMarkerControl::Ptr control =
+          InteractiveMarkerControl::SharedPtr control =
               interactive_marker->createInteractiveControl("move_" + joint_name,
                                                            "Move prismatic joint: " + joint_name,
                                                            InteractiveMode::MOVE_AXIS,
@@ -387,7 +387,7 @@ bool ManipulationWidget::changeManipulator(QString manipulator)
         {
           Eigen::Vector3d disc_axis(1, 0, 0);
           Eigen::Quaternionf q = Eigen::Quaterniond::FromTwoVectors(disc_axis, joint->axis).cast<float>();
-          InteractiveMarkerControl::Ptr control =
+          InteractiveMarkerControl::SharedPtr control =
               interactive_marker->createInteractiveControl("rotate_x",
                                                            "Rotate around X Axis",
                                                            InteractiveMode::ROTATE_AXIS,

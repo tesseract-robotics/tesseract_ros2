@@ -50,9 +50,14 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <tesseract_scene_graph/link.h>
 #endif
 
-#include <rviz/ogre_helpers/object.h>
-#include <rviz/ogre_helpers/point_cloud.h>
-#include <rviz/selection/forwards.h>
+#include <rviz_rendering/objects/object.hpp>
+#include <rviz_rendering/objects/point_cloud.hpp>
+#include <rviz_rendering/objects/axes.hpp>
+#include <rviz_common/interaction/forwards.hpp>
+#include <rviz_common/properties/property.hpp>
+#include <rviz_common/properties/float_property.hpp>
+#include <rviz_common/properties/vector_property.hpp>
+#include <rviz_common/properties/quaternion_property.hpp>
 
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
@@ -62,17 +67,25 @@ class SceneManager;
 class Entity;
 class SubEntity;
 class SceneNode;
-class Vector3;
+//class Vector3;
 class Quaternion;
 class Any;
 class RibbonTrail;
 }  // namespace Ogre
 
-namespace rviz
+
+namespace rviz_common
 {
+class DisplayContext;
+}
+
+namespace rviz_rendering {
 class Shape;
 class Axes;
-class DisplayContext;
+}
+
+namespace rviz_common::properties
+{
 class FloatProperty;
 class Property;
 class BoolProperty;
@@ -80,6 +93,7 @@ class QuaternionProperty;
 class VectorProperty;
 class StringProperty;
 }  // namespace rviz
+
 
 namespace octomap
 {
@@ -153,7 +167,7 @@ public:
   // access
   const std::string& getName() const { return name_; }
 
-  rviz::Property* getLinkProperty() const { return link_property_; }
+  rviz_common::properties::Property* getLinkProperty() const { return link_property_; }
 
   Ogre::SceneNode* getCurrentVisualNode() const { return visual_current_node_; }
   Ogre::SceneNode* getCurrentCollisionNode() const { return collision_current_node_; }
@@ -166,7 +180,7 @@ public:
 
   VisualizationWidget* getEnvVisualization() const { return env_; }
   // Remove link_property_ from its old parent and add to new_parent.  If new_parent==nullptr then leav unparented.
-  void setParentProperty(rviz::Property* new_parent);
+  void setParentProperty(rviz_common::properties::Property* new_parent);
 
   // hide or show all sub properties (hide to make tree easier to see)
   virtual void hideSubProperties(bool hide);
@@ -238,37 +252,37 @@ private:
   void createSelection();
   Ogre::MaterialPtr getMaterialForLink(const tesseract_scene_graph::Link& link, const std::string material_name = "");
 
-  void setOctomapColor(double z_pos, double min_z, double max_z, double color_factor, rviz::PointCloud::Point* point);
+  void setOctomapColor(double z_pos, double min_z, double max_z, double color_factor, rviz_rendering::PointCloud::Point* point);
 
   void clone(Ogre::SceneNode* scene_node,
              Ogre::SceneNode* cloned_scene_node,
              std::vector<Ogre::Entity*>& meshes,
-             std::vector<rviz::PointCloud*>& octrees);
+             std::vector<rviz_rendering::PointCloud*>& octrees);
 
 protected:
   VisualizationWidget* env_;
   Ogre::SceneManager* scene_manager_;
-  rviz::DisplayContext* context_;
+  rviz_common::DisplayContext* context_;
 
   std::string name_;  ///< Name of this link
 
   // properties
-  rviz::Property* link_property_;
-  rviz::Property* details_;
-  rviz::VectorProperty* position_property_;
-  rviz::QuaternionProperty* orientation_property_;
-  rviz::Property* trail_property_;
-  rviz::Property* axes_property_;
-  rviz::FloatProperty* alpha_property_;
-  rviz::StringProperty* collision_enabled_property_;
-  rviz::Property* allowed_collision_matrix_property_;
+  rviz_common::properties::Property* link_property_;
+  rviz_common::properties::Property* details_;
+  rviz_common::properties::VectorProperty* position_property_;
+  rviz_common::properties::QuaternionProperty* orientation_property_;
+  rviz_common::properties::Property* trail_property_;
+  rviz_common::properties::Property* axes_property_;
+  rviz_common::properties::FloatProperty* alpha_property_;
+  rviz_common::properties::StringProperty* collision_enabled_property_;
+  rviz_common::properties::Property* allowed_collision_matrix_property_;
 
 private:
   typedef std::map<Ogre::SubEntity*, Ogre::MaterialPtr> M_SubEntityToMaterial;
   M_SubEntityToMaterial materials_;
   Ogre::MaterialPtr default_material_;
   std::string default_material_name_;
-  std::map<std::string, rviz::StringProperty*> acm_;
+  std::map<std::string, rviz_common::properties::StringProperty*> acm_;
 
   std::vector<Ogre::Entity*> visual_current_meshes_;     ///< The entities representing the visual mesh of this link (if
                                                          ///< they
@@ -298,11 +312,11 @@ private:
 
   struct OctreeDataContainer
   {
-    rviz::PointCloud* point_cloud;
-    std::vector<rviz::PointCloud::Point> points;
+    rviz_rendering::PointCloud* point_cloud;
+    std::vector<rviz_rendering::PointCloud::Point> points;
     float size;
 
-    rviz::PointCloud* clone();
+    rviz_rendering::PointCloud* clone();
   };
 
   std::vector<OctreeDataContainer> visual_current_octrees_;     ///< The object representing the visual of this link (if
@@ -311,21 +325,21 @@ private:
                                                                 ///< they
                                                                 /// exist)
 
-  std::vector<rviz::PointCloud*> visual_start_octrees_;  ///< The object representing the visual of this link (if they
+  std::vector<rviz_rendering::PointCloud*> visual_start_octrees_;  ///< The object representing the visual of this link (if they
                                                          ///< exist)
-  std::vector<rviz::PointCloud*> collision_start_octrees_;  ///< The object representing the visual of this link (if
+  std::vector<rviz_rendering::PointCloud*> collision_start_octrees_;  ///< The object representing the visual of this link (if
                                                             ///< they
                                                             /// exist)
 
-  std::vector<rviz::PointCloud*> visual_trajectory_octrees_;  ///< The object representing the visual of this link (if
+  std::vector<rviz_rendering::PointCloud*> visual_trajectory_octrees_;  ///< The object representing the visual of this link (if
                                                               ///< they exist)
-  std::vector<rviz::PointCloud*> collision_trajectory_octrees_;  ///< The object representing the visual of this link
+  std::vector<rviz_rendering::PointCloud*> collision_trajectory_octrees_;  ///< The object representing the visual of this link
                                                                  ///< (if they
                                                                  /// exist)
 
-  std::vector<rviz::PointCloud*> visual_end_octrees_;     ///< The object representing the visual of this link (if they
+  std::vector<rviz_rendering::PointCloud*> visual_end_octrees_;     ///< The object representing the visual of this link (if they
                                                           ///< exist)
-  std::vector<rviz::PointCloud*> collision_end_octrees_;  ///< The object representing the visual of this link (if they
+  std::vector<rviz_rendering::PointCloud*> collision_end_octrees_;  ///< The object representing the visual of this link (if they
                                                           /// exist)
 
   Ogre::SceneNode* visual_current_node_;     ///< The scene node the visual meshes are attached to
@@ -345,7 +359,7 @@ private:
 
   Ogre::RibbonTrail* trail_;
 
-  rviz::Axes* axes_;
+  rviz_rendering::Axes* axes_;
 
   float material_alpha_;  ///< If material is not a texture, this saves the alpha value set in the URDF, otherwise is
                           /// 1.0.

@@ -38,15 +38,15 @@
 #include <OgreSharedPtr.h>
 #include <OgreTechnique.h>
 
-#include "rviz/display_context.h"
-#include "rviz/selection/selection_manager.h"
-#include "rviz/render_panel.h"
-#include "rviz/load_resource.h"
-#include "rviz/window_manager_interface.h"
-#include "rviz/geometry.h"
-#include "rviz/frame_manager.h"
+#include "rviz_common/display_context.hpp"
+#include "rviz_common/interaction/selection_manager.hpp"
+#include "rviz_common/render_panel.hpp"
+#include "rviz_common/load_resource.hpp"
+#include "rviz_common/window_manager_interface.hpp"
+#include "rviz_rendering/geometry.hpp"
+#include "rviz_common/frame_manager_iface.hpp"
 
-#include "rviz/ogre_helpers/line.h"
+#include "rviz_rendering/objects/line.hpp"
 
 //#include "rviz/default_plugin/marker_utils.h"
 //#include "rviz/default_plugin/markers/points_marker.h"
@@ -67,7 +67,7 @@ namespace tesseract_rviz
 {
 InteractiveMarkerControl::InteractiveMarkerControl(const std::string& name,
                                                    const std::string& description,
-                                                   rviz::DisplayContext* context,
+                                                   rviz_common::DisplayContext* context,
                                                    Ogre::SceneNode* reference_node,
                                                    InteractiveMarker* parent,
                                                    const InteractiveMode interactive_mode,
@@ -141,42 +141,42 @@ InteractiveMarkerControl::InteractiveMarkerControl(const std::string& name,
   switch (interaction_mode_)
   {
     case InteractiveMode::NONE:
-      cursor_ = rviz::getDefaultCursor();
+      cursor_ = rviz_common::getDefaultCursor();
       break;
     case InteractiveMode::MENU:
-      cursor_ = rviz::makeIconCursor("package://rviz/icons/menu.svg");
+      cursor_ = rviz_common::makeIconCursor("package://rviz/icons/menu.svg");
       status_msg_ += "<b>Left-Click:</b> Show menu.";
       break;
     case InteractiveMode::BUTTON:
-      cursor_ = rviz::getDefaultCursor();
+      cursor_ = rviz_common::getDefaultCursor();
       status_msg_ += "<b>Left-Click:</b> Activate. ";
       break;
     case InteractiveMode::MOVE_AXIS:
-      cursor_ = rviz::makeIconCursor("package://rviz/icons/move1d.svg");
+      cursor_ = rviz_common::makeIconCursor("package://rviz/icons/move1d.svg");
       status_msg_ += "<b>Left-Click:</b> Move. ";
       break;
     case InteractiveMode::MOVE_PLANE:
-      cursor_ = rviz::makeIconCursor("package://rviz/icons/move2d.svg");
+      cursor_ = rviz_common::makeIconCursor("package://rviz/icons/move2d.svg");
       status_msg_ += "<b>Left-Click:</b> Move. ";
       break;
     case InteractiveMode::ROTATE_AXIS:
-      cursor_ = rviz::makeIconCursor("package://rviz/icons/rotate.svg");
+      cursor_ = rviz_common::makeIconCursor("package://rviz/icons/rotate.svg");
       status_msg_ += "<b>Left-Click:</b> Rotate. ";
       break;
     case InteractiveMode::MOVE_ROTATE:
-      cursor_ = rviz::makeIconCursor("package://rviz/icons/moverotate.svg");
+      cursor_ = rviz_common::makeIconCursor("package://rviz/icons/moverotate.svg");
       status_msg_ += "<b>Left-Click:</b> Move / Rotate. ";
       break;
     case InteractiveMode::MOVE_3D:
-      cursor_ = rviz::makeIconCursor("package://rviz/icons/move2d.svg");
+      cursor_ = rviz_common::makeIconCursor("package://rviz/icons/move2d.svg");
       status_msg_ += "<b>Left-Click:</b> Move X/Y. <b>Shift + Left-Click / Left-Click + Wheel:</b> Move Z. ";
       break;
     case InteractiveMode::ROTATE_3D:
-      cursor_ = rviz::makeIconCursor("package://rviz/icons/rotate.svg");
+      cursor_ = rviz_common::makeIconCursor("package://rviz/icons/rotate.svg");
       status_msg_ += "<b>Left-Click:</b> Rotate around X/Y. <b>Shift-Left-Click:</b> Rotate around Z. ";
       break;
     case InteractiveMode::MOVE_ROTATE_3D:
-      cursor_ = rviz::makeIconCursor("package://rviz/icons/moverotate.svg");
+      cursor_ = rviz_common::makeIconCursor("package://rviz/icons/moverotate.svg");
       status_msg_ += "<b>Left-Click:</b> Move X/Y. <b>Shift + Left-Click / Left-Click + Wheel:</b> Move Z. <b>Ctrl + "
                      "Left-Click:</b> Rotate around X/Y. <b>Ctrl + Shift + Left-Click:</b> Rotate around Z. ";
       break;
@@ -219,7 +219,7 @@ void InteractiveMarkerControl::updateSize()
 
 Ogre::SceneNode* InteractiveMarkerControl::getMarkerSceneNode() { return markers_node_; }
 
-void InteractiveMarkerControl::addMarker(MarkerBase::Ptr marker)
+void InteractiveMarkerControl::addMarker(MarkerBase::SharedPtr marker)
 {
   marker->setInteractiveObject(shared_from_this());
 
@@ -415,7 +415,7 @@ void InteractiveMarkerControl::rotate(const Ogre::Vector3& cursor_in_reference_f
       parent_->getPosition(), orientation_change_since_mouse_down * parent_orientation_at_mouse_down_, name_);
 }
 
-Ogre::Ray InteractiveMarkerControl::getMouseRayInReferenceFrame(const rviz::ViewportMouseEvent& event, int x, int y)
+Ogre::Ray InteractiveMarkerControl::getMouseRayInReferenceFrame(const rviz_common::ViewportMouseEvent& event, int x, int y)
 {
   float width = event.viewport->getActualWidth() - 1;
   float height = event.viewport->getActualHeight() - 1;
@@ -430,7 +430,7 @@ Ogre::Ray InteractiveMarkerControl::getMouseRayInReferenceFrame(const rviz::View
   return mouse_ray;
 }
 
-void InteractiveMarkerControl::beginRelativeMouseMotion(const rviz::ViewportMouseEvent& event)
+void InteractiveMarkerControl::beginRelativeMouseMotion(const rviz_common::ViewportMouseEvent& event)
 {
   mouse_x_at_drag_begin_ = event.x;
   mouse_y_at_drag_begin_ = event.y;
@@ -442,7 +442,7 @@ void InteractiveMarkerControl::beginRelativeMouseMotion(const rviz::ViewportMous
   mouse_ray_at_drag_begin_.setDirection(mouse_ray_at_drag_begin_.getDirection().normalisedCopy());
 }
 
-bool InteractiveMarkerControl::getRelativeMouseMotion(const rviz::ViewportMouseEvent& event, int& dx, int& dy)
+bool InteractiveMarkerControl::getRelativeMouseMotion(const rviz_common::ViewportMouseEvent& event, int& dx, int& dy)
 {
   dx = event.x - mouse_x_at_drag_begin_;
   dy = event.y - mouse_y_at_drag_begin_;
@@ -454,7 +454,7 @@ bool InteractiveMarkerControl::getRelativeMouseMotion(const rviz::ViewportMouseE
   return true;
 }
 
-void InteractiveMarkerControl::rotateXYRelative(const rviz::ViewportMouseEvent& event)
+void InteractiveMarkerControl::rotateXYRelative(const rviz_common::ViewportMouseEvent& event)
 {
   int dx;
   int dy;
@@ -472,7 +472,7 @@ void InteractiveMarkerControl::rotateXYRelative(const rviz::ViewportMouseEvent& 
   parent_->setPose(parent_->getPosition(), up_rot * right_rot * parent_->getOrientation(), name_);
 }
 
-void InteractiveMarkerControl::rotateZRelative(const rviz::ViewportMouseEvent& event)
+void InteractiveMarkerControl::rotateZRelative(const rviz_common::ViewportMouseEvent& event)
 {
   int dx;
   int dy;
@@ -491,7 +491,7 @@ void InteractiveMarkerControl::rotateZRelative(const rviz::ViewportMouseEvent& e
   parent_->setPose(parent_->getPosition(), rot * parent_->getOrientation(), name_);
 }
 
-void InteractiveMarkerControl::moveZAxisRelative(const rviz::ViewportMouseEvent& event)
+void InteractiveMarkerControl::moveZAxisRelative(const rviz_common::ViewportMouseEvent& event)
 {
   int dx;
   int dy;
@@ -510,7 +510,7 @@ void InteractiveMarkerControl::moveZAxisRelative(const rviz::ViewportMouseEvent&
   parent_position_at_mouse_down_ = parent_->getPosition();
 }
 
-void InteractiveMarkerControl::moveZAxisWheel(const rviz::ViewportMouseEvent& event)
+void InteractiveMarkerControl::moveZAxisWheel(const rviz_common::ViewportMouseEvent& event)
 {
   // wheel_delta is in 1/8 degree and usually jumps 15 degrees at a time
   static const double WHEEL_TO_PIXEL_SCALE = (1.0 / 8.0) * (2.0 / 15.0);  // 2 pixels per click
@@ -523,7 +523,7 @@ void InteractiveMarkerControl::moveZAxisWheel(const rviz::ViewportMouseEvent& ev
   parent_position_at_mouse_down_ = parent_->getPosition();
 }
 
-void InteractiveMarkerControl::moveViewPlane(Ogre::Ray& mouse_ray, const rviz::ViewportMouseEvent& event)
+void InteractiveMarkerControl::moveViewPlane(Ogre::Ray& mouse_ray, const rviz_common::ViewportMouseEvent& event)
 {
   // find plane on which mouse is moving
   Ogre::Plane plane(event.viewport->getCamera()->getRealDirection(), grab_point_in_reference_frame_);
@@ -631,7 +631,7 @@ bool InteractiveMarkerControl::findClosestPoint(const Ogre::Ray& target_ray,
   return true;
 }
 
-void InteractiveMarkerControl::moveAxis(const Ogre::Ray& mouse_ray, const rviz::ViewportMouseEvent& event)
+void InteractiveMarkerControl::moveAxis(const Ogre::Ray& mouse_ray, const rviz_common::ViewportMouseEvent& event)
 {
   // compute control-axis ray based on grab_point_, etc.
   Ogre::Ray control_ray;
@@ -640,8 +640,9 @@ void InteractiveMarkerControl::moveAxis(const Ogre::Ray& mouse_ray, const rviz::
 
   // project control-axis ray onto screen.
   Ogre::Vector2 control_ray_screen_start, control_ray_screen_end;
-  worldToScreen(control_ray.getOrigin(), event.viewport, control_ray_screen_start);
-  worldToScreen(control_ray.getPoint(1), event.viewport, control_ray_screen_end);
+  // TODO: Fix for ROS 2
+//  worldToScreen(control_ray.getOrigin(), event.viewport, control_ray_screen_start);
+//  worldToScreen(control_ray.getPoint(1), event.viewport, control_ray_screen_end);
 
   Ogre::Vector2 mouse_point(event.x, event.y);
 
@@ -933,7 +934,7 @@ void InteractiveMarkerControl::setHighlight(float a)
   //  }
 }
 
-void InteractiveMarkerControl::recordDraggingInPlaceEvent(rviz::ViewportMouseEvent& event)
+void InteractiveMarkerControl::recordDraggingInPlaceEvent(rviz_common::ViewportMouseEvent& event)
 {
   dragging_in_place_event_ = event;
   dragging_in_place_event_.type = QEvent::MouseMove;
@@ -955,7 +956,7 @@ void InteractiveMarkerControl::stopDragging(bool force)
 }
 
 // Almost a wholesale copy of the mouse event code... can these be combined?
-void InteractiveMarkerControl::handle3DCursorEvent(rviz::ViewportMouseEvent event,
+void InteractiveMarkerControl::handle3DCursorEvent(rviz_common::ViewportMouseEvent event,
                                                    const Ogre::Vector3& cursor_3D_pos,
                                                    const Ogre::Quaternion& cursor_3D_orientation)
 {
@@ -982,7 +983,7 @@ void InteractiveMarkerControl::handle3DCursorEvent(rviz::ViewportMouseEvent even
         // Save the 3D mouse point to send with the menu feedback, if any.
         Ogre::Vector3 three_d_point = cursor_3D_pos;
         bool valid_point = true;
-        Ogre::Vector2 mouse_pos = rviz::project3DPointToViewportXY(event.viewport, three_d_point);
+        Ogre::Vector2 mouse_pos = rviz_common::project3DPointToViewportXY(event.viewport, three_d_point);
         QCursor::setPos(event.panel->mapToGlobal(QPoint(mouse_pos.x, mouse_pos.y)));
         parent_->showMenu(event, name_, three_d_point, valid_point);
       }
@@ -1097,7 +1098,7 @@ void InteractiveMarkerControl::handle3DCursorEvent(rviz::ViewportMouseEvent even
   }
 }
 
-void InteractiveMarkerControl::handleMouseEvent(rviz::ViewportMouseEvent& event)
+void InteractiveMarkerControl::handleMouseEvent(rviz_common::ViewportMouseEvent& event)
 {
   // REMOVE ME ROS_INFO("Mouse event!");
   // * check if this is just a receive/lost focus event
@@ -1207,7 +1208,7 @@ void InteractiveMarkerControl::handleMouseEvent(rviz::ViewportMouseEvent& event)
   }
 }
 
-void InteractiveMarkerControl::beginMouseMovement(rviz::ViewportMouseEvent& event, bool line_visible)
+void InteractiveMarkerControl::beginMouseMovement(rviz_common::ViewportMouseEvent& event, bool line_visible)
 {
   //  line_->setVisible(line_visible);
 
@@ -1289,7 +1290,7 @@ void InteractiveMarkerControl::beginMouseMovement(rviz::ViewportMouseEvent& even
   }
 }
 
-void InteractiveMarkerControl::handleMouseMovement(rviz::ViewportMouseEvent& event)
+void InteractiveMarkerControl::handleMouseMovement(rviz_common::ViewportMouseEvent& event)
 {
   Ogre::Ray mouse_ray = getMouseRayInReferenceFrame(event, event.x, event.y);
 
@@ -1341,7 +1342,7 @@ void InteractiveMarkerControl::handleMouseMovement(rviz::ViewportMouseEvent& eve
   }
 }
 
-void InteractiveMarkerControl::handleMouseWheelMovement(rviz::ViewportMouseEvent& event)
+void InteractiveMarkerControl::handleMouseWheelMovement(rviz_common::ViewportMouseEvent& event)
 {
   switch (interaction_mode_)
   {

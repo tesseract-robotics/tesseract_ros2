@@ -42,7 +42,7 @@
 #include <ros/ros.h>
 
 #include "rviz/frame_manager.h"
-#include "rviz/display_context.h"
+#include "rviz_common/display_context.hpp"
 #include "rviz/selection/selection_manager.h"
 #include "rviz/frame_manager.h"
 #include "rviz/render_panel.h"
@@ -60,7 +60,7 @@ InteractiveMarker::InteractiveMarker(const std::string& name,
                                      const std::string& description,
                                      const std::string& reference_frame,
                                      Ogre::SceneNode* scene_node,
-                                     rviz::DisplayContext* context,
+                                     rviz_common::DisplayContext* context,
                                      const bool reference_frame_locked,
                                      const float scale)
   : visible_(true)
@@ -81,7 +81,7 @@ InteractiveMarker::InteractiveMarker(const std::string& name,
   , orientation_(scene_node->getOrientation())
   , reference_node_(scene_node->createChildSceneNode())
 {
-  axes_ = new rviz::Axes(context->getSceneManager(), reference_node_, 1, 0.05f);
+  axes_ = new rviz_rendering::Axes(context->getSceneManager(), reference_node_, 1, 0.05f);
 
   axes_->setPosition(position_);
   axes_->setOrientation(orientation_);
@@ -158,7 +158,7 @@ InteractiveMarker::~InteractiveMarker()
   context_->getSceneManager()->destroySceneNode(reference_node_);
 }
 
-InteractiveMarkerControl::Ptr InteractiveMarker::createInteractiveControl(const std::string& name,
+InteractiveMarkerControl::SharedPtr InteractiveMarker::createInteractiveControl(const std::string& name,
                                                                           const std::string& description,
                                                                           const InteractiveMode interactive_mode,
                                                                           const OrientationMode orientation_mode,
@@ -642,7 +642,7 @@ void InteractiveMarker::stopDragging()
   }
 }
 
-bool InteractiveMarker::handle3DCursorEvent(rviz::ViewportMouseEvent& event,
+bool InteractiveMarker::handle3DCursorEvent(rviz_common::ViewportMouseEvent& event,
                                             const Ogre::Vector3& cursor_pos,
                                             const Ogre::Quaternion& cursor_rot,
                                             const std::string& control_name)
@@ -681,7 +681,7 @@ bool InteractiveMarker::handle3DCursorEvent(rviz::ViewportMouseEvent& event,
   return false;
 }
 
-bool InteractiveMarker::handleMouseEvent(rviz::ViewportMouseEvent& event, const std::string& control_name)
+bool InteractiveMarker::handleMouseEvent(rviz_common::ViewportMouseEvent& event, const std::string& control_name)
 {
   boost::recursive_mutex::scoped_lock lock(mutex_);
 
@@ -715,7 +715,7 @@ bool InteractiveMarker::handleMouseEvent(rviz::ViewportMouseEvent& event, const 
   return false;
 }
 
-void InteractiveMarker::showMenu(rviz::ViewportMouseEvent& event,
+void InteractiveMarker::showMenu(rviz_common::ViewportMouseEvent& event,
                                  const std::string& control_name,
                                  const Ogre::Vector3& three_d_point,
                                  bool valid_point)
@@ -753,7 +753,7 @@ void InteractiveMarker::handleMenuSelect(int menu_item_id)
     //    {
     //      std::string sys_cmd = "rosrun " + command;
     //      ROS_INFO_STREAM( "Running system command: " << sys_cmd );
-    //      sys_thread_ = boost::shared_ptr<boost::thread>( new boost::thread( boost::bind( &system, sys_cmd.c_str() ) )
+    //      sys_thread_ = std::shared_ptr<boost::thread>( new boost::thread( boost::bind( &system, sys_cmd.c_str() ) )
     //      );
     //      //system( sys_cmd.c_str() );
     //    }
@@ -761,7 +761,7 @@ void InteractiveMarker::handleMenuSelect(int menu_item_id)
     //    {
     //      std::string sys_cmd = "roslaunch " + command;
     //      ROS_INFO_STREAM( "Running system command: " << sys_cmd );
-    //      sys_thread_ = boost::shared_ptr<boost::thread>( new boost::thread( boost::bind( &system, sys_cmd.c_str() ) )
+    //      sys_thread_ = std::shared_ptr<boost::thread>( new boost::thread( boost::bind( &system, sys_cmd.c_str() ) )
     //      );
     //      //system( sys_cmd.c_str() );
     //    }

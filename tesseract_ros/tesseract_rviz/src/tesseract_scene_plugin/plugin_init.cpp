@@ -40,4 +40,4 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_rviz/tesseract_scene_plugin/tesseract_scene_display.h>
 
-CLASS_LOADER_REGISTER_CLASS(tesseract_rviz::TesseractSceneDisplay, rviz::Display)
+CLASS_LOADER_REGISTER_CLASS(tesseract_rviz::TesseractSceneDisplay, rviz_common::Display)

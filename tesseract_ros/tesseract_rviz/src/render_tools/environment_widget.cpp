@@ -1,16 +1,16 @@
 #include <tesseract_common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
-#include <rviz/display_context.h>
-#include <rviz/properties/bool_property.h>
-#include <rviz/properties/color_property.h>
-#include <rviz/properties/float_property.h>
-#include <rviz/properties/property.h>
-#include <rviz/properties/ros_topic_property.h>
-#include <rviz/properties/string_property.h>
-#include <rviz/properties/enum_property.h>
-#include <rviz/window_manager_interface.h>
+#include <rviz_common/display_context.hpp>
+#include <rviz_common/properties/bool_property.hpp>
+#include <rviz_common/properties/color_property.hpp>
+#include <rviz_common/properties/float_property.hpp>
+#include <rviz_common/properties/property.hpp>
+#include <rviz_common/properties/ros_topic_property.hpp>
+#include <rviz_common/properties/string_property.hpp>
+#include <rviz_common/properties/enum_property.hpp>
+#include <rviz_common/window_manager_interface.hpp>
 
-#include <tesseract_rosutils/utils.h>
+
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_rosutils/utils.h>
@@ -18,12 +18,14 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <tesseract_rviz/render_tools/link_widget.h>
 #include <tesseract_rviz/render_tools/environment_widget.h>
 
+#include <std_msgs/msg/color_rgba.hpp>
+
 namespace tesseract_rviz
 {
 const std::string DEFAULT_GET_ENVIRONMENT_CHANGES_SERVICE = "get_tesseract_changes_rviz";
 const std::string DEFAULT_MODIFY_ENVIRONMENT_SERVICE = "modify_tesseract_rviz";
 
-EnvironmentWidget::EnvironmentWidget(rviz::Property* widget, rviz::Display* display, const std::string& widget_ns)
+EnvironmentWidget::EnvironmentWidget(rviz_common::properties::Property* widget, rviz_common::Display* display, const std::string& widget_ns)
   : widget_(widget)
   , display_(display)
   , visualization_(nullptr)
@@ -43,9 +45,9 @@ EnvironmentWidget::EnvironmentWidget(rviz::Property* widget, rviz::Display* disp
     widget_ns_ = widget_ns;
   }
 
-  main_property_ = new rviz::Property("Environment", "", "Tesseract Environment", widget_, nullptr, this);
+  main_property_ = new rviz_common::properties::Property("Environment", "", "Tesseract Environment", widget_, nullptr, this);
 
-  urdf_description_property_ = new rviz::StringProperty("URDF Description",
+  urdf_description_property_ = new rviz_common::properties::StringProperty("URDF Description",
                                                         "robot_description",
                                                         "The name of the ROS parameter where the URDF for the robot is "
                                                         "loaded",
@@ -53,7 +55,7 @@ EnvironmentWidget::EnvironmentWidget(rviz::Property* widget, rviz::Display* disp
                                                         SLOT(changedURDFDescription()),
                                                         this);
 
-  environment_namespace_property_ = new rviz::StringProperty("Interface Namespace",
+  environment_namespace_property_ = new rviz_common::properties::StringProperty("Interface Namespace",
                                                              QString::fromUtf8(widget_ns_.c_str()),
                                                              "The namespace used for the service interface associated "
                                                              "with the environment",
@@ -62,15 +64,15 @@ EnvironmentWidget::EnvironmentWidget(rviz::Property* widget, rviz::Display* disp
                                                              this);
 
   tesseract_state_topic_property_ =
-      new rviz::RosTopicProperty("Tesseract State Topic",
+      new rviz_common::properties::RosTopicProperty("Tesseract State Topic",
                                  "display_tesseract_state",
-                                 ros::message_traits::datatype<tesseract_msgs::TesseractState>(),
+                                 "tesseract_msgs::TesseractState",
                                  "The topic on which the tesseract_msgs::TesseractState messages are received",
                                  main_property_,
                                  SLOT(changedTesseractStateTopic()),
                                  this);
 
-  root_link_name_property_ = new rviz::StringProperty("Root Link",
+  root_link_name_property_ = new rviz_common::properties::StringProperty("Root Link",
                                                       "",
                                                       "Shows the name of the root link for the urdf",
                                                       main_property_,
@@ -78,7 +80,7 @@ EnvironmentWidget::EnvironmentWidget(rviz::Property* widget, rviz::Display* disp
                                                       this);
   root_link_name_property_->setReadOnly(true);
 
-  alpha_property_ = new rviz::FloatProperty("Alpha",
+  alpha_property_ = new rviz_common::properties::FloatProperty("Alpha",
                                             1.0f,
                                             "Specifies the alpha for the links with geometry",
                                             main_property_,
@@ -87,20 +89,20 @@ EnvironmentWidget::EnvironmentWidget(rviz::Property* widget, rviz::Display* disp
   alpha_property_->setMin(0.0);
   alpha_property_->setMax(1.0);
 
-  enable_link_highlight_ = new rviz::BoolProperty("Show Highlights",
+  enable_link_highlight_ = new rviz_common::properties::BoolProperty("Show Highlights",
                                                   true,
                                                   "Specifies whether link highlighting is enabled",
                                                   main_property_,
                                                   SLOT(changedEnableLinkHighlight()),
                                                   this);
-  enable_visual_visible_ = new rviz::BoolProperty("Show Visual",
+  enable_visual_visible_ = new rviz_common::properties::BoolProperty("Show Visual",
                                                   true,
                                                   "Whether to display the visual representation of the environment.",
                                                   main_property_,
                                                   SLOT(changedEnableVisualVisible()),
                                                   this);
 
-  enable_collision_visible_ = new rviz::BoolProperty("Show Collision",
+  enable_collision_visible_ = new rviz_common::properties::BoolProperty("Show Collision",
                                                      false,
                                                      "Whether to display the collision "
                                                      "representation of the environment.",
@@ -108,31 +110,38 @@ EnvironmentWidget::EnvironmentWidget(rviz::Property* widget, rviz::Display* disp
                                                      SLOT(changedEnableCollisionVisible()),
                                                      this);
 
-  show_all_links_ = new rviz::BoolProperty(
+  show_all_links_ = new rviz_common::properties::BoolProperty(
       "Show All Links", true, "Toggle all links visibility on or off.", main_property_, SLOT(changedAllLinks()), this);
 }
 
 EnvironmentWidget::~EnvironmentWidget() {}
 
-void EnvironmentWidget::onInitialize(VisualizationWidget::Ptr visualization,
+void EnvironmentWidget::onInitialize(VisualizationWidget::SharedPtr visualization,
                                      tesseract::Tesseract::Ptr tesseract,
-                                     rviz::DisplayContext* context,
-                                     ros::NodeHandle update_nh,
+                                     rviz_common::DisplayContext* context,
+                                     rclcpp::Node::SharedPtr update_node,
                                      bool update_state,
                                      QString tesseract_state_topic)
 {
   visualization_ = std::move(visualization);
   tesseract_ = std::move(tesseract);
-  nh_ = update_nh;
+  node_ = update_node;
   update_state_ = update_state;
 
+  auto rviz_ros_node = context->getRosNodeAbstraction();
+  tesseract_state_topic_property_->initialize(rviz_ros_node);
   tesseract_state_topic_property_->setString(tesseract_state_topic);
 
-  modify_environment_server_ = nh_.advertiseService(
-      widget_ns_ + DEFAULT_MODIFY_ENVIRONMENT_SERVICE, &EnvironmentWidget::modifyEnvironmentCallback, this);
+  using std::placeholders::_1;
+  using std::placeholders::_2;
+  using std::placeholders::_3;
 
-  get_environment_changes_server_ = nh_.advertiseService(
-      widget_ns_ + DEFAULT_GET_ENVIRONMENT_CHANGES_SERVICE, &EnvironmentWidget::getEnvironmentChangesCallback, this);
+  widget_ns_ = environment_namespace_property_->getStdString();
+  modify_environment_server_ = node_->create_service<tesseract_msgs::srv::ModifyEnvironment>(
+      widget_ns_ + DEFAULT_MODIFY_ENVIRONMENT_SERVICE, std::bind(&EnvironmentWidget::modifyEnvironmentCallback, this, _1, _2, _3));
+
+  get_environment_changes_server_ = node_->create_service<tesseract_msgs::srv::GetEnvironmentChanges>(
+      widget_ns_ + DEFAULT_GET_ENVIRONMENT_CHANGES_SERVICE, std::bind(&EnvironmentWidget::getEnvironmentChangesCallback, this, _1, _2, _3));
 
   changedEnableVisualVisible();
   changedEnableCollisionVisible();
@@ -147,7 +156,7 @@ void EnvironmentWidget::onEnable()
 
 void EnvironmentWidget::onDisable()
 {
-  tesseract_state_subscriber_.shutdown();
+  tesseract_state_subscriber_.reset();
   if (visualization_)
     visualization_->setVisible(false);
 }
@@ -173,12 +182,12 @@ void EnvironmentWidget::onReset() { load_tesseract_ = true; }
 
 void EnvironmentWidget::changedAllLinks()
 {
-  rviz::Property* links_prop = widget_->subProp("Links");
+  rviz_common::properties::Property* links_prop = widget_->subProp("Links");
   QVariant value(show_all_links_->getBool());
 
   for (int i = 0; i < links_prop->numChildren(); ++i)
   {
-    rviz::Property* link_prop = links_prop->childAt(i);
+    rviz_common::properties::Property* link_prop = links_prop->childAt(i);
     link_prop->setValue(value);
   }
 }
@@ -233,7 +242,7 @@ void EnvironmentWidget::changedEnableCollisionVisible()
   visualization_->setCollisionVisible(enable_collision_visible_->getBool());
 }
 
-static bool operator!=(const std_msgs::ColorRGBA& a, const std_msgs::ColorRGBA& b)
+static bool operator!=(const std_msgs::msg::ColorRGBA& a, const std_msgs::msg::ColorRGBA& b)
 {
   return a.r != b.r || a.g != b.g || a.b != b.b || a.a != b.a;
 }
@@ -246,16 +255,20 @@ void EnvironmentWidget::changedURDFDescription()
 
 void EnvironmentWidget::changedEnvironmentNamespace()
 {
+  using std::placeholders::_1;
+  using std::placeholders::_2;
+  using std::placeholders::_3;
+
   // Need to kill services and relaunch with new name
-  modify_environment_server_.shutdown();
-  get_environment_changes_server_.shutdown();
+  modify_environment_server_.reset();
+  get_environment_changes_server_.reset();
 
   widget_ns_ = environment_namespace_property_->getStdString();
-  modify_environment_server_ = nh_.advertiseService(
-      widget_ns_ + DEFAULT_MODIFY_ENVIRONMENT_SERVICE, &EnvironmentWidget::modifyEnvironmentCallback, this);
+  modify_environment_server_ = node_->create_service<tesseract_msgs::srv::ModifyEnvironment>(
+      widget_ns_ + DEFAULT_MODIFY_ENVIRONMENT_SERVICE, std::bind(&EnvironmentWidget::modifyEnvironmentCallback, this, _1, _2, _3));
 
-  get_environment_changes_server_ = nh_.advertiseService(
-      widget_ns_ + DEFAULT_GET_ENVIRONMENT_CHANGES_SERVICE, &EnvironmentWidget::getEnvironmentChangesCallback, this);
+  get_environment_changes_server_ = node_->create_service<tesseract_msgs::srv::GetEnvironmentChanges>(
+      widget_ns_ + DEFAULT_GET_ENVIRONMENT_CHANGES_SERVICE, std::bind(&EnvironmentWidget::getEnvironmentChangesCallback, this, _1, _2, _3));
 }
 
 void EnvironmentWidget::changedRootLinkName() {}
@@ -268,14 +281,14 @@ void EnvironmentWidget::changedURDFSceneAlpha()
   }
 }
 
-bool EnvironmentWidget::applyEnvironmentCommands(const std::vector<tesseract_msgs::EnvironmentCommand>& commands)
+bool EnvironmentWidget::applyEnvironmentCommands(const std::vector<tesseract_msgs::msg::EnvironmentCommand>& commands)
 {
   update_required_ = true;
   for (const auto& command : commands)
   {
     switch (command.command)
     {
-      case tesseract_msgs::EnvironmentCommand::ADD:
+      case tesseract_msgs::msg::EnvironmentCommand::ADD:
       {
         tesseract_scene_graph::Link link = tesseract_rosutils::fromMsg(command.add_link);
         tesseract_scene_graph::Joint joint = tesseract_rosutils::fromMsg(command.add_joint);
@@ -283,12 +296,12 @@ bool EnvironmentWidget::applyEnvironmentCommands(const std::vector<tesseract_msg
         if (!visualization_->addLink(link) || !visualization_->addJoint(joint))
           return false;
 
-        if (!tesseract_->getEnvironment()->addLink(link, joint))
+        if (!tesseract_->getEnvironment()->addLink(std::move(link), std::move(joint)))
           return false;
 
         break;
       }
-      case tesseract_msgs::EnvironmentCommand::MOVE_LINK:
+    case tesseract_msgs::msg::EnvironmentCommand::MOVE_LINK:
       {
         tesseract_scene_graph::Joint joint = tesseract_rosutils::fromMsg(command.move_link_joint);
 
@@ -299,12 +312,12 @@ bool EnvironmentWidget::applyEnvironmentCommands(const std::vector<tesseract_msg
         if (!visualization_->removeJoint(joints[0]->getName()) || !visualization_->addJoint(joint))
           return false;
 
-        if (!tesseract_->getEnvironment()->moveLink(joint))
+        if (!tesseract_->getEnvironment()->moveLink(std::move(joint)))
           return false;
 
         break;
       }
-      case tesseract_msgs::EnvironmentCommand::MOVE_JOINT:
+    case tesseract_msgs::msg::EnvironmentCommand::MOVE_JOINT:
       {
         if (!visualization_->moveJoint(command.move_joint_name, command.move_joint_parent_link))
           return false;
@@ -314,11 +327,11 @@ bool EnvironmentWidget::applyEnvironmentCommands(const std::vector<tesseract_msg
 
         break;
       }
-      case tesseract_msgs::EnvironmentCommand::REMOVE_LINK:
+    case tesseract_msgs::msg::EnvironmentCommand::REMOVE_LINK:
       {
         if (tesseract_->getEnvironment()->getLink(command.remove_link) == nullptr)
         {
-          ROS_WARN("Tried to remove link (%s) that does not exist", command.remove_link.c_str());
+          CONSOLE_BRIDGE_logWarn("Tried to remove link (%s) that does not exist", command.remove_link.c_str());
           return false;
         }
 
@@ -355,7 +368,7 @@ bool EnvironmentWidget::applyEnvironmentCommands(const std::vector<tesseract_msg
 
         break;
       }
-      case tesseract_msgs::EnvironmentCommand::REMOVE_JOINT:
+    case tesseract_msgs::msg::EnvironmentCommand::REMOVE_JOINT:
       {
         tesseract_scene_graph::Joint::ConstPtr remove_joint =
             tesseract_->getEnvironment()->getJoint(command.remove_joint);
@@ -392,18 +405,20 @@ bool EnvironmentWidget::applyEnvironmentCommands(const std::vector<tesseract_msg
 
         break;
       }
-      case tesseract_msgs::EnvironmentCommand::CHANGE_LINK_ORIGIN:
+    case tesseract_msgs::msg::EnvironmentCommand::CHANGE_LINK_ORIGIN:
       {
         assert(false);
       }
-      case tesseract_msgs::EnvironmentCommand::CHANGE_JOINT_ORIGIN:
+    case tesseract_msgs::msg::EnvironmentCommand::CHANGE_JOINT_ORIGIN:
       {
         Eigen::Isometry3d pose;
-        tf::poseMsgToEigen(command.change_joint_origin_pose, pose);
+        CONSOLE_BRIDGE_logError("changeJointOrigin has not been fully implemented. Someone needs to figure out eigen_conversions");
+        return false;
+//        tf::poseMsgToEigen(command.change_joint_origin_pose, pose);
         tesseract_->getEnvironment()->changeJointOrigin(command.change_joint_origin_name, pose);
         break;
       }
-      case tesseract_msgs::EnvironmentCommand::CHANGE_LINK_COLLISION_ENABLED:
+    case tesseract_msgs::msg::EnvironmentCommand::CHANGE_LINK_COLLISION_ENABLED:
       {
         visualization_->setLinkCollisionEnabled(command.change_link_collision_enabled_name,
                                                 command.change_link_collision_enabled_value);
@@ -412,14 +427,14 @@ bool EnvironmentWidget::applyEnvironmentCommands(const std::vector<tesseract_msg
                                                               command.change_link_collision_enabled_value);
         break;
       }
-      case tesseract_msgs::EnvironmentCommand::CHANGE_LINK_VISIBILITY:
+    case tesseract_msgs::msg::EnvironmentCommand::CHANGE_LINK_VISIBILITY:
       {
         // TODO:: Need to update visualization.
         tesseract_->getEnvironment()->setLinkVisibility(command.change_link_visibility_name,
                                                         command.change_link_visibility_value);
         break;
       }
-      case tesseract_msgs::EnvironmentCommand::ADD_ALLOWED_COLLISION:
+    case tesseract_msgs::msg::EnvironmentCommand::ADD_ALLOWED_COLLISION:
       {
         visualization_->addAllowedCollision(command.add_allowed_collision.link_1,
                                             command.add_allowed_collision.link_2,
@@ -430,7 +445,7 @@ bool EnvironmentWidget::applyEnvironmentCommands(const std::vector<tesseract_msg
                                                           command.add_allowed_collision.reason);
         break;
       }
-      case tesseract_msgs::EnvironmentCommand::REMOVE_ALLOWED_COLLISION:
+    case tesseract_msgs::msg::EnvironmentCommand::REMOVE_ALLOWED_COLLISION:
       {
         visualization_->removeAllowedCollision(command.add_allowed_collision.link_1,
                                                command.add_allowed_collision.link_2);
@@ -439,14 +454,14 @@ bool EnvironmentWidget::applyEnvironmentCommands(const std::vector<tesseract_msg
                                                              command.add_allowed_collision.link_2);
         break;
       }
-      case tesseract_msgs::EnvironmentCommand::REMOVE_ALLOWED_COLLISION_LINK:
+    case tesseract_msgs::msg::EnvironmentCommand::REMOVE_ALLOWED_COLLISION_LINK:
       {
         visualization_->removeAllowedCollision(command.remove_allowed_collision_link);
 
         tesseract_->getEnvironment()->removeAllowedCollision(command.remove_allowed_collision_link);
         break;
       }
-      case tesseract_msgs::EnvironmentCommand::UPDATE_JOINT_STATE:
+    case tesseract_msgs::msg::EnvironmentCommand::UPDATE_JOINT_STATE:
       {
         if (!tesseract_rosutils::processMsg(*(tesseract_->getEnvironment()), command.joint_state))
           return false;
@@ -458,57 +473,65 @@ bool EnvironmentWidget::applyEnvironmentCommands(const std::vector<tesseract_msg
   return true;
 }
 
-bool EnvironmentWidget::modifyEnvironmentCallback(tesseract_msgs::ModifyEnvironmentRequest& req,
-                                                  tesseract_msgs::ModifyEnvironmentResponse& res)
+bool EnvironmentWidget::modifyEnvironmentCallback(const std::shared_ptr<rmw_request_id_t> request_header,
+tesseract_msgs::srv::ModifyEnvironment::Request::SharedPtr req,
+                           tesseract_msgs::srv::ModifyEnvironment::Response::SharedPtr res)
 {
-  if (!tesseract_->getEnvironment() || req.id != tesseract_->getEnvironment()->getName() ||
-      req.revision != tesseract_->getEnvironment()->getRevision())
+  if (!tesseract_->getEnvironment() || req->id != tesseract_->getEnvironment()->getName() ||
+      req->revision != tesseract_->getEnvironment()->getRevision())
     return false;
 
-  return applyEnvironmentCommands(req.commands);
+  return applyEnvironmentCommands(req->commands);
 }
 
-bool EnvironmentWidget::getEnvironmentChangesCallback(tesseract_msgs::GetEnvironmentChangesRequest& req,
-                                                      tesseract_msgs::GetEnvironmentChangesResponse& res)
+bool EnvironmentWidget::getEnvironmentChangesCallback(const std::shared_ptr<rmw_request_id_t> request_header,
+                                                      tesseract_msgs::srv::GetEnvironmentChanges::Request::SharedPtr req,
+                                                      tesseract_msgs::srv::GetEnvironmentChanges::Response::SharedPtr res)
 {
-  if (req.revision > tesseract_->getEnvironment()->getRevision())
+  if (req->revision > tesseract_->getEnvironment()->getRevision())
   {
-    res.success = false;
+    res->success = false;
     return false;
   }
 
-  res.id = tesseract_->getEnvironment()->getName();
-  res.revision = tesseract_->getEnvironment()->getRevision();
+  res->id = tesseract_->getEnvironment()->getName();
+  res->revision = tesseract_->getEnvironment()->getRevision();
   const tesseract_environment::Commands& commands = tesseract_->getEnvironment()->getCommandHistory();
-  for (int i = (req.revision - 1); i < commands.size(); ++i)
+  for (int i = (req->revision - 1); i < commands.size(); ++i)
   {
-    tesseract_msgs::EnvironmentCommand command_msg;
+    tesseract_msgs::msg::EnvironmentCommand command_msg;
     if (!tesseract_rosutils::toMsg(command_msg, *(commands[i])))
     {
-      res.success = false;
+      res->success = false;
       return false;
     }
 
-    res.commands.push_back(command_msg);
+    res->commands.push_back(command_msg);
   }
 
-  res.success = true;
-  return res.success;
+  res->success = true;
+  return res->success;
 }
 
 void EnvironmentWidget::changedTesseractStateTopic()
 {
-  tesseract_state_subscriber_.shutdown();
+  if(tesseract_state_topic_property_ && tesseract_state_topic_property_->getStdString() != "")
+  {
+  tesseract_state_subscriber_.reset();
 
   // reset model to default state, we don't want to show previous messages
   //  current_state_ = nullptr;
   update_required_ = true;
 
-  tesseract_state_subscriber_ = nh_.subscribe(
-      tesseract_state_topic_property_->getStdString(), 10, &EnvironmentWidget::newTesseractStateCallback, this);
+
+  tesseract_state_subscriber_ = node_->create_subscription<tesseract_msgs::msg::TesseractState>(
+      tesseract_state_topic_property_->getStdString(), 10, std::bind(&EnvironmentWidget::newTesseractStateCallback, this, std::placeholders::_1));
+  }
+  else
+    CONSOLE_BRIDGE_logWarn("Tesseract state topic is invalid");
 }
 
-void EnvironmentWidget::newTesseractStateCallback(const tesseract_msgs::TesseractStateConstPtr& state_msg)
+void EnvironmentWidget::newTesseractStateCallback(const tesseract_msgs::msg::TesseractState::ConstSharedPtr state_msg)
 {
   if (!tesseract_->getEnvironment())
     return;
@@ -524,7 +547,7 @@ void EnvironmentWidget::newTesseractStateCallback(const tesseract_msgs::Tesserac
 
   if (state_msg->revision > current_version)
   {
-    std::vector<tesseract_msgs::EnvironmentCommand> commands;
+    std::vector<tesseract_msgs::msg::EnvironmentCommand> commands;
     for (int i = (current_version == 0 ? 0 : current_version - 1); i < state_msg->revision; ++i)
       commands.push_back(state_msg->commands[i]);
 
@@ -585,8 +608,8 @@ void EnvironmentWidget::loadEnvironment()
   load_tesseract_ = false;
   // Initial setup
   std::string urdf_xml_string, srdf_xml_string;
-  nh_.getParam(urdf_description_property_->getString().toStdString(), urdf_xml_string);
-  nh_.getParam(urdf_description_property_->getString().toStdString() + "_semantic", srdf_xml_string);
+  node_->get_parameter(urdf_description_property_->getString().toStdString(), urdf_xml_string);
+  node_->get_parameter(urdf_description_property_->getString().toStdString() + "_semantic", srdf_xml_string);
 
   // Load URDF model
   if (urdf_xml_string.empty())
@@ -597,7 +620,7 @@ void EnvironmentWidget::loadEnvironment()
   }
   else
   {
-    tesseract_scene_graph::ResourceLocatorFn locator = tesseract_rosutils::locateResource;
+    auto locator = std::make_shared<tesseract_rosutils::ROSResourceLocator>();
     if (tesseract_->init(urdf_xml_string, srdf_xml_string, locator))
     {
       visualization_->clear();

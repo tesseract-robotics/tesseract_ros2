@@ -34,14 +34,14 @@
 
 #include <tesseract_common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
-#include <rviz/display_context.h>
-#include <rviz/properties/bool_property.h>
-#include <rviz/properties/enum_property.h>
-#include <rviz/properties/property.h>
+#include <rviz_common//display_context.hpp>
+#include <rviz_common/properties/bool_property.hpp>
+#include <rviz_common/properties/enum_property.hpp>
+#include <rviz_common/properties/property.hpp>
 
-#include <rviz/ogre_helpers/axes.h>
-#include <rviz/ogre_helpers/object.h>
-#include <rviz/ogre_helpers/shape.h>
+#include <rviz_rendering/objects/axes.hpp>
+#include <rviz_rendering/objects/object.hpp>
+#include <rviz_rendering/objects/shape.hpp>
 
 #include <OgreEntity.h>
 #include <OgreMaterial.h>
@@ -50,8 +50,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <OgreSceneManager.h>
 #include <OgreSceneNode.h>
 
-#include <ros/assert.h>
-#include <ros/console.h>
+#include <console_bridge/console.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_rviz/conversions.h>
@@ -59,9 +58,9 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 namespace tesseract_rviz
 {
 VisualizationWidget::VisualizationWidget(Ogre::SceneNode* root_node,
-                                         rviz::DisplayContext* context,
+                                         rviz_common::DisplayContext* context,
                                          const std::string& name,
-                                         rviz::Property* parent_property)
+                                         rviz_common::properties::Property* parent_property)
   : scene_manager_(context->getSceneManager())
   , visible_(true)
   , visual_visible_(true)
@@ -86,28 +85,28 @@ VisualizationWidget::VisualizationWidget(Ogre::SceneNode* root_node,
   setCollisionVisible(collision_visible_);
   setAlpha(1.0f);
 
-  link_tree_ = new rviz::Property("Links", QVariant(), "", parent_property);
+  link_tree_ = new rviz_common::properties::Property("Links", QVariant(), "", parent_property);
   link_tree_->hide();  // hide until loaded
 
-  link_tree_style_ = new rviz::EnumProperty(
+  link_tree_style_ = new rviz_common::properties::EnumProperty(
       "Link Tree Style", "", "How the list of links is displayed", link_tree_, SLOT(changedLinkTreeStyle()), this);
   initLinkTreeStyle();
-  expand_tree_ = new rviz::BoolProperty(
+  expand_tree_ = new rviz_common::properties::BoolProperty(
       "Expand Tree", false, "Expand or collapse link tree", link_tree_, SLOT(changedExpandTree()), this);
-  expand_link_details_ = new rviz::BoolProperty("Expand Link Details",
+  expand_link_details_ = new rviz_common::properties::BoolProperty("Expand Link Details",
                                                 false,
                                                 "Expand link details (sub properties) to see all info for all links.",
                                                 link_tree_,
                                                 SLOT(changedExpandLinkDetails()),
                                                 this);
-  expand_joint_details_ = new rviz::BoolProperty("Expand Joint Details",
+  expand_joint_details_ = new rviz_common::properties::BoolProperty("Expand Joint Details",
                                                  false,
                                                  "Expand joint details (sub properties) "
                                                  "to see all info for all joints.",
                                                  link_tree_,
                                                  SLOT(changedExpandJointDetails()),
                                                  this);
-  enable_all_links_ = new rviz::BoolProperty(
+  enable_all_links_ = new rviz_common::properties::BoolProperty(
       "All Links Enabled", true, "Turn all links on or off.", link_tree_, SLOT(changedEnableAllLinks()), this);
 }
 
@@ -311,7 +310,7 @@ bool VisualizationWidget::addLink(const tesseract_scene_graph::Link& link)
 {
   if (links_.find(link.getName()) != links_.end())
   {
-    ROS_WARN("Tried to add link (%s) with same name as an existing link.", link.getName().c_str());
+    CONSOLE_BRIDGE_logWarn("Tried to add link (%s) with same name as an existing link.", link.getName().c_str());
     return false;
   }
 
@@ -337,7 +336,7 @@ bool VisualizationWidget::removeLink(const std::string& name)
   auto it = links_.find(name);
   if (it == links_.end())
   {
-    ROS_WARN("Tried to remove link (%s) that does not exist", name.c_str());
+    CONSOLE_BRIDGE_logWarn("Tried to remove link (%s) that does not exist", name.c_str());
     return false;
   }
 
@@ -355,7 +354,7 @@ bool VisualizationWidget::addJoint(const tesseract_scene_graph::Joint& joint)
 {
   if (joints_.find(joint.getName()) != joints_.end())
   {
-    ROS_WARN("Tried to add joint (%s) with same name as an existing joint.", joint.getName().c_str());
+    CONSOLE_BRIDGE_logWarn("Tried to add joint (%s) with same name as an existing joint.", joint.getName().c_str());
     return false;
   }
 
@@ -375,7 +374,7 @@ bool VisualizationWidget::removeJoint(const std::string& name)
   auto it = joints_.find(name);
   if (it == joints_.end())
   {
-    ROS_WARN("Tried to remove Joint (%s) that does not exist", name.c_str());
+    CONSOLE_BRIDGE_logWarn("Tried to remove Joint (%s) that does not exist", name.c_str());
     return false;
   }
 
@@ -394,7 +393,7 @@ bool VisualizationWidget::moveJoint(const std::string& joint_name, const std::st
   auto it = joints_.find(joint_name);
   if (it == joints_.end())
   {
-    ROS_WARN("Tried to move Joint (%s) that does not exist", joint_name.c_str());
+    CONSOLE_BRIDGE_logWarn("Tried to move Joint (%s) that does not exist", joint_name.c_str());
     return false;
   }
 
@@ -412,7 +411,7 @@ bool VisualizationWidget::changeJointOrigin(const std::string& name, const Eigen
 
   if (found == joints_.end())
   {
-    ROS_WARN("Tried to change origin of Joint (%s) that does not exist", name.c_str());
+    CONSOLE_BRIDGE_logWarn("Tried to change origin of Joint (%s) that does not exist", name.c_str());
     return false;
   }
 
@@ -432,14 +431,14 @@ void VisualizationWidget::addAllowedCollision(const std::string& link_name1,
   auto it1 = links_.find(link_name1);
   if (it1 == links_.end())
   {
-    ROS_WARN("Tried to add allowed collision for Link (%s) that does not exist", link_name1.c_str());
+    CONSOLE_BRIDGE_logWarn("Tried to add allowed collision for Link (%s) that does not exist", link_name1.c_str());
     return;
   }
 
   auto it2 = links_.find(link_name2);
   if (it2 == links_.end())
   {
-    ROS_WARN("Tried to add allowed collision for Link (%s) that does not exist", link_name2.c_str());
+    CONSOLE_BRIDGE_logWarn("Tried to add allowed collision for Link (%s) that does not exist", link_name2.c_str());
     return;
   }
 
@@ -457,14 +456,14 @@ void VisualizationWidget::removeAllowedCollision(const std::string& link_name1, 
   auto it1 = links_.find(link_name1);
   if (it1 == links_.end())
   {
-    ROS_WARN("Tried to remove allowed collision for Link (%s) that does not exist", link_name1.c_str());
+    CONSOLE_BRIDGE_logWarn("Tried to remove allowed collision for Link (%s) that does not exist", link_name1.c_str());
     return;
   }
 
   auto it2 = links_.find(link_name2);
   if (it2 == links_.end())
   {
-    ROS_WARN("Tried to remove allowed collision for Link (%s) that does not exist", link_name2.c_str());
+    CONSOLE_BRIDGE_logWarn("Tried to remove allowed collision for Link (%s) that does not exist", link_name2.c_str());
     return;
   }
 
@@ -482,7 +481,7 @@ void VisualizationWidget::removeAllowedCollision(const std::string& link_name)
   auto it = links_.find(link_name);
   if (it == links_.end())
   {
-    ROS_WARN("Tried to remove all allowed collision for Link (%s) that does not exist", link_name.c_str());
+    CONSOLE_BRIDGE_logWarn("Tried to remove all allowed collision for Link (%s) that does not exist", link_name.c_str());
     return;
   }
 
@@ -500,7 +499,7 @@ void VisualizationWidget::setLinkCollisionEnabled(const std::string& name, bool 
   auto it = links_.find(name);
   if (it == links_.end())
   {
-    ROS_WARN("Tried to change link (%s) collision enabled, which does not exist", name.c_str());
+    CONSOLE_BRIDGE_logWarn("Tried to change link (%s) collision enabled, which does not exist", name.c_str());
     return;
   }
 
@@ -826,7 +825,7 @@ LinkWidget* VisualizationWidget::getLink(const std::string& name)
   M_NameToLink::iterator it = links_.find(name);
   if (it == links_.end())
   {
-    ROS_WARN("Link [%s] does not exist", name.c_str());
+    CONSOLE_BRIDGE_logWarn("Link [%s] does not exist", name.c_str());
     return nullptr;
   }
 
@@ -838,7 +837,7 @@ JointWidget* VisualizationWidget::getJoint(const std::string& name)
   M_NameToJoint::iterator it = joints_.find(name);
   if (it == joints_.end())
   {
-    ROS_WARN("Joint [%s] does not exist", name.c_str());
+    CONSOLE_BRIDGE_logWarn("Joint [%s] does not exist", name.c_str());
     return nullptr;
   }
 

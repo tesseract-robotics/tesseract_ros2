@@ -42,9 +42,9 @@
 #include <tesseract_rviz/interactive_marker/interactive_marker_control.h>
 #endif
 
-#include "rviz/selection/forwards.h"
-#include "rviz/ogre_helpers/axes.h"
-#include "rviz/properties/status_property.h"
+#include "rviz_common/interaction/forwards.hpp"
+#include "rviz_rendering/objects/axes.hpp"
+#include "rviz_common/properties/status_property.hpp"
 
 namespace Ogre
 {
@@ -64,19 +64,19 @@ class InteractiveMarker : public QObject
 {
   Q_OBJECT
 public:
-  using Ptr = boost::shared_ptr<InteractiveMarker>;
-  using ConstPtr = boost::shared_ptr<const InteractiveMarker>;
+  using SharedPtr = std::shared_ptr<InteractiveMarker>;
+  using ConstSharedPtr = std::shared_ptr<const InteractiveMarker>;
 
   InteractiveMarker(const std::string& name,
                     const std::string& description,
                     const std::string& reference_frame,
                     Ogre::SceneNode* scene_node,
-                    rviz::DisplayContext* context,
+                    rviz_common::DisplayContext* context,
                     const bool reference_frame_locked,
                     const float scale = 1);
   virtual ~InteractiveMarker();
 
-  InteractiveMarkerControl::Ptr createInteractiveControl(const std::string& name,
+  InteractiveMarkerControl::SharedPtr createInteractiveControl(const std::string& name,
                                                          const std::string& description,
                                                          const InteractiveMode interactive_mode,
                                                          const OrientationMode orientation_mode,
@@ -123,7 +123,7 @@ public:
   void setShowVisualAids(bool show);
 
   // @return true if the mouse event was intercepted, false if it was ignored
-  bool handleMouseEvent(rviz::ViewportMouseEvent& event, const std::string& control_name);
+  bool handleMouseEvent(rviz_common::ViewportMouseEvent& event, const std::string& control_name);
 
   /**
    * Supports selection and menu events from a 3D cursor.
@@ -135,7 +135,7 @@ public:
    * @param  control_name The name of the child InteractiveMarkerControl calling this function.
    * @return              true if the cursor event was intercepted, false if it was ignored
    */
-  bool handle3DCursorEvent(rviz::ViewportMouseEvent& event,
+  bool handle3DCursorEvent(rviz_common::ViewportMouseEvent& event,
                            const Ogre::Vector3& cursor_pos,
                            const Ogre::Quaternion& cursor_rot,
                            const std::string& control_name);
@@ -150,7 +150,7 @@ public:
    * @param  valid_point   True if three_d_point is valid (e.g. if the mouse ray was successfully intersected with
    * marker geometry).
    */
-  void showMenu(rviz::ViewportMouseEvent& event,
+  void showMenu(rviz_common::ViewportMouseEvent& event,
                 const std::string& control_name,
                 const Ogre::Vector3& three_d_point,
                 bool valid_point);
@@ -162,7 +162,7 @@ public:
   bool hasMenu() { return has_menu_; }
 
   /** @return A shared_ptr to the QMenu owned by this InteractiveMarker. */
-  boost::shared_ptr<QMenu> getMenu() { return menu_; }
+  std::shared_ptr<QMenu> getMenu() { return menu_; }
 
 Q_SIGNALS:
 
@@ -170,7 +170,7 @@ Q_SIGNALS:
                     Eigen::Isometry3d transform,
                     Eigen::Vector3d mouse_point,
                     bool mouse_point_valid);
-  void statusUpdate(rviz::StatusProperty::Level level, const std::string& name, const std::string& text);
+  void statusUpdate(rviz_common::properties::StatusProperty::Level level, const std::string& name, const std::string& text);
 
 protected Q_SLOTS:
   void handleMenuSelect(int menu_item_id);
@@ -200,7 +200,7 @@ protected:
   void updateVisualAidsVisibility();
 
   bool visible_;
-  rviz::DisplayContext* context_;
+  rviz_common::DisplayContext* context_;
 
   // pose of parent coordinate frame
   std::string reference_frame_;
@@ -217,7 +217,7 @@ protected:
   bool pose_changed_;
   double time_since_last_feedback_;
 
-  std::map<std::string, InteractiveMarkerControl::Ptr> controls_;
+  std::map<std::string, InteractiveMarkerControl::SharedPtr> controls_;
 
   std::string name_;
   std::string description_;
@@ -231,7 +231,7 @@ protected:
 
   float scale_;
 
-  boost::shared_ptr<QMenu> menu_;
+  std::shared_ptr<QMenu> menu_;
   bool has_menu_;
 
   // Helper to more simply represent the menu tree.
@@ -252,16 +252,16 @@ protected:
 
   // visual aids
 
-  rviz::Axes* axes_;
+  rviz_rendering::Axes* axes_;
 
-  InteractiveMarkerControl::Ptr description_control_;
+  InteractiveMarkerControl::SharedPtr description_control_;
 
   std::string topic_ns_;
   std::string client_id_;
 
   boost::recursive_mutex mutex_;
 
-  boost::shared_ptr<boost::thread> sys_thread_;
+  std::shared_ptr<boost::thread> sys_thread_;
 
   bool got_3d_point_for_menu_;
   Ogre::Vector3 three_d_point_for_menu_;

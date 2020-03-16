@@ -35,12 +35,11 @@
 /* Author: Ioan Sucan */
 #include <tesseract_common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
-#include <ros/package.h>
 
-#include <eigen_conversions/eigen_msg.h>
-#include <rviz/display_context.h>
-#include <rviz/frame_manager.h>
-#include <rviz/visualization_manager.h>
+//#include <eigen_conversions/eigen_msg.h>
+#include <rviz_common/display_context.hpp>
+#include <rviz_common/frame_manager_iface.hpp>
+//#include <rviz_common/visualization_manager.hpp>
 
 #include <OgreSceneManager.h>
 #include <OgreSceneNode.h>
@@ -50,7 +49,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 namespace tesseract_rviz
 {
-TesseractStateDisplay::TesseractStateDisplay() : Display()
+TesseractStateDisplay::TesseractStateDisplay() : Display(), node_(new rclcpp::Node("tesseract_state_display"))
 {
   tesseract_ = std::make_shared<tesseract::Tesseract>();
   environment_monitor_ = std::make_shared<EnvironmentWidget>(this, this);
@@ -64,8 +63,8 @@ void TesseractStateDisplay::onInitialize()
   Display::onInitialize();
   visualization_ = std::make_shared<VisualizationWidget>(scene_node_, context_, "Tesseract State", this);
 
-  environment_monitor_->onInitialize(visualization_, tesseract_, context_, nh_, false);
-  state_monitor_->onInitialize(visualization_, tesseract_, context_, nh_);
+  environment_monitor_->onInitialize(visualization_, tesseract_, context_, node_, false);
+  state_monitor_->onInitialize(visualization_, tesseract_, context_, node_);
 
   visualization_->setVisible(false);
 }

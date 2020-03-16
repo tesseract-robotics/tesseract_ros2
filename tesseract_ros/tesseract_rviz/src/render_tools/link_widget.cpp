@@ -44,27 +44,30 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <OgreTextureManager.h>
 #include <OgreNameGenerator.h>
 
-#include <ros/console.h>
+#include <console_bridge/console.h>
 
 #include <resource_retriever/retriever.h>
 #include <octomap/octomap.h>
-#include <octomap_msgs/Octomap.h>
+//#include <octomap_msgs/msg/octomap.hpp>
 
-#include "rviz/load_resource.h"
-#include "rviz/mesh_loader.h"
-#include "rviz/ogre_helpers/axes.h"
-#include "rviz/ogre_helpers/mesh_shape.h"
-#include "rviz/ogre_helpers/object.h"
-#include "rviz/ogre_helpers/shape.h"
-#include "rviz/properties/bool_property.h"
-#include "rviz/properties/float_property.h"
-#include "rviz/properties/property.h"
-#include "rviz/properties/quaternion_property.h"
-#include "rviz/properties/vector_property.h"
-#include "rviz/properties/string_property.h"
-#include "rviz/selection/selection_manager.h"
-#include "rviz/visualization_manager.h"
-#include "rviz/ogre_helpers/point_cloud.h"
+#include "rviz_common/load_resource.hpp"
+#include "rviz_rendering/mesh_loader.hpp"
+#include "rviz_rendering/objects/axes.hpp"
+//#include "rviz_rendering/objects/mesh_shape.hpp"  // TODO
+#include "rviz_rendering/objects/object.hpp"
+#include "rviz_rendering/objects/shape.hpp"
+#include "rviz_rendering/objects/point_cloud.hpp"
+#include "rviz_common/properties/bool_property.hpp"
+#include "rviz_common/properties/float_property.hpp"
+#include "rviz_common/properties/property.hpp"
+#include "rviz_common/properties/quaternion_property.hpp"
+#include "rviz_common/properties/vector_property.hpp"
+#include "rviz_common/properties/string_property.hpp"
+#include "rviz_common/interaction/selection_manager.hpp"
+#include "rviz_common/load_resource.hpp"
+#include "rviz_common/display_context.hpp"
+//#include "rviz_common/visualization_manager.hpp"
+
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include "tesseract_rviz/render_tools/visualization_widget.h"
@@ -82,13 +85,13 @@ static Ogre::NameGenerator material_name_generator("Tesseract_Material");
 static Ogre::NameGenerator trail_name_generator("Tesseract_Trail");
 static Ogre::NameGenerator point_cloud_name_generator("Tesseract_PointCloud");
 
-class EnvLinkSelectionHandler : public rviz::SelectionHandler
+class EnvLinkSelectionHandler : public rviz_common::interaction::SelectionHandler
 {
 public:
-  EnvLinkSelectionHandler(LinkWidget* link, rviz::DisplayContext* context);
+  EnvLinkSelectionHandler(LinkWidget* link, rviz_common::DisplayContext* context);
   ~EnvLinkSelectionHandler() override;
 
-  void createProperties(const rviz::Picked& /*obj*/, rviz::Property* parent_property) override;
+  void createProperties(const rviz_common::interaction::Picked& /*obj*/, rviz_common::properties::Property* parent_property) override;
   void updateProperties() override;
 
   void preRenderPass(uint32_t /*pass*/) override;
@@ -96,26 +99,26 @@ public:
 
 private:
   LinkWidget* link_;
-  rviz::VectorProperty* position_property_;
-  rviz::QuaternionProperty* orientation_property_;
+  rviz_common::properties::VectorProperty* position_property_;
+  rviz_common::properties::QuaternionProperty* orientation_property_;
 };
 
-EnvLinkSelectionHandler::EnvLinkSelectionHandler(LinkWidget* link, rviz::DisplayContext* context)
-  : rviz::SelectionHandler(context), link_(link)
+EnvLinkSelectionHandler::EnvLinkSelectionHandler(LinkWidget* link, rviz_common::DisplayContext* context)
+  : rviz_common::interaction::SelectionHandler(context), link_(link)
 {
 }
 
 EnvLinkSelectionHandler::~EnvLinkSelectionHandler() {}
-void EnvLinkSelectionHandler::createProperties(const rviz::Picked& /*obj*/, rviz::Property* parent_property)
+void EnvLinkSelectionHandler::createProperties(const rviz_common::interaction::Picked& /*obj*/, rviz_common::properties::Property* parent_property)
 {
-  rviz::Property* group =
-      new rviz::Property("Link " + QString::fromStdString(link_->getName()), QVariant(), "", parent_property);
+  rviz_common::properties::Property* group =
+      new rviz_common::properties::Property("Link " + QString::fromStdString(link_->getName()), QVariant(), "", parent_property);
   properties_.push_back(group);
 
-  position_property_ = new rviz::VectorProperty("Position", Ogre::Vector3::ZERO, "", group);
+  position_property_ = new rviz_common::properties::VectorProperty("Position", Ogre::Vector3::ZERO, "", group);
   position_property_->setReadOnly(true);
 
-  orientation_property_ = new rviz::QuaternionProperty("Orientation", Ogre::Quaternion::IDENTITY, "", group);
+  orientation_property_ = new rviz_common::properties::QuaternionProperty("Orientation", Ogre::Quaternion::IDENTITY, "", group);
   orientation_property_->setReadOnly(true);
 
   group->expand();
@@ -192,43 +195,43 @@ LinkWidget::LinkWidget(VisualizationWidget* env, const tesseract_scene_graph::Li
   , is_selectable_(true)
   , using_color_(false)
 {
-  link_property_ = new rviz::Property(link.getName().c_str(), true, "", nullptr, SLOT(updateVisibility()), this);
-  link_property_->setIcon(rviz::loadPixmap("package://rviz/icons/classes/RobotLink.png"));
+  link_property_ = new rviz_common::properties::Property(link.getName().c_str(), true, "", nullptr, SLOT(updateVisibility()), this);
+  link_property_->setIcon(rviz_common::loadPixmap("package://rviz/icons/classes/RobotLink.png"));
 
-  details_ = new rviz::Property("Details", QVariant(), "", nullptr);
+  details_ = new rviz_common::properties::Property("Details", QVariant(), "", nullptr);
 
-  alpha_property_ = new rviz::FloatProperty(
+  alpha_property_ = new rviz_common::properties::FloatProperty(
       "Alpha", 1, "Amount of transparency to apply to this link.", link_property_, SLOT(updateAlpha()), this);
 
-  trail_property_ = new rviz::Property("Show Trail",
+  trail_property_ = new rviz_common::properties::Property("Show Trail",
                                        false,
                                        "Enable/disable a 2 meter \"ribbon\" which follows this link.",
                                        link_property_,
                                        SLOT(updateTrail()),
                                        this);
 
-  axes_property_ = new rviz::Property(
+  axes_property_ = new rviz_common::properties::Property(
       "Show Axes", false, "Enable/disable showing the axes of this link.", link_property_, SLOT(updateAxes()), this);
 
-  position_property_ = new rviz::VectorProperty("Position",
+  position_property_ = new rviz_common::properties::VectorProperty("Position",
                                                 Ogre::Vector3::ZERO,
                                                 "Position of this link, in the current Fixed Frame.  (Not editable)",
                                                 link_property_);
   position_property_->setReadOnly(true);
 
-  orientation_property_ = new rviz::QuaternionProperty("Orientation",
+  orientation_property_ = new rviz_common::properties::QuaternionProperty("Orientation",
                                                        Ogre::Quaternion::IDENTITY,
                                                        "Orientation of this link, in the current Fixed Frame.  (Not "
                                                        "editable)",
                                                        link_property_);
   orientation_property_->setReadOnly(true);
 
-  collision_enabled_property_ = new rviz::StringProperty(
+  collision_enabled_property_ = new rviz_common::properties::StringProperty(
       "Collision", "enabled", "Indicate if link is considered during collision checking.", link_property_);
   collision_enabled_property_->setReadOnly(true);
 
   allowed_collision_matrix_property_ =
-      new rviz::Property("ACM", "", "Links allowed to be in collision with", collision_enabled_property_);
+      new rviz_common::properties::Property("ACM", "", "Links allowed to be in collision with", collision_enabled_property_);
 
   allowed_collision_matrix_property_->setReadOnly(true);
 
@@ -270,7 +273,7 @@ LinkWidget::LinkWidget(VisualizationWidget* env, const tesseract_scene_graph::Li
 
   if (!hasGeometry())
   {
-    link_property_->setIcon(rviz::loadPixmap("package://rviz/icons/classes/RobotLinkNoGeom.png"));
+    link_property_->setIcon(rviz_common::loadPixmap("package://rviz/icons/classes/RobotLinkNoGeom.png"));
     alpha_property_->hide();
     collision_enabled_property_->hide();
     allowed_collision_matrix_property_->hide();
@@ -669,7 +672,7 @@ Ogre::MaterialPtr LinkWidget::getMaterialForLink(const tesseract_scene_graph::Li
   std::vector<tesseract_scene_graph::Visual::Ptr>::const_iterator vi;
   for (vi = link.visual.begin(); vi != link.visual.end(); vi++)
   {
-    if ((*vi) && material_name != "" && (*vi)->material_name == material_name)
+    if ((*vi) && material_name != "" && (*vi)->material->getName() == material_name)
     {
       visual = *vi;
       break;
@@ -702,7 +705,7 @@ Ogre::MaterialPtr LinkWidget::getMaterialForLink(const tesseract_scene_graph::Li
       }
       catch (resource_retriever::Exception& e)
       {
-        ROS_ERROR("%s", e.what());
+        CONSOLE_BRIDGE_logError("%s", e.what());
       }
 
       if (res.size != 0)
@@ -724,7 +727,7 @@ Ogre::MaterialPtr LinkWidget::getMaterialForLink(const tesseract_scene_graph::Li
         }
         catch (Ogre::Exception& e)
         {
-          ROS_ERROR("Could not load texture [%s]: %s", filename.c_str(), e.what());
+          CONSOLE_BRIDGE_logError("Could not load texture [%s]: %s", filename.c_str(), e.what());
         }
       }
     }
@@ -738,16 +741,16 @@ Ogre::MaterialPtr LinkWidget::getMaterialForLink(const tesseract_scene_graph::Li
   return mat;
 }
 
-rviz::PointCloud* createPointCloud(std::vector<rviz::PointCloud::Point>&& points, float size)
+rviz_rendering::PointCloud* createPointCloud(std::vector<rviz_rendering::PointCloud::Point>&& points, float size)
 {
-  rviz::PointCloud* cloud = new rviz::PointCloud();
+  rviz_rendering::PointCloud* cloud = new rviz_rendering::PointCloud();
 
   cloud->setName(point_cloud_name_generator.generate());
-  cloud->setRenderMode(rviz::PointCloud::RM_BOXES);
+  cloud->setRenderMode(rviz_rendering::PointCloud::RM_BOXES);
   cloud->clear();
   cloud->setDimensions(size, size, size);
 
-  cloud->addPoints(&points.front(), static_cast<unsigned>(points.size()));
+//  cloud->addPoints(&points.front(), &points.back());  // TODO
   points.clear();
   return cloud;
 }
@@ -868,7 +871,7 @@ bool LinkWidget::createEntityForGeometryElement(const tesseract_scene_graph::Lin
     case tesseract_geometry::GeometryType::SPHERE:
     {
       const tesseract_geometry::Sphere& sphere = static_cast<const tesseract_geometry::Sphere&>(geom);
-      entity = rviz::Shape::createEntity(entity_name, rviz::Shape::Sphere, scene_manager_);
+      entity = rviz_rendering::Shape::createEntity(entity_name, rviz_rendering::Shape::Sphere, scene_manager_);
       float diameter = static_cast<float>(sphere.getRadius()) * 2.0f;
       scale = Ogre::Vector3(diameter, diameter, diameter);
       break;
@@ -876,7 +879,7 @@ bool LinkWidget::createEntityForGeometryElement(const tesseract_scene_graph::Lin
     case tesseract_geometry::GeometryType::BOX:
     {
       const tesseract_geometry::Box& box = static_cast<const tesseract_geometry::Box&>(geom);
-      entity = rviz::Shape::createEntity(entity_name, rviz::Shape::Cube, scene_manager_);
+      entity = rviz_rendering::Shape::createEntity(entity_name, rviz_rendering::Shape::Cube, scene_manager_);
       scale =
           Ogre::Vector3(static_cast<float>(box.getX()), static_cast<float>(box.getY()), static_cast<float>(box.getZ()));
       break;
@@ -889,7 +892,7 @@ bool LinkWidget::createEntityForGeometryElement(const tesseract_scene_graph::Lin
       rotX.FromAngleAxis(Ogre::Degree(90), Ogre::Vector3::UNIT_X);
       offset_orientation = offset_orientation * rotX;
 
-      entity = rviz::Shape::createEntity(entity_name, rviz::Shape::Cylinder, scene_manager_);
+      entity = rviz_rendering::Shape::createEntity(entity_name, rviz_rendering::Shape::Cylinder, scene_manager_);
       scale = Ogre::Vector3(static_cast<float>(cylinder.getRadius() * 2),
                             static_cast<float>(cylinder.getLength()),
                             static_cast<float>(cylinder.getRadius() * 2));
@@ -899,9 +902,9 @@ bool LinkWidget::createEntityForGeometryElement(const tesseract_scene_graph::Lin
     {
       const tesseract_geometry::Mesh& mesh = static_cast<const tesseract_geometry::Mesh&>(geom);
 
-      if (!mesh.getFilePath().empty())
+      if (!mesh.getResource()->getFilePath().empty())
       {
-        std::string model_name = "file://" + mesh.getFilePath();
+        std::string model_name = "file://" + mesh.getResource()->getFilePath();
 
         const Eigen::Vector3d& mesh_scale = mesh.getScale();
         scale = Ogre::Vector3(
@@ -909,12 +912,12 @@ bool LinkWidget::createEntityForGeometryElement(const tesseract_scene_graph::Lin
 
         try
         {
-          rviz::loadMeshFromResource(model_name);
+          rviz_rendering::loadMeshFromResource(model_name);
           entity = scene_manager_->createEntity(entity_name, model_name);
         }
         catch (Ogre::InvalidParametersException& e)
         {
-          ROS_ERROR("Could not convert mesh resource '%s' for link '%s'. It might "
+          CONSOLE_BRIDGE_logError("Could not convert mesh resource '%s' for link '%s'. It might "
                     "be an empty mesh: %s",
                     model_name.c_str(),
                     link.getName().c_str(),
@@ -922,7 +925,7 @@ bool LinkWidget::createEntityForGeometryElement(const tesseract_scene_graph::Lin
         }
         catch (Ogre::Exception& e)
         {
-          ROS_ERROR(
+          CONSOLE_BRIDGE_logError(
               "Could not load model '%s' for link '%s': %s", model_name.c_str(), link.getName().c_str(), e.what());
         }
       }
@@ -937,9 +940,9 @@ bool LinkWidget::createEntityForGeometryElement(const tesseract_scene_graph::Lin
     {
       const tesseract_geometry::ConvexMesh& mesh = static_cast<const tesseract_geometry::ConvexMesh&>(geom);
 
-      if (!mesh.getFilePath().empty())
+      if (!mesh.getResource()->getFilePath().empty())
       {
-        std::string model_name = "file://" + mesh.getFilePath();
+        std::string model_name = "file://" + mesh.getResource()->getFilePath();
 
         const Eigen::Vector3d& mesh_scale = mesh.getScale();
         scale = Ogre::Vector3(
@@ -947,12 +950,12 @@ bool LinkWidget::createEntityForGeometryElement(const tesseract_scene_graph::Lin
 
         try
         {
-          rviz::loadMeshFromResource(model_name);
+          rviz_rendering::loadMeshFromResource(model_name);
           entity = scene_manager_->createEntity(entity_name, model_name);
         }
         catch (Ogre::InvalidParametersException& e)
         {
-          ROS_ERROR("Could not convert mesh resource '%s' for link '%s'. It might "
+          CONSOLE_BRIDGE_logError("Could not convert mesh resource '%s' for link '%s'. It might "
                     "be an empty mesh: %s",
                     model_name.c_str(),
                     link.getName().c_str(),
@@ -960,7 +963,7 @@ bool LinkWidget::createEntityForGeometryElement(const tesseract_scene_graph::Lin
         }
         catch (Ogre::Exception& e)
         {
-          ROS_ERROR(
+          CONSOLE_BRIDGE_logError(
               "Could not load model '%s' for link '%s': %s", model_name.c_str(), link.getName().c_str(), e.what());
         }
       }
@@ -999,7 +1002,7 @@ bool LinkWidget::createEntityForGeometryElement(const tesseract_scene_graph::Lin
         octree_objects = &collision_current_octrees_;
       }
 
-      std::vector<std::vector<rviz::PointCloud::Point>> pointBuf;
+      std::vector<std::vector<rviz_rendering::PointCloud::Point>> pointBuf;
       pointBuf.resize(octree_depth);
 
       // get dimensions of octree
@@ -1063,7 +1066,7 @@ bool LinkWidget::createEntityForGeometryElement(const tesseract_scene_graph::Lin
 
           if (display_voxel)
           {
-            rviz::PointCloud::Point newPoint;
+            rviz_rendering::PointCloud::Point newPoint;
 
             newPoint.position.x = static_cast<float>(it.getX());
             newPoint.position.y = static_cast<float>(it.getY());
@@ -1099,7 +1102,7 @@ bool LinkWidget::createEntityForGeometryElement(const tesseract_scene_graph::Lin
 
         OctreeDataContainer data;
         data.size = static_cast<float>(octree->getNodeSize(static_cast<unsigned>(i + 1)));
-        data.points = std::vector<rviz::PointCloud::Point>(pointBuf[i]);
+        data.points = std::vector<rviz_rendering::PointCloud::Point>(pointBuf[i]);
         data.point_cloud = createPointCloud(std::move(pointBuf[i]), data.size);
 
         offset_node->attachObject(data.point_cloud);
@@ -1113,7 +1116,7 @@ bool LinkWidget::createEntityForGeometryElement(const tesseract_scene_graph::Lin
       return true;
     }
     default:
-      ROS_WARN("Unsupported geometry type for element: %d", geom.getType());
+      CONSOLE_BRIDGE_logWarn("Unsupported geometry type for element: %d", geom.getType());
       break;
   }
 
@@ -1179,7 +1182,7 @@ bool LinkWidget::createEntityForGeometryElement(const tesseract_scene_graph::Lin
 void LinkWidget::clone(Ogre::SceneNode* scene_node,
                        Ogre::SceneNode* cloned_scene_node,
                        std::vector<Ogre::Entity*>& meshes,
-                       std::vector<rviz::PointCloud*>& octrees)
+                       std::vector<rviz_rendering::PointCloud*>& octrees)
 {
   Ogre::SceneNode::ObjectIterator iter = scene_node->getAttachedObjectIterator();
   while (iter.hasMoreElements())
@@ -1202,7 +1205,7 @@ void LinkWidget::clone(Ogre::SceneNode* scene_node,
                           collision_current_octrees_.end(),
                           [movable](const OctreeDataContainer& m) { return m.point_cloud == movable; });
 
-      rviz::PointCloud* cloned_point_cloud = it->clone();
+      rviz_rendering::PointCloud* cloned_point_cloud = it->clone();
       cloned_scene_node->attachObject(cloned_point_cloud);
       octrees.push_back(cloned_point_cloud);
     }
@@ -1239,7 +1242,7 @@ void LinkWidget::clone(Ogre::SceneNode* scene_node,
                             collision_current_octrees_.end(),
                             [movable](const OctreeDataContainer& m) { return m.point_cloud == movable; });
 
-        rviz::PointCloud* cloned_point_cloud = it->clone();
+        rviz_rendering::PointCloud* cloned_point_cloud = it->clone();
         cloned_child_scene_node->attachObject(cloned_point_cloud);
         octrees.push_back(cloned_point_cloud);
       }
@@ -1250,9 +1253,9 @@ void LinkWidget::clone(Ogre::SceneNode* scene_node,
   }
 }
 
-rviz::PointCloud* LinkWidget::OctreeDataContainer::clone()
+rviz_rendering::PointCloud* LinkWidget::OctreeDataContainer::clone()
 {
-  std::vector<rviz::PointCloud::Point> copy_points(points);
+  std::vector<rviz_rendering::PointCloud::Point> copy_points(points);
   return createPointCloud(std::move(copy_points), size);
 }
 
@@ -1260,7 +1263,7 @@ void LinkWidget::setOctomapColor(double z_pos,
                                  double min_z,
                                  double max_z,
                                  double color_factor,
-                                 rviz::PointCloud::Point* point)
+                                 rviz_rendering::PointCloud::Point* point)
 {
   int i;
   float m, n, f;
@@ -1342,7 +1345,7 @@ void LinkWidget::createVisual(const tesseract_scene_graph::Link& link)
     tesseract_scene_graph::Visual::Ptr visual = *vi;
     if (visual && visual->geometry)
     {
-      createEntityForGeometryElement(link, *visual->geometry, visual->origin, visual->material_name, true);
+//      createEntityForGeometryElement(link, *visual->geometry, visual->origin, visual->material_name, true);  // TODO
     }
   }
 
@@ -1401,7 +1404,7 @@ void LinkWidget::updateTrail()
       }
       else
       {
-        ROS_WARN("No visual node for link %s, cannot create a trail", name_.c_str());
+        CONSOLE_BRIDGE_logWarn("No visual node for link %s, cannot create a trail", name_.c_str());
       }
     }
   }
@@ -1421,7 +1424,7 @@ void LinkWidget::updateAxes()
   {
     if (!axes_)
     {
-      axes_ = new rviz::Axes(scene_manager_, env_->getOtherNode(), 0.1f, 0.01f);
+      axes_ = new rviz_rendering::Axes(scene_manager_, env_->getOtherNode(), 0.1f, 0.01f);
       axes_->getSceneNode()->setVisible(getEnabled());
 
       axes_->setPosition(position_property_->getVector());
@@ -1728,9 +1731,9 @@ void LinkWidget::hideSubProperties(bool hide)
 
 Ogre::Vector3 LinkWidget::getPosition() { return position_property_->getVector(); }
 Ogre::Quaternion LinkWidget::getOrientation() { return orientation_property_->getQuaternion(); }
-void LinkWidget::setParentProperty(rviz::Property* new_parent)
+void LinkWidget::setParentProperty(rviz_common::properties::Property* new_parent)
 {
-  rviz::Property* old_parent = link_property_->getParent();
+  rviz_common::properties::Property* old_parent = link_property_->getParent();
   if (old_parent)
     old_parent->takeChild(link_property_);
 
@@ -1748,7 +1751,7 @@ void LinkWidget::setCollisionEnabled(bool enabled)
 
 void LinkWidget::addAllowedCollision(const std::string& link_name, const std::string& reason)
 {
-  acm_[link_name] = new rviz::StringProperty(
+  acm_[link_name] = new rviz_common::properties::StringProperty(
       QString::fromStdString(link_name), QString::fromStdString(reason), "Entry", allowed_collision_matrix_property_);
 }
 void LinkWidget::removeAllowedCollision(const std::string& link_name)
@@ -1771,7 +1774,7 @@ void LinkWidget::clearAllowedCollisions() { allowed_collision_matrix_property_->
 //    details_ property does not have a parent.
 void LinkWidget::useDetailProperty(bool use_detail)
 {
-  rviz::Property* old_parent = details_->getParent();
+  rviz_common::properties::Property* old_parent = details_->getParent();
   if (old_parent)
     old_parent->takeChild(details_);
 
@@ -1779,7 +1782,7 @@ void LinkWidget::useDetailProperty(bool use_detail)
   {
     while (link_property_->numChildren() > 0)
     {
-      rviz::Property* child = link_property_->childAt(0);
+      rviz_common::properties::Property* child = link_property_->childAt(0);
       link_property_->takeChild(child);
       details_->addChild(child);
     }
@@ -1790,7 +1793,7 @@ void LinkWidget::useDetailProperty(bool use_detail)
   {
     while (details_->numChildren() > 0)
     {
-      rviz::Property* child = details_->childAt(0);
+      rviz_common::properties::Property* child = details_->childAt(0);
       details_->takeChild(child);
       link_property_->addChild(child);
     }
@@ -1799,7 +1802,7 @@ void LinkWidget::useDetailProperty(bool use_detail)
 
 void LinkWidget::expandDetails(bool expand)
 {
-  rviz::Property* parent = details_->getParent() ? details_ : link_property_;
+  rviz_common::properties::Property* parent = details_->getParent() ? details_ : link_property_;
   if (expand)
   {
     parent->expand();

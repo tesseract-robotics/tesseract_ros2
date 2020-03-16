@@ -32,7 +32,7 @@
 
 #include <tesseract_common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
-#include <rviz/robot/link_updater.h>
+#include <rviz_default_plugins/robot/link_updater.hpp>
 
 #include <string>
 #include <map>
@@ -41,7 +41,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <OgreVector3.h>
 #include <OgreQuaternion.h>
 #include <OgreAny.h>
-#include "rviz/properties/property_tree_widget.h"
+#include "rviz_common/properties/property_tree_widget.hpp"
 #endif
 
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
@@ -57,20 +57,24 @@ namespace Ogre
 class SceneManager;
 class Entity;
 class SceneNode;
-class Vector3;
+//class Vector3;
 class Quaternion;
 class Any;
 class RibbonTrail;
 }  // namespace Ogre
 
-namespace rviz
+namespace rviz_common
 {
 class Object;
 class Axes;
+class DisplayContext;
+}
+
+namespace rviz_common::properties
+{
 class Property;
 class EnumProperty;
 class BoolProperty;
-class DisplayContext;
 }  // namespace rviz
 
 namespace tf
@@ -99,13 +103,13 @@ class VisualizationWidget : public QObject
 {
   Q_OBJECT
 public:
-  using Ptr = std::shared_ptr<VisualizationWidget>;
-  using ConstPtr = std::shared_ptr<const VisualizationWidget>;
+  using SharedPtr = std::shared_ptr<VisualizationWidget>;
+  using ConstSharedPtr = std::shared_ptr<const VisualizationWidget>;
 
   VisualizationWidget(Ogre::SceneNode* root_node,
-                      rviz::DisplayContext* context,
+                      rviz_common::DisplayContext* context,
                       const std::string& name,
-                      rviz::Property* parent_property);
+                      rviz_common::properties::Property* parent_property);
   virtual ~VisualizationWidget();
 
   /**
@@ -265,7 +269,7 @@ public:
   Ogre::SceneNode* getCollisionNode() { return root_collision_node_; }
   Ogre::SceneNode* getOtherNode() { return root_other_node_; }
   Ogre::SceneManager* getSceneManager() { return scene_manager_; }
-  rviz::DisplayContext* getDisplayContext() { return context_; }
+  rviz_common::DisplayContext* getDisplayContext() { return context_; }
   virtual void setPosition(const Ogre::Vector3& position);
   virtual void setOrientation(const Ogre::Quaternion& orientation);
   virtual void setScale(const Ogre::Vector3& scale);
@@ -311,7 +315,7 @@ public:
   void setLinkTreeStyle(LinkTreeStyle style);
 
   /** can be used to change the name, reparent, or add extra properties to the list of links */
-  rviz::Property* getLinkTreeProperty() { return link_tree_; }
+  rviz_common::properties::Property* getLinkTreeProperty() { return link_tree_; }
   // set joint checkboxes and All Links Enabled checkbox based on current link enables.
   void calculateJointCheckboxes();
 
@@ -335,8 +339,8 @@ protected:
   void useDetailProperty(bool use_detail);
 
   /** used by setLinkTreeStyle() to recursively build link & joint tree. */
-  void addLinkToLinkTree(LinkTreeStyle style, rviz::Property* parent, LinkWidget* link);
-  void addJointToLinkTree(LinkTreeStyle style, rviz::Property* parent, JointWidget* joint);
+  void addLinkToLinkTree(LinkTreeStyle style, rviz_common::properties::Property* parent, LinkWidget* link);
+  void addJointToLinkTree(LinkTreeStyle style, rviz_common::properties::Property* parent, JointWidget* joint);
 
   // set the value of the EnableAllLinks property without affecting child links/joints.
   void setEnableAllLinksCheckbox(QVariant val);
@@ -372,14 +376,14 @@ protected:
   bool end_state_visible_;
   bool trajectory_visible_;
 
-  rviz::DisplayContext* context_;
-  rviz::Property* link_tree_;
-  rviz::EnumProperty* link_tree_style_;
-  rviz::BoolProperty* expand_tree_;
-  rviz::BoolProperty* expand_link_details_;
-  rviz::BoolProperty* expand_joint_details_;
-  rviz::BoolProperty* enable_all_links_;
-  //  rviz::PropertyTreeWidget* property_widget_; TODO: Need to add this capability see view_panel.cpp in rviz as
+  rviz_common::DisplayContext* context_;
+  rviz_common::properties::Property* link_tree_;
+  rviz_common::properties::EnumProperty* link_tree_style_;
+  rviz_common::properties::BoolProperty* expand_tree_;
+  rviz_common::properties::BoolProperty* expand_link_details_;
+  rviz_common::properties::BoolProperty* expand_joint_details_;
+  rviz_common::properties::BoolProperty* enable_all_links_;
+  //  rviz_common::properties::PropertyTreeWidget* property_widget_; TODO: Need to add this capability see view_panel.cpp in rviz as
   //  example
 
   std::map<LinkTreeStyle, std::string> style_name_map_;

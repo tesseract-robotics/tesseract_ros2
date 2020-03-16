@@ -7,7 +7,7 @@ namespace tesseract_rviz
 ButtonProperty::ButtonProperty(const QString& name,
                                const QString& default_value,
                                const QString& description,
-                               rviz::Property* parent,
+                               rviz_common::properties::Property* parent,
                                const char* changed_slot,
                                QObject* receiver)
   : Property(name, default_value, description, parent, changed_slot, receiver), button_(nullptr), captions_("")

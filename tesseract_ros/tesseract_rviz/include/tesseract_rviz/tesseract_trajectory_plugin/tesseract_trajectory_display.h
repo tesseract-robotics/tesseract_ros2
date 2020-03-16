@@ -41,9 +41,9 @@
 
 #include <tesseract_common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
-#include <rviz/display.h>
+#include <rviz_common/display.hpp>
 #ifndef Q_MOC_RUN
-#include <ros/ros.h>
+#include <rclcpp/rclcpp.hpp>
 #include <tesseract/tesseract.h>
 #endif
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
@@ -55,7 +55,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 namespace tesseract_rviz
 {
-class TesseractTrajectoryDisplay : public rviz::Display
+class TesseractTrajectoryDisplay : public rviz_common::Display
 {
   Q_OBJECT
 
@@ -66,7 +66,7 @@ public:
 
   void update(float wall_dt, float ros_dt) override;
   void reset() override;
-  void setName(const QString& name) override;
+//  void setName(const QString& name) override;  // TODO: Figure this out for ROS 2
 
 protected:
   // overrides from Display
@@ -75,13 +75,13 @@ protected:
   void onDisable() override;
 
   // ROS Node Handle
-  ros::NodeHandle nh_;
+  rclcpp::Node::SharedPtr node_;
 
   tesseract::Tesseract::Ptr tesseract_;
-  VisualizationWidget::Ptr visualization_;
-  JointStateMonitorWidget::Ptr state_monitor_;
-  EnvironmentWidget::Ptr environment_monitor_;
-  TrajectoryMonitorWidget::Ptr trajectory_monitor_;
+  VisualizationWidget::SharedPtr visualization_;
+  JointStateMonitorWidget::SharedPtr state_monitor_;
+  EnvironmentWidget::SharedPtr environment_monitor_;
+  TrajectoryMonitorWidget::SharedPtr trajectory_monitor_;
 };
 
 }  // namespace tesseract_rviz

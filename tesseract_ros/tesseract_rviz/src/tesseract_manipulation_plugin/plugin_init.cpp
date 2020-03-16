@@ -30,4 +30,4 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_rviz/tesseract_manipulation_plugin/tesseract_manipulation_display.h>
 
-CLASS_LOADER_REGISTER_CLASS(tesseract_rviz::TesseractManipulationDisplay, rviz::Display)
+CLASS_LOADER_REGISTER_CLASS(tesseract_rviz::TesseractManipulationDisplay, rviz_common::Display)

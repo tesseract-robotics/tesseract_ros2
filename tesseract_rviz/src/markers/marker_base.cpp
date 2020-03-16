@@ -30,10 +30,10 @@
 #include "tesseract_rviz/markers/marker_base.h"
 #include <tesseract_rviz/markers/marker_selection_handler.h>
 
-#include <rviz/display_context.h>
-#include <rviz/selection/selection_manager.h>
-#include <rviz/frame_manager.h>
-#include <rviz/interactive_object.h>
+#include <rviz_common/display_context.hpp>
+#include <rviz_common/interaction/selection_manager.hpp>
+#include <rviz_common/frame_manager_iface.hpp>
+#include <rviz_common/interactive_object.hpp>
 
 #include <OgreSceneNode.h>
 #include <OgreSceneManager.h>
@@ -43,18 +43,18 @@
 
 namespace tesseract_rviz
 {
-MarkerBase::MarkerBase(std::string ns, const int id, rviz::DisplayContext* context, Ogre::SceneNode* parent_node)
-  : ns_(std::move(ns)), id_(id), context_(context), scene_node_(parent_node->createChildSceneNode())
+MarkerBase::MarkerBase(const std::string& ns, const int id, rviz_common::DisplayContext* context, Ogre::SceneNode* parent_node)
+  : ns_(ns), id_(id), context_(context), scene_node_(parent_node->createChildSceneNode())
 {
 }
 
 MarkerBase::~MarkerBase() { context_->getSceneManager()->destroySceneNode(scene_node_); }
 
-void MarkerBase::setInteractiveObject(rviz::InteractiveObjectWPtr object)
+void MarkerBase::setInteractiveObject(rviz_common::InteractiveObjectWPtr control)
 {
   if (handler_)
   {
-    handler_->setInteractiveObject(std::move(object));
+    handler_->setInteractiveObject(control);
   }
 }
 
@@ -72,7 +72,7 @@ void MarkerBase::extractMaterials(Ogre::Entity* entity, std::set<Ogre::MaterialP
   for (uint32_t i = 0; i < num_sub_entities; ++i)
   {
     Ogre::SubEntity* sub = entity->getSubEntity(i);
-    const Ogre::MaterialPtr& material = sub->getMaterial();
+    Ogre::MaterialPtr material = sub->getMaterial();
     materials.insert(material);
   }
 }

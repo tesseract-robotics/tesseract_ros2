@@ -30,11 +30,9 @@
 #include <OgreSceneNode.h>
 #include <OgreSceneManager.h>
 
-#include <ros/assert.h>
-
-#include "rviz/display_context.h"
-#include "rviz/ogre_helpers/movable_text.h"
-#include "rviz/selection/selection_manager.h"
+#include "rviz_common/display_context.hpp"
+#include "rviz_rendering/objects/movable_text.hpp"
+#include "rviz_common/interaction/selection_manager.hpp"
 
 #include <tesseract_rviz/markers/marker_selection_handler.h>
 #include <tesseract_rviz/markers/text_view_facing_marker.h>
@@ -44,13 +42,13 @@ namespace tesseract_rviz
 TextViewFacingMarker::TextViewFacingMarker(const std::string& ns,
                                            const int id,
                                            const std::string& caption,
-                                           rviz::DisplayContext* context,
+                                           rviz_common::DisplayContext* context,
                                            Ogre::SceneNode* parent_node)
 
   : MarkerBase(ns, id, context, parent_node), text_(nullptr)
 {
-  text_ = new rviz::MovableText(caption);
-  text_->setTextAlignment(rviz::MovableText::H_CENTER, rviz::MovableText::V_CENTER);
+  text_ = new rviz_rendering::MovableText(caption);
+  text_->setTextAlignment(rviz_rendering::MovableText::H_CENTER, rviz_rendering::MovableText::V_CENTER);
   text_->setCharacterHeight(0.15f);
   scene_node_->attachObject(text_);
 

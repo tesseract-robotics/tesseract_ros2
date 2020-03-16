@@ -1,5 +1,5 @@
 <library path="libtesseract_rviz_manipulation_plugin">
-  <class name="tesseract_rviz/TesseractManipulation" type="tesseract_rviz::TesseractManipulationDisplay" base_class_type="rviz::Display">
+  <class name="tesseract_rviz/TesseractManipulation" type="tesseract_rviz::TesseractManipulationDisplay" base_class_type="rviz_common::Display">
     <description>
       Add interactive marker for manipulating the robot.
     </description>

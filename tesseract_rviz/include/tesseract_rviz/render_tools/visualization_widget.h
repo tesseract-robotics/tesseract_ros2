@@ -32,7 +32,7 @@
 
 #include <tesseract_common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
-#include <rviz/robot/link_updater.h>
+#include <rviz_default_plugins/robot/link_updater.hpp>
 
 #include <string>
 #include <map>
@@ -41,7 +41,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <OgreVector3.h>
 #include <OgreQuaternion.h>
 #include <OgreAny.h>
-#include "rviz/properties/property_tree_widget.h"
+#include "rviz_common/properties/property_tree_widget.hpp"
 #endif
 
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
@@ -57,20 +57,24 @@ namespace Ogre
 class SceneManager;
 class Entity;
 class SceneNode;
-class Vector3;
+//class Vector3;
 class Quaternion;
 class Any;
 class RibbonTrail;
 }  // namespace Ogre
 
-namespace rviz
+namespace rviz_common
 {
 class Object;
 class Axes;
+class DisplayContext;
+}
+
+namespace rviz_common::properties
+{
 class Property;
 class EnumProperty;
 class BoolProperty;
-class DisplayContext;
 }  // namespace rviz
 
 namespace tf
@@ -99,23 +103,28 @@ class VisualizationWidget : public QObject
 {
   Q_OBJECT
 public:
-  using Ptr = std::shared_ptr<VisualizationWidget>;
-  using ConstPtr = std::shared_ptr<const VisualizationWidget>;
+  using SharedPtr = std::shared_ptr<VisualizationWidget>;
+  using ConstSharedPtr = std::shared_ptr<const VisualizationWidget>;
 
   VisualizationWidget(Ogre::SceneNode* root_node,
-                      rviz::DisplayContext* context,
-                      std::string name,
-                      rviz::Property* parent_property);
+                      rviz_common::DisplayContext* context,
+                      const std::string& name,
+                      rviz_common::properties::Property* parent_property);
   virtual ~VisualizationWidget();
 
   /**
    * \brief Loads meshes/primitives from a robot description.  Calls clear() before loading.
    *
+   * @param scene_graph The scene to read from
    * @param visual Whether or not to load the visual representation
    * @param collision Whether or not to load the collision representation
    * @param only_active Whether to only show active links (Used when visualizing trajectory)
    */
-  virtual void initialize(bool visual = true, bool collision = true, bool show_active = true, bool show_static = true);
+  virtual void load(const tesseract_scene_graph::SceneGraph::ConstPtr& scene_graph,
+                    bool visual = true,
+                    bool collision = true,
+                    bool show_active = true,
+                    bool show_static = true);
 
   /**
    * \brief Clears all data loaded from a URDF
@@ -123,18 +132,11 @@ public:
   virtual void clear();
 
   /**
-   * @brief Check if initialize has been called
-   * @return True if initialized, otherwise false;
-   */
-  virtual bool isInitialized() const;
-
-  /**
    * @brief Adds a link to the visualization
    * @param link The link to be added
-   * @param replace_allowed Link replacing is allowed
-   * @return Return False if a link with the same name already exists and replace is not allowed, otherwise true
+   * @return Return False if a link with the same name allready exists, otherwise true
    */
-  virtual bool addLink(const tesseract_scene_graph::Link& link, bool replace_allowed = false);
+  virtual bool addLink(const tesseract_scene_graph::Link& link);
 
   /**
    * @brief Removes a link from the visualization
@@ -144,20 +146,12 @@ public:
   virtual bool removeLink(const std::string& name);
 
   /**
-   * @brief Move a link
-   * @param joint The joint describing the move
-   * @return Return False if a joint name already exists or if links do not exist, otherwise true
-   */
-  virtual bool moveLink(const tesseract_scene_graph::Joint& joint);
-
-  /**
    * @brief Adds joint to the visualization
    * @param joint The joint to be added
-   * @param replace Indicate if this should replace an existing joint
-   * @return Return False if parent or child link does not exists and if joint name already exists in the graph and
-   * replace is not allowed, otherwise true
+   * @return Return False if parent or child link does not exists and if joint name already exists in the graph,
+   * otherwise true
    */
-  virtual bool addJoint(const tesseract_scene_graph::Joint& joint, bool replace = false);
+  virtual bool addJoint(const tesseract_scene_graph::Joint& joint);
 
   /**
    * @brief Removes a joint from the visualization
@@ -165,32 +159,6 @@ public:
    * @return Return False if a joint does not exists, otherwise true
    */
   virtual bool removeJoint(const std::string& name);
-
-  /**
-   * @brief Merge a graph into the current graph
-   * @param scene_graph Const ref to the graph to be merged (said graph will be copied)
-   * @param prefix string Will be prepended to every link and joint of the merged graph
-   * @return Return False if any link or joint name collides with current environment, otherwise True
-   * Merge a subgraph into the current environment, considering that the root of the merged graph is attached to the
-   * root of the environment by a fixed joint and no displacement. Every joint and link of the subgraph will be copied
-   * into the environment graph. The prefix argument is meant to allow adding multiple copies of the same subgraph with
-   * different names
-   */
-  virtual bool addSceneGraph(const tesseract_scene_graph::SceneGraph& scene_graph, const std::string& prefix = "");
-
-  /**
-   * @brief Merge a graph into the current environment
-   * @param scene_graph Const ref to the graph to be merged (said graph will be copied)
-   * @param joint The joint that connects current environment with the inserted graph
-   * @param prefix string Will be prepended to every link and joint of the merged graph
-   * @return Return False if any link or joint name collides with current environment, otherwise True
-   * Merge a subgraph into the current environment. Every joint and link of the subgraph will be copied into the
-   * environment graph. The prefix argument is meant to allow adding multiple copies of the same subgraph with different
-   * names
-   */
-  virtual bool addSceneGraph(const tesseract_scene_graph::SceneGraph& scene_graph,
-                             const tesseract_scene_graph::Joint& joint,
-                             const std::string& prefix = "");
 
   /**
    * @brief Move a joint from one link to another
@@ -208,7 +176,7 @@ public:
    * @param new_origin The new transform associated with the joint
    * @return
    */
-  virtual bool changeJointOrigin(const std::string& name, const Eigen::Isometry3d& new_origin);
+  bool changeJointOrigin(const std::string& name, const Eigen::Isometry3d& new_origin);
 
   /**
    * @brief Disable collision between two collision objects
@@ -233,13 +201,6 @@ public:
    */
   virtual void removeAllowedCollision(const std::string& link_name);
 
-  /** @brief Update visualization widget. This must be called after finished adding or removing links */
-  virtual void update();
-
-  /**
-   * @brief Update visualizations link transforms
-   * @param transforms The transforms to update
-   */
   virtual void update(const TransformMap& transforms);
 
   /**
@@ -260,40 +221,12 @@ public:
    */
   void setCollisionVisible(bool visible);
 
-  /**
-   * @brief Set the current state visibility
-   * @param visible True/False
-   */
   void setCurrentStateVisible(bool visible);
 
-  /**
-   * @brief Set the start state visibility
-   * @param visible True/False
-   */
   void setStartStateVisible(bool visible);
 
-  /**
-   * @brief Set the start states transforms
-   * @param transforms The transforms of the start state
-   */
-  void setStartState(const TransformMap& transforms);
-
-  /**
-   * @brief Set the end state visibility
-   * @param visible True/False
-   */
   void setEndStateVisible(bool visible);
 
-  /**
-   * @brief Set the end states transforms
-   * @param transforms The transforms of the start state
-   */
-  void setEndState(const TransformMap& transforms);
-
-  /**
-   * @brief Set the trajectory visibility
-   * @param visible True/False
-   */
   void setTrajectoryVisible(bool visible);
 
   /**
@@ -320,7 +253,6 @@ public:
   bool isTrajectoryVisible();
 
   void setLinkCollisionEnabled(const std::string& name, bool enabled);
-  void setLinkVisibleEnabled(const std::string& name, bool enabled);
 
   void setAlpha(float a);
   float getAlpha() { return alpha_; }
@@ -337,7 +269,7 @@ public:
   Ogre::SceneNode* getCollisionNode() { return root_collision_node_; }
   Ogre::SceneNode* getOtherNode() { return root_other_node_; }
   Ogre::SceneManager* getSceneManager() { return scene_manager_; }
-  rviz::DisplayContext* getDisplayContext() { return context_; }
+  rviz_common::DisplayContext* getDisplayContext() { return context_; }
   virtual void setPosition(const Ogre::Vector3& position);
   virtual void setOrientation(const Ogre::Quaternion& orientation);
   virtual void setScale(const Ogre::Vector3& scale);
@@ -383,7 +315,7 @@ public:
   void setLinkTreeStyle(LinkTreeStyle style);
 
   /** can be used to change the name, reparent, or add extra properties to the list of links */
-  rviz::Property* getLinkTreeProperty() { return link_tree_; }
+  rviz_common::properties::Property* getLinkTreeProperty() { return link_tree_; }
   // set joint checkboxes and All Links Enabled checkbox based on current link enables.
   void calculateJointCheckboxes();
 
@@ -407,11 +339,11 @@ protected:
   void useDetailProperty(bool use_detail);
 
   /** used by setLinkTreeStyle() to recursively build link & joint tree. */
-  void addLinkToLinkTree(LinkTreeStyle style, rviz::Property* parent, LinkWidget* link);
-  void addJointToLinkTree(LinkTreeStyle style, rviz::Property* parent, JointWidget* joint);
+  void addLinkToLinkTree(LinkTreeStyle style, rviz_common::properties::Property* parent, LinkWidget* link);
+  void addJointToLinkTree(LinkTreeStyle style, rviz_common::properties::Property* parent, JointWidget* joint);
 
   // set the value of the EnableAllLinks property without affecting child links/joints.
-  void setEnableAllLinksCheckbox(const QVariant& val);
+  void setEnableAllLinksCheckbox(QVariant val);
 
   /** initialize style_name_map_ and link_tree_style_ options */
   void initLinkTreeStyle();
@@ -420,7 +352,6 @@ protected:
   static bool styleIsTree(LinkTreeStyle style);
 
   Ogre::SceneManager* scene_manager_;
-  tesseract_scene_graph::SceneGraph::Ptr scene_graph_;
 
   M_NameToLink links_;    ///< Map of name to link info, stores all loaded links.
   M_NameToJoint joints_;  ///< Map of name to joint info, stores all loaded joints.
@@ -445,20 +376,20 @@ protected:
   bool end_state_visible_;
   bool trajectory_visible_;
 
-  rviz::DisplayContext* context_;
-  rviz::Property* link_tree_;
-  rviz::EnumProperty* link_tree_style_;
-  rviz::BoolProperty* expand_tree_;
-  rviz::BoolProperty* expand_link_details_;
-  rviz::BoolProperty* expand_joint_details_;
-  rviz::BoolProperty* enable_all_links_;
-  //  rviz::PropertyTreeWidget* property_widget_; TODO: Need to add this capability see view_panel.cpp in rviz as
+  rviz_common::DisplayContext* context_;
+  rviz_common::properties::Property* link_tree_;
+  rviz_common::properties::EnumProperty* link_tree_style_;
+  rviz_common::properties::BoolProperty* expand_tree_;
+  rviz_common::properties::BoolProperty* expand_link_details_;
+  rviz_common::properties::BoolProperty* expand_joint_details_;
+  rviz_common::properties::BoolProperty* enable_all_links_;
+  //  rviz_common::properties::PropertyTreeWidget* property_widget_; TODO: Need to add this capability see view_panel.cpp in rviz as
   //  example
 
   std::map<LinkTreeStyle, std::string> style_name_map_;
 
   bool doing_set_checkbox_;  // used only inside setEnableAllLinksCheckbox()
-  bool initialized_{ false };
+  bool env_loaded_;          // true after robot model is loaded.
 
   // true inside changedEnableAllLinks().  Prevents calculateJointCheckboxes()
   // from recalculating over and over.

@@ -32,11 +32,11 @@
 
 #include <tesseract_rviz/markers/marker_selection_handler.h>
 #include <tesseract_rviz/markers/marker_base.h>
-#include <tesseract_rviz/interactive_marker/interactive_marker_control.h>
+//#include <tesseract_rviz/interactive_marker/interactive_marker_control.h>
 
 namespace tesseract_rviz
 {
-MarkerSelectionHandler::MarkerSelectionHandler(const MarkerBase* marker, MarkerID id, rviz::DisplayContext* context)
+MarkerSelectionHandler::MarkerSelectionHandler(const MarkerBase* marker, MarkerID id, rviz_common::DisplayContext* context)
   : SelectionHandler(context)
   , marker_(marker)
   , marker_id_(QString::fromStdString(id.first) + "/" + QString::number(id.second))

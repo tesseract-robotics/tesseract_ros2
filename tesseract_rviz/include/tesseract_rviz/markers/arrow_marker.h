@@ -39,27 +39,30 @@ namespace Ogre
 class SceneNode;
 }
 
-namespace rviz
+namespace rviz_common
 {
-class Arrow;
 class DisplayContext;
 }  // namespace rviz
+
+namespace rviz_rendering {
+class Arrow;
+}
 
 namespace tesseract_rviz
 {
 class ArrowMarker : public MarkerBase
 {
 public:
-  using Ptr = boost::shared_ptr<ArrowMarker>;
-  using ConstPtr = boost::shared_ptr<const ArrowMarker>;
+  using SharedPtr = std::shared_ptr<ArrowMarker>;
+  using ConstSharedPtr = std::shared_ptr<const ArrowMarker>;
 
-  ArrowMarker(const std::string& ns, const int id, rviz::DisplayContext* context, Ogre::SceneNode* parent_node);
+  ArrowMarker(const std::string& ns, const int id, rviz_common::DisplayContext* context, Ogre::SceneNode* parent_node);
 
   ArrowMarker(const std::string& ns,
               const int id,
               Ogre::Vector3 point1,
               Ogre::Vector3 point2,
-              rviz::DisplayContext* context,
+              rviz_common::DisplayContext* context,
               Ogre::SceneNode* parent_node);
 
   ~ArrowMarker() override;
@@ -74,7 +77,7 @@ public:
 protected:
   virtual void setDefaultProportions();
 
-  rviz::Arrow* arrow_;
+  rviz_rendering::Arrow* arrow_;
   Ogre::SceneNode* child_scene_node_;
   Ogre::Vector3 location_;
 };

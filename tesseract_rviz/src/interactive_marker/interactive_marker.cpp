@@ -42,7 +42,7 @@
 #include <ros/ros.h>
 
 #include "rviz/frame_manager.h"
-#include "rviz/display_context.h"
+#include "rviz_common/display_context.hpp"
 #include "rviz/selection/selection_manager.h"
 #include "rviz/frame_manager.h"
 #include "rviz/render_panel.h"
@@ -56,32 +56,32 @@
 
 namespace tesseract_rviz
 {
-InteractiveMarker::InteractiveMarker(std::string name,
-                                     std::string description,
-                                     std::string reference_frame,
+InteractiveMarker::InteractiveMarker(const std::string& name,
+                                     const std::string& description,
+                                     const std::string& reference_frame,
                                      Ogre::SceneNode* scene_node,
-                                     rviz::DisplayContext* context,
-                                     bool reference_frame_locked,
-                                     float scale)
+                                     rviz_common::DisplayContext* context,
+                                     const bool reference_frame_locked,
+                                     const float scale)
   : visible_(true)
   , context_(context)
-  , reference_frame_(std::move(reference_frame))
-  , reference_frame_locked_(reference_frame_locked)
-  , reference_node_(scene_node->createChildSceneNode())
-  , position_(scene_node->getPosition())
-  , orientation_(scene_node->getOrientation())
   , pose_changed_(false)
   , time_since_last_feedback_(0)
-  , name_(std::move(name))
-  , description_(std::move(description))
   , dragging_(false)
   , pose_update_requested_(false)
-  , scale_(scale)
   , show_visual_aids_(false)
   , show_axes_(false)
   , show_description_(false)
+  , name_(name)
+  , description_(description)
+  , scale_(scale)
+  , reference_frame_(reference_frame)
+  , reference_frame_locked_(reference_frame_locked)
+  , position_(scene_node->getPosition())
+  , orientation_(scene_node->getOrientation())
+  , reference_node_(scene_node->createChildSceneNode())
 {
-  axes_ = new rviz::Axes(context->getSceneManager(), reference_node_, 1, 0.05f);
+  axes_ = new rviz_rendering::Axes(context->getSceneManager(), reference_node_, 1, 0.05f);
 
   axes_->setPosition(position_);
   axes_->setOrientation(orientation_);
@@ -158,7 +158,7 @@ InteractiveMarker::~InteractiveMarker()
   context_->getSceneManager()->destroySceneNode(reference_node_);
 }
 
-InteractiveMarkerControl::Ptr InteractiveMarker::createInteractiveControl(const std::string& name,
+InteractiveMarkerControl::SharedPtr InteractiveMarker::createInteractiveControl(const std::string& name,
                                                                           const std::string& description,
                                                                           const InteractiveMode interactive_mode,
                                                                           const OrientationMode orientation_mode,
@@ -173,19 +173,21 @@ InteractiveMarkerControl::Ptr InteractiveMarker::createInteractiveControl(const 
     // Use existing control
     return search_iter->second;
   }
-
-  // Else make new control
-  auto control = boost::make_shared<InteractiveMarkerControl>(name,
-                                                              description,
-                                                              context_,
-                                                              reference_node_,
-                                                              this,
-                                                              interactive_mode,
-                                                              orientation_mode,
-                                                              always_visible,
-                                                              orientation);
-  controls_[name] = control;
-  return control;
+  else
+  {
+    // Else make new control
+    auto control = boost::make_shared<InteractiveMarkerControl>(name,
+                                                                description,
+                                                                context_,
+                                                                reference_node_,
+                                                                this,
+                                                                interactive_mode,
+                                                                orientation_mode,
+                                                                always_visible,
+                                                                orientation);
+    controls_[name] = control;
+    return control;
+  }
 }
 
 // void InteractiveMarker::processMessage( const visualization_msgs::InteractiveMarkerPose& message )
@@ -363,11 +365,12 @@ InteractiveMarkerControl::Ptr InteractiveMarker::createInteractiveControl(const 
 // Recursively append menu and submenu entries to menu, based on a
 // vector of menu entry id numbers describing the menu entries at the
 // current level.
-void InteractiveMarker::populateMenu(QMenu* /*menu*/, std::vector<uint32_t>& ids)
+void InteractiveMarker::populateMenu(QMenu* menu, std::vector<uint32_t>& ids)
 {
-  for (unsigned int id : ids)
+  for (size_t id_index = 0; id_index < ids.size(); id_index++)
   {
-    auto node_it = menu_entries_.find(id);
+    uint32_t id = ids[id_index];
+    std::map<uint32_t, MenuNode>::iterator node_it = menu_entries_.find(id);
     ROS_ASSERT_MSG(
         node_it != menu_entries_.end(), "interactive marker menu entry %u not found during populateMenu().", id);
     MenuNode node = (*node_it).second;
@@ -493,9 +496,9 @@ void InteractiveMarker::update(float wall_dt)
     updateReferencePose();
   }
 
-  for (auto& control : controls_)
+  for (auto it = controls_.begin(); it != controls_.end(); it++)
   {
-    control.second->update();
+    (*it).second->update();
   }
   if (description_control_)
   {
@@ -549,9 +552,9 @@ void InteractiveMarker::setPose(Ogre::Vector3 position, Ogre::Quaternion orienta
   axes_->setPosition(position_);
   axes_->setOrientation(orientation_);
 
-  for (auto& control : controls_)
+  for (auto it = controls_.begin(); it != controls_.end(); it++)
   {
-    control.second->interactiveMarkerPoseChanged(position_, orientation_);
+    (*it).second->interactiveMarkerPoseChanged(position_, orientation_);
   }
   if (description_control_)
   {
@@ -602,9 +605,9 @@ void InteractiveMarker::updateAxesVisibility()
 void InteractiveMarker::updateVisualAidsVisibility()
 {
   boost::recursive_mutex::scoped_lock lock(mutex_);
-  for (auto& control : controls_)
+  for (auto it = controls_.begin(); it != controls_.end(); it++)
   {
-    control.second->setShowVisualAids(visible_ && show_visual_aids_);
+    (*it).second->setShowVisualAids(visible_ && show_visual_aids_);
   }
 }
 
@@ -639,9 +642,9 @@ void InteractiveMarker::stopDragging()
   }
 }
 
-bool InteractiveMarker::handle3DCursorEvent(rviz::ViewportMouseEvent& event,
+bool InteractiveMarker::handle3DCursorEvent(rviz_common::ViewportMouseEvent& event,
                                             const Ogre::Vector3& cursor_pos,
-                                            const Ogre::Quaternion& /*cursor_rot*/,
+                                            const Ogre::Quaternion& cursor_rot,
                                             const std::string& control_name)
 {
   boost::recursive_mutex::scoped_lock lock(mutex_);
@@ -669,7 +672,7 @@ bool InteractiveMarker::handle3DCursorEvent(rviz::ViewportMouseEvent& event,
       Ogre::Vector3 three_d_point = cursor_pos;
       bool valid_point = true;
       Ogre::Vector2 mouse_pos = rviz::project3DPointToViewportXY(event.viewport, cursor_pos);
-      QCursor::setPos(event.panel->mapToGlobal(QPoint(static_cast<int>(mouse_pos.x), static_cast<int>(mouse_pos.y))));
+      QCursor::setPos(event.panel->mapToGlobal(QPoint(mouse_pos.x, mouse_pos.y)));
       showMenu(event, control_name, three_d_point, valid_point);
       return true;
     }
@@ -678,7 +681,7 @@ bool InteractiveMarker::handle3DCursorEvent(rviz::ViewportMouseEvent& event,
   return false;
 }
 
-bool InteractiveMarker::handleMouseEvent(rviz::ViewportMouseEvent& event, const std::string& control_name)
+bool InteractiveMarker::handleMouseEvent(rviz_common::ViewportMouseEvent& event, const std::string& control_name)
 {
   boost::recursive_mutex::scoped_lock lock(mutex_);
 
@@ -712,7 +715,7 @@ bool InteractiveMarker::handleMouseEvent(rviz::ViewportMouseEvent& event, const 
   return false;
 }
 
-void InteractiveMarker::showMenu(rviz::ViewportMouseEvent& event,
+void InteractiveMarker::showMenu(rviz_common::ViewportMouseEvent& event,
                                  const std::string& control_name,
                                  const Ogre::Vector3& three_d_point,
                                  bool valid_point)
@@ -729,7 +732,7 @@ void InteractiveMarker::handleMenuSelect(int menu_item_id)
 {
   boost::recursive_mutex::scoped_lock lock(mutex_);
 
-  auto it = menu_entries_.find(static_cast<unsigned>(menu_item_id));
+  std::map<uint32_t, MenuNode>::iterator it = menu_entries_.find(menu_item_id);
 
   if (it != menu_entries_.end())
   {
@@ -750,7 +753,7 @@ void InteractiveMarker::handleMenuSelect(int menu_item_id)
     //    {
     //      std::string sys_cmd = "rosrun " + command;
     //      ROS_INFO_STREAM( "Running system command: " << sys_cmd );
-    //      sys_thread_ = boost::shared_ptr<boost::thread>( new boost::thread( boost::bind( &system, sys_cmd.c_str() ) )
+    //      sys_thread_ = std::shared_ptr<boost::thread>( new boost::thread( boost::bind( &system, sys_cmd.c_str() ) )
     //      );
     //      //system( sys_cmd.c_str() );
     //    }
@@ -758,7 +761,7 @@ void InteractiveMarker::handleMenuSelect(int menu_item_id)
     //    {
     //      std::string sys_cmd = "roslaunch " + command;
     //      ROS_INFO_STREAM( "Running system command: " << sys_cmd );
-    //      sys_thread_ = boost::shared_ptr<boost::thread>( new boost::thread( boost::bind( &system, sys_cmd.c_str() ) )
+    //      sys_thread_ = std::shared_ptr<boost::thread>( new boost::thread( boost::bind( &system, sys_cmd.c_str() ) )
     //      );
     //      //system( sys_cmd.c_str() );
     //    }

@@ -29,18 +29,18 @@
 #include <QStringList>
 #include <QPushButton>
 
-#include "rviz/properties/property.h"
+#include "rviz_common/properties/property.hpp"
 
 namespace tesseract_rviz
 {
-class ButtonProperty : public rviz::Property
+class ButtonProperty : public rviz_common::properties::Property
 {
   Q_OBJECT
 public:
   ButtonProperty(const QString& name = QString(),
                  const QString& default_value = QString(),
                  const QString& description = QString(),
-                 rviz::Property* parent = nullptr,
+                 rviz_common::properties::Property* parent = nullptr,
                  const char* changed_slot = nullptr,
                  QObject* receiver = nullptr);
 

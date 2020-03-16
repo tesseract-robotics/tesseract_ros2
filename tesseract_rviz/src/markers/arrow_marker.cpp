@@ -33,10 +33,10 @@
 #include <OgreSceneManager.h>
 #include <OgreEntity.h>
 
-#include "rviz/display_context.h"
-#include "rviz/ogre_helpers/arrow.h"
-#include "rviz/ogre_helpers/shape.h"
-#include "rviz/selection/selection_manager.h"
+#include "rviz_common/display_context.hpp"
+#include "rviz_rendering/objects/arrow.hpp"
+#include "rviz_rendering/objects/shape.hpp"
+#include "rviz_common/interaction/selection_manager.hpp"
 
 #include <tesseract_rviz/markers/arrow_marker.h>
 #include <tesseract_rviz/markers/marker_selection_handler.h>
@@ -45,13 +45,13 @@ namespace tesseract_rviz
 {
 ArrowMarker::ArrowMarker(const std::string& ns,
                          const int id,
-                         rviz::DisplayContext* context,
+                         rviz_common::DisplayContext* context,
                          Ogre::SceneNode* parent_node)
   : MarkerBase(ns, id, context, parent_node), arrow_(nullptr), location_(Ogre::Vector3(0, 0, 0))
 {
   child_scene_node_ = scene_node_->createChildSceneNode();
 
-  arrow_ = new rviz::Arrow(context_->getSceneManager(), child_scene_node_);
+  arrow_ = new rviz_rendering::Arrow(context_->getSceneManager(), child_scene_node_);
   setDefaultProportions();
   handler_.reset(new MarkerSelectionHandler(this, MarkerID(ns, id), context_));
   handler_->addTrackedObjects(arrow_->getSceneNode());
@@ -64,14 +64,14 @@ ArrowMarker::ArrowMarker(const std::string& ns,
                          const int id,
                          Ogre::Vector3 point1,
                          Ogre::Vector3 point2,
-                         rviz::DisplayContext* context,
+                         rviz_common::DisplayContext* context,
                          Ogre::SceneNode* parent_node)
   : MarkerBase(ns, id, context, parent_node), arrow_(nullptr)
 {
   child_scene_node_ = scene_node_->createChildSceneNode();
   location_ = point1;
 
-  arrow_ = new rviz::Arrow(context_->getSceneManager(), child_scene_node_);
+  arrow_ = new rviz_rendering::Arrow(context_->getSceneManager(), child_scene_node_);
   setDefaultProportions();
   handler_.reset(new MarkerSelectionHandler(this, MarkerID(ns, id), context_));
   handler_->addTrackedObjects(arrow_->getSceneNode());

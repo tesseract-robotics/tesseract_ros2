@@ -29,23 +29,21 @@
 #ifndef TESSERACT_RVIZ_MARKERS_MARKER_BASE_H
 #define TESSERACT_RVIZ_MARKERS_MARKER_BASE_H
 
-#include "rviz/selection/forwards.h"
-#include "rviz/interactive_object.h"
+#include "rviz_common/interaction/forwards.hpp"
+#include "rviz_common/interactive_object.hpp"
 
 #ifndef Q_MOC_RUN
-#include <ros/time.h>
-#include <boost/shared_ptr.hpp>
 #endif
 
 namespace Ogre
 {
 class SceneNode;
-class Vector3;
+//class Vector3;
 class Quaternion;
 class Entity;
 }  // namespace Ogre
 
-namespace rviz
+namespace rviz_common
 {
 class DisplayContext;
 }
@@ -58,10 +56,10 @@ typedef std::pair<std::string, int32_t> MarkerID;
 class MarkerBase
 {
 public:
-  using Ptr = boost::shared_ptr<MarkerBase>;
-  using ConstPtr = boost::shared_ptr<const MarkerBase>;
+  using SharedPtr = std::shared_ptr<MarkerBase>;
+  using ConstSharedPtr = std::shared_ptr<const MarkerBase>;
 
-  MarkerBase(std::string ns, const int id, rviz::DisplayContext* context, Ogre::SceneNode* parent_node);
+  MarkerBase(const std::string& ns, const int id, rviz_common::DisplayContext* context, Ogre::SceneNode* parent_node);
   virtual ~MarkerBase();
 
   MarkerID getID() { return MarkerID(ns_, id_); }
@@ -74,7 +72,7 @@ public:
   }
 
   /** @brief Associate an InteractiveObject with this MarkerBase. */
-  void setInteractiveObject(rviz::InteractiveObjectWPtr object);
+  void setInteractiveObject(rviz_common::InteractiveObjectWPtr object);
 
   virtual void setPosition(const Ogre::Vector3& position);
   virtual void setOrientation(const Ogre::Quaternion& orientation);
@@ -95,11 +93,11 @@ protected:
 
   int id_;
 
-  rviz::DisplayContext* context_;
+  rviz_common::DisplayContext* context_;
 
   Ogre::SceneNode* scene_node_;
 
-  boost::shared_ptr<MarkerSelectionHandler> handler_;
+  std::shared_ptr<MarkerSelectionHandler> handler_;
 };
 
 }  // namespace tesseract_rviz

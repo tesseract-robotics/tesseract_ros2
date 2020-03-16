@@ -36,11 +36,11 @@ namespace Ogre
 {
 class SceneNode;
 class Quaternion;
-class Vector3;
+//class Vector3;
 class ColourValue;
 }  // namespace Ogre
 
-namespace rviz
+namespace rviz_common
 {
 class DisplayContext;
 }

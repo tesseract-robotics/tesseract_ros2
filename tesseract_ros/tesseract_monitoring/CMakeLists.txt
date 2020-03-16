@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.5.0)
 project(tesseract_monitoring VERSION 0.1.0 LANGUAGES CXX)
 
 find_package(tesseract REQUIRED)
-find_package(orocos_kdl REQUIRED)
 find_package(Eigen3 REQUIRED)
 
 list(FIND CMAKE_CXX_COMPILE_FEATURES cxx_std_17 CXX_FEATURE_FOUND)
@@ -103,8 +102,7 @@ ament_export_dependencies(
     tf2_ros
     tf2_eigen
     EIGEN3
-    tesseract
-    orocos_kdl)
+    tesseract)
 
 ament_export_include_directories(include)
 

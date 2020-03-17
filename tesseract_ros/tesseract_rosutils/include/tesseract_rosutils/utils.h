@@ -51,6 +51,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <tesseract_msgs/msg/joint_limits.hpp>
 #include <tesseract_msgs/msg/joint_mimic.hpp>
 #include <tesseract_msgs/msg/joint_safety.hpp>
+#include <tesseract_msgs/msg/scene_graph.hpp>
 
 #include <tesseract_environment/core/environment.h>
 #include <Eigen/Geometry>
@@ -995,6 +996,68 @@ static inline tesseract_scene_graph::Joint fromMsg(const tesseract_msgs::msg::Jo
   fromMsg(joint.mimic, joint_msg.mimic);
 
   return joint;
+}
+
+static inline bool toMsg(tesseract_msgs::msg::SceneGraph& scene_graph_msg, const tesseract_scene_graph::SceneGraph& scene_graph)
+{
+  bool success = true;
+  // Get all links
+  scene_graph_msg.link_list.resize(scene_graph.getLinks().size());
+  for (std::size_t ind = 0; ind < scene_graph.getLinks().size(); ind++)
+    success &= toMsg(scene_graph_msg.link_list[ind], *scene_graph.getLinks()[ind]);
+
+  // Get all joints
+  scene_graph_msg.joint_list.resize(scene_graph.getJoints().size());
+  for (std::size_t ind = 0; ind < scene_graph.getJoints().size(); ind++)
+    success &= toMsg(scene_graph_msg.joint_list[ind], *scene_graph.getJoints()[ind]);
+
+  // Get ACM
+  auto acm = scene_graph.getAllowedCollisionMatrix();
+  auto pairs = acm->getAllAllowedCollisions();
+  scene_graph_msg.acm.resize(pairs.size());
+  std::size_t ind = 0;
+  for (auto& pair : pairs)
+  {
+    scene_graph_msg.acm[ind].link_1 = pair.first.first;
+    scene_graph_msg.acm[ind].link_2 = pair.first.second;
+    scene_graph_msg.acm[ind].reason = pair.second;
+  }
+
+  // Get graph specific information
+  scene_graph_msg.graph_name = scene_graph.getName();
+  scene_graph_msg.graph_root = scene_graph.getRoot();
+  return success;
+}
+
+static inline tesseract_scene_graph::SceneGraph fromMsg(const tesseract_msgs::msg::SceneGraph& scene_graph_msg)
+{
+  tesseract_scene_graph::SceneGraph scene_graph;
+
+  // Add all links
+  for (auto& link_msg : scene_graph_msg.link_list)
+  {
+    tesseract_scene_graph::Link link(link_msg.name);
+    fromMsg(link, link_msg);
+    scene_graph.addLink(std::move(link));
+  }
+
+  // Add all joints
+  for (auto& joint_msg : scene_graph_msg.joint_list)
+  {
+    tesseract_scene_graph::Joint joint(joint_msg.name);
+    fromMsg(joint, joint_msg);
+    scene_graph.addJoint(std::move(joint));
+  }
+
+  // Add ACM
+  for (auto& pair : scene_graph_msg.acm)
+    scene_graph.addAllowedCollision(pair.link_1, pair.link_2, pair.reason);
+
+  // Add graph specific information
+  scene_graph.setName(scene_graph_msg.graph_name);
+  scene_graph.setRoot(scene_graph_msg.graph_root);
+
+  return std::move(scene_graph);
 }
 
 static inline void toMsg(sensor_msgs::msg::JointState& joint_state, const tesseract_environment::EnvState& state)

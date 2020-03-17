@@ -42,6 +42,7 @@ set(msg_files
     "msg/Material.msg"
     "msg/Mesh.msg"
     "msg/ObjectColor.msg"
+    "msg/SceneGraph.msg"
     "msg/TesseractState.msg"
     "msg/Trajectory.msg"
     "msg/VisualGeometry.msg"

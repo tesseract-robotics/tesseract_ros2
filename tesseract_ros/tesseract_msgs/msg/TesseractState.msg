@@ -7,3 +7,6 @@ sensor_msgs/JointState joint_state
 
 # Joints that may have multiple DOF are specified here
 sensor_msgs/MultiDOFJointState multi_dof_joint_state
+
+# Initial state on which the commands are applied
+tesseract_msgs/TesseractInitInfo initial_state

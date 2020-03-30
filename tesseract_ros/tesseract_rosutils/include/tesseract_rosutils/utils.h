@@ -5,7 +5,8 @@
  * @author Levi Armstrong
  * @date April 15, 2018
  * @version TODO
- * @bug Timestamped messages generated from non-timestamped data will be assigned times that do not correlate with the ROS time.
+ * @bug Timestamped messages generated from non-timestamped data will be assigned times that do not correlate with the
+ * ROS time.
  *
  * @copyright Copyright (c) 2013, Southwest Research Institute
  *
@@ -64,7 +65,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <tesseract_scene_graph/resource_locator.h>
 #include <tesseract/tesseract_init_info.h>
 
-//namespace tf2
+// namespace tf2
 //{
 //  inline
 //  geometry_msgs::msg::TransformStamped toMsg(const Eigen::Transform3d& in)
@@ -268,7 +269,7 @@ static inline bool isIdentical(const tesseract_geometry::Geometry& shape1, const
       break;
     }
     default:
-//      ROS_ERROR("This geometric shape type (%d) is not supported", static_cast<int>(shape1.getType()));
+      //      ROS_ERROR("This geometric shape type (%d) is not supported", static_cast<int>(shape1.getType()));
       return false;
   }
 
@@ -496,8 +497,8 @@ static inline bool toMsg(tesseract_msgs::msg::Geometry& geometry_msgs, const tes
     }
     default:
     {
-//      ROS_ERROR("Unable to construct primitive shape message for shape of type %d",
-//                static_cast<int>(geometry.getType()));
+      //      ROS_ERROR("Unable to construct primitive shape message for shape of type %d",
+      //                static_cast<int>(geometry.getType()));
       return false;
     }
   }
@@ -505,7 +506,8 @@ static inline bool toMsg(tesseract_msgs::msg::Geometry& geometry_msgs, const tes
   return true;
 }
 
-static inline bool fromMsg(tesseract_geometry::Geometry::Ptr& geometry, const tesseract_msgs::msg::Geometry& geometry_msg)
+static inline bool fromMsg(tesseract_geometry::Geometry::Ptr& geometry,
+                           const tesseract_msgs::msg::Geometry& geometry_msg)
 {
   geometry = nullptr;
   if (geometry_msg.type == tesseract_msgs::msg::Geometry::SPHERE)
@@ -611,11 +613,13 @@ static inline bool fromMsg(tesseract_geometry::Geometry::Ptr& geometry, const te
   }
 
   // BUG: Should report an error here
-//  if (geometry == nullptr)
-//    ROS_ERROR("Unable to construct shape corresponding to shape_msg of type %d", static_cast<int>(geometry_msg.type));
+  //  if (geometry == nullptr)
+  //    ROS_ERROR("Unable to construct shape corresponding to shape_msg of type %d",
+  //    static_cast<int>(geometry_msg.type));
 }
 
-static inline bool toMsg(tesseract_msgs::msg::Material& material_msg, const tesseract_scene_graph::Material::Ptr& material)
+static inline bool toMsg(tesseract_msgs::msg::Material& material_msg,
+                         const tesseract_scene_graph::Material::Ptr& material)
 {
   if (material == nullptr)
   {
@@ -632,7 +636,8 @@ static inline bool toMsg(tesseract_msgs::msg::Material& material_msg, const tess
   return true;
 }
 
-static inline bool fromMsg(tesseract_scene_graph::Material::Ptr& material, const tesseract_msgs::msg::Material& material_msg)
+static inline bool fromMsg(tesseract_scene_graph::Material::Ptr& material,
+                           const tesseract_msgs::msg::Material& material_msg)
 {
   if (material_msg.empty)
   {
@@ -649,7 +654,8 @@ static inline bool fromMsg(tesseract_scene_graph::Material::Ptr& material, const
   return true;
 }
 
-static inline bool toMsg(tesseract_msgs::msg::Inertial& inertial_msg, const tesseract_scene_graph::Inertial::Ptr& inertial)
+static inline bool toMsg(tesseract_msgs::msg::Inertial& inertial_msg,
+                         const tesseract_scene_graph::Inertial::Ptr& inertial)
 {
   if (inertial == nullptr)
   {
@@ -669,7 +675,8 @@ static inline bool toMsg(tesseract_msgs::msg::Inertial& inertial_msg, const tess
   return true;
 }
 
-static inline bool fromMsg(tesseract_scene_graph::Inertial::Ptr& inertial, const tesseract_msgs::msg::Inertial& inertial_msg)
+static inline bool fromMsg(tesseract_scene_graph::Inertial::Ptr& inertial,
+                           const tesseract_msgs::msg::Inertial& inertial_msg)
 {
   if (inertial_msg.empty)
   {
@@ -701,7 +708,8 @@ static inline bool toMsg(tesseract_msgs::msg::VisualGeometry& visual_msg, const 
   return true;
 }
 
-static inline bool fromMsg(tesseract_scene_graph::Visual::Ptr& visual, const tesseract_msgs::msg::VisualGeometry& visual_msg)
+static inline bool fromMsg(tesseract_scene_graph::Visual::Ptr& visual,
+                           const tesseract_msgs::msg::VisualGeometry& visual_msg)
 {
   visual = std::make_shared<tesseract_scene_graph::Visual>();
   visual->name = visual_msg.name;
@@ -1000,7 +1008,8 @@ static inline tesseract_scene_graph::Joint fromMsg(const tesseract_msgs::msg::Jo
   return joint;
 }
 
-static inline bool toMsg(tesseract_msgs::msg::SceneGraph& scene_graph_msg, const tesseract_scene_graph::SceneGraph& scene_graph)
+static inline bool toMsg(tesseract_msgs::msg::SceneGraph& scene_graph_msg,
+                         const tesseract_scene_graph::SceneGraph& scene_graph)
 {
   bool success = true;
   // Get all links
@@ -1060,8 +1069,9 @@ static inline tesseract_scene_graph::SceneGraph fromMsg(const tesseract_msgs::ms
 
 static inline void toMsg(sensor_msgs::msg::JointState& joint_state, const tesseract_environment::EnvState& state)
 {
-  rclcpp::Duration now(std::chrono::system_clock::now().time_since_epoch());  // BUG: this defaults to current system clock time instead of ROS2 system time
-  joint_state.header.stamp = rclcpp::Time(static_cast<int>(now.seconds()), 0); // BUG: SHAMEFULLY INACCURATE WORKAROUND
+  rclcpp::Duration now(std::chrono::system_clock::now().time_since_epoch());  // BUG: this defaults to current system
+                                                                              // clock time instead of ROS2 system time
+  joint_state.header.stamp = rclcpp::Time(static_cast<int>(now.seconds()), 0);  // BUG: SHAMEFULLY INACCURATE WORKAROUND
   for (const auto& joint : state.joints)
   {
     joint_state.name.push_back(joint.first);
@@ -1069,7 +1079,8 @@ static inline void toMsg(sensor_msgs::msg::JointState& joint_state, const tesser
   }
 }
 
-static inline bool toMsg(tesseract_msgs::msg::EnvironmentCommand& command_msg, const tesseract_environment::Command& command)
+static inline bool toMsg(tesseract_msgs::msg::EnvironmentCommand& command_msg,
+                         const tesseract_environment::Command& command)
 {
   switch (command.getType())
   {
@@ -1198,7 +1209,8 @@ static inline bool toMsg(std::vector<tesseract_msgs::msg::EnvironmentCommand>& c
   return true;
 }
 
-static inline void toMsg(const sensor_msgs::msg::JointState::Ptr& joint_state, const tesseract_environment::EnvState& state)
+static inline void toMsg(const sensor_msgs::msg::JointState::Ptr& joint_state,
+                         const tesseract_environment::EnvState& state)
 {
   toMsg(*joint_state, state);
 }
@@ -1219,31 +1231,32 @@ static inline void toMsg(const tesseract_msgs::msg::TesseractState::Ptr& state_m
   toMsg(*state_msg, env);
 }
 
-static inline void toMsg(tesseract_msgs::msg::TesseractInitInfo& init_info_msg, const tesseract::TesseractInitInfo& init_info)
+static inline void toMsg(tesseract_msgs::msg::TesseractInitInfo& init_info_msg,
+                         const tesseract::TesseractInitInfo& init_info)
 {
-  switch(init_info.type)
+  switch (init_info.type)
   {
-  case tesseract::TesseractInitType::SCENE_GRAPH:
-    init_info_msg.type = init_info_msg.SCENE_GRAPH;
-    break;
-  case tesseract::TesseractInitType::SCENE_GRAPH_SRDF_MODEL:
-    init_info_msg.type = init_info_msg.SCENE_GRAPH_SRDF_MODEL;
-    break;
-  case tesseract::TesseractInitType::URDF_STRING:
-    init_info_msg.type = init_info_msg.URDF_STRING;
-    break;
-  case tesseract::TesseractInitType::URDF_STRING_SRDF_STRING:
-    init_info_msg.type = init_info_msg.URDF_STRING_SRDF_STRING;
-    break;
-  case tesseract::TesseractInitType::URDF_PATH:
-    init_info_msg.type = init_info_msg.URDF_PATH;
-    break;
-  case tesseract::TesseractInitType::URDF_PATH_SRDF_PATH:
-    init_info_msg.type = init_info_msg.URDF_PATH_SRDF_PATH;
-    break;
-  default:
-    CONSOLE_BRIDGE_logError("Unsupported TesseractInitInfo type.");
-    break;
+    case tesseract::TesseractInitType::SCENE_GRAPH:
+      init_info_msg.type = init_info_msg.SCENE_GRAPH;
+      break;
+    case tesseract::TesseractInitType::SCENE_GRAPH_SRDF_MODEL:
+      init_info_msg.type = init_info_msg.SCENE_GRAPH_SRDF_MODEL;
+      break;
+    case tesseract::TesseractInitType::URDF_STRING:
+      init_info_msg.type = init_info_msg.URDF_STRING;
+      break;
+    case tesseract::TesseractInitType::URDF_STRING_SRDF_STRING:
+      init_info_msg.type = init_info_msg.URDF_STRING_SRDF_STRING;
+      break;
+    case tesseract::TesseractInitType::URDF_PATH:
+      init_info_msg.type = init_info_msg.URDF_PATH;
+      break;
+    case tesseract::TesseractInitType::URDF_PATH_SRDF_PATH:
+      init_info_msg.type = init_info_msg.URDF_PATH_SRDF_PATH;
+      break;
+    default:
+      CONSOLE_BRIDGE_logError("Unsupported TesseractInitInfo type.");
+      break;
   }
 
   toMsg(init_info_msg.scene_graph, *init_info.scene_graph);
@@ -1261,30 +1274,30 @@ static inline tesseract::TesseractInitInfo fromMsg(const tesseract_msgs::msg::Te
 {
   tesseract::TesseractInitInfo init_info;
 
-  switch(init_info_msg.type)
+  switch (init_info_msg.type)
   {
-  case init_info_msg.SCENE_GRAPH:
-    init_info.type = tesseract::TesseractInitType::SCENE_GRAPH;
-    break;
-  case init_info_msg.SCENE_GRAPH_SRDF_MODEL:
-    init_info.type = tesseract::TesseractInitType::SCENE_GRAPH_SRDF_MODEL;
-    CONSOLE_BRIDGE_logError("Unsupported TesseractInitInfo type. SRDF_Model is not current serializable");
-    break;
-  case init_info_msg.URDF_STRING:
-    init_info.type = tesseract::TesseractInitType::URDF_STRING;
-    break;
-  case init_info_msg.URDF_STRING_SRDF_STRING:
-    init_info.type = tesseract::TesseractInitType::URDF_STRING_SRDF_STRING;
-    break;
-  case init_info_msg.URDF_PATH:
-    init_info.type = tesseract::TesseractInitType::URDF_PATH;
-    break;
-  case init_info_msg.URDF_PATH_SRDF_PATH:
-    init_info.type = tesseract::TesseractInitType::URDF_PATH_SRDF_PATH;
-    break;
-  default:
-    CONSOLE_BRIDGE_logError("Unsupported TesseractInitInfo type.");
-    break;
+    case init_info_msg.SCENE_GRAPH:
+      init_info.type = tesseract::TesseractInitType::SCENE_GRAPH;
+      break;
+    case init_info_msg.SCENE_GRAPH_SRDF_MODEL:
+      init_info.type = tesseract::TesseractInitType::SCENE_GRAPH_SRDF_MODEL;
+      CONSOLE_BRIDGE_logError("Unsupported TesseractInitInfo type. SRDF_Model is not current serializable");
+      break;
+    case init_info_msg.URDF_STRING:
+      init_info.type = tesseract::TesseractInitType::URDF_STRING;
+      break;
+    case init_info_msg.URDF_STRING_SRDF_STRING:
+      init_info.type = tesseract::TesseractInitType::URDF_STRING_SRDF_STRING;
+      break;
+    case init_info_msg.URDF_PATH:
+      init_info.type = tesseract::TesseractInitType::URDF_PATH;
+      break;
+    case init_info_msg.URDF_PATH_SRDF_PATH:
+      init_info.type = tesseract::TesseractInitType::URDF_PATH_SRDF_PATH;
+      break;
+    default:
+      CONSOLE_BRIDGE_logError("Unsupported TesseractInitInfo type.");
+      break;
   }
 
   init_info.urdf_string = init_info_msg.urdf_string;
@@ -1522,7 +1535,7 @@ inline bool processMsg(tesseract_environment::Environment& env,
 }
 
 inline bool processMsg(const tesseract_environment::Environment::Ptr& env,
-                              const sensor_msgs::msg::JointState& joint_state_msg)
+                       const sensor_msgs::msg::JointState& joint_state_msg)
 {
   return processMsg(*env, joint_state_msg);
 }
@@ -1545,7 +1558,7 @@ inline bool processMsg(tesseract_environment::Environment& env, const tesseract_
 }
 
 inline bool processMsg(const tesseract_environment::Environment::Ptr& env,
-                              const tesseract_msgs::msg::TesseractState& state_msg)
+                       const tesseract_msgs::msg::TesseractState& state_msg)
 {
   return processMsg(*env, state_msg);
 }
@@ -1573,7 +1586,6 @@ inline bool toMsg(geometry_msgs::msg::Pose& pose_msg, const Eigen::Isometry3d& p
   pose_msg = tf2::toMsg(pose);
   return true;
 }
-
 
 inline void toMsg(tesseract_msgs::msg::ContactResult& contact_result_msg,
                   const tesseract_collision::ContactResult& contact_result)

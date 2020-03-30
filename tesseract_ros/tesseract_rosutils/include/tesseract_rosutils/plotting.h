@@ -52,11 +52,10 @@ class ROSPlotting : public tesseract_visualization::Visualization
 {
 public:
   ROSPlotting(rclcpp::Node::SharedPtr node, tesseract_environment::Environment::ConstPtr env)
-    : node_(node)
-    , clock_(std::make_shared<rclcpp::Clock>(RCL_ROS_TIME))
-    , env_(std::move(env))
+    : node_(node), clock_(std::make_shared<rclcpp::Clock>(RCL_ROS_TIME)), env_(std::move(env))
   {
-    trajectory_pub_ = node->create_publisher<tesseract_msgs::msg::Trajectory>("/trajopt/display_tesseract_trajectory", 1);
+    trajectory_pub_ =
+        node->create_publisher<tesseract_msgs::msg::Trajectory>("/trajopt/display_tesseract_trajectory", 1);
     collisions_pub_ = node->create_publisher<visualization_msgs::msg::MarkerArray>("/trajopt/display_collisions", 1);
     arrows_pub_ = node->create_publisher<visualization_msgs::msg::MarkerArray>("/trajopt/display_arrows", 1);
     axes_pub_ = node->create_publisher<visualization_msgs::msg::MarkerArray>("/trajopt/display_axes", 1);
@@ -208,20 +207,22 @@ public:
 
   void waitForInput() override
   {
-//    RCLCPP_ERROR(node_->get_logger(), "Waiting 5 seconds while you examine things...");
-//    std::this_thread::sleep_for(std::chrono::seconds(5));
+    //    RCLCPP_ERROR(node_->get_logger(), "Waiting 5 seconds while you examine things...");
+    //    std::this_thread::sleep_for(std::chrono::seconds(5));
   }
 
 private:
   rclcpp::Node::SharedPtr node_;
   rclcpp::Clock::SharedPtr clock_;
-  tesseract_environment::Environment::ConstPtr env_;                                  /**< The Env */
-  int marker_counter_;                                                                /**< Counter when plotting */
-//  rclcpp::Publisher scene_pub_;                                                     /**< Scene publisher */  // TODO: Unused?
+  tesseract_environment::Environment::ConstPtr env_; /**< The Env */
+  int marker_counter_;                               /**< Counter when plotting */
+  //  rclcpp::Publisher scene_pub_;                                                     /**< Scene publisher */  //
+  //  TODO: Unused?
   rclcpp::Publisher<tesseract_msgs::msg::Trajectory>::SharedPtr trajectory_pub_;      /**< Trajectory publisher */
   rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr collisions_pub_; /**< Collision Data publisher */
-  rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr arrows_pub_;     /**< Used for publishing arrow markers */
-  rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr axes_pub_;       /**< Used for publishing axis markers */
+  rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr arrows_pub_; /**< Used for publishing arrow markers
+                                                                                   */
+  rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr axes_pub_; /**< Used for publishing axis markers */
   rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr joint_state_pub_;
 
   visualization_msgs::msg::Marker getMarkerArrowMsg(const Eigen::Ref<const Eigen::Vector3d>& pt1,

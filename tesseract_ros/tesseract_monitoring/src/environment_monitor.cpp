@@ -895,7 +895,7 @@ void EnvironmentMonitor::getEnvironmentInformationCallback(const std::shared_ptr
 
   if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::LINK_TRANSFORMS)
   {
-    for (const auto& link_pair : tesseract_->getEnvironmentConst()->getCurrentState()->transforms)
+    for (const auto& link_pair : tesseract_->getEnvironmentConst()->getCurrentState()->link_transforms)
     {
       res->link_transforms.names.push_back(link_pair.first);
       geometry_msgs::msg::Pose pose = tf2::toMsg(link_pair.second);

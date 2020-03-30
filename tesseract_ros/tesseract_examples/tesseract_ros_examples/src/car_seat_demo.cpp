@@ -441,7 +441,7 @@ int main(int argc, char** argv)
   AdjacencyMap::Ptr adjacency_map =
       std::make_shared<tesseract_environment::AdjacencyMap>(prob->GetEnv()->getSceneGraph(),
                                                             prob->GetKin()->getActiveLinkNames(),
-                                                            prob->GetEnv()->getCurrentState()->transforms);
+                                                            prob->GetEnv()->getCurrentState()->link_transforms);
 
   manager->setActiveCollisionObjects(adjacency_map->getActiveLinkNames());
   manager->setContactDistanceThreshold(0);
@@ -461,7 +461,7 @@ int main(int argc, char** argv)
   joint_seat_1_robot.child_link_name = "seat_1";
   joint_seat_1_robot.type = JointType::FIXED;
   joint_seat_1_robot.parent_to_joint_origin_transform =
-      state->transforms["end_effector"].inverse() * state->transforms["seat_1"];
+      state->link_transforms["end_effector"].inverse() * state->link_transforms["seat_1"];
 
   tesseract_->getEnvironment()->moveLink(joint_seat_1_robot);
   tesseract_->getEnvironment()->addAllowedCollision("seat_1", "end_effector", "Adjacent");
@@ -498,7 +498,7 @@ int main(int argc, char** argv)
   manager = prob->GetEnv()->getContinuousContactManager();
   adjacency_map = std::make_shared<tesseract_environment::AdjacencyMap>(prob->GetEnv()->getSceneGraph(),
                                                                         prob->GetKin()->getActiveLinkNames(),
-                                                                        prob->GetEnv()->getCurrentState()->transforms);
+                                                                        prob->GetEnv()->getCurrentState()->link_transforms);
 
   manager->setActiveCollisionObjects(adjacency_map->getActiveLinkNames());
   manager->setContactDistanceThreshold(0);
@@ -517,7 +517,7 @@ int main(int argc, char** argv)
   joint_seat_1_car.parent_link_name = "car";
   joint_seat_1_car.child_link_name = "seat_1";
   joint_seat_1_car.type = JointType::FIXED;
-  joint_seat_1_car.parent_to_joint_origin_transform = state->transforms["car"].inverse() * state->transforms["seat_1"];
+  joint_seat_1_car.parent_to_joint_origin_transform = state->link_transforms["car"].inverse() * state->link_transforms["seat_1"];
 
   tesseract_->getEnvironment()->moveLink(joint_seat_1_car);
 
@@ -548,7 +548,7 @@ int main(int argc, char** argv)
   manager = prob->GetEnv()->getContinuousContactManager();
   adjacency_map = std::make_shared<tesseract_environment::AdjacencyMap>(prob->GetEnv()->getSceneGraph(),
                                                                         prob->GetKin()->getActiveLinkNames(),
-                                                                        prob->GetEnv()->getCurrentState()->transforms);
+                                                                        prob->GetEnv()->getCurrentState()->link_transforms);
 
   manager->setActiveCollisionObjects(adjacency_map->getActiveLinkNames());
   manager->setContactDistanceThreshold(0);
@@ -567,7 +567,7 @@ int main(int argc, char** argv)
   joint_seat_2_robot.child_link_name = "seat_2";
   joint_seat_2_robot.type = JointType::FIXED;
   joint_seat_2_robot.parent_to_joint_origin_transform =
-      state->transforms["end_effector"].inverse() * state->transforms["seat_2"];
+      state->link_transforms["end_effector"].inverse() * state->link_transforms["seat_2"];
 
   tesseract_->getEnvironment()->moveLink(joint_seat_2_robot);
 

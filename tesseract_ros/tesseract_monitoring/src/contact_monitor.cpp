@@ -64,7 +64,7 @@ void callbackJointState(const sensor_msgs::msg::JointState::SharedPtr msg)
   tess->getEnvironment()->setState(msg->name, msg->position);
   EnvState::ConstPtr state = tess->getEnvironment()->getCurrentState();
 
-  manager->setCollisionObjectsTransform(state->transforms);
+  manager->setCollisionObjectsTransform(state->link_transforms);
   manager->contactTest(contacts, type);
 
   if (publish_environment)
@@ -116,7 +116,7 @@ void callbackComputeContactResultVector(const tesseract_msgs::srv::ComputeContac
   tess->getEnvironment()->setState(request->joint_states.name, request->joint_states.position);
   EnvState::ConstPtr state = tess->getEnvironment()->getCurrentState();
 
-  manager->setCollisionObjectsTransform(state->transforms);
+  manager->setCollisionObjectsTransform(state->link_transforms);
   manager->contactTest(contacts, type);
 
   ContactResultVector contacts_vector;

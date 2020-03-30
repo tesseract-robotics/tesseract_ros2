@@ -32,7 +32,8 @@ inline Eigen::VectorXd toEigen(const std::vector<double>& vector)
  * @param joint_names The vector joint names used to order the output
  * @return Eigen::VectorXd in the same order as joint_names
  */
-inline Eigen::VectorXd toEigen(const sensor_msgs::msg::JointState& joint_state, const std::vector<std::string>& joint_names)
+inline Eigen::VectorXd toEigen(const sensor_msgs::msg::JointState& joint_state,
+                               const std::vector<std::string>& joint_names)
 {
   Eigen::VectorXd position;
   position.resize(static_cast<long>(joint_state.position.size()));
@@ -49,7 +50,8 @@ inline Eigen::VectorXd toEigen(const sensor_msgs::msg::JointState& joint_state, 
   return position;
 }
 
-inline Eigen::MatrixXd toEigen(const trajectory_msgs::msg::JointTrajectory& joint_trajectory, const std::vector<std::string>& joint_names)
+inline Eigen::MatrixXd toEigen(const trajectory_msgs::msg::JointTrajectory& joint_trajectory,
+                               const std::vector<std::string>& joint_names)
 {
   Eigen::MatrixXd trajectory;
   trajectory.resize(joint_trajectory.points.size(), joint_trajectory.points.front().positions.size());
@@ -93,7 +95,8 @@ toWaypoint(const geometry_msgs::msg::Pose& pose, Eigen::Isometry3d change_base =
  * @return std::vector<Waypoint::Ptr>
  */
 inline std::vector<tesseract_motion_planners::Waypoint::Ptr>
-toWaypoint(const std::vector<geometry_msgs::msg::Pose>& poses, Eigen::Isometry3d change_base = Eigen::Isometry3d::Identity())
+toWaypoint(const std::vector<geometry_msgs::msg::Pose>& poses,
+           Eigen::Isometry3d change_base = Eigen::Isometry3d::Identity())
 {
   std::vector<tesseract_motion_planners::Waypoint::Ptr> waypoints;
   waypoints.reserve(poses.size());
@@ -148,7 +151,7 @@ inline tesseract_motion_planners::Waypoint::Ptr toWaypoint(const sensor_msgs::ms
  * @param waypoints A vector of waypoints
  * @return Pose Array
  */
-//geometry_msgs::msg::PoseArray toPoseArray(const std::vector<tesseract_motion_planners::Waypoint::Ptr>& waypoints)
+// geometry_msgs::msg::PoseArray toPoseArray(const std::vector<tesseract_motion_planners::Waypoint::Ptr>& waypoints)
 //{
 //  geometry_msgs::msg::PoseArray pose_array;
 //  for (const auto& wp : waypoints)
@@ -174,7 +177,7 @@ inline tesseract_motion_planners::Waypoint::Ptr toWaypoint(const sensor_msgs::ms
  * @param process_definition A process definition
  * @return Pose Array
  */
-//geometry_msgs::msg::PoseArray toPoseArray(const tesseract_process_planners::ProcessDefinition& process_definition)
+// geometry_msgs::msg::PoseArray toPoseArray(const tesseract_process_planners::ProcessDefinition& process_definition)
 //{
 //  geometry_msgs::msg::PoseArray full_path;
 //  for (size_t i = 0; i < process_definition.segments.size(); ++i)
@@ -222,5 +225,5 @@ inline bool toCSVFile(const trajectory_msgs::msg::JointTrajectory& joint_traject
   myfile.close();
   return true;
 }
-}  // namespace tesseact_rosutils
+}  // namespace tesseract_rosutils
 #endif  // TESSERACT_ROSUTILS_CONVERSIONS_H

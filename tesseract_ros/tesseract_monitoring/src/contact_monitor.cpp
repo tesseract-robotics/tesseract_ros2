@@ -106,8 +106,9 @@ void callbackModifyTesseractEnv(const tesseract_msgs::srv::ModifyEnvironment::Re
   return;
 }
 
-void callbackComputeContactResultVector(const tesseract_msgs::srv::ComputeContactResultVector::Request::SharedPtr request,
-                                        tesseract_msgs::srv::ComputeContactResultVector::Response::SharedPtr response)
+void callbackComputeContactResultVector(
+    const tesseract_msgs::srv::ComputeContactResultVector::Request::SharedPtr request,
+    tesseract_msgs::srv::ComputeContactResultVector::Response::SharedPtr response)
 {
   ContactResultMap contacts;
 
@@ -141,7 +142,7 @@ void callbackTesseractEnvDiff(const tesseract_msgs::msg::TesseractState::SharedP
   boost::mutex::scoped_lock(modify_mutex);
   if (!processMsg(*(tess->getEnvironment()), *state))
   {
-//    ROS_ERROR("Invalid TesseractState diff message");  // TODO Joe: re-enable
+    //    ROS_ERROR("Invalid TesseractState diff message");  // TODO Joe: re-enable
   }
 
   // Create a new manager
@@ -170,7 +171,6 @@ int main(int argc, char** argv)
 
   node->get_parameter_or("robot_description", robot_description, ROBOT_DESCRIPTION_PARAM);
   node->get_parameter_or("publish_environment", publish_environment, false);
-
 
   node->get_parameter_or("robot_description", robot_description, ROBOT_DESCRIPTION_PARAM);
   node->get_parameter_or("publish_environment", publish_environment, false);
@@ -243,14 +243,17 @@ int main(int argc, char** argv)
 
   joint_states_sub = node->create_subscription<sensor_msgs::msg::JointState>("joint_states", 1, &callbackJointState);
   contact_results_pub = node->create_publisher<tesseract_msgs::msg::ContactResultVector>("contact_results", 1);
-  modify_env_service = node->create_service<tesseract_msgs::srv::ModifyEnvironment>("modify_environment", &callbackModifyTesseractEnv);
+  modify_env_service =
+      node->create_service<tesseract_msgs::srv::ModifyEnvironment>("modify_environment", &callbackModifyTesseractEnv);
 
   if (publish_environment)
     environment_pub = node->create_publisher<tesseract_msgs::msg::TesseractState>("tesseract", 100);
 
-  compute_contact_results = node->create_service<tesseract_msgs::srv::ComputeContactResultVector>("compute_contact_results", &callbackComputeContactResultVector);
+  compute_contact_results = node->create_service<tesseract_msgs::srv::ComputeContactResultVector>(
+      "compute_contact_results", &callbackComputeContactResultVector);
 
-  environment_diff_sub = node->create_subscription<tesseract_msgs::msg::TesseractState>("tesseract_diff", 100, &callbackTesseractEnvDiff);
+  environment_diff_sub =
+      node->create_subscription<tesseract_msgs::msg::TesseractState>("tesseract_diff", 100, &callbackTesseractEnvDiff);
 
   RCLCPP_INFO(node->get_logger(), "Contact Monitor Running!");
 

@@ -496,9 +496,10 @@ int main(int argc, char** argv)
   plotter->plotTrajectory(prob->GetKin()->getJointNames(), getTraj(place1_opt.x(), prob->GetVars()));
 
   manager = prob->GetEnv()->getContinuousContactManager();
-  adjacency_map = std::make_shared<tesseract_environment::AdjacencyMap>(prob->GetEnv()->getSceneGraph(),
-                                                                        prob->GetKin()->getActiveLinkNames(),
-                                                                        prob->GetEnv()->getCurrentState()->link_transforms);
+  adjacency_map =
+      std::make_shared<tesseract_environment::AdjacencyMap>(prob->GetEnv()->getSceneGraph(),
+                                                            prob->GetKin()->getActiveLinkNames(),
+                                                            prob->GetEnv()->getCurrentState()->link_transforms);
 
   manager->setActiveCollisionObjects(adjacency_map->getActiveLinkNames());
   manager->setContactDistanceThreshold(0);
@@ -517,7 +518,8 @@ int main(int argc, char** argv)
   joint_seat_1_car.parent_link_name = "car";
   joint_seat_1_car.child_link_name = "seat_1";
   joint_seat_1_car.type = JointType::FIXED;
-  joint_seat_1_car.parent_to_joint_origin_transform = state->link_transforms["car"].inverse() * state->link_transforms["seat_1"];
+  joint_seat_1_car.parent_to_joint_origin_transform =
+      state->link_transforms["car"].inverse() * state->link_transforms["seat_1"];
 
   tesseract_->getEnvironment()->moveLink(joint_seat_1_car);
 
@@ -546,9 +548,10 @@ int main(int argc, char** argv)
   plotter->plotTrajectory(prob->GetKin()->getJointNames(), getTraj(pick2_opt.x(), prob->GetVars()));
 
   manager = prob->GetEnv()->getContinuousContactManager();
-  adjacency_map = std::make_shared<tesseract_environment::AdjacencyMap>(prob->GetEnv()->getSceneGraph(),
-                                                                        prob->GetKin()->getActiveLinkNames(),
-                                                                        prob->GetEnv()->getCurrentState()->link_transforms);
+  adjacency_map =
+      std::make_shared<tesseract_environment::AdjacencyMap>(prob->GetEnv()->getSceneGraph(),
+                                                            prob->GetKin()->getActiveLinkNames(),
+                                                            prob->GetEnv()->getCurrentState()->link_transforms);
 
   manager->setActiveCollisionObjects(adjacency_map->getActiveLinkNames());
   manager->setContactDistanceThreshold(0);

@@ -442,8 +442,8 @@ bool ManipulationWidget::changeTCP(QString tcp_link)
   else
   {
     tcp_property_->setString(tcp_link);
-    tcp_ =
-        env_state_->link_transforms[inv_kin_->getTipLinkName()].inverse() * env_state_->link_transforms[tcp_link.toStdString()];
+    tcp_ = env_state_->link_transforms[inv_kin_->getTipLinkName()].inverse() *
+           env_state_->link_transforms[tcp_link.toStdString()];
     success = true;
   }
 

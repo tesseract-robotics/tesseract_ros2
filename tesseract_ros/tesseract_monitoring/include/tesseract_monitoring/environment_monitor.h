@@ -77,7 +77,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <tesseract_kinematics/core/forward_kinematics.h>
 
 // TODO: Dynamic reconfigure deprecated in ROS 2. Use parameter updates instead.
-//class DynamicReconfigureImpl;
+// class DynamicReconfigureImpl;
 
 namespace tesseract_monitoring
 {
@@ -137,18 +137,17 @@ public:
    *  @param tf A pointer to a tf::Transformer
    *  @param name A name identifying this planning scene monitor
    */
-  explicit EnvironmentMonitor(const std::string& name,
-                              rclcpp::Node::SharedPtr node);
+  explicit EnvironmentMonitor(const std::string& name, rclcpp::Node::SharedPtr node);
 
   /** @brief Constructor
    *  @param rml A pointer to a kinematic model loader
    *  @param tf A pointer to a tf::Transformer
    *  @param name A name identifying this planning scene monitor
    */
-//  EnvironmentMonitor(tesseract::Tesseract::Ptr tesseract,
-//                     const std::string& name,
-//                     const std::string& discrete_plugin = "",
-//                     const std::string& continuous_plugin = "");
+  //  EnvironmentMonitor(tesseract::Tesseract::Ptr tesseract,
+  //                     const std::string& name,
+  //                     const std::string& discrete_plugin = "",
+  //                     const std::string& continuous_plugin = "");
 
   virtual ~EnvironmentMonitor();
 
@@ -314,8 +313,8 @@ protected:
 
   tesseract::Tesseract::Ptr tesseract_;
   boost::shared_mutex scene_update_mutex_;  /// mutex for stored scene
-  rclcpp::Time last_update_time_;              /// Last time the state was updated
-  rclcpp::Time last_robot_motion_time_;        /// Last time the robot has moved
+  rclcpp::Time last_update_time_;           /// Last time the state was updated
+  rclcpp::Time last_robot_motion_time_;     /// Last time the robot has moved
   bool enforce_next_state_update_;          /// flag to enforce immediate state update in onStateUpdate()
 
   std::string robot_description_;
@@ -345,7 +344,8 @@ protected:
 
   /// lock access to update_callbacks_
   boost::recursive_mutex update_lock_;
-  std::vector<boost::function<void(EnvironmentUpdateType)> > update_callbacks_;  /// List of callbacks to trigger when updates are received
+  std::vector<boost::function<void(EnvironmentUpdateType)> > update_callbacks_;  /// List of callbacks to trigger when
+                                                                                 /// updates are received
 
 private:
   rclcpp::Node::SharedPtr node_;
@@ -375,8 +375,9 @@ private:
                                      std::shared_ptr<tesseract_msgs::srv::GetEnvironmentChanges::Response> res);
 
   /** @brief Callback for get the environment information via service request */
-  void getEnvironmentInformationCallback(const std::shared_ptr<tesseract_msgs::srv::GetEnvironmentInformation::Request> req,
-                                         std::shared_ptr<tesseract_msgs::srv::GetEnvironmentInformation::Response> res);
+  void
+  getEnvironmentInformationCallback(const std::shared_ptr<tesseract_msgs::srv::GetEnvironmentInformation::Request> req,
+                                    std::shared_ptr<tesseract_msgs::srv::GetEnvironmentInformation::Response> res);
 
   /** @brief Callback to save the scene graph to a DOT via a service request */
   void saveSceneGraphCallback(const std::shared_ptr<tesseract_msgs::srv::SaveSceneGraph::Request> req,
@@ -412,10 +413,9 @@ private:
   // Only access this from callback functions (and constructor)
   rclcpp::Time last_robot_state_update_wall_time_;
 
-//  DynamicReconfigureImpl* reconfigure_impl_;
+  //  DynamicReconfigureImpl* reconfigure_impl_;
 
   rclcpp::callback_group::CallbackGroup::SharedPtr callback_group_;
-
 };
 typedef std::shared_ptr<EnvironmentMonitor> EnvironmentMonitorPtr;
 typedef std::shared_ptr<const EnvironmentMonitor> EnvironmentMonitorConstPtr;

@@ -69,8 +69,8 @@ public:
    * @param robot_model The current kinematic model to build on
    * @param tf A pointer to the tf transformer to use
    */
-//  CurrentStateMonitor(const tesseract_environment::Environment::ConstPtr& env,
-//                      const tesseract::ForwardKinematicsManager::ConstPtr& kinematics_manager);
+  //  CurrentStateMonitor(const tesseract_environment::Environment::ConstPtr& env,
+  //                      const tesseract::ForwardKinematicsManager::ConstPtr& kinematics_manager);
 
   /** @brief Constructor.
    *  @param robot_model The current kinematic model to build on

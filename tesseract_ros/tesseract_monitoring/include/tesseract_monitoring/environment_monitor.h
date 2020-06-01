@@ -73,7 +73,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_scene_graph/graph.h>
 #include <tesseract_urdf/urdf_parser.h>
-#include <tesseract_scene_graph/parser/srdf_parser.h>
+#include <tesseract_scene_graph/srdf_model.h>
 #include <tesseract_kinematics/core/forward_kinematics.h>
 
 // TODO: Dynamic reconfigure deprecated in ROS 2. Use parameter updates instead.
@@ -157,7 +157,7 @@ public:
   {
     return tesseract_->getEnvironment()->getSceneGraph();
   }
-  const tesseract_scene_graph::SRDFModel::ConstPtr& getSRDF() const { return tesseract_->getSRDFModel(); }
+  const tesseract_scene_graph::SRDFModel::ConstPtr& getSRDF() const { return tesseract_->getSRDFModelConst(); }
   /** @brief <b>Avoid this function!</b>  Returns an @b
    *         unsafe pointer to the current planning scene.
    * @warning Most likely you do not want to call this function

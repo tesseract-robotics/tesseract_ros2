@@ -20,6 +20,7 @@ jobs:
              CLANG_FORMAT_CHECK: file,
              CLANG_FORMAT_VERSION: 8,
              DOCKER_IMAGE: "mpowelson/tesseract:eloquent",
+             AFTER_INIT: "apt-get upgrade -y",
              BADGE: clang-format}
           - {OS_NAME: ubuntu,
              OS_CODE_NAME: bionic,
@@ -28,6 +29,7 @@ jobs:
              UPSTREAM_WORKSPACE: 'dependencies.rosinstall',
              ROSDEP_SKIP_KEYS: "bullet3 fcl ompl",
              DOCKER_IMAGE: "mpowelson/tesseract:eloquent",
+             AFTER_INIT: "apt-get upgrade -y",
              BADGE: clang-tidy,
              NOT_TEST_BUILD: true,
              UPSTREAM_CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=Debug",
@@ -35,7 +37,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
-      - uses: 'ipa-mdl/industrial_ci@revert-revert-colcon-chain'
+      - uses: 'ros-industrial/industrial_ci@master'
         env: ${{matrix.env}}
   test:
     strategy:
@@ -49,11 +51,12 @@ jobs:
              UPSTREAM_WORKSPACE: 'dependencies.rosinstall',
              ROSDEP_SKIP_KEYS: "bullet3 fcl ompl",
              DOCKER_IMAGE: "mpowelson/tesseract:eloquent",
+             AFTER_INIT: "apt-get upgrade -y",
              BADGE: bionic,
              UPSTREAM_CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=Debug",
              TARGET_CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=Debug -DTESSERACT_ENABLE_TESTING=ON"}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
-      - uses: 'ipa-mdl/industrial_ci@revert-revert-colcon-chain'
+      - uses: 'ros-industrial/industrial_ci@master'
         env: ${{matrix.env}}

@@ -612,6 +612,8 @@ static inline bool fromMsg(tesseract_geometry::Geometry::Ptr& geometry,
         om, tesseract_geometry::Octree::SubType::BOX));  // TODO: Need to include SubShapeType in message
   }
 
+  return (geometry != nullptr);
+
   // BUG: Should report an error here
   //  if (geometry == nullptr)
   //    ROS_ERROR("Unable to construct shape corresponding to shape_msg of type %d",

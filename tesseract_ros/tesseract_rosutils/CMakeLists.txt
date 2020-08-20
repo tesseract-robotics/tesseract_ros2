@@ -103,3 +103,20 @@ install(FILES
   DESTINATION lib/cmake/${PROJECT_NAME})
 
 export(EXPORT ${PROJECT_NAME}-targets FILE ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-targets.cmake)
+
+if(BUILD_TESTING)
+  find_package(ament_cmake_gtest REQUIRED)
+  find_package(GTest REQUIRED)
+  find_package(tesseract_support REQUIRED)
+
+  ament_add_gtest(${PROJECT_NAME}_unit test/tesseract_rosutils_unit.cpp)
+  target_link_libraries(${PROJECT_NAME}_unit GTest::GTest GTest::Main tesseract::tesseract_support ${PROJECT_NAME})
+	if(CXX_FEATURE_FOUND EQUAL "-1")
+            target_compile_options(${PROJECT_NAME}_unit PRIVATE -std=c++17)
+	else()
+            target_compile_features(${PROJECT_NAME}_unit PRIVATE cxx_std_17)
+	endif()
+  target_include_directories(${PROJECT_NAME}_unit PRIVATE
+      "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+      "$<INSTALL_INTERFACE:include>")
+endif()

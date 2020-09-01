@@ -25,6 +25,7 @@
   <depend>ament_index_cpp</depend>
 
   <depend>octomap</depend>
+  <depend>gtest</depend>
 
   <export>
     <build_type>ament_cmake</build_type>

@@ -3,4 +3,4 @@ float64[] position
 float64[] velocity
 float64[] acceleration
 float64[] effort
-duration time_from_start
+builtin_interfaces/Duration time_from_start

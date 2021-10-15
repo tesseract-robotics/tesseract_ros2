@@ -1,9 +1,11 @@
 cmake_minimum_required(VERSION 3.5.0)
 project(tesseract_msgs)
 
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 14)
+endif()
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
   add_compile_options(
-    -std=c++14
     -Wall
     -Wextra
     -Winconsistent-missing-override
@@ -11,7 +13,6 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     -Wsign-conversion)
 else()
   add_compile_options(
-    -std=c++14
     -Wall
     -Wextra
     -Wsuggest-override
@@ -19,8 +20,11 @@ else()
     -Wsign-conversion)
 endif()
 
-find_package(catkin REQUIRED COMPONENTS
-  message_generation
+find_package(ament_cmake REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
+
+set(interface_pkg_deps
+  builtin_interfaces
   std_msgs
   sensor_msgs
   geometry_msgs
@@ -30,95 +34,81 @@ find_package(catkin REQUIRED COMPONENTS
   actionlib_msgs
 )
 
-add_message_files(
-  DIRECTORY msg
-  FILES
-    AllowedCollisionEntry.msg
-    ChainGroup.msg
-    CollisionGeometry.msg
-    CollisionMarginData.msg
-    CollisionMarginOverrideType.msg
-    ContactMarginPair.msg
-    ContactResult.msg
-    ContactResultVector.msg
-    Environment.msg
-    EnvironmentCommand.msg
-    EnvironmentState.msg
-    Geometry.msg
-    GroupsJointState.msg
-    GroupsJointStates.msg
-    GroupsKinematicPlugins.msg
-    GroupsTCP.msg
-    GroupsTCPs.msg
-    Inertial.msg
-    Joint.msg
-    JointCalibration.msg
-    JointDynamics.msg
-    JointGroup.msg
-    JointLimits.msg
-    JointMimic.msg
-    JointSafety.msg
-    JointState.msg
-    KinematicsInformation.msg
-    KinematicsPluginInfo.msg
-    Link.msg
-    LinkGroup.msg
-    Material.msg
-    Mesh.msg
-    ObjectColor.msg
-    OctreeSubType.msg
-    PlannerProfileRemapping.msg
-    PlanningRequest.msg
-    PlanningRequestArchive.msg
-    PlanningResponse.msg
-    PlanningResponseArchive.msg
-    PluginInfo.msg
-    ProfileMap.msg
-    SceneGraph.msg
-    StringDoublePair.msg
-    StringLimitsPair.msg
-    StringPair.msg
-    StringPluginInfoPair.msg
-    TaskInfo.msg
-    Trajectory.msg
-    TransformMap.msg
-    VisualGeometry.msg
+foreach(pkg ${interface_pkg_deps})
+  find_package(${pkg} REQUIRED)
+endforeach()
+
+set(message_files
+  "msg/AllowedCollisionEntry.msg"
+  "msg/ChainGroup.msg"
+  "msg/CollisionGeometry.msg"
+  "msg/CollisionMarginData.msg"
+  "msg/CollisionMarginOverrideType.msg"
+  "msg/ContactMarginPair.msg"
+  "msg/ContactResult.msg"
+  "msg/ContactResultVector.msg"
+  "msg/Environment.msg"
+  "msg/EnvironmentCommand.msg"
+  "msg/EnvironmentState.msg"
+  "msg/Geometry.msg"
+  "msg/GroupsJointState.msg"
+  "msg/GroupsJointStates.msg"
+  "msg/GroupsKinematicPlugins.msg"
+  "msg/GroupsTCP.msg"
+  "msg/GroupsTCPs.msg"
+  "msg/Inertial.msg"
+  "msg/Joint.msg"
+  "msg/JointCalibration.msg"
+  "msg/JointDynamics.msg"
+  "msg/JointGroup.msg"
+  "msg/JointLimits.msg"
+  "msg/JointMimic.msg"
+  "msg/JointSafety.msg"
+  "msg/JointState.msg"
+  "msg/KinematicsInformation.msg"
+  "msg/KinematicsPluginInfo.msg"
+  "msg/Link.msg"
+  "msg/LinkGroup.msg"
+  "msg/Material.msg"
+  "msg/Mesh.msg"
+  "msg/ObjectColor.msg"
+  "msg/OctreeSubType.msg"
+  "msg/PlannerProfileRemapping.msg"
+  "msg/PlanningRequest.msg"
+  "msg/PlanningRequestArchive.msg"
+  "msg/PlanningResponse.msg"
+  "msg/PlanningResponseArchive.msg"
+  "msg/PluginInfo.msg"
+  "msg/ProfileMap.msg"
+  "msg/SceneGraph.msg"
+  "msg/StringDoublePair.msg"
+  "msg/StringLimitsPair.msg"
+  "msg/StringPair.msg"
+  "msg/StringPluginInfoPair.msg"
+  "msg/TaskInfo.msg"
+  "msg/Trajectory.msg"
+  "msg/TransformMap.msg"
+  "msg/VisualGeometry.msg"
 )
 
-add_service_files(
-  DIRECTORY srv
-  FILES
-    ComputeContactResultVector.srv
-    GetEnvironmentChanges.srv
-    GetEnvironmentInformation.srv
-    ModifyEnvironment.srv
-    SaveSceneGraph.srv
+set(service_files
+  "srv/ComputeContactResultVector.srv"
+  "srv/GetEnvironmentChanges.srv"
+  "srv/GetEnvironmentInformation.srv"
+  "srv/ModifyEnvironment.srv"
+  "srv/SaveSceneGraph.srv"
 )
 
-add_action_files(
-  DIRECTORY action
-  FILES GetMotionPlan.action
+set(action_files
+  "action/GetMotionPlan.action"
 )
 
-generate_messages(
-  DEPENDENCIES
-    std_msgs
-    sensor_msgs
-    geometry_msgs
-    shape_msgs
-    octomap_msgs
-    trajectory_msgs
-    actionlib_msgs
+rosidl_generate_interfaces(${PROJECT_NAME}
+  ${message_files}
+  ${service_files}
+  ${action_files}
+  DEPENDENCIES ${interface_pkg_deps}
 )
 
-catkin_package(
-  CATKIN_DEPENDS
-    message_runtime
-    std_msgs
-    sensor_msgs
-    geometry_msgs
-    shape_msgs
-    octomap_msgs
-    trajectory_msgs
-    actionlib_msgs
-)
+ament_export_dependencies(${interface_pkg_deps} rosidl_default_runtime)
+ament_package()

@@ -6,6 +6,7 @@ find_package(rclcpp REQUIRED)
 find_package(ament_index_cpp REQUIRED)
 find_package(tesseract_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(visualization_msgs REQUIRED)
 
 find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
@@ -63,6 +64,7 @@ ament_target_dependencies(${PROJECT_NAME}
     tf2_eigen
     tf2_ros
     geometry_msgs
+    visualization_msgs
     yaml_cpp_vendor
     std_msgs
 )
@@ -101,6 +103,7 @@ endif()
 
 ament_export_dependencies(
     tesseract_msgs
+    visualization_msgs
     rclcpp
     tesseract_environment
     tesseract_scene_graph

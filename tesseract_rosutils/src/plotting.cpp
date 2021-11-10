@@ -27,10 +27,11 @@
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <future>
 #include <thread>
-#include <ros/console.h>
+// #include <ros/console.h>
 #include <Eigen/Geometry>
-#include <ros/ros.h>
-#include <geometry_msgs/PoseArray.h>
+#include <rclcpp/rclcpp.hpp>
+#include <geometry_msgs/msg/pose_array.hpp>
+#include <chrono>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_rosutils/plotting.h>
@@ -53,39 +54,42 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 namespace tesseract_rosutils
 {
+static const char LOGGER_ID[] = "tesseract_rosutils_plotting";
+
 ROSPlotting::ROSPlotting(std::string root_link, std::string topic_namespace)
   : root_link_(root_link), topic_namespace_(topic_namespace)
 {
-  ros::NodeHandle nh;
-
+  node_ = rclcpp::Node::make_shared(LOGGER_ID);
   trajectory_pub_ =
-      nh.advertise<tesseract_msgs::Trajectory>(topic_namespace + "/display_tesseract_trajectory", 1, true);
-  collisions_pub_ = nh.advertise<visualization_msgs::MarkerArray>(topic_namespace + "/display_collisions", 1, true);
-  arrows_pub_ = nh.advertise<visualization_msgs::MarkerArray>(topic_namespace + "/display_arrows", 1, true);
-  axes_pub_ = nh.advertise<visualization_msgs::MarkerArray>(topic_namespace + "/display_axes", 1, true);
-  tool_path_pub_ = nh.advertise<visualization_msgs::MarkerArray>(topic_namespace + "/display_tool_path", 1, true);
+      node_->create_publisher<tesseract_msgs::msg::Trajectory>(topic_namespace + "/display_tesseract_trajectory", 1);
+  collisions_pub_ = node_->create_publisher<visualization_msgs::msg::MarkerArray>(topic_namespace + "/display_collisions", 1);
+  arrows_pub_ = node_->create_publisher<visualization_msgs::msg::MarkerArray>(topic_namespace + "/display_arrows", 1);
+  axes_pub_ = node_->create_publisher<visualization_msgs::msg::MarkerArray>(topic_namespace + "/display_axes", 1);
+  tool_path_pub_ = node_->create_publisher<visualization_msgs::msg::MarkerArray>(topic_namespace + "/display_tool_path", 1);
 }
 
 bool ROSPlotting::isConnected() const { return true; }
 
 void ROSPlotting::waitForConnection(long seconds) const
 {
-  const ros::WallTime start_time = ros::WallTime::now();
-  const ros::WallDuration wall_timeout{ static_cast<double>(seconds) };
-  while (ros::ok())
+  const auto start_time = std::chrono::steady_clock::now();
+  const auto wall_timeout = std::chrono::seconds(seconds);
+  rclcpp::WallRate loop_rate{std::chrono::milliseconds(20)};
+
+  while (rclcpp::ok())
   {
     if (isConnected())
       return;
 
-    if (wall_timeout >= ros::WallDuration(0))
+    if (wall_timeout >= std::chrono::seconds(0))
     {
-      const ros::WallTime current_time = ros::WallTime::now();
+      const auto current_time = std::chrono::steady_clock::now();
       if ((current_time - start_time) >= wall_timeout)
         return;
     }
 
-    ros::WallDuration(0.02).sleep();
-    ros::spinOnce();
+    loop_rate.sleep();
+    rclcpp::spin_some(node_);
   }
 
   return;
@@ -95,17 +99,17 @@ void ROSPlotting::plotEnvironment(const tesseract_environment::Environment& /*en
 
 void ROSPlotting::plotEnvironmentState(const tesseract_scene_graph::SceneState& /*state*/, std::string /*ns*/) {}
 
-void ROSPlotting::plotTrajectory(const tesseract_msgs::Trajectory& traj, std::string /*ns*/)
+void ROSPlotting::plotTrajectory(const tesseract_msgs::msg::Trajectory& traj, std::string /*ns*/)
 {
-  trajectory_pub_.publish(traj);
-  ros::spinOnce();
+  trajectory_pub_->publish(traj);
+  rclcpp::spin_some(node_);
 }
 
 void ROSPlotting::plotTrajectory(const tesseract_common::JointTrajectory& traj,
                                  const tesseract_scene_graph::StateSolver& /*state_solver*/,
                                  std::string /*ns*/)
 {
-  tesseract_msgs::Trajectory msg;
+  tesseract_msgs::msg::Trajectory msg;
 
   // Set the joint trajectory message
   toMsg(msg.joint_trajectory, traj);
@@ -117,7 +121,7 @@ void ROSPlotting::plotTrajectory(const tesseract_environment::Environment& env,
                                  const tesseract_planning::Instruction& instruction,
                                  std::string /*ns*/)
 {
-  tesseract_msgs::Trajectory msg;
+  tesseract_msgs::msg::Trajectory msg;
 
   // Set tesseract state information
   toMsg(msg.environment, env);
@@ -140,18 +144,18 @@ void ROSPlotting::plotMarker(const tesseract_visualization::Marker& marker, std:
     case static_cast<int>(tesseract_visualization::MarkerType::ARROW):
     {
       const auto& m = dynamic_cast<const tesseract_visualization::ArrowMarker&>(marker);
-      visualization_msgs::MarkerArray msg;
-      auto arrow_marker_msg = getMarkerArrowMsg(marker_counter_, root_link_, topic_namespace_, ros::Time::now(), m);
+      visualization_msgs::msg::MarkerArray msg;
+      auto arrow_marker_msg = getMarkerArrowMsg(marker_counter_, root_link_, topic_namespace_, node_->now(), m);
       msg.markers.push_back(arrow_marker_msg);
-      arrows_pub_.publish(msg);
+      arrows_pub_->publish(msg);
       break;
     }
     case static_cast<int>(tesseract_visualization::MarkerType::AXIS):
     {
       const auto& m = dynamic_cast<const tesseract_visualization::AxisMarker&>(marker);
-      visualization_msgs::MarkerArray msg =
-          getMarkerAxisMsg(marker_counter_, root_link_, topic_namespace_, ros::Time::now(), m.axis, m.getScale());
-      axes_pub_.publish(msg);
+      visualization_msgs::msg::MarkerArray msg =
+          getMarkerAxisMsg(marker_counter_, root_link_, topic_namespace_, node_->now(), m.axis, m.getScale());
+      axes_pub_->publish(msg);
       break;
     }
     case static_cast<int>(tesseract_visualization::MarkerType::TOOLPATH):
@@ -161,20 +165,20 @@ void ROSPlotting::plotMarker(const tesseract_visualization::Marker& marker, std:
       if (!ns.empty())
         prefix_ns = topic_namespace_ + "/" + ns;
 
-      visualization_msgs::MarkerArray msg;
+      visualization_msgs::msg::MarkerArray msg;
       long cnt = 0;
-      auto time = ros::Time::now();
+      auto time = node_->now();
       for (const auto& s : m.toolpath)
       {
         std::string segment_ns = prefix_ns + "/segment_" + std::to_string(cnt++) + "/poses";
         for (const auto& p : s)
         {
-          visualization_msgs::MarkerArray msg_pose =
+          visualization_msgs::msg::MarkerArray msg_pose =
               getMarkerAxisMsg(marker_counter_, root_link_, segment_ns, time, p, m.scale);
           msg.markers.insert(msg.markers.end(), msg_pose.markers.begin(), msg_pose.markers.end());
         }
       }
-      tool_path_pub_.publish(msg);
+      tool_path_pub_->publish(msg);
       break;
     }
     case static_cast<int>(tesseract_visualization::MarkerType::CONTACT_RESULTS):
@@ -182,21 +186,21 @@ void ROSPlotting::plotMarker(const tesseract_visualization::Marker& marker, std:
       const auto& m = dynamic_cast<const tesseract_visualization::ContactResultsMarker&>(marker);
       if (!m.dist_results.empty())
       {
-        visualization_msgs::MarkerArray msg =
-            getContactResultsMarkerArrayMsg(marker_counter_, root_link_, topic_namespace_, ros::Time::now(), m);
-        collisions_pub_.publish(msg);
-        ros::spinOnce();
+        visualization_msgs::msg::MarkerArray msg =
+            getContactResultsMarkerArrayMsg(marker_counter_, root_link_, topic_namespace_, node_->now(), m);
+        collisions_pub_->publish(msg);
+        rclcpp::spin_some(node_);
       }
       break;
     }
   }
 
-  ros::spinOnce();
+  rclcpp::spin_some(node_);
 }
 
 void ROSPlotting::plotMarkers(const std::vector<tesseract_visualization::Marker::Ptr>& /*markers*/, std::string /*ns*/)
 {
-  ROS_ERROR("ROSPlotting: Plotting vector of markers is currently no implemented!");
+  RCLCPP_ERROR(node_->get_logger(), "ROSPlotting: Plotting vector of markers is currently not implemented!");
 }
 
 void ROSPlotting::plotToolpath(const tesseract_environment::Environment& env,
@@ -208,14 +212,14 @@ void ROSPlotting::plotToolpath(const tesseract_environment::Environment& env,
   plotMarker(marker, ns);
 }
 
-visualization_msgs::MarkerArray ROSPlotting::getMarkerAxisMsg(int& id_counter,
+visualization_msgs::msg::MarkerArray ROSPlotting::getMarkerAxisMsg(int& id_counter,
                                                               const std::string& frame_id,
                                                               const std::string& ns,
-                                                              const ros::Time& time_stamp,
+                                                              const rclcpp::Time& time_stamp,
                                                               const Eigen::Isometry3d& axis,
                                                               const Eigen::Vector3d& scale)
 {
-  visualization_msgs::MarkerArray msg;
+  visualization_msgs::msg::MarkerArray msg;
   Eigen::Vector3d x_axis = axis.matrix().block<3, 1>(0, 0);
   Eigen::Vector3d y_axis = axis.matrix().block<3, 1>(0, 1);
   Eigen::Vector3d z_axis = axis.matrix().block<3, 1>(0, 2);
@@ -239,24 +243,24 @@ void ROSPlotting::clear(std::string ns)
 {
   // Remove old arrows
   marker_counter_ = 0;
-  visualization_msgs::MarkerArray msg;
-  visualization_msgs::Marker marker;
+  visualization_msgs::msg::MarkerArray msg;
+  visualization_msgs::msg::Marker marker;
   marker.header.frame_id = root_link_;
-  marker.header.stamp = ros::Time();
+  marker.header.stamp = rclcpp::Time();
   marker.ns = ns;
   marker.id = 0;
-  marker.type = visualization_msgs::Marker::ARROW;
-  marker.action = visualization_msgs::Marker::DELETEALL;
+  marker.type = visualization_msgs::msg::Marker::ARROW;
+  marker.action = visualization_msgs::msg::Marker::DELETEALL;
   msg.markers.push_back(marker);
-  collisions_pub_.publish(msg);
-  arrows_pub_.publish(msg);
-  axes_pub_.publish(msg);
-  ros::spinOnce();
+  collisions_pub_->publish(msg);
+  arrows_pub_->publish(msg);
+  axes_pub_->publish(msg);
+  rclcpp::spin_some(node_);
 }
 
 static void waitForInputAsync(std::string message)
 {
-  ROS_ERROR("%s", message.c_str());
+  RCLCPP_ERROR(rclcpp::get_logger(LOGGER_ID), "%s", message.c_str());
   std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 }
 
@@ -265,24 +269,24 @@ void ROSPlotting::waitForInput(std::string message)
   std::chrono::microseconds timeout(1);
   std::future<void> future = std::async(std::launch::async, [=]() { waitForInputAsync(message); });
   while (future.wait_for(timeout) != std::future_status::ready)
-    ros::spinOnce();
+    rclcpp::spin_some(node_);
 }
 
 const std::string& ROSPlotting::getRootLink() const { return root_link_; }
 
-visualization_msgs::Marker ROSPlotting::getMarkerArrowMsg(int& id_counter,
+visualization_msgs::msg::Marker ROSPlotting::getMarkerArrowMsg(int& id_counter,
                                                           const std::string& frame_id,
                                                           const std::string& ns,
-                                                          const ros::Time& time_stamp,
+                                                          const rclcpp::Time& time_stamp,
                                                           const tesseract_visualization::ArrowMarker& marker)
 {
-  visualization_msgs::Marker marker_msg;
+  visualization_msgs::msg::Marker marker_msg;
   marker_msg.header.frame_id = frame_id;
   marker_msg.header.stamp = time_stamp;
   marker_msg.ns = ns;
   marker_msg.id = ++id_counter;
-  marker_msg.type = visualization_msgs::Marker::ARROW;
-  marker_msg.action = visualization_msgs::Marker::ADD;
+  marker_msg.type = visualization_msgs::msg::Marker::ARROW;
+  marker_msg.action = visualization_msgs::msg::Marker::ADD;
   marker_msg.pose.position.x = marker.pose.translation().x();
   marker_msg.pose.position.y = marker.pose.translation().y();
   marker_msg.pose.position.z = marker.pose.translation().z();
@@ -306,22 +310,22 @@ visualization_msgs::Marker ROSPlotting::getMarkerArrowMsg(int& id_counter,
   return marker_msg;
 }
 
-visualization_msgs::Marker ROSPlotting::getMarkerCylinderMsg(int& id_counter,
+visualization_msgs::msg::Marker ROSPlotting::getMarkerCylinderMsg(int& id_counter,
                                                              const std::string& frame_id,
                                                              const std::string& ns,
-                                                             const ros::Time& time_stamp,
+                                                             const rclcpp::Time& time_stamp,
                                                              const Eigen::Ref<const Eigen::Vector3d>& pt1,
                                                              const Eigen::Ref<const Eigen::Vector3d>& pt2,
                                                              const Eigen::Ref<const Eigen::Vector4d>& rgba,
                                                              double scale)
 {
-  visualization_msgs::Marker marker;
+  visualization_msgs::msg::Marker marker;
   marker.header.frame_id = frame_id;
   marker.header.stamp = time_stamp;
   marker.ns = ns;
   marker.id = ++id_counter;
-  marker.type = visualization_msgs::Marker::CYLINDER;
-  marker.action = visualization_msgs::Marker::ADD;
+  marker.type = visualization_msgs::msg::Marker::CYLINDER;
+  marker.action = visualization_msgs::msg::Marker::ADD;
 
   double length = scale * std::abs((pt2 - pt1).norm());
   Eigen::Vector3d x, y, z, center;
@@ -356,14 +360,14 @@ visualization_msgs::Marker ROSPlotting::getMarkerCylinderMsg(int& id_counter,
   return marker;
 }
 
-visualization_msgs::MarkerArray
+visualization_msgs::msg::MarkerArray
 ROSPlotting::getContactResultsMarkerArrayMsg(int& id_counter,
                                              const std::string& frame_id,
                                              const std::string& ns,
-                                             const ros::Time& time_stamp,
+                                             const rclcpp::Time& time_stamp,
                                              const tesseract_visualization::ContactResultsMarker& marker)
 {
-  visualization_msgs::MarkerArray msg;
+  visualization_msgs::msg::MarkerArray msg;
   for (unsigned i = 0; i < marker.dist_results.size(); ++i)
   {
     const tesseract_collision::ContactResult& dist = marker.dist_results[i];

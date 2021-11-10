@@ -26,17 +26,19 @@
 
 #include <tesseract_common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
+#include <rclcpp/rclcpp.hpp>
+#include <ament_index_cpp/get_package_share_directory.hpp>
 #include <octomap_msgs/conversions.h>
-#include <eigen_conversions/eigen_msg.h>
-#include <ros/console.h>
-#include <ros/package.h>
-#include <tesseract_msgs/StringLimitsPair.h>
+//#include <ros/console.h>
+#include <tesseract_msgs/msg/string_limits_pair.hpp>
+#include <tf2_eigen/tf2_eigen.h>
+
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_command_language/core/serialization.h>
 #include <tesseract_rosutils/utils.h>
-#include <map>
 
+const std::string LOGGER_ID{"tesseract_rosutils_utils"};
 namespace tesseract_rosutils
 {
 std::string locateResource(const std::string& url)
@@ -53,7 +55,7 @@ std::string locateResource(const std::string& url)
 
     std::string package = mod_url.substr(0, pos);
     mod_url.erase(0, pos);
-    std::string package_path = ros::package::getPath(package);
+    std::string package_path = ament_index_cpp::get_package_share_directory(package);
 
     if (package_path.empty())
     {
@@ -77,7 +79,7 @@ std::string locateResource(const std::string& url)
 
 ROSResourceLocator::ROSResourceLocator() : SimpleResourceLocator(::tesseract_rosutils::locateResource) {}
 
-bool isMsgEmpty(const sensor_msgs::JointState& msg)
+bool isMsgEmpty(const sensor_msgs::msg::JointState& msg)
 {
   return msg.name.empty() && msg.position.empty() && msg.velocity.empty() && msg.effort.empty();
 }
@@ -221,7 +223,7 @@ bool isIdentical(const tesseract_geometry::Geometry& shape1, const tesseract_geo
       break;
     }
     default:
-      ROS_ERROR("This geometric shape type (%d) is not supported", static_cast<int>(shape1.getType()));
+      RCLCPP_ERROR(rclcpp::get_logger(LOGGER_ID), "This geometric shape type (%d) is not supported", static_cast<int>(shape1.getType()));
       return false;
   }
 
@@ -268,20 +270,20 @@ bool isIdentical(const tesseract_scene_graph::Link& link1, const tesseract_scene
   return true;
 }
 
-bool fromMsg(Eigen::Isometry3d& pose, const geometry_msgs::Pose& pose_msg)
+bool fromMsg(Eigen::Isometry3d& pose, const geometry_msgs::msg::Pose& pose_msg)
 {
-  tf::poseMsgToEigen(pose_msg, pose);
+  tf2::fromMsg(pose_msg, pose);
   return true;
 }
 
-bool toMsg(geometry_msgs::Pose& pose_msg, const Eigen::Isometry3d& pose)
+bool toMsg(geometry_msgs::msg::Pose& pose_msg, const Eigen::Isometry3d& pose)
 {
-  tf::poseEigenToMsg(pose, pose_msg);
+  pose_msg = tf2::toMsg(pose);
   return true;
 }
 
 /** \brief Construct the message that corresponds to the shape. Return false on failure. */
-bool toMsg(tesseract_msgs::Geometry& geometry_msgs, const tesseract_geometry::Geometry& geometry)
+bool toMsg(tesseract_msgs::msg::Geometry& geometry_msgs, const tesseract_geometry::Geometry& geometry)
 {
   switch (geometry.getType())
   {
@@ -289,7 +291,7 @@ bool toMsg(tesseract_msgs::Geometry& geometry_msgs, const tesseract_geometry::Ge
     {
       const auto& sphere = static_cast<const tesseract_geometry::Sphere&>(geometry);
 
-      geometry_msgs.type = tesseract_msgs::Geometry::SPHERE;
+      geometry_msgs.type = tesseract_msgs::msg::Geometry::SPHERE;
       geometry_msgs.sphere_radius = sphere.getRadius();
       break;
     }
@@ -297,7 +299,7 @@ bool toMsg(tesseract_msgs::Geometry& geometry_msgs, const tesseract_geometry::Ge
     {
       const auto& box = static_cast<const tesseract_geometry::Box&>(geometry);
 
-      geometry_msgs.type = tesseract_msgs::Geometry::BOX;
+      geometry_msgs.type = tesseract_msgs::msg::Geometry::BOX;
       geometry_msgs.box_dimensions[0] = box.getX();
       geometry_msgs.box_dimensions[1] = box.getY();
       geometry_msgs.box_dimensions[2] = box.getZ();
@@ -307,7 +309,7 @@ bool toMsg(tesseract_msgs::Geometry& geometry_msgs, const tesseract_geometry::Ge
     {
       const auto& cylinder = static_cast<const tesseract_geometry::Cylinder&>(geometry);
 
-      geometry_msgs.type = tesseract_msgs::Geometry::CYLINDER;
+      geometry_msgs.type = tesseract_msgs::msg::Geometry::CYLINDER;
       geometry_msgs.cylinder_dimensions[0] = cylinder.getRadius();
       geometry_msgs.cylinder_dimensions[1] = cylinder.getLength();
       break;
@@ -316,7 +318,7 @@ bool toMsg(tesseract_msgs::Geometry& geometry_msgs, const tesseract_geometry::Ge
     {
       const auto& cone = static_cast<const tesseract_geometry::Cone&>(geometry);
 
-      geometry_msgs.type = tesseract_msgs::Geometry::CONE;
+      geometry_msgs.type = tesseract_msgs::msg::Geometry::CONE;
       geometry_msgs.cone_dimensions[0] = cone.getRadius();
       geometry_msgs.cone_dimensions[1] = cone.getLength();
       break;
@@ -325,7 +327,7 @@ bool toMsg(tesseract_msgs::Geometry& geometry_msgs, const tesseract_geometry::Ge
     {
       const auto& plane = static_cast<const tesseract_geometry::Plane&>(geometry);
 
-      geometry_msgs.type = tesseract_msgs::Geometry::PLANE;
+      geometry_msgs.type = tesseract_msgs::msg::Geometry::PLANE;
       geometry_msgs.plane_coeff[0] = plane.getA();
       geometry_msgs.plane_coeff[1] = plane.getB();
       geometry_msgs.plane_coeff[2] = plane.getC();
@@ -336,7 +338,7 @@ bool toMsg(tesseract_msgs::Geometry& geometry_msgs, const tesseract_geometry::Ge
     {
       const auto& octree = static_cast<const tesseract_geometry::Octree&>(geometry);
 
-      geometry_msgs.type = tesseract_msgs::Geometry::OCTREE;
+      geometry_msgs.type = tesseract_msgs::msg::Geometry::OCTREE;
       octomap_msgs::fullMapToMsg(*(octree.getOctree()), geometry_msgs.octomap);
       break;
     }
@@ -344,7 +346,7 @@ bool toMsg(tesseract_msgs::Geometry& geometry_msgs, const tesseract_geometry::Ge
     {
       const auto& mesh = static_cast<const tesseract_geometry::Mesh&>(geometry);
 
-      geometry_msgs.type = tesseract_msgs::Geometry::MESH;
+      geometry_msgs.type = tesseract_msgs::msg::Geometry::MESH;
 
       const tesseract_common::VectorVector3d& vertices = *(mesh.getVertices());
       geometry_msgs.mesh.vertices.resize(vertices.size());
@@ -384,7 +386,7 @@ bool toMsg(tesseract_msgs::Geometry& geometry_msgs, const tesseract_geometry::Ge
     {
       const auto& mesh = static_cast<const tesseract_geometry::ConvexMesh&>(geometry);
 
-      geometry_msgs.type = tesseract_msgs::Geometry::CONVEX_MESH;
+      geometry_msgs.type = tesseract_msgs::msg::Geometry::CONVEX_MESH;
 
       const tesseract_common::VectorVector3d& vertices = *(mesh.getVertices());
       geometry_msgs.mesh.vertices.resize(vertices.size());
@@ -424,7 +426,7 @@ bool toMsg(tesseract_msgs::Geometry& geometry_msgs, const tesseract_geometry::Ge
     {
       const auto& mesh = static_cast<const tesseract_geometry::SDFMesh&>(geometry);
 
-      geometry_msgs.type = tesseract_msgs::Geometry::SDF_MESH;
+      geometry_msgs.type = tesseract_msgs::msg::Geometry::SDF_MESH;
 
       const tesseract_common::VectorVector3d& vertices = *(mesh.getVertices());
       geometry_msgs.mesh.vertices.resize(vertices.size());
@@ -462,7 +464,7 @@ bool toMsg(tesseract_msgs::Geometry& geometry_msgs, const tesseract_geometry::Ge
     }
     default:
     {
-      ROS_ERROR("Unable to construct primitive shape message for shape of type %d",
+      RCLCPP_ERROR(rclcpp::get_logger(LOGGER_ID), "Unable to construct primitive shape message for shape of type %d",
                 static_cast<int>(geometry.getType()));
       return false;
     }
@@ -471,36 +473,36 @@ bool toMsg(tesseract_msgs::Geometry& geometry_msgs, const tesseract_geometry::Ge
   return true;
 }
 
-bool fromMsg(tesseract_geometry::Geometry::Ptr& geometry, const tesseract_msgs::Geometry& geometry_msg)
+bool fromMsg(tesseract_geometry::Geometry::Ptr& geometry, const tesseract_msgs::msg::Geometry& geometry_msg)
 {
   geometry = nullptr;
-  if (geometry_msg.type == tesseract_msgs::Geometry::SPHERE)
+  if (geometry_msg.type == tesseract_msgs::msg::Geometry::SPHERE)
   {
     geometry = std::make_shared<tesseract_geometry::Sphere>(geometry_msg.sphere_radius);
   }
-  else if (geometry_msg.type == tesseract_msgs::Geometry::BOX)
+  else if (geometry_msg.type == tesseract_msgs::msg::Geometry::BOX)
   {
     geometry = std::make_shared<tesseract_geometry::Box>(
         geometry_msg.box_dimensions[0], geometry_msg.box_dimensions[1], geometry_msg.box_dimensions[2]);
   }
-  else if (geometry_msg.type == tesseract_msgs::Geometry::CYLINDER)
+  else if (geometry_msg.type == tesseract_msgs::msg::Geometry::CYLINDER)
   {
     geometry = std::make_shared<tesseract_geometry::Cylinder>(geometry_msg.cylinder_dimensions[0],
                                                               geometry_msg.cylinder_dimensions[1]);
   }
-  else if (geometry_msg.type == tesseract_msgs::Geometry::CONE)
+  else if (geometry_msg.type == tesseract_msgs::msg::Geometry::CONE)
   {
     geometry =
         std::make_shared<tesseract_geometry::Cone>(geometry_msg.cone_dimensions[0], geometry_msg.cone_dimensions[1]);
   }
-  else if (geometry_msg.type == tesseract_msgs::Geometry::PLANE)
+  else if (geometry_msg.type == tesseract_msgs::msg::Geometry::PLANE)
   {
     geometry = std::make_shared<tesseract_geometry::Plane>(geometry_msg.plane_coeff[0],
                                                            geometry_msg.plane_coeff[1],
                                                            geometry_msg.plane_coeff[2],
                                                            geometry_msg.plane_coeff[3]);
   }
-  else if (geometry_msg.type == tesseract_msgs::Geometry::MESH)
+  else if (geometry_msg.type == tesseract_msgs::msg::Geometry::MESH)
   {
     auto vertices = std::make_shared<tesseract_common::VectorVector3d>(geometry_msg.mesh.vertices.size());
     auto faces = std::make_shared<Eigen::VectorXi>(geometry_msg.mesh.faces.size());
@@ -523,7 +525,7 @@ bool fromMsg(tesseract_geometry::Geometry::Ptr& geometry, const tesseract_msgs::
     else
       geometry = std::make_shared<tesseract_geometry::Mesh>(vertices, faces);
   }
-  else if (geometry_msg.type == tesseract_msgs::Geometry::CONVEX_MESH)
+  else if (geometry_msg.type == tesseract_msgs::msg::Geometry::CONVEX_MESH)
   {
     auto vertices = std::make_shared<tesseract_common::VectorVector3d>(geometry_msg.mesh.vertices.size());
     auto faces = std::make_shared<Eigen::VectorXi>(geometry_msg.mesh.faces.size());
@@ -546,7 +548,7 @@ bool fromMsg(tesseract_geometry::Geometry::Ptr& geometry, const tesseract_msgs::
     else
       geometry = std::make_shared<tesseract_geometry::ConvexMesh>(vertices, faces);
   }
-  else if (geometry_msg.type == tesseract_msgs::Geometry::SDF_MESH)
+  else if (geometry_msg.type == tesseract_msgs::msg::Geometry::SDF_MESH)
   {
     auto vertices = std::make_shared<tesseract_common::VectorVector3d>(geometry_msg.mesh.vertices.size());
     auto faces = std::make_shared<Eigen::VectorXi>(geometry_msg.mesh.faces.size());
@@ -569,7 +571,7 @@ bool fromMsg(tesseract_geometry::Geometry::Ptr& geometry, const tesseract_msgs::
     else
       geometry = std::make_shared<tesseract_geometry::SDFMesh>(vertices, faces);
   }
-  else if (geometry_msg.type == tesseract_msgs::Geometry::OCTREE)
+  else if (geometry_msg.type == tesseract_msgs::msg::Geometry::OCTREE)
   {
     std::shared_ptr<octomap::OcTree> om(static_cast<octomap::OcTree*>(octomap_msgs::msgToMap(geometry_msg.octomap)));
     auto sub_type = static_cast<tesseract_geometry::Octree::SubType>(geometry_msg.octomap_sub_type.type);
@@ -578,14 +580,14 @@ bool fromMsg(tesseract_geometry::Geometry::Ptr& geometry, const tesseract_msgs::
 
   if (geometry == nullptr)
   {
-    ROS_ERROR("Unable to construct shape corresponding to shape_msg of type %d", static_cast<int>(geometry_msg.type));
+    RCLCPP_ERROR(rclcpp::get_logger(LOGGER_ID), "Unable to construct shape corresponding to shape_msg of type %d", static_cast<int>(geometry_msg.type));
     return false;
   }
 
   return true;
 }
 
-bool toMsg(tesseract_msgs::Material& material_msg, const tesseract_scene_graph::Material::Ptr& material)
+bool toMsg(tesseract_msgs::msg::Material& material_msg, const tesseract_scene_graph::Material::Ptr& material)
 {
   if (material == nullptr)
   {
@@ -602,7 +604,7 @@ bool toMsg(tesseract_msgs::Material& material_msg, const tesseract_scene_graph::
   return true;
 }
 
-bool fromMsg(tesseract_scene_graph::Material::Ptr& material, const tesseract_msgs::Material& material_msg)
+bool fromMsg(tesseract_scene_graph::Material::Ptr& material, const tesseract_msgs::msg::Material& material_msg)
 {
   if (material_msg.empty)
   {
@@ -619,7 +621,7 @@ bool fromMsg(tesseract_scene_graph::Material::Ptr& material, const tesseract_msg
   return true;
 }
 
-bool toMsg(tesseract_msgs::Inertial& inertial_msg, const tesseract_scene_graph::Inertial::Ptr& inertial)
+bool toMsg(tesseract_msgs::msg::Inertial& inertial_msg, const tesseract_scene_graph::Inertial::Ptr& inertial)
 {
   if (inertial == nullptr)
   {
@@ -640,7 +642,7 @@ bool toMsg(tesseract_msgs::Inertial& inertial_msg, const tesseract_scene_graph::
   return true;
 }
 
-bool fromMsg(tesseract_scene_graph::Inertial::Ptr& inertial, const tesseract_msgs::Inertial& inertial_msg)
+bool fromMsg(tesseract_scene_graph::Inertial::Ptr& inertial, const tesseract_msgs::msg::Inertial& inertial_msg)
 {
   if (inertial_msg.empty)
   {
@@ -663,7 +665,7 @@ bool fromMsg(tesseract_scene_graph::Inertial::Ptr& inertial, const tesseract_msg
   return true;
 }
 
-bool toMsg(tesseract_msgs::VisualGeometry& visual_msg, const tesseract_scene_graph::Visual& visual)
+bool toMsg(tesseract_msgs::msg::VisualGeometry& visual_msg, const tesseract_scene_graph::Visual& visual)
 {
   visual_msg.name = visual.name;
   tf::poseEigenToMsg(visual.origin, visual_msg.origin);
@@ -672,7 +674,7 @@ bool toMsg(tesseract_msgs::VisualGeometry& visual_msg, const tesseract_scene_gra
   return true;
 }
 
-bool fromMsg(tesseract_scene_graph::Visual::Ptr& visual, const tesseract_msgs::VisualGeometry& visual_msg)
+bool fromMsg(tesseract_scene_graph::Visual::Ptr& visual, const tesseract_msgs::msg::VisualGeometry& visual_msg)
 {
   visual = std::make_shared<tesseract_scene_graph::Visual>();
   visual->name = visual_msg.name;
@@ -682,7 +684,7 @@ bool fromMsg(tesseract_scene_graph::Visual::Ptr& visual, const tesseract_msgs::V
   return true;
 }
 
-bool toMsg(tesseract_msgs::CollisionGeometry& collision_msg, const tesseract_scene_graph::Collision& collision)
+bool toMsg(tesseract_msgs::msg::CollisionGeometry& collision_msg, const tesseract_scene_graph::Collision& collision)
 {
   collision_msg.name = collision.name;
   tf::poseEigenToMsg(collision.origin, collision_msg.origin);
@@ -690,7 +692,7 @@ bool toMsg(tesseract_msgs::CollisionGeometry& collision_msg, const tesseract_sce
   return true;
 }
 
-bool fromMsg(tesseract_scene_graph::Collision::Ptr& collision, const tesseract_msgs::CollisionGeometry& collision_msg)
+bool fromMsg(tesseract_scene_graph::Collision::Ptr& collision, const tesseract_msgs::msg::CollisionGeometry& collision_msg)
 {
   collision = std::make_shared<tesseract_scene_graph::Collision>();
   collision->name = collision_msg.name;
@@ -699,7 +701,7 @@ bool fromMsg(tesseract_scene_graph::Collision::Ptr& collision, const tesseract_m
   return true;
 }
 
-bool toMsg(tesseract_msgs::Link& link_msg, const tesseract_scene_graph::Link& link)
+bool toMsg(tesseract_msgs::msg::Link& link_msg, const tesseract_scene_graph::Link& link)
 {
   link_msg.name = link.getName();
 
@@ -716,7 +718,7 @@ bool toMsg(tesseract_msgs::Link& link_msg, const tesseract_scene_graph::Link& li
   return true;
 }
 
-tesseract_scene_graph::Link fromMsg(const tesseract_msgs::Link& link_msg)
+tesseract_scene_graph::Link fromMsg(const tesseract_msgs::msg::Link& link_msg)
 {
   tesseract_scene_graph::Link link(link_msg.name);
 
@@ -733,7 +735,7 @@ tesseract_scene_graph::Link fromMsg(const tesseract_msgs::Link& link_msg)
   return link;
 }
 
-bool toMsg(tesseract_msgs::JointCalibration& joint_calibration_msg,
+bool toMsg(tesseract_msgs::msg::JointCalibration& joint_calibration_msg,
            const tesseract_scene_graph::JointCalibration::Ptr& joint_calibration)
 {
   if (joint_calibration == nullptr)
@@ -752,7 +754,7 @@ bool toMsg(tesseract_msgs::JointCalibration& joint_calibration_msg,
 }
 
 bool fromMsg(tesseract_scene_graph::JointCalibration::Ptr& joint_calibration,
-             const tesseract_msgs::JointCalibration& joint_calibration_msg)
+             const tesseract_msgs::msg::JointCalibration& joint_calibration_msg)
 {
   if (joint_calibration_msg.empty)
   {
@@ -770,7 +772,7 @@ bool fromMsg(tesseract_scene_graph::JointCalibration::Ptr& joint_calibration,
   return true;
 }
 
-bool toMsg(tesseract_msgs::JointDynamics& joint_dynamics_msg,
+bool toMsg(tesseract_msgs::msg::JointDynamics& joint_dynamics_msg,
            const tesseract_scene_graph::JointDynamics::Ptr& joint_dynamics)
 {
   if (joint_dynamics == nullptr)
@@ -787,7 +789,7 @@ bool toMsg(tesseract_msgs::JointDynamics& joint_dynamics_msg,
 }
 
 bool fromMsg(tesseract_scene_graph::JointDynamics::Ptr& joint_dynamics,
-             const tesseract_msgs::JointDynamics& joint_dynamics_msg)
+             const tesseract_msgs::msg::JointDynamics& joint_dynamics_msg)
 {
   if (joint_dynamics_msg.empty)
   {
@@ -804,7 +806,7 @@ bool fromMsg(tesseract_scene_graph::JointDynamics::Ptr& joint_dynamics,
   return true;
 }
 
-bool toMsg(tesseract_msgs::JointLimits& joint_limits_msg, const tesseract_scene_graph::JointLimits::Ptr& joint_limits)
+bool toMsg(tesseract_msgs::msg::JointLimits& joint_limits_msg, const tesseract_scene_graph::JointLimits::Ptr& joint_limits)
 {
   if (joint_limits == nullptr)
   {
@@ -825,7 +827,7 @@ bool toMsg(tesseract_msgs::JointLimits& joint_limits_msg, const tesseract_scene_
   return true;
 }
 
-bool fromMsg(tesseract_scene_graph::JointLimits::Ptr& joint_limits, const tesseract_msgs::JointLimits& joint_limits_msg)
+bool fromMsg(tesseract_scene_graph::JointLimits::Ptr& joint_limits, const tesseract_msgs::msg::JointLimits& joint_limits_msg)
 {
   if (joint_limits_msg.empty)
   {
@@ -848,7 +850,7 @@ bool fromMsg(tesseract_scene_graph::JointLimits::Ptr& joint_limits, const tesser
   return true;
 }
 
-bool toMsg(tesseract_msgs::JointMimic& joint_mimic_msg, const tesseract_scene_graph::JointMimic::Ptr& joint_mimic)
+bool toMsg(tesseract_msgs::msg::JointMimic& joint_mimic_msg, const tesseract_scene_graph::JointMimic::Ptr& joint_mimic)
 {
   if (joint_mimic == nullptr)
   {
@@ -865,7 +867,7 @@ bool toMsg(tesseract_msgs::JointMimic& joint_mimic_msg, const tesseract_scene_gr
   return true;
 }
 
-bool fromMsg(tesseract_scene_graph::JointMimic::Ptr& joint_mimic, const tesseract_msgs::JointMimic& joint_mimic_msg)
+bool fromMsg(tesseract_scene_graph::JointMimic::Ptr& joint_mimic, const tesseract_msgs::msg::JointMimic& joint_mimic_msg)
 {
   if (joint_mimic_msg.empty)
   {
@@ -884,7 +886,7 @@ bool fromMsg(tesseract_scene_graph::JointMimic::Ptr& joint_mimic, const tesserac
   return true;
 }
 
-bool toMsg(tesseract_msgs::JointSafety& joint_safety_msg, const tesseract_scene_graph::JointSafety::Ptr& joint_safety)
+bool toMsg(tesseract_msgs::msg::JointSafety& joint_safety_msg, const tesseract_scene_graph::JointSafety::Ptr& joint_safety)
 {
   if (joint_safety == nullptr)
   {
@@ -903,7 +905,7 @@ bool toMsg(tesseract_msgs::JointSafety& joint_safety_msg, const tesseract_scene_
   return true;
 }
 
-bool fromMsg(tesseract_scene_graph::JointSafety::Ptr& joint_safety, const tesseract_msgs::JointSafety& joint_safety_msg)
+bool fromMsg(tesseract_scene_graph::JointSafety::Ptr& joint_safety, const tesseract_msgs::msg::JointSafety& joint_safety_msg)
 {
   if (joint_safety_msg.empty)
   {
@@ -924,7 +926,7 @@ bool fromMsg(tesseract_scene_graph::JointSafety::Ptr& joint_safety, const tesser
   return true;
 }
 
-bool toMsg(tesseract_msgs::Joint& joint_msg, const tesseract_scene_graph::Joint& joint)
+bool toMsg(tesseract_msgs::msg::Joint& joint_msg, const tesseract_scene_graph::Joint& joint)
 {
   joint_msg.name = joint.getName();
   joint_msg.type = static_cast<unsigned char>(joint.type);
@@ -957,7 +959,7 @@ bool toMsg(tesseract_msgs::Joint& joint_msg, const tesseract_scene_graph::Joint&
   return success;
 }
 
-tesseract_scene_graph::Joint fromMsg(const tesseract_msgs::Joint& joint_msg)
+tesseract_scene_graph::Joint fromMsg(const tesseract_msgs::msg::Joint& joint_msg)
 {
   tesseract_scene_graph::Joint joint(joint_msg.name);
 
@@ -981,7 +983,7 @@ tesseract_scene_graph::Joint fromMsg(const tesseract_msgs::Joint& joint_msg)
 }
 
 tesseract_planning::PlannerProfileRemapping
-fromMsg(const tesseract_msgs::PlannerProfileRemapping& profile_remapping_msg)
+fromMsg(const tesseract_msgs::msg::PlannerProfileRemapping& profile_remapping_msg)
 {
   tesseract_planning::PlannerProfileRemapping profile_remapping;
   for (std::size_t i = 0; i < profile_remapping_msg.planner.size(); ++i)
@@ -996,16 +998,16 @@ fromMsg(const tesseract_msgs::PlannerProfileRemapping& profile_remapping_msg)
   return profile_remapping;
 }
 
-tesseract_msgs::PlannerProfileRemapping toMsg(const tesseract_planning::PlannerProfileRemapping& profile_remapping)
+tesseract_msgs::msg::PlannerProfileRemapping toMsg(const tesseract_planning::PlannerProfileRemapping& profile_remapping)
 {
-  tesseract_msgs::PlannerProfileRemapping profile_remapping_msg;
+  tesseract_msgs::msg::PlannerProfileRemapping profile_remapping_msg;
   for (const auto& planner_remapping : profile_remapping)
   {
     profile_remapping_msg.planner.push_back(planner_remapping.first);
-    tesseract_msgs::ProfileMap mapping;
+    tesseract_msgs::msg::ProfileMap mapping;
     for (const auto& planner_pair : planner_remapping.second)
     {
-      tesseract_msgs::StringPair p;
+      tesseract_msgs::msg::StringPair p;
       p.first = planner_pair.first;
       p.second = planner_pair.second;
       mapping.pairs.push_back(p);
@@ -1016,7 +1018,7 @@ tesseract_msgs::PlannerProfileRemapping toMsg(const tesseract_planning::PlannerP
 }
 
 tesseract_common::PairsCollisionMarginData
-fromMsg(const std::vector<tesseract_msgs::ContactMarginPair>& contact_margin_pairs_msg)
+fromMsg(const std::vector<tesseract_msgs::msg::ContactMarginPair>& contact_margin_pairs_msg)
 {
   tesseract_common::PairsCollisionMarginData contact_margin_pairs;
 
@@ -1031,13 +1033,13 @@ fromMsg(const std::vector<tesseract_msgs::ContactMarginPair>& contact_margin_pai
   return contact_margin_pairs;
 }
 
-std::vector<tesseract_msgs::ContactMarginPair>
+std::vector<tesseract_msgs::msg::ContactMarginPair>
 toMsg(const tesseract_common::PairsCollisionMarginData& contact_margin_pairs)
 {
-  std::vector<tesseract_msgs::ContactMarginPair> contact_margin_pairs_msg;
+  std::vector<tesseract_msgs::msg::ContactMarginPair> contact_margin_pairs_msg;
   for (const auto& pair : contact_margin_pairs)
   {
-    tesseract_msgs::ContactMarginPair cmp;
+    tesseract_msgs::msg::ContactMarginPair cmp;
     cmp.first.first = pair.first.first;
     cmp.first.second = pair.first.second;
     cmp.second = pair.second;
@@ -1047,19 +1049,19 @@ toMsg(const tesseract_common::PairsCollisionMarginData& contact_margin_pairs)
   return contact_margin_pairs_msg;
 }
 
-tesseract_common::CollisionMarginData fromMsg(const tesseract_msgs::CollisionMarginData& contact_margin_data_msg)
+tesseract_common::CollisionMarginData fromMsg(const tesseract_msgs::msg::CollisionMarginData& contact_margin_data_msg)
 {
   tesseract_common::PairsCollisionMarginData contact_margin_pairs = fromMsg(contact_margin_data_msg.margin_pairs);
   return tesseract_common::CollisionMarginData(contact_margin_data_msg.default_margin, contact_margin_pairs);
 }
 
-tesseract_msgs::CollisionMarginData toMsg(const tesseract_common::CollisionMarginData& contact_margin_data)
+tesseract_msgs::msg::CollisionMarginData toMsg(const tesseract_common::CollisionMarginData& contact_margin_data)
 {
-  tesseract_msgs::CollisionMarginData contact_margin_data_msg;
+  tesseract_msgs::msg::CollisionMarginData contact_margin_data_msg;
   contact_margin_data_msg.default_margin = contact_margin_data.getDefaultCollisionMargin();
   for (const auto& pair : contact_margin_data.getPairCollisionMargins())
   {
-    tesseract_msgs::ContactMarginPair cmp;
+    tesseract_msgs::msg::ContactMarginPair cmp;
     cmp.first.first = pair.first.first;
     cmp.first.second = pair.first.second;
     cmp.second = pair.second;
@@ -1069,27 +1071,27 @@ tesseract_msgs::CollisionMarginData toMsg(const tesseract_common::CollisionMargi
 }
 
 tesseract_common::CollisionMarginOverrideType
-fromMsg(const tesseract_msgs::CollisionMarginOverrideType& contact_margin_override_type_msg)
+fromMsg(const tesseract_msgs::msg::CollisionMarginOverrideType& contact_margin_override_type_msg)
 {
   switch (contact_margin_override_type_msg.type)
   {
-    case tesseract_msgs::CollisionMarginOverrideType::OVERRIDE_DEFAULT_MARGIN:
+    case tesseract_msgs::msg::CollisionMarginOverrideType::OVERRIDE_DEFAULT_MARGIN:
     {
       return tesseract_common::CollisionMarginOverrideType::OVERRIDE_DEFAULT_MARGIN;
     }
-    case tesseract_msgs::CollisionMarginOverrideType::OVERRIDE_PAIR_MARGIN:
+    case tesseract_msgs::msg::CollisionMarginOverrideType::OVERRIDE_PAIR_MARGIN:
     {
       return tesseract_common::CollisionMarginOverrideType::OVERRIDE_PAIR_MARGIN;
     }
-    case tesseract_msgs::CollisionMarginOverrideType::MODIFY_PAIR_MARGIN:
+    case tesseract_msgs::msg::CollisionMarginOverrideType::MODIFY_PAIR_MARGIN:
     {
       return tesseract_common::CollisionMarginOverrideType::MODIFY_PAIR_MARGIN;
     }
-    case tesseract_msgs::CollisionMarginOverrideType::REPLACE:
+    case tesseract_msgs::msg::CollisionMarginOverrideType::REPLACE:
     {
       return tesseract_common::CollisionMarginOverrideType::REPLACE;
     }
-    case tesseract_msgs::CollisionMarginOverrideType::NONE:
+    case tesseract_msgs::msg::CollisionMarginOverrideType::NONE:
     {
       return tesseract_common::CollisionMarginOverrideType::NONE;
     }
@@ -1100,47 +1102,47 @@ fromMsg(const tesseract_msgs::CollisionMarginOverrideType& contact_margin_overri
   }
 }
 
-tesseract_msgs::CollisionMarginOverrideType
+tesseract_msgs::msg::CollisionMarginOverrideType
 toMsg(const tesseract_common::CollisionMarginOverrideType& contact_margin_override_type)
 {
-  tesseract_msgs::CollisionMarginOverrideType contact_margin_override_type_msg;
+  tesseract_msgs::msg::CollisionMarginOverrideType contact_margin_override_type_msg;
   switch (static_cast<int>(contact_margin_override_type))
   {
     case static_cast<int>(tesseract_collision::CollisionMarginOverrideType::OVERRIDE_DEFAULT_MARGIN):
     {
-      contact_margin_override_type_msg.type = tesseract_msgs::CollisionMarginOverrideType::OVERRIDE_DEFAULT_MARGIN;
+      contact_margin_override_type_msg.type = tesseract_msgs::msg::CollisionMarginOverrideType::OVERRIDE_DEFAULT_MARGIN;
       break;
     }
     case static_cast<int>(tesseract_collision::CollisionMarginOverrideType::OVERRIDE_PAIR_MARGIN):
     {
-      contact_margin_override_type_msg.type = tesseract_msgs::CollisionMarginOverrideType::OVERRIDE_PAIR_MARGIN;
+      contact_margin_override_type_msg.type = tesseract_msgs::msg::CollisionMarginOverrideType::OVERRIDE_PAIR_MARGIN;
       break;
     }
     case static_cast<int>(tesseract_collision::CollisionMarginOverrideType::MODIFY_PAIR_MARGIN):
     {
-      contact_margin_override_type_msg.type = tesseract_msgs::CollisionMarginOverrideType::MODIFY_PAIR_MARGIN;
+      contact_margin_override_type_msg.type = tesseract_msgs::msg::CollisionMarginOverrideType::MODIFY_PAIR_MARGIN;
       break;
     }
     case static_cast<int>(tesseract_collision::CollisionMarginOverrideType::REPLACE):
     {
-      contact_margin_override_type_msg.type = tesseract_msgs::CollisionMarginOverrideType::REPLACE;
+      contact_margin_override_type_msg.type = tesseract_msgs::msg::CollisionMarginOverrideType::REPLACE;
       break;
     }
     case static_cast<int>(tesseract_collision::CollisionMarginOverrideType::NONE):
     {
-      contact_margin_override_type_msg.type = tesseract_msgs::CollisionMarginOverrideType::NONE;
+      contact_margin_override_type_msg.type = tesseract_msgs::msg::CollisionMarginOverrideType::NONE;
       break;
     }
   }
   return contact_margin_override_type_msg;
 }
 
-bool toMsg(std::vector<tesseract_msgs::AllowedCollisionEntry>& acm_msg,
+bool toMsg(std::vector<tesseract_msgs::msg::AllowedCollisionEntry>& acm_msg,
            const tesseract_scene_graph::AllowedCollisionMatrix& acm)
 {
   for (const auto& entry : acm.getAllAllowedCollisions())
   {
-    tesseract_msgs::AllowedCollisionEntry entry_msg;
+    tesseract_msgs::msg::AllowedCollisionEntry entry_msg;
     entry_msg.link_1 = entry.first.first;
     entry_msg.link_2 = entry.first.second;
     entry_msg.reason = entry.second;
@@ -1150,14 +1152,14 @@ bool toMsg(std::vector<tesseract_msgs::AllowedCollisionEntry>& acm_msg,
   return true;
 }
 
-void toMsg(tesseract_msgs::SceneGraph& scene_graph_msg, const tesseract_scene_graph::SceneGraph& scene_graph)
+void toMsg(tesseract_msgs::msg::SceneGraph& scene_graph_msg, const tesseract_scene_graph::SceneGraph& scene_graph)
 {
   scene_graph_msg.id = scene_graph.getName();
   scene_graph_msg.root = scene_graph.getRoot();
 
   for (const auto& link : scene_graph.getLinks())
   {
-    tesseract_msgs::Link link_msg;
+    tesseract_msgs::msg::Link link_msg;
     toMsg(link_msg, *link);
     scene_graph_msg.links.push_back(link_msg);
     if (!scene_graph.getLinkVisibility(link->getName()))
@@ -1169,7 +1171,7 @@ void toMsg(tesseract_msgs::SceneGraph& scene_graph_msg, const tesseract_scene_gr
 
   for (const auto& joint : scene_graph.getJoints())
   {
-    tesseract_msgs::Joint joint_msg;
+    tesseract_msgs::msg::Joint joint_msg;
     toMsg(joint_msg, *joint);
     scene_graph_msg.joints.push_back(joint_msg);
   }
@@ -1177,7 +1179,7 @@ void toMsg(tesseract_msgs::SceneGraph& scene_graph_msg, const tesseract_scene_gr
   toMsg(scene_graph_msg.acm, *scene_graph.getAllowedCollisionMatrix());
 }
 
-tesseract_scene_graph::SceneGraph fromMsg(const tesseract_msgs::SceneGraph& scene_graph_msg)
+tesseract_scene_graph::SceneGraph fromMsg(const tesseract_msgs::msg::SceneGraph& scene_graph_msg)
 {
   tesseract_scene_graph::SceneGraph g(scene_graph_msg.id);
 
@@ -1201,13 +1203,13 @@ tesseract_scene_graph::SceneGraph fromMsg(const tesseract_msgs::SceneGraph& scen
   return g;
 }
 
-bool toMsg(tesseract_msgs::EnvironmentCommand& command_msg, const tesseract_environment::Command& command)
+bool toMsg(tesseract_msgs::msg::EnvironmentCommand& command_msg, const tesseract_environment::Command& command)
 {
   switch (command.getType())
   {
     case tesseract_environment::CommandType::ADD_LINK:
     {
-      command_msg.command = tesseract_msgs::EnvironmentCommand::ADD_LINK;
+      command_msg.command = tesseract_msgs::msg::EnvironmentCommand::ADD_LINK;
       const auto& cmd = static_cast<const tesseract_environment::AddLinkCommand&>(command);
       tesseract_rosutils::toMsg(command_msg.add_link, *(cmd.getLink()));
       command_msg.add_replace_allowed = cmd.replaceAllowed();
@@ -1219,14 +1221,14 @@ bool toMsg(tesseract_msgs::EnvironmentCommand& command_msg, const tesseract_envi
     }
     case tesseract_environment::CommandType::MOVE_LINK:
     {
-      command_msg.command = tesseract_msgs::EnvironmentCommand::MOVE_LINK;
+      command_msg.command = tesseract_msgs::msg::EnvironmentCommand::MOVE_LINK;
       const auto& cmd = static_cast<const tesseract_environment::MoveLinkCommand&>(command);
       tesseract_rosutils::toMsg(command_msg.move_link_joint, *(cmd.getJoint()));
       return true;
     }
     case tesseract_environment::CommandType::MOVE_JOINT:
     {
-      command_msg.command = tesseract_msgs::EnvironmentCommand::MOVE_JOINT;
+      command_msg.command = tesseract_msgs::msg::EnvironmentCommand::MOVE_JOINT;
       const auto& cmd = static_cast<const tesseract_environment::MoveJointCommand&>(command);
       command_msg.move_joint_name = cmd.getJointName();
       command_msg.move_joint_parent_link = cmd.getParentLink();
@@ -1234,21 +1236,21 @@ bool toMsg(tesseract_msgs::EnvironmentCommand& command_msg, const tesseract_envi
     }
     case tesseract_environment::CommandType::REMOVE_LINK:
     {
-      command_msg.command = tesseract_msgs::EnvironmentCommand::REMOVE_LINK;
+      command_msg.command = tesseract_msgs::msg::EnvironmentCommand::REMOVE_LINK;
       const auto& cmd = static_cast<const tesseract_environment::RemoveLinkCommand&>(command);
       command_msg.remove_link = cmd.getLinkName();
       return true;
     }
     case tesseract_environment::CommandType::REMOVE_JOINT:
     {
-      command_msg.command = tesseract_msgs::EnvironmentCommand::REMOVE_JOINT;
+      command_msg.command = tesseract_msgs::msg::EnvironmentCommand::REMOVE_JOINT;
       const auto& cmd = static_cast<const tesseract_environment::RemoveJointCommand&>(command);
       command_msg.remove_joint = cmd.getJointName();
       return true;
     }
     case tesseract_environment::CommandType::REPLACE_JOINT:
     {
-      command_msg.command = tesseract_msgs::EnvironmentCommand::REPLACE_JOINT;
+      command_msg.command = tesseract_msgs::msg::EnvironmentCommand::REPLACE_JOINT;
       const auto& cmd = static_cast<const tesseract_environment::ReplaceJointCommand&>(command);
       tesseract_rosutils::toMsg(command_msg.replace_joint, *(cmd.getJoint()));
       return true;
@@ -1260,7 +1262,7 @@ bool toMsg(tesseract_msgs::EnvironmentCommand& command_msg, const tesseract_envi
     }
     case tesseract_environment::CommandType::CHANGE_JOINT_ORIGIN:
     {
-      command_msg.command = tesseract_msgs::EnvironmentCommand::CHANGE_JOINT_ORIGIN;
+      command_msg.command = tesseract_msgs::msg::EnvironmentCommand::CHANGE_JOINT_ORIGIN;
       const auto& cmd = static_cast<const tesseract_environment::ChangeJointOriginCommand&>(command);
       command_msg.change_joint_origin_name = cmd.getJointName();
       tf::poseEigenToMsg(cmd.getOrigin(), command_msg.change_joint_origin_pose);
@@ -1268,7 +1270,7 @@ bool toMsg(tesseract_msgs::EnvironmentCommand& command_msg, const tesseract_envi
     }
     case tesseract_environment::CommandType::CHANGE_LINK_COLLISION_ENABLED:
     {
-      command_msg.command = tesseract_msgs::EnvironmentCommand::CHANGE_LINK_COLLISION_ENABLED;
+      command_msg.command = tesseract_msgs::msg::EnvironmentCommand::CHANGE_LINK_COLLISION_ENABLED;
       const auto& cmd = static_cast<const tesseract_environment::ChangeLinkCollisionEnabledCommand&>(command);
       command_msg.change_link_collision_enabled_name = cmd.getLinkName();
       command_msg.change_link_collision_enabled_value = cmd.getEnabled();
@@ -1276,7 +1278,7 @@ bool toMsg(tesseract_msgs::EnvironmentCommand& command_msg, const tesseract_envi
     }
     case tesseract_environment::CommandType::CHANGE_LINK_VISIBILITY:
     {
-      command_msg.command = tesseract_msgs::EnvironmentCommand::CHANGE_LINK_VISIBILITY;
+      command_msg.command = tesseract_msgs::msg::EnvironmentCommand::CHANGE_LINK_VISIBILITY;
       const auto& cmd = static_cast<const tesseract_environment::ChangeLinkVisibilityCommand&>(command);
       command_msg.change_link_visibility_name = cmd.getLinkName();
       command_msg.change_link_visibility_value = cmd.getEnabled();
@@ -1284,7 +1286,7 @@ bool toMsg(tesseract_msgs::EnvironmentCommand& command_msg, const tesseract_envi
     }
     case tesseract_environment::CommandType::ADD_ALLOWED_COLLISION:
     {
-      command_msg.command = tesseract_msgs::EnvironmentCommand::ADD_ALLOWED_COLLISION;
+      command_msg.command = tesseract_msgs::msg::EnvironmentCommand::ADD_ALLOWED_COLLISION;
       const auto& cmd = static_cast<const tesseract_environment::AddAllowedCollisionCommand&>(command);
       command_msg.add_allowed_collision.link_1 = cmd.getLinkName1();
       command_msg.add_allowed_collision.link_2 = cmd.getLinkName2();
@@ -1293,7 +1295,7 @@ bool toMsg(tesseract_msgs::EnvironmentCommand& command_msg, const tesseract_envi
     }
     case tesseract_environment::CommandType::REMOVE_ALLOWED_COLLISION:
     {
-      command_msg.command = tesseract_msgs::EnvironmentCommand::REMOVE_ALLOWED_COLLISION;
+      command_msg.command = tesseract_msgs::msg::EnvironmentCommand::REMOVE_ALLOWED_COLLISION;
       const auto& cmd = static_cast<const tesseract_environment::RemoveAllowedCollisionCommand&>(command);
       command_msg.remove_allowed_collision.link_1 = cmd.getLinkName1();
       command_msg.remove_allowed_collision.link_2 = cmd.getLinkName2();
@@ -1301,14 +1303,14 @@ bool toMsg(tesseract_msgs::EnvironmentCommand& command_msg, const tesseract_envi
     }
     case tesseract_environment::CommandType::REMOVE_ALLOWED_COLLISION_LINK:
     {
-      command_msg.command = tesseract_msgs::EnvironmentCommand::REMOVE_ALLOWED_COLLISION_LINK;
+      command_msg.command = tesseract_msgs::msg::EnvironmentCommand::REMOVE_ALLOWED_COLLISION_LINK;
       const auto& cmd = static_cast<const tesseract_environment::RemoveAllowedCollisionLinkCommand&>(command);
       command_msg.remove_allowed_collision_link = cmd.getLinkName();
       return true;
     }
     case tesseract_environment::CommandType::ADD_SCENE_GRAPH:
     {
-      command_msg.command = tesseract_msgs::EnvironmentCommand::ADD_SCENE_GRAPH;
+      command_msg.command = tesseract_msgs::msg::EnvironmentCommand::ADD_SCENE_GRAPH;
       const auto& cmd = static_cast<const tesseract_environment::AddSceneGraphCommand&>(command);
 
       toMsg(command_msg.scene_graph, *cmd.getSceneGraph());
@@ -1320,11 +1322,11 @@ bool toMsg(tesseract_msgs::EnvironmentCommand& command_msg, const tesseract_envi
     }
     case tesseract_environment::CommandType::CHANGE_JOINT_POSITION_LIMITS:
     {
-      command_msg.command = tesseract_msgs::EnvironmentCommand::CHANGE_JOINT_POSITION_LIMITS;
+      command_msg.command = tesseract_msgs::msg::EnvironmentCommand::CHANGE_JOINT_POSITION_LIMITS;
       const auto& cmd = static_cast<const tesseract_environment::ChangeJointPositionLimitsCommand&>(command);
       for (const auto& l : cmd.getLimits())
       {
-        tesseract_msgs::StringLimitsPair pair;
+        tesseract_msgs::msg::StringLimitsPair pair;
         pair.first = l.first;
         pair.second[0] = l.second.first;
         pair.second[1] = l.second.second;
@@ -1335,11 +1337,11 @@ bool toMsg(tesseract_msgs::EnvironmentCommand& command_msg, const tesseract_envi
     }
     case tesseract_environment::CommandType::CHANGE_JOINT_VELOCITY_LIMITS:
     {
-      command_msg.command = tesseract_msgs::EnvironmentCommand::CHANGE_JOINT_VELOCITY_LIMITS;
+      command_msg.command = tesseract_msgs::msg::EnvironmentCommand::CHANGE_JOINT_VELOCITY_LIMITS;
       const auto& cmd = static_cast<const tesseract_environment::ChangeJointVelocityLimitsCommand&>(command);
       for (const auto& l : cmd.getLimits())
       {
-        tesseract_msgs::StringDoublePair pair;
+        tesseract_msgs::msg::StringDoublePair pair;
         pair.first = l.first;
         pair.second = l.second;
         command_msg.change_joint_velocity_limits.push_back(pair);
@@ -1349,11 +1351,11 @@ bool toMsg(tesseract_msgs::EnvironmentCommand& command_msg, const tesseract_envi
     }
     case tesseract_environment::CommandType::CHANGE_JOINT_ACCELERATION_LIMITS:
     {
-      command_msg.command = tesseract_msgs::EnvironmentCommand::CHANGE_JOINT_ACCELERATION_LIMITS;
+      command_msg.command = tesseract_msgs::msg::EnvironmentCommand::CHANGE_JOINT_ACCELERATION_LIMITS;
       const auto& cmd = static_cast<const tesseract_environment::ChangeJointAccelerationLimitsCommand&>(command);
       for (const auto& l : cmd.getLimits())
       {
-        tesseract_msgs::StringDoublePair pair;
+        tesseract_msgs::msg::StringDoublePair pair;
         pair.first = l.first;
         pair.second = l.second;
         command_msg.change_joint_acceleration_limits.push_back(pair);
@@ -1363,13 +1365,13 @@ bool toMsg(tesseract_msgs::EnvironmentCommand& command_msg, const tesseract_envi
     }
     case tesseract_environment::CommandType::ADD_KINEMATICS_INFORMATION:
     {
-      command_msg.command = tesseract_msgs::EnvironmentCommand::ADD_KINEMATICS_INFORMATION;
+      command_msg.command = tesseract_msgs::msg::EnvironmentCommand::ADD_KINEMATICS_INFORMATION;
       const auto& cmd = static_cast<const tesseract_environment::AddKinematicsInformationCommand&>(command);
       return toMsg(command_msg.add_kinematics_information, cmd.getKinematicsInformation());
     }
     case tesseract_environment::CommandType::CHANGE_COLLISION_MARGINS:
     {
-      command_msg.command = tesseract_msgs::EnvironmentCommand::CHANGE_COLLISION_MARGINS;
+      command_msg.command = tesseract_msgs::msg::EnvironmentCommand::CHANGE_COLLISION_MARGINS;
       const auto& cmd = static_cast<const tesseract_environment::ChangeCollisionMarginsCommand&>(command);
       command_msg.collision_margin_data = toMsg(cmd.getCollisionMarginData());
       command_msg.collision_margin_override_type = toMsg(cmd.getCollisionMarginOverrideType());
@@ -1384,13 +1386,13 @@ bool toMsg(tesseract_msgs::EnvironmentCommand& command_msg, const tesseract_envi
   return false;
 }
 
-bool toMsg(std::vector<tesseract_msgs::EnvironmentCommand>& commands_msg,
+bool toMsg(std::vector<tesseract_msgs::msg::EnvironmentCommand>& commands_msg,
            const tesseract_environment::Commands& commands,
            unsigned long past_revision)
 {
   for (unsigned long i = past_revision; i < commands.size(); ++i)
   {
-    tesseract_msgs::EnvironmentCommand command_msg;
+    tesseract_msgs::msg::EnvironmentCommand command_msg;
     if (!tesseract_rosutils::toMsg(command_msg, *(commands[i])))
       return false;
 
@@ -1400,7 +1402,7 @@ bool toMsg(std::vector<tesseract_msgs::EnvironmentCommand>& commands_msg,
   return true;
 }
 
-tesseract_environment::Commands fromMsg(const std::vector<tesseract_msgs::EnvironmentCommand>& commands_msg)
+tesseract_environment::Commands fromMsg(const std::vector<tesseract_msgs::msg::EnvironmentCommand>& commands_msg)
 {
   tesseract_environment::Commands commands;
   commands.reserve(commands_msg.size());
@@ -1410,11 +1412,11 @@ tesseract_environment::Commands fromMsg(const std::vector<tesseract_msgs::Enviro
   return commands;
 }
 
-tesseract_environment::Command::Ptr fromMsg(const tesseract_msgs::EnvironmentCommand& command_msg)
+tesseract_environment::Command::Ptr fromMsg(const tesseract_msgs::msg::EnvironmentCommand& command_msg)
 {
   switch (command_msg.command)
   {
-    case tesseract_msgs::EnvironmentCommand::ADD_LINK:
+    case tesseract_msgs::msg::EnvironmentCommand::ADD_LINK:
     {
       tesseract_scene_graph::Link l = fromMsg(command_msg.add_link);
       if (command_msg.add_joint.name.empty() || command_msg.add_joint.type == 0)
@@ -1423,30 +1425,30 @@ tesseract_environment::Command::Ptr fromMsg(const tesseract_msgs::EnvironmentCom
       tesseract_scene_graph::Joint j = fromMsg(command_msg.add_joint);
       return std::make_shared<tesseract_environment::AddLinkCommand>(l, j, command_msg.add_replace_allowed);
     }
-    case tesseract_msgs::EnvironmentCommand::MOVE_LINK:
+    case tesseract_msgs::msg::EnvironmentCommand::MOVE_LINK:
     {
       tesseract_scene_graph::Joint j = fromMsg(command_msg.move_link_joint);
       return std::make_shared<tesseract_environment::MoveLinkCommand>(j);
     }
-    case tesseract_msgs::EnvironmentCommand::MOVE_JOINT:
+    case tesseract_msgs::msg::EnvironmentCommand::MOVE_JOINT:
     {
       return std::make_shared<tesseract_environment::MoveJointCommand>(command_msg.move_joint_name,
                                                                        command_msg.move_joint_parent_link);
     }
-    case tesseract_msgs::EnvironmentCommand::REMOVE_LINK:
+    case tesseract_msgs::msg::EnvironmentCommand::REMOVE_LINK:
     {
       return std::make_shared<tesseract_environment::RemoveLinkCommand>(command_msg.remove_link);
     }
-    case tesseract_msgs::EnvironmentCommand::REMOVE_JOINT:
+    case tesseract_msgs::msg::EnvironmentCommand::REMOVE_JOINT:
     {
       return std::make_shared<tesseract_environment::RemoveJointCommand>(command_msg.remove_joint);
     }
-    case tesseract_msgs::EnvironmentCommand::REPLACE_JOINT:
+    case tesseract_msgs::msg::EnvironmentCommand::REPLACE_JOINT:
     {
       tesseract_scene_graph::Joint j = fromMsg(command_msg.replace_joint);
       return std::make_shared<tesseract_environment::ReplaceJointCommand>(j);
     }
-    case tesseract_msgs::EnvironmentCommand::CHANGE_JOINT_ORIGIN:
+    case tesseract_msgs::msg::EnvironmentCommand::CHANGE_JOINT_ORIGIN:
     {
       Eigen::Isometry3d pose{ Eigen::Isometry3d::Identity() };
       if (!fromMsg(pose, command_msg.change_joint_origin_pose))
@@ -1455,34 +1457,34 @@ tesseract_environment::Command::Ptr fromMsg(const tesseract_msgs::EnvironmentCom
       return std::make_shared<tesseract_environment::ChangeJointOriginCommand>(command_msg.change_joint_origin_name,
                                                                                pose);
     }
-    case tesseract_msgs::EnvironmentCommand::CHANGE_LINK_COLLISION_ENABLED:
+    case tesseract_msgs::msg::EnvironmentCommand::CHANGE_LINK_COLLISION_ENABLED:
     {
       return std::make_shared<tesseract_environment::ChangeLinkCollisionEnabledCommand>(
           command_msg.change_link_collision_enabled_name, command_msg.change_link_collision_enabled_value);
     }
-    case tesseract_msgs::EnvironmentCommand::CHANGE_LINK_VISIBILITY:
+    case tesseract_msgs::msg::EnvironmentCommand::CHANGE_LINK_VISIBILITY:
     {
       return std::make_shared<tesseract_environment::ChangeLinkCollisionEnabledCommand>(
           command_msg.change_link_visibility_name, command_msg.change_link_visibility_value);
     }
-    case tesseract_msgs::EnvironmentCommand::ADD_ALLOWED_COLLISION:
+    case tesseract_msgs::msg::EnvironmentCommand::ADD_ALLOWED_COLLISION:
     {
       return std::make_shared<tesseract_environment::AddAllowedCollisionCommand>(
           command_msg.add_allowed_collision.link_1,
           command_msg.add_allowed_collision.link_2,
           command_msg.add_allowed_collision.reason);
     }
-    case tesseract_msgs::EnvironmentCommand::REMOVE_ALLOWED_COLLISION:
+    case tesseract_msgs::msg::EnvironmentCommand::REMOVE_ALLOWED_COLLISION:
     {
       return std::make_shared<tesseract_environment::RemoveAllowedCollisionCommand>(
           command_msg.remove_allowed_collision.link_1, command_msg.remove_allowed_collision.link_2);
     }
-    case tesseract_msgs::EnvironmentCommand::REMOVE_ALLOWED_COLLISION_LINK:
+    case tesseract_msgs::msg::EnvironmentCommand::REMOVE_ALLOWED_COLLISION_LINK:
     {
       return std::make_shared<tesseract_environment::RemoveAllowedCollisionLinkCommand>(
           command_msg.remove_allowed_collision_link);
     }
-    case tesseract_msgs::EnvironmentCommand::ADD_SCENE_GRAPH:
+    case tesseract_msgs::msg::EnvironmentCommand::ADD_SCENE_GRAPH:
     {
       if (command_msg.scene_graph_joint.name.empty() || command_msg.scene_graph_joint.type == 0)
       {
@@ -1497,7 +1499,7 @@ tesseract_environment::Command::Ptr fromMsg(const tesseract_msgs::EnvironmentCom
             fromMsg(command_msg.scene_graph), j, command_msg.scene_graph_prefix);
       }
     }
-    case tesseract_msgs::EnvironmentCommand::CHANGE_JOINT_POSITION_LIMITS:
+    case tesseract_msgs::msg::EnvironmentCommand::CHANGE_JOINT_POSITION_LIMITS:
     {
       std::unordered_map<std::string, std::pair<double, double>> limits_map;
       for (const auto& l : command_msg.change_joint_position_limits)
@@ -1505,7 +1507,7 @@ tesseract_environment::Command::Ptr fromMsg(const tesseract_msgs::EnvironmentCom
 
       return std::make_shared<tesseract_environment::ChangeJointPositionLimitsCommand>(limits_map);
     }
-    case tesseract_msgs::EnvironmentCommand::CHANGE_JOINT_VELOCITY_LIMITS:
+    case tesseract_msgs::msg::EnvironmentCommand::CHANGE_JOINT_VELOCITY_LIMITS:
     {
       std::unordered_map<std::string, double> limits_map;
       for (const auto& l : command_msg.change_joint_velocity_limits)
@@ -1513,7 +1515,7 @@ tesseract_environment::Command::Ptr fromMsg(const tesseract_msgs::EnvironmentCom
 
       return std::make_shared<tesseract_environment::ChangeJointVelocityLimitsCommand>(limits_map);
     }
-    case tesseract_msgs::EnvironmentCommand::CHANGE_JOINT_ACCELERATION_LIMITS:
+    case tesseract_msgs::msg::EnvironmentCommand::CHANGE_JOINT_ACCELERATION_LIMITS:
     {
       std::unordered_map<std::string, double> limits_map;
       for (const auto& l : command_msg.change_joint_acceleration_limits)
@@ -1521,14 +1523,14 @@ tesseract_environment::Command::Ptr fromMsg(const tesseract_msgs::EnvironmentCom
 
       return std::make_shared<tesseract_environment::ChangeJointAccelerationLimitsCommand>(limits_map);
     }
-    case tesseract_msgs::EnvironmentCommand::ADD_KINEMATICS_INFORMATION:
+    case tesseract_msgs::msg::EnvironmentCommand::ADD_KINEMATICS_INFORMATION:
     {
       tesseract_srdf::KinematicsInformation kin_info;
       fromMsg(kin_info, command_msg.add_kinematics_information);
 
       return std::make_shared<tesseract_environment::AddKinematicsInformationCommand>(kin_info);
     }
-    case tesseract_msgs::EnvironmentCommand::CHANGE_COLLISION_MARGINS:
+    case tesseract_msgs::msg::EnvironmentCommand::CHANGE_COLLISION_MARGINS:
     {
       tesseract_common::CollisionMarginData collision_margin_data = fromMsg(command_msg.collision_margin_data);
       tesseract_common::CollisionMarginOverrideType override_type = fromMsg(command_msg.collision_margin_override_type);
@@ -1542,7 +1544,7 @@ tesseract_environment::Command::Ptr fromMsg(const tesseract_msgs::EnvironmentCom
   }
 }
 
-void toMsg(tesseract_msgs::EnvironmentState& state_msg,
+void toMsg(tesseract_msgs::msg::EnvironmentState& state_msg,
            const tesseract_environment::Environment& env,
            bool include_joint_states)
 {
@@ -1553,18 +1555,18 @@ void toMsg(tesseract_msgs::EnvironmentState& state_msg,
     toMsg(state_msg.joint_state, env.getState().joints);
 }
 
-void toMsg(const tesseract_msgs::EnvironmentStatePtr& state_msg, const tesseract_environment::Environment& env)
+void toMsg(const tesseract_msgs::msg::EnvironmentState::SharedPtr& state_msg, const tesseract_environment::Environment& env)
 {
   toMsg(*state_msg, env);
 }
 
-void toMsg(std::vector<tesseract_msgs::JointState>& traj_msg, const tesseract_common::JointTrajectory& traj)
+void toMsg(std::vector<tesseract_msgs::msg::JointState>& traj_msg, const tesseract_common::JointTrajectory& traj)
 {
   for (const auto& js : traj)
   {
     assert(js.joint_names.size() == static_cast<unsigned>(js.position.size()));
 
-    tesseract_msgs::JointState js_msg;
+    tesseract_msgs::msg::JointState js_msg;
     js_msg.joint_names = js.joint_names;
     js_msg.position.resize(static_cast<size_t>(js.position.size()));
     js_msg.velocity.resize(static_cast<size_t>(js.velocity.size()));
@@ -1579,12 +1581,12 @@ void toMsg(std::vector<tesseract_msgs::JointState>& traj_msg, const tesseract_co
     for (int i = 0; i < js.acceleration.size(); ++i)
       js_msg.acceleration[static_cast<size_t>(i)] = js.acceleration(i);
 
-    js_msg.time_from_start = ros::Duration(js.time);
+    js_msg.time_from_start = rclcpp::Duration::from_seconds(js.time);
     traj_msg.push_back(js_msg);
   }
 }
 
-tesseract_common::JointTrajectory fromMsg(const std::vector<tesseract_msgs::JointState>& traj_msg)
+tesseract_common::JointTrajectory fromMsg(const std::vector<tesseract_msgs::msg::JointState>& traj_msg)
 {
   tesseract_common::JointTrajectory trajectory;
   for (const auto& js_msg : traj_msg)
@@ -1606,13 +1608,13 @@ tesseract_common::JointTrajectory fromMsg(const std::vector<tesseract_msgs::Join
     for (std::size_t i = 0; i < js_msg.acceleration.size(); ++i)
       js.acceleration(static_cast<long>(i)) = js_msg.acceleration[i];
 
-    js.time = js_msg.time_from_start.toSec();
+    js.time = js_msg.time_from_start.sec;
     trajectory.push_back(js);
   }
   return trajectory;
 }
 
-bool processMsg(tesseract_environment::Environment& env, const sensor_msgs::JointState& joint_state_msg)
+bool processMsg(tesseract_environment::Environment& env, const sensor_msgs::msg::JointState& joint_state_msg)
 {
   if (!isMsgEmpty(joint_state_msg))
   {
@@ -1628,20 +1630,20 @@ bool processMsg(tesseract_environment::Environment& env, const sensor_msgs::Join
 }
 
 bool processMsg(tesseract_environment::Environment& env,
-                const std::vector<tesseract_msgs::EnvironmentCommand>& env_command_msg)
+                const std::vector<tesseract_msgs::msg::EnvironmentCommand>& env_command_msg)
 {
   tesseract_environment::Commands commands = fromMsg(env_command_msg);
   return env.applyCommands(commands);
 }
 
-bool processMsg(const tesseract_environment::Environment::Ptr& env, const sensor_msgs::JointState& joint_state_msg)
+bool processMsg(const tesseract_environment::Environment::Ptr& env, const sensor_msgs::msg::JointState& joint_state_msg)
 {
   return processMsg(*env, joint_state_msg);
 }
 
-void toMsg(tesseract_msgs::ContactResult& contact_result_msg,
+void toMsg(tesseract_msgs::msg::ContactResult& contact_result_msg,
            const tesseract_collision::ContactResult& contact_result,
-           const ros::Time& stamp)
+           const rclcpp::Time& stamp)
 {
   contact_result_msg.stamp = stamp;
   contact_result_msg.distance = contact_result.distance;
@@ -1676,39 +1678,39 @@ void toMsg(tesseract_msgs::ContactResult& contact_result_msg,
   toMsg(contact_result_msg.cc_transform[1], contact_result.cc_transform[1]);
 
   if (contact_result.cc_type[0] == tesseract_collision::ContinuousCollisionType::CCType_Time0)
-    contact_result_msg.cc_type[0] = tesseract_msgs::ContactResult::CCType_Time0;
+    contact_result_msg.cc_type[0] = tesseract_msgs::msg::ContactResult::CCTYPE_TIME0;
   else if (contact_result.cc_type[0] == tesseract_collision::ContinuousCollisionType::CCType_Time1)
-    contact_result_msg.cc_type[0] = tesseract_msgs::ContactResult::CCType_Time1;
+    contact_result_msg.cc_type[0] = tesseract_msgs::msg::ContactResult::CCTYPE_TIME1;
   else if (contact_result.cc_type[0] == tesseract_collision::ContinuousCollisionType::CCType_Between)
-    contact_result_msg.cc_type[0] = tesseract_msgs::ContactResult::CCType_Between;
+    contact_result_msg.cc_type[0] = tesseract_msgs::msg::ContactResult::CCTYPE_BETWEEN;
   else
-    contact_result_msg.cc_type[0] = tesseract_msgs::ContactResult::CCType_None;
+    contact_result_msg.cc_type[0] = tesseract_msgs::msg::ContactResult::CCTYPE_NONE;
 
   if (contact_result.cc_type[1] == tesseract_collision::ContinuousCollisionType::CCType_Time0)
-    contact_result_msg.cc_type[1] = tesseract_msgs::ContactResult::CCType_Time0;
+    contact_result_msg.cc_type[1] = tesseract_msgs::msg::ContactResult::CCTYPE_TIME0;
   else if (contact_result.cc_type[1] == tesseract_collision::ContinuousCollisionType::CCType_Time1)
-    contact_result_msg.cc_type[1] = tesseract_msgs::ContactResult::CCType_Time1;
+    contact_result_msg.cc_type[1] = tesseract_msgs::msg::ContactResult::CCTYPE_TIME1;
   else if (contact_result.cc_type[1] == tesseract_collision::ContinuousCollisionType::CCType_Between)
-    contact_result_msg.cc_type[1] = tesseract_msgs::ContactResult::CCType_Between;
+    contact_result_msg.cc_type[1] = tesseract_msgs::msg::ContactResult::CCTYPE_BETWEEN;
   else
-    contact_result_msg.cc_type[1] = tesseract_msgs::ContactResult::CCType_None;
+    contact_result_msg.cc_type[1] = tesseract_msgs::msg::ContactResult::CCTYPE_NONE;
 }
 
-void toMsg(const tesseract_msgs::ContactResultPtr& contact_result_msg,
+void toMsg(const tesseract_msgs::msg::ContactResult::SharedPtr& contact_result_msg,
            const tesseract_collision::ContactResult& contact_result,
-           const ros::Time& stamp)
+           const rclcpp::Time& stamp)
 {
   toMsg(*contact_result_msg, contact_result, stamp);
 }
 
-tesseract_msgs::KinematicsPluginInfo toMsg(const tesseract_common::KinematicsPluginInfo& info)
+tesseract_msgs::msg::KinematicsPluginInfo toMsg(const tesseract_common::KinematicsPluginInfo& info)
 {
-  tesseract_msgs::KinematicsPluginInfo msg;
+  tesseract_msgs::msg::KinematicsPluginInfo msg;
   msg.search_paths.insert(msg.search_paths.begin(), info.search_paths.begin(), info.search_paths.end());
   msg.search_libraries.insert(msg.search_libraries.begin(), info.search_libraries.begin(), info.search_libraries.end());
   for (const auto& pair : info.fwd_plugin_infos)
   {
-    tesseract_msgs::GroupsKinematicPlugins pair_msg;
+    tesseract_msgs::msg::GroupsKinematicPlugins pair_msg;
     pair_msg.group = pair.first;
     pair_msg.plugins = toMsg(pair.second);
     msg.group_fwd_plugins.push_back(pair_msg);
@@ -1716,7 +1718,7 @@ tesseract_msgs::KinematicsPluginInfo toMsg(const tesseract_common::KinematicsPlu
 
   for (const auto& pair : info.inv_plugin_infos)
   {
-    tesseract_msgs::GroupsKinematicPlugins pair_msg;
+    tesseract_msgs::msg::GroupsKinematicPlugins pair_msg;
     pair_msg.group = pair.first;
     pair_msg.plugins = toMsg(pair.second);
     msg.group_inv_plugins.push_back(pair_msg);
@@ -1724,12 +1726,12 @@ tesseract_msgs::KinematicsPluginInfo toMsg(const tesseract_common::KinematicsPlu
   return msg;
 }
 
-std::vector<tesseract_msgs::StringPluginInfoPair> toMsg(const tesseract_common::PluginInfoMap& info_map)
+std::vector<tesseract_msgs::msg::StringPluginInfoPair> toMsg(const tesseract_common::PluginInfoMap& info_map)
 {
-  std::vector<tesseract_msgs::StringPluginInfoPair> msg;
+  std::vector<tesseract_msgs::msg::StringPluginInfoPair> msg;
   for (const auto& pair : info_map)
   {
-    tesseract_msgs::StringPluginInfoPair pair_msg;
+    tesseract_msgs::msg::StringPluginInfoPair pair_msg;
     pair_msg.first = pair.first;
     pair_msg.second = toMsg(pair.second);
     msg.push_back(pair_msg);
@@ -1737,9 +1739,9 @@ std::vector<tesseract_msgs::StringPluginInfoPair> toMsg(const tesseract_common::
   return msg;
 }
 
-tesseract_msgs::PluginInfo toMsg(const tesseract_common::PluginInfo& info)
+tesseract_msgs::msg::PluginInfo toMsg(const tesseract_common::PluginInfo& info)
 {
-  tesseract_msgs::PluginInfo msg;
+  tesseract_msgs::msg::PluginInfo msg;
   msg.class_name = info.class_name;
   msg.is_default = info.is_default;
 
@@ -1753,11 +1755,11 @@ tesseract_msgs::PluginInfo toMsg(const tesseract_common::PluginInfo& info)
   return msg;
 }
 
-bool toMsg(geometry_msgs::PoseArray& pose_array, const tesseract_common::VectorIsometry3d& transforms)
+bool toMsg(geometry_msgs::msg::PoseArray& pose_array, const tesseract_common::VectorIsometry3d& transforms)
 {
   for (const auto& transform : transforms)
   {
-    geometry_msgs::Pose pose;
+    geometry_msgs::msg::Pose pose;
     tf::poseEigenToMsg(transform, pose);
     pose_array.poses.push_back(pose);
   }
@@ -1765,14 +1767,14 @@ bool toMsg(geometry_msgs::PoseArray& pose_array, const tesseract_common::VectorI
   return true;
 }
 
-tesseract_msgs::ChainGroup toMsg(tesseract_srdf::ChainGroups::const_reference group)
+tesseract_msgs::msg::ChainGroup toMsg(tesseract_srdf::ChainGroups::const_reference group)
 {
-  tesseract_msgs::ChainGroup g;
+  tesseract_msgs::msg::ChainGroup g;
   g.name = group.first;
   g.chains.reserve(group.second.size());
   for (const auto& pair : group.second)
   {
-    tesseract_msgs::StringPair chain;
+    tesseract_msgs::msg::StringPair chain;
     chain.first = pair.first;
     chain.second = pair.second;
     g.chains.push_back(chain);
@@ -1780,20 +1782,20 @@ tesseract_msgs::ChainGroup toMsg(tesseract_srdf::ChainGroups::const_reference gr
   return g;
 }
 
-tesseract_msgs::GroupsJointStates toMsg(tesseract_srdf::GroupJointStates::const_reference group)
+tesseract_msgs::msg::GroupsJointStates toMsg(tesseract_srdf::GroupJointStates::const_reference group)
 {
-  tesseract_msgs::GroupsJointStates g;
+  tesseract_msgs::msg::GroupsJointStates g;
   g.name = group.first;
 
   g.joint_states.reserve(group.second.size());
   for (const auto& gs : group.second)
   {
-    tesseract_msgs::GroupsJointState gjs;
+    tesseract_msgs::msg::GroupsJointState gjs;
     gjs.name = gs.first;
     gjs.joint_state.reserve(gs.second.size());
     for (const auto& s : gs.second)
     {
-      tesseract_msgs::StringDoublePair js;
+      tesseract_msgs::msg::StringDoublePair js;
       js.first = s.first;
       js.second = s.second;
       gjs.joint_state.push_back(js);
@@ -1804,15 +1806,15 @@ tesseract_msgs::GroupsJointStates toMsg(tesseract_srdf::GroupJointStates::const_
   return g;
 }
 
-tesseract_msgs::GroupsTCPs toMsg(tesseract_srdf::GroupTCPs::const_reference group)
+tesseract_msgs::msg::GroupsTCPs toMsg(tesseract_srdf::GroupTCPs::const_reference group)
 {
-  tesseract_msgs::GroupsTCPs g;
+  tesseract_msgs::msg::GroupsTCPs g;
   g.name = group.first;
 
   g.tcps.reserve(group.second.size());
   for (const auto& gs : group.second)
   {
-    tesseract_msgs::GroupsTCP gtcp;
+    tesseract_msgs::msg::GroupsTCP gtcp;
     gtcp.name = gs.first;
     toMsg(gtcp.tcp, gs.second);
     g.tcps.push_back(gtcp);
@@ -1820,7 +1822,7 @@ tesseract_msgs::GroupsTCPs toMsg(tesseract_srdf::GroupTCPs::const_reference grou
   return g;
 }
 
-bool toMsg(tesseract_msgs::KinematicsInformation& kin_info_msg, const tesseract_srdf::KinematicsInformation& kin_info)
+bool toMsg(tesseract_msgs::msg::KinematicsInformation& kin_info_msg, const tesseract_srdf::KinematicsInformation& kin_info)
 {
   kin_info_msg.group_names.insert(
       kin_info_msg.group_names.end(), kin_info.group_names.begin(), kin_info.group_names.end());
@@ -1828,12 +1830,12 @@ bool toMsg(tesseract_msgs::KinematicsInformation& kin_info_msg, const tesseract_
   kin_info_msg.chain_groups.reserve(kin_info.chain_groups.size());
   for (const auto& group : kin_info.chain_groups)
   {
-    tesseract_msgs::ChainGroup g;
+    tesseract_msgs::msg::ChainGroup g;
     g.name = group.first;
     g.chains.reserve(group.second.size());
     for (const auto& chain : group.second)
     {
-      tesseract_msgs::StringPair pair;
+      tesseract_msgs::msg::StringPair pair;
       pair.first = chain.first;
       pair.second = chain.second;
       g.chains.push_back(pair);
@@ -1845,7 +1847,7 @@ bool toMsg(tesseract_msgs::KinematicsInformation& kin_info_msg, const tesseract_
   kin_info_msg.joint_groups.reserve(kin_info.joint_groups.size());
   for (const auto& group : kin_info.joint_groups)
   {
-    tesseract_msgs::JointGroup g;
+    tesseract_msgs::msg::JointGroup g;
     g.name = group.first;
     g.joints.reserve(group.second.size());
     for (const auto& joint_name : group.second)
@@ -1857,7 +1859,7 @@ bool toMsg(tesseract_msgs::KinematicsInformation& kin_info_msg, const tesseract_
   kin_info_msg.link_groups.reserve(kin_info.link_groups.size());
   for (const auto& group : kin_info.link_groups)
   {
-    tesseract_msgs::LinkGroup g;
+    tesseract_msgs::msg::LinkGroup g;
     g.name = group.first;
     g.links.reserve(group.second.size());
     for (const auto& link_name : group.second)
@@ -1880,7 +1882,7 @@ bool toMsg(tesseract_msgs::KinematicsInformation& kin_info_msg, const tesseract_
   return true;
 }
 
-bool fromMsg(tesseract_srdf::KinematicsInformation& kin_info, const tesseract_msgs::KinematicsInformation& kin_info_msg)
+bool fromMsg(tesseract_srdf::KinematicsInformation& kin_info, const tesseract_msgs::msg::KinematicsInformation& kin_info_msg)
 {
   kin_info.group_names.insert(kin_info_msg.group_names.begin(), kin_info_msg.group_names.end());
 
@@ -1929,7 +1931,7 @@ bool fromMsg(tesseract_srdf::KinematicsInformation& kin_info, const tesseract_ms
   return true;
 }
 
-tesseract_common::KinematicsPluginInfo fromMsg(const tesseract_msgs::KinematicsPluginInfo& info_msg)
+tesseract_common::KinematicsPluginInfo fromMsg(const tesseract_msgs::msg::KinematicsPluginInfo& info_msg)
 {
   tesseract_common::KinematicsPluginInfo info;
   info.search_paths.insert(info_msg.search_paths.begin(), info_msg.search_paths.end());
@@ -1944,7 +1946,7 @@ tesseract_common::KinematicsPluginInfo fromMsg(const tesseract_msgs::KinematicsP
   return info;
 }
 
-tesseract_common::PluginInfoMap fromMsg(const std::vector<tesseract_msgs::StringPluginInfoPair>& info_map_msg)
+tesseract_common::PluginInfoMap fromMsg(const std::vector<tesseract_msgs::msg::StringPluginInfoPair>& info_map_msg)
 {
   tesseract_common::PluginInfoMap info_map;
   for (const auto& pair : info_map_msg)
@@ -1953,7 +1955,7 @@ tesseract_common::PluginInfoMap fromMsg(const std::vector<tesseract_msgs::String
   return info_map;
 }
 
-tesseract_common::PluginInfo fromMsg(const tesseract_msgs::PluginInfo& info_msg)
+tesseract_common::PluginInfo fromMsg(const tesseract_msgs::msg::PluginInfo& info_msg)
 {
   tesseract_common::PluginInfo info;
   info.class_name = info_msg.class_name;
@@ -1965,14 +1967,14 @@ tesseract_common::PluginInfo fromMsg(const tesseract_msgs::PluginInfo& info_msg)
   return info;
 }
 
-bool toMsg(tesseract_msgs::TransformMap& transform_map_msg, const tesseract_common::TransformMap& transform_map)
+bool toMsg(tesseract_msgs::msg::TransformMap& transform_map_msg, const tesseract_common::TransformMap& transform_map)
 {
   transform_map_msg.names.reserve(transform_map.size());
   transform_map_msg.transforms.reserve(transform_map.size());
   for (const auto& pair : transform_map)
   {
     transform_map_msg.names.push_back(pair.first);
-    geometry_msgs::Pose pose;
+    geometry_msgs::msg::Pose pose;
     if (!toMsg(pose, pair.second))
       return false;
 
@@ -1981,7 +1983,7 @@ bool toMsg(tesseract_msgs::TransformMap& transform_map_msg, const tesseract_comm
   return true;
 }
 
-bool fromMsg(tesseract_common::TransformMap& transform_map, const tesseract_msgs::TransformMap& transform_map_msg)
+bool fromMsg(tesseract_common::TransformMap& transform_map, const tesseract_msgs::msg::TransformMap& transform_map_msg)
 {
   if (transform_map_msg.names.size() != transform_map_msg.transforms.size())
     return false;
@@ -1998,9 +2000,10 @@ bool fromMsg(tesseract_common::TransformMap& transform_map, const tesseract_msgs
   return true;
 }
 
-bool toMsg(sensor_msgs::JointState& joint_state_msg, const std::unordered_map<std::string, double>& joint_state)
+bool toMsg(sensor_msgs::msg::JointState& joint_state_msg, const std::unordered_map<std::string, double>& joint_state)
 {
-  joint_state_msg.header.stamp = ros::Time::now();
+  auto clk = std::make_shared<rclcpp::Clock>(RCL_ROS_TIME);
+  joint_state_msg.header.stamp = clk->now();
   joint_state_msg.name.reserve(joint_state.size());
   joint_state_msg.position.reserve(joint_state.size());
   for (const auto& pair : joint_state)
@@ -2011,7 +2014,7 @@ bool toMsg(sensor_msgs::JointState& joint_state_msg, const std::unordered_map<st
   return true;
 }
 
-bool fromMsg(std::unordered_map<std::string, double>& joint_state, const sensor_msgs::JointState& joint_state_msg)
+bool fromMsg(std::unordered_map<std::string, double>& joint_state, const sensor_msgs::msg::JointState& joint_state_msg)
 {
   if (joint_state_msg.name.size() != joint_state_msg.position.size())
     return false;
@@ -2022,7 +2025,7 @@ bool fromMsg(std::unordered_map<std::string, double>& joint_state, const sensor_
   return true;
 }
 
-bool toMsg(tesseract_msgs::Environment& environment_msg,
+bool toMsg(tesseract_msgs::msg::Environment& environment_msg,
            const tesseract_environment::Environment& env,
            bool include_joint_states)
 {
@@ -2042,14 +2045,14 @@ bool toMsg(tesseract_msgs::Environment& environment_msg,
   return true;
 }
 
-bool toMsg(tesseract_msgs::Environment& environment_msg,
+bool toMsg(tesseract_msgs::msg::Environment& environment_msg,
            const tesseract_environment::Environment::ConstPtr& env,
            bool include_joint_states)
 {
   return toMsg(environment_msg, *env, include_joint_states);
 }
 
-tesseract_environment::Environment::Ptr fromMsg(const tesseract_msgs::Environment& environment_msg)
+tesseract_environment::Environment::Ptr fromMsg(const tesseract_msgs::msg::Environment& environment_msg)
 {
   tesseract_environment::Commands commands;
   try
@@ -2058,21 +2061,21 @@ tesseract_environment::Environment::Ptr fromMsg(const tesseract_msgs::Environmen
   }
   catch (const std::exception& e)
   {
-    ROS_ERROR("fromMsg(Environment): Failed to convert command history message: %s!", e.what());
+    RCLCPP_ERROR(rclcpp::get_logger(LOGGER_ID), "fromMsg(Environment): Failed to convert command history message: %s!", e.what());
     return nullptr;
   }
 
   auto env = std::make_shared<tesseract_environment::Environment>();
   if (!env->init(commands))  // TODO: Get state solver
   {
-    ROS_ERROR_STREAM("fromMsg(Environment): Failed to initialize environment!");
+    RCLCPP_ERROR_STREAM(rclcpp::get_logger(LOGGER_ID), "fromMsg(Environment): Failed to initialize environment!");
     return nullptr;
   }
 
   auto env_state = std::make_shared<tesseract_scene_graph::SceneState>();
   if (!tesseract_rosutils::fromMsg(env_state->joints, environment_msg.joint_states))
   {
-    ROS_ERROR_STREAM("fromMsg(Environment): Failed to get joint states");
+    RCLCPP_ERROR_STREAM(rclcpp::get_logger(LOGGER_ID), "fromMsg(Environment): Failed to get joint states");
     return nullptr;
   }
   env->setState(env_state->joints);
@@ -2080,7 +2083,7 @@ tesseract_environment::Environment::Ptr fromMsg(const tesseract_msgs::Environmen
   return env;
 }
 
-bool toMsg(tesseract_msgs::TaskInfo& task_info_msg, tesseract_planning::TaskInfo::ConstPtr task_info)
+bool toMsg(tesseract_msgs::msg::TaskInfo& task_info_msg, tesseract_planning::TaskInfo::ConstPtr task_info)
 {
   using namespace tesseract_planning;
   task_info_msg.return_value = task_info->return_value;
@@ -2094,7 +2097,7 @@ bool toMsg(tesseract_msgs::TaskInfo& task_info_msg, tesseract_planning::TaskInfo
   return toMsg(task_info_msg.environment, task_info->environment);
 }
 
-tesseract_planning::TaskInfo::Ptr fromMsg(const tesseract_msgs::TaskInfo& task_info_msg)
+tesseract_planning::TaskInfo::Ptr fromMsg(const tesseract_msgs::msg::TaskInfo& task_info_msg)
 {
   using namespace tesseract_planning;
   auto task_info = std::make_shared<tesseract_planning::TaskInfo>(task_info_msg.unique_id);
@@ -2110,13 +2113,13 @@ tesseract_planning::TaskInfo::Ptr fromMsg(const tesseract_msgs::TaskInfo& task_i
   return task_info;
 }
 
-trajectory_msgs::JointTrajectory toMsg(const tesseract_common::JointTrajectory& joint_trajectory,
-                                       const tesseract_scene_graph::SceneState& initial_state)
+trajectory_msgs::msg::JointTrajectory toMsg(const tesseract_common::JointTrajectory& joint_trajectory,
+                                            const tesseract_scene_graph::SceneState& initial_state)
 {
-  trajectory_msgs::JointTrajectory result;
+  trajectory_msgs::msg::JointTrajectory result;
   std::vector<std::string> joint_names;
   std::map<std::string, int> joint_names_indices;
-  trajectory_msgs::JointTrajectoryPoint last_point;
+  trajectory_msgs::msg::JointTrajectoryPoint last_point;
   for (auto joint_state : joint_trajectory)
   {
     for (auto joint : joint_state.joint_names)
@@ -2132,15 +2135,15 @@ trajectory_msgs::JointTrajectory toMsg(const tesseract_common::JointTrajectory& 
   last_point.positions =
       std::vector<double>(initial_points.data(), initial_points.data() + initial_points.rows() * initial_points.cols());
   result.joint_names = joint_names;
-  std::vector<trajectory_msgs::JointTrajectoryPoint> points;
+  std::vector<trajectory_msgs::msg::JointTrajectoryPoint> points;
   for (unsigned long i = 0; i < joint_trajectory.size(); i++)
   {
-    trajectory_msgs::JointTrajectoryPoint current_point;
+    trajectory_msgs::msg::JointTrajectoryPoint current_point;
     current_point.positions = last_point.positions;
     current_point.velocities = std::vector<double>(joint_names.size(), 0);
     current_point.accelerations = std::vector<double>(joint_names.size(), 0);
     current_point.effort = std::vector<double>(joint_names.size(), 0);
-    current_point.time_from_start = ros::Duration(joint_trajectory[i].time);
+    current_point.time_from_start = rclcpp::Duration::from_seconds(joint_trajectory[i].time);
     for (Eigen::Index j = 0; j < static_cast<Eigen::Index>(joint_trajectory[i].joint_names.size()); j++)
     {
       auto joint_index =

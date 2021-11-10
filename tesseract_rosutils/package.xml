@@ -21,6 +21,7 @@
   <depend>tesseract_process_managers</depend>
   <depend>tesseract_srdf</depend>
   <depend>yaml_cpp_vendor</depend>
+  <depend>ros_industrial_cmake_boilerplate</depend>
 
   <depend>visualization_msgs</depend>
   <depend>geometry_msgs</depend>

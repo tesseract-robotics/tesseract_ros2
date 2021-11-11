@@ -33,6 +33,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <tesseract_msgs/msg/collision_geometry.hpp>
 #include <tesseract_msgs/msg/contact_margin_pair.hpp>
 #include <tesseract_msgs/msg/contact_result_vector.hpp>
+#include <tesseract_msgs/msg/contact_managers_plugin_info.hpp>
 #include <tesseract_msgs/msg/environment_command.hpp>
 #include <tesseract_msgs/msg/geometry.hpp>
 #include <tesseract_msgs/msg/groups_joint_state.hpp>
@@ -223,7 +224,6 @@ void toMsg(std::vector<tesseract_msgs::msg::JointState>& traj_msg, const tessera
 tesseract_common::JointTrajectory fromMsg(const std::vector<tesseract_msgs::msg::JointState>& traj_msg);
 
 bool processMsg(tesseract_environment::Environment& env, const sensor_msgs::msg::JointState& joint_state_msg);
-bool processMsg(const tesseract_environment::Environment::Ptr& env, const sensor_msgs::msg::JointState& joint_state_msg);
 
 /**
  * @brief Apply the provided commands to the environment
@@ -264,6 +264,13 @@ void toMsg(const tesseract_msgs::msg::ContactResult::SharedPtr& contact_result_m
  * @return Kinematics plugin info
  */
 tesseract_msgs::msg::KinematicsPluginInfo toMsg(const tesseract_common::KinematicsPluginInfo& info);
+
+/**
+ * @brief Convert contact managers plugin info to message
+ * @param info contact managers plugin info
+ * @return contact managers plugin info
+ */
+tesseract_msgs::msg::ContactManagersPluginInfo toMsg(const tesseract_common::ContactManagersPluginInfo& info);
 
 /**
  * @brief Convert plugin info map to message
@@ -326,6 +333,13 @@ bool fromMsg(tesseract_srdf::KinematicsInformation& kin_info,
  * @return Kinematics plugin info
  */
 tesseract_common::KinematicsPluginInfo fromMsg(const tesseract_msgs::msg::KinematicsPluginInfo& info_msg);
+
+/**
+ * @brief Convert contact managers plugin info from message
+ * @param info_msg Contact managers plugin info message
+ * @return Contact managers plugin info
+ */
+tesseract_common::ContactManagersPluginInfo fromMsg(const tesseract_msgs::msg::ContactManagersPluginInfo& info_msg);
 
 /**
  * @brief Convert plugin info map from message

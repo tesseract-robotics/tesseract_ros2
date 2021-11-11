@@ -629,7 +629,7 @@ bool toMsg(tesseract_msgs::msg::Inertial& inertial_msg, const tesseract_scene_gr
     return true;
   }
 
-  tf::poseEigenToMsg(inertial->origin, inertial_msg.origin);
+  inertial_msg.origin = Eigen::toMsg(inertial->origin);
 
   inertial_msg.mass = inertial->mass;
   inertial_msg.ixx = inertial->ixx;
@@ -652,7 +652,7 @@ bool fromMsg(tesseract_scene_graph::Inertial::Ptr& inertial, const tesseract_msg
 
   inertial = std::make_shared<tesseract_scene_graph::Inertial>();
 
-  tf::poseMsgToEigen(inertial_msg.origin, inertial->origin);
+  Eigen::fromMsg(inertial_msg.origin, inertial->origin);
 
   inertial->mass = inertial_msg.mass;
   inertial->ixx = inertial_msg.ixx;
@@ -668,7 +668,7 @@ bool fromMsg(tesseract_scene_graph::Inertial::Ptr& inertial, const tesseract_msg
 bool toMsg(tesseract_msgs::msg::VisualGeometry& visual_msg, const tesseract_scene_graph::Visual& visual)
 {
   visual_msg.name = visual.name;
-  tf::poseEigenToMsg(visual.origin, visual_msg.origin);
+  visual_msg.origin = Eigen::toMsg(visual.origin);
   toMsg(visual_msg.geometry, *(visual.geometry));
   toMsg(visual_msg.material, visual.material);
   return true;
@@ -678,7 +678,7 @@ bool fromMsg(tesseract_scene_graph::Visual::Ptr& visual, const tesseract_msgs::m
 {
   visual = std::make_shared<tesseract_scene_graph::Visual>();
   visual->name = visual_msg.name;
-  tf::poseMsgToEigen(visual_msg.origin, visual->origin);
+  Eigen::fromMsg(visual_msg.origin, visual->origin);
   fromMsg(visual->geometry, visual_msg.geometry);
   fromMsg(visual->material, visual_msg.material);
   return true;
@@ -687,7 +687,7 @@ bool fromMsg(tesseract_scene_graph::Visual::Ptr& visual, const tesseract_msgs::m
 bool toMsg(tesseract_msgs::msg::CollisionGeometry& collision_msg, const tesseract_scene_graph::Collision& collision)
 {
   collision_msg.name = collision.name;
-  tf::poseEigenToMsg(collision.origin, collision_msg.origin);
+  collision_msg.origin = Eigen::toMsg(collision.origin);
   toMsg(collision_msg.geometry, *(collision.geometry));
   return true;
 }
@@ -696,7 +696,7 @@ bool fromMsg(tesseract_scene_graph::Collision::Ptr& collision, const tesseract_m
 {
   collision = std::make_shared<tesseract_scene_graph::Collision>();
   collision->name = collision_msg.name;
-  tf::poseMsgToEigen(collision_msg.origin, collision->origin);
+  Eigen::fromMsg(collision_msg.origin, collision->origin);
   fromMsg(collision->geometry, collision_msg.geometry);
   return true;
 }
@@ -938,7 +938,7 @@ bool toMsg(tesseract_msgs::msg::Joint& joint_msg, const tesseract_scene_graph::J
   joint_msg.child_link_name = joint.child_link_name;
   joint_msg.parent_link_name = joint.parent_link_name;
 
-  tf::poseEigenToMsg(joint.parent_to_joint_origin_transform, joint_msg.parent_to_joint_origin_transform);
+  joint_msg.parent_to_joint_origin_transform = Eigen::toMsg(joint.parent_to_joint_origin_transform);
 
   bool success = true;
   if (!toMsg(joint_msg.limits, joint.limits))
@@ -972,7 +972,7 @@ tesseract_scene_graph::Joint fromMsg(const tesseract_msgs::msg::Joint& joint_msg
   joint.child_link_name = joint_msg.child_link_name;
   joint.parent_link_name = joint_msg.parent_link_name;
 
-  tf::poseMsgToEigen(joint_msg.parent_to_joint_origin_transform, joint.parent_to_joint_origin_transform);
+  Eigen::fromMsg(joint_msg.parent_to_joint_origin_transform, joint.parent_to_joint_origin_transform);
   fromMsg(joint.limits, joint_msg.limits);
   fromMsg(joint.dynamics, joint_msg.dynamics);
   fromMsg(joint.safety, joint_msg.safety);
@@ -1265,7 +1265,7 @@ bool toMsg(tesseract_msgs::msg::EnvironmentCommand& command_msg, const tesseract
       command_msg.command = tesseract_msgs::msg::EnvironmentCommand::CHANGE_JOINT_ORIGIN;
       const auto& cmd = static_cast<const tesseract_environment::ChangeJointOriginCommand&>(command);
       command_msg.change_joint_origin_name = cmd.getJointName();
-      tf::poseEigenToMsg(cmd.getOrigin(), command_msg.change_joint_origin_pose);
+      command_msg.change_joint_origin_pose = Eigen::toMsg(cmd.getOrigin());
       return true;
     }
     case tesseract_environment::CommandType::CHANGE_LINK_COLLISION_ENABLED:
@@ -1804,7 +1804,7 @@ bool toMsg(geometry_msgs::msg::PoseArray& pose_array, const tesseract_common::Ve
   for (const auto& transform : transforms)
   {
     geometry_msgs::msg::Pose pose;
-    tf::poseEigenToMsg(transform, pose);
+    pose = Eigen::toMsg(transform);
     pose_array.poses.push_back(pose);
   }
 

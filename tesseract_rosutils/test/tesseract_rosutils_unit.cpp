@@ -12,7 +12,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <tesseract_common/resource_locator.h>
 #include <tesseract_srdf/kinematics_information.h>
 
-#include <tesseract_msgs/EnvironmentState.h>
+#include <tesseract_msgs/msg/environment_state.hpp>
 #include <tesseract_common/types.h>
 #include <Eigen/Eigen>
 
@@ -42,9 +42,9 @@ TEST_F(TesseractROSUtilsUnit, Instantiation)  // NOLINT
 
 TEST_F(TesseractROSUtilsUnit, processEnvironmentStateMsg)  // NOLINT
 {
-  ros::Time::init();
+  // ros::Time::init();
 
-  tesseract_msgs::EnvironmentState environment_state_msg;
+  tesseract_msgs::msg::EnvironmentState environment_state_msg;
 
   toMsg(environment_state_msg, *env_);
 
@@ -67,7 +67,7 @@ TEST_F(TesseractROSUtilsUnit, processEnvironmentStateMsg)  // NOLINT
 
   env_->applyCommands(commands);
 
-  tesseract_msgs::EnvironmentState environment_state_msg2;
+  tesseract_msgs::msg::EnvironmentState environment_state_msg2;
   toMsg(environment_state_msg2, *env_);
 
   EXPECT_EQ(environment_state_msg2.id, env_->getName());
@@ -75,37 +75,38 @@ TEST_F(TesseractROSUtilsUnit, processEnvironmentStateMsg)  // NOLINT
   EXPECT_EQ(environment_state_msg.revision + 1, environment_state_msg2.revision);
 }
 
-TEST_F(TesseractROSUtilsUnit, toFromMsgTesseract)  // NOLINT
-{
-  tesseract_msgs::Environment tesseract_msg;
-  EXPECT_TRUE(toMsg(tesseract_msg, env_));
+// Serialization ToDo
+// TEST_F(TesseractROSUtilsUnit, toFromMsgTesseract)  // NOLINT
+// {
+//   tesseract_msgs::msg::Environment tesseract_msg;
+//   EXPECT_TRUE(toMsg(tesseract_msg, env_));
+//
+//   std::string filepath = "/tmp/tesseract.bin";
+//   EXPECT_TRUE(toFile<tesseract_msgs::msg::Environment>(filepath, tesseract_msg));
+//
+//   auto new_tesseract_msg = fromFile<tesseract_msgs::msg::Environment>(filepath);
+//
+//   auto new_tesseract = fromMsg(tesseract_msg);
+//   EXPECT_TRUE(new_tesseract);
+// }
 
-  std::string filepath = "/tmp/tesseract.bin";
-  EXPECT_TRUE(toFile<tesseract_msgs::Environment>(filepath, tesseract_msg));
-
-  auto new_tesseract_msg = fromFile<tesseract_msgs::Environment>(filepath);
-
-  auto new_tesseract = fromMsg(tesseract_msg);
-  EXPECT_TRUE(new_tesseract);
-}
-
-TEST_F(TesseractROSUtilsUnit, toFromFile)  // NOLINT
-{
-  std_msgs::ColorRGBA msg;
-  msg.r = 1.1f;
-  msg.g = 2.2f;
-  msg.b = 3.3f;
-  msg.a = 4.4f;
-
-  std::string filepath = "/tmp/rgb_a_msg.bin";
-  EXPECT_TRUE(toFile<std_msgs::ColorRGBA>(filepath, msg));
-
-  auto new_msg = fromFile<std_msgs::ColorRGBA>(filepath);
-  EXPECT_DOUBLE_EQ(msg.r, new_msg.r);
-  EXPECT_DOUBLE_EQ(msg.g, new_msg.g);
-  EXPECT_DOUBLE_EQ(msg.b, new_msg.b);
-  EXPECT_DOUBLE_EQ(msg.a, new_msg.a);
-}
+// TEST_F(TesseractROSUtilsUnit, toFromFile)  // NOLINT
+// {
+//   std_msgs::msg::ColorRGBA msg;
+//   msg.r = 1.1f;
+//   msg.g = 2.2f;
+//   msg.b = 3.3f;
+//   msg.a = 4.4f;
+//
+//   std::string filepath = "/tmp/rgb_a_msg.bin";
+//   EXPECT_TRUE(toFile<std_msgs::ColorRGBA>(filepath, msg));
+//
+//   auto new_msg = fromFile<std_msgs::msg::ColorRGBA>(filepath);
+//   EXPECT_DOUBLE_EQ(msg.r, new_msg.r);
+//   EXPECT_DOUBLE_EQ(msg.g, new_msg.g);
+//   EXPECT_DOUBLE_EQ(msg.b, new_msg.b);
+//   EXPECT_DOUBLE_EQ(msg.a, new_msg.a);
+// }
 
 TEST_F(TesseractROSUtilsUnit, KinematicsInformation)  // NOLINT
 {
@@ -132,31 +133,30 @@ TEST_F(TesseractROSUtilsUnit, KinematicsInformation)  // NOLINT
   {
     tesseract_common::PluginInfo info;
     info.class_name = "KDLFwdKinChainFactory";
-    info.is_default = true;
     info.config["base_link"] = "base_link";
     info.config["tip_link"] = "tool0";
-    kin_info.kinematics_plugin_info.fwd_plugin_infos["manipulator1"]["KDLFwdKinChain"] = info;
+    kin_info.kinematics_plugin_info.fwd_plugin_infos["manipulator1"].default_plugin = "KDLFwdKinChain";
+    kin_info.kinematics_plugin_info.fwd_plugin_infos["manipulator1"].plugins["KDLFwdKinChain"] = info;
   }
 
   {
     tesseract_common::PluginInfo info;
     info.class_name = "KDLInvKinChainLMAFactory";
-    info.is_default = true;
     info.config["base_link"] = "base_link";
     info.config["tip_link"] = "tool0";
-    kin_info.kinematics_plugin_info.inv_plugin_infos["manipulator2"]["KDLInvKinChainLMA"] = info;
+    kin_info.kinematics_plugin_info.inv_plugin_infos["manipulator2"].default_plugin = "KDLInvKinChainLMA";
+    kin_info.kinematics_plugin_info.inv_plugin_infos["manipulator2"].plugins["KDLInvKinChainLMA"] = info;
   }
 
   {
     tesseract_common::PluginInfo info;
     info.class_name = "KDLInvKinChainNRFactory";
-    info.is_default = true;
     info.config["base_link"] = "base_link";
     info.config["tip_link"] = "tool0";
-    kin_info.kinematics_plugin_info.inv_plugin_infos["manipulator2"]["KDLInvKinChainNR"] = info;
+    kin_info.kinematics_plugin_info.inv_plugin_infos["manipulator2"].plugins["KDLInvKinChainNR"] = info;
   }
 
-  tesseract_msgs::KinematicsInformation kin_info_msg;
+  tesseract_msgs::msg::KinematicsInformation kin_info_msg;
   tesseract_rosutils::toMsg(kin_info_msg, kin_info);
 
   EXPECT_EQ(kin_info.group_names.size(), kin_info_msg.group_names.size());
@@ -191,32 +191,38 @@ TEST_F(TesseractROSUtilsUnit, KinematicsInformation)  // NOLINT
   EXPECT_EQ(kin_info.kinematics_plugin_info.fwd_plugin_infos.size(),
             kin_info_msg.kinematics_plugin_info.group_fwd_plugins.size());
   EXPECT_EQ(kin_info_msg.kinematics_plugin_info.group_fwd_plugins[0].group, "manipulator1");
-  EXPECT_EQ(kin_info_msg.kinematics_plugin_info.group_fwd_plugins[0].plugins.size(), 1);
-  EXPECT_EQ(kin_info_msg.kinematics_plugin_info.group_fwd_plugins[0].plugins[0].first, "KDLFwdKinChain");
-  EXPECT_EQ(kin_info_msg.kinematics_plugin_info.group_fwd_plugins[0].plugins[0].second.class_name,
+  EXPECT_EQ(kin_info_msg.kinematics_plugin_info.group_fwd_plugins[0].plugin_container.plugins.size(), 1);
+  EXPECT_EQ(kin_info_msg.kinematics_plugin_info.group_fwd_plugins[0].plugin_container.plugins[0].first,
+            "KDLFwdKinChain");
+  EXPECT_EQ(kin_info_msg.kinematics_plugin_info.group_fwd_plugins[0].plugin_container.plugins[0].second.class_name,
             "KDLFwdKinChainFactory");
-  EXPECT_EQ(kin_info_msg.kinematics_plugin_info.group_fwd_plugins[0].plugins[0].second.is_default, true);
-  EXPECT_FALSE(kin_info_msg.kinematics_plugin_info.group_fwd_plugins[0].plugins[0].second.config.empty());
+  EXPECT_EQ(kin_info_msg.kinematics_plugin_info.group_fwd_plugins[0].plugin_container.default_plugin, "KDLFwdKinChain");
+  EXPECT_FALSE(
+      kin_info_msg.kinematics_plugin_info.group_fwd_plugins[0].plugin_container.plugins[0].second.config.empty());
 
   EXPECT_EQ(kin_info.kinematics_plugin_info.inv_plugin_infos.size(),
             kin_info_msg.kinematics_plugin_info.group_inv_plugins.size());
   EXPECT_EQ(kin_info_msg.kinematics_plugin_info.group_inv_plugins[0].group, "manipulator2");
-  EXPECT_EQ(kin_info_msg.kinematics_plugin_info.group_inv_plugins[0].plugins.size(), 2);
-  EXPECT_EQ(kin_info_msg.kinematics_plugin_info.group_inv_plugins[0].plugins[0].first, "KDLInvKinChainLMA");
-  EXPECT_EQ(kin_info_msg.kinematics_plugin_info.group_inv_plugins[0].plugins[0].second.class_name,
+  EXPECT_EQ(kin_info_msg.kinematics_plugin_info.group_inv_plugins[0].plugin_container.plugins.size(), 2);
+  EXPECT_EQ(kin_info_msg.kinematics_plugin_info.group_inv_plugins[0].plugin_container.plugins[0].first,
+            "KDLInvKinChainLMA");
+  EXPECT_EQ(kin_info_msg.kinematics_plugin_info.group_inv_plugins[0].plugin_container.plugins[0].second.class_name,
             "KDLInvKinChainLMAFactory");
-  EXPECT_EQ(kin_info_msg.kinematics_plugin_info.group_inv_plugins[0].plugins[0].second.is_default, true);
-  EXPECT_FALSE(kin_info_msg.kinematics_plugin_info.group_inv_plugins[0].plugins[0].second.config.empty());
+  EXPECT_EQ(kin_info_msg.kinematics_plugin_info.group_inv_plugins[0].plugin_container.default_plugin,
+            "KDLInvKinChainLMA");
+  EXPECT_FALSE(
+      kin_info_msg.kinematics_plugin_info.group_inv_plugins[0].plugin_container.plugins[0].second.config.empty());
 
   EXPECT_EQ(kin_info.kinematics_plugin_info.inv_plugin_infos.size(),
             kin_info_msg.kinematics_plugin_info.group_inv_plugins.size());
   EXPECT_EQ(kin_info_msg.kinematics_plugin_info.group_inv_plugins[0].group, "manipulator2");
-  EXPECT_EQ(kin_info_msg.kinematics_plugin_info.group_inv_plugins[0].plugins.size(), 2);
-  EXPECT_EQ(kin_info_msg.kinematics_plugin_info.group_inv_plugins[0].plugins[1].first, "KDLInvKinChainNR");
-  EXPECT_EQ(kin_info_msg.kinematics_plugin_info.group_inv_plugins[0].plugins[1].second.class_name,
+  EXPECT_EQ(kin_info_msg.kinematics_plugin_info.group_inv_plugins[0].plugin_container.plugins.size(), 2);
+  EXPECT_EQ(kin_info_msg.kinematics_plugin_info.group_inv_plugins[0].plugin_container.plugins[1].first,
+            "KDLInvKinChainNR");
+  EXPECT_EQ(kin_info_msg.kinematics_plugin_info.group_inv_plugins[0].plugin_container.plugins[1].second.class_name,
             "KDLInvKinChainNRFactory");
-  EXPECT_EQ(kin_info_msg.kinematics_plugin_info.group_inv_plugins[0].plugins[1].second.is_default, true);
-  EXPECT_FALSE(kin_info_msg.kinematics_plugin_info.group_inv_plugins[0].plugins[1].second.config.empty());
+  EXPECT_FALSE(
+      kin_info_msg.kinematics_plugin_info.group_inv_plugins[0].plugin_container.plugins[1].second.config.empty());
 
   tesseract_srdf::KinematicsInformation kin_info2;
   tesseract_rosutils::fromMsg(kin_info2, kin_info_msg);
@@ -251,34 +257,36 @@ TEST_F(TesseractROSUtilsUnit, KinematicsInformation)  // NOLINT
   EXPECT_EQ(kin_info2.kinematics_plugin_info.fwd_plugin_infos.size(),
             kin_info_msg.kinematics_plugin_info.group_fwd_plugins.size());
   EXPECT_NO_THROW(kin_info2.kinematics_plugin_info.fwd_plugin_infos.at("manipulator1"));
-  EXPECT_EQ(kin_info2.kinematics_plugin_info.fwd_plugin_infos.at("manipulator1").size(), 1);
-  EXPECT_NO_THROW(kin_info2.kinematics_plugin_info.fwd_plugin_infos.at("manipulator1").at("KDLFwdKinChain"));
-  EXPECT_EQ(kin_info2.kinematics_plugin_info.fwd_plugin_infos.at("manipulator1").at("KDLFwdKinChain").class_name,
-            "KDLFwdKinChainFactory");
-  EXPECT_EQ(kin_info2.kinematics_plugin_info.fwd_plugin_infos.at("manipulator1").at("KDLFwdKinChain").is_default, true);
-  EXPECT_TRUE(kin_info2.kinematics_plugin_info.fwd_plugin_infos.at("manipulator1").at("KDLFwdKinChain").config);
+  EXPECT_EQ(kin_info2.kinematics_plugin_info.fwd_plugin_infos.at("manipulator1").plugins.size(), 1);
+  EXPECT_NO_THROW(kin_info2.kinematics_plugin_info.fwd_plugin_infos.at("manipulator1").plugins.at("KDLFwdKinChain"));
+  EXPECT_EQ(
+      kin_info2.kinematics_plugin_info.fwd_plugin_infos.at("manipulator1").plugins.at("KDLFwdKinChain").class_name,
+      "KDLFwdKinChainFactory");
+  EXPECT_EQ(kin_info2.kinematics_plugin_info.fwd_plugin_infos.at("manipulator1").default_plugin, "KDLFwdKinChain");
+  EXPECT_TRUE(kin_info2.kinematics_plugin_info.fwd_plugin_infos.at("manipulator1").plugins.at("KDLFwdKinChain").config);
 
   EXPECT_EQ(kin_info2.kinematics_plugin_info.inv_plugin_infos.size(),
             kin_info_msg.kinematics_plugin_info.group_inv_plugins.size());
   EXPECT_NO_THROW(kin_info2.kinematics_plugin_info.inv_plugin_infos.at("manipulator2"));
-  EXPECT_EQ(kin_info2.kinematics_plugin_info.inv_plugin_infos.at("manipulator2").size(), 2);
-  EXPECT_NO_THROW(kin_info2.kinematics_plugin_info.inv_plugin_infos.at("manipulator2").at("KDLInvKinChainLMA"));
-  EXPECT_EQ(kin_info2.kinematics_plugin_info.inv_plugin_infos.at("manipulator2").at("KDLInvKinChainLMA").class_name,
-            "KDLInvKinChainLMAFactory");
-  EXPECT_EQ(kin_info2.kinematics_plugin_info.inv_plugin_infos.at("manipulator2").at("KDLInvKinChainLMA").is_default,
-            true);
-  EXPECT_TRUE(kin_info2.kinematics_plugin_info.inv_plugin_infos.at("manipulator2").at("KDLInvKinChainLMA").config);
+  EXPECT_EQ(kin_info2.kinematics_plugin_info.inv_plugin_infos.at("manipulator2").plugins.size(), 2);
+  EXPECT_NO_THROW(kin_info2.kinematics_plugin_info.inv_plugin_infos.at("manipulator2").plugins.at("KDLInvKinChainLMA"));
+  EXPECT_EQ(
+      kin_info2.kinematics_plugin_info.inv_plugin_infos.at("manipulator2").plugins.at("KDLInvKinChainLMA").class_name,
+      "KDLInvKinChainLMAFactory");
+  EXPECT_EQ(kin_info2.kinematics_plugin_info.inv_plugin_infos.at("manipulator2").default_plugin, "KDLInvKinChainLMA");
+  EXPECT_TRUE(
+      kin_info2.kinematics_plugin_info.inv_plugin_infos.at("manipulator2").plugins.at("KDLInvKinChainLMA").config);
 
   EXPECT_EQ(kin_info2.kinematics_plugin_info.inv_plugin_infos.size(),
             kin_info_msg.kinematics_plugin_info.group_inv_plugins.size());
   EXPECT_NO_THROW(kin_info2.kinematics_plugin_info.inv_plugin_infos.at("manipulator2"));
-  EXPECT_EQ(kin_info2.kinematics_plugin_info.inv_plugin_infos.at("manipulator2").size(), 2);
-  EXPECT_NO_THROW(kin_info2.kinematics_plugin_info.inv_plugin_infos.at("manipulator2").at("KDLInvKinChainNR"));
-  EXPECT_EQ(kin_info2.kinematics_plugin_info.inv_plugin_infos.at("manipulator2").at("KDLInvKinChainNR").class_name,
-            "KDLInvKinChainNRFactory");
-  EXPECT_EQ(kin_info2.kinematics_plugin_info.inv_plugin_infos.at("manipulator2").at("KDLInvKinChainNR").is_default,
-            true);
-  EXPECT_TRUE(kin_info2.kinematics_plugin_info.inv_plugin_infos.at("manipulator2").at("KDLInvKinChainNR").config);
+  EXPECT_EQ(kin_info2.kinematics_plugin_info.inv_plugin_infos.at("manipulator2").plugins.size(), 2);
+  EXPECT_NO_THROW(kin_info2.kinematics_plugin_info.inv_plugin_infos.at("manipulator2").plugins.at("KDLInvKinChainNR"));
+  EXPECT_EQ(
+      kin_info2.kinematics_plugin_info.inv_plugin_infos.at("manipulator2").plugins.at("KDLInvKinChainNR").class_name,
+      "KDLInvKinChainNRFactory");
+  EXPECT_TRUE(
+      kin_info2.kinematics_plugin_info.inv_plugin_infos.at("manipulator2").plugins.at("KDLInvKinChainNR").config);
 }
 
 TEST_F(TesseractROSUtilsUnit, toRosJointTrajectory)  // NOLINT
@@ -287,8 +295,8 @@ TEST_F(TesseractROSUtilsUnit, toRosJointTrajectory)  // NOLINT
   std::vector<tesseract_common::JointState> tesseract_joint_trajectory;
   tesseract_common::JointState tesseract_joint_state;
 
-  trajectory_msgs::JointTrajectory ros_joint_trajectory;
-  trajectory_msgs::JointTrajectoryPoint ros_joint_state;
+  trajectory_msgs::msg::JointTrajectory ros_joint_trajectory;
+  trajectory_msgs::msg::JointTrajectoryPoint ros_joint_state;
   ros_joint_trajectory.joint_names = joint_names;
 
   tesseract_scene_graph::SceneState env_state;
@@ -327,7 +335,7 @@ TEST_F(TesseractROSUtilsUnit, toRosJointTrajectory)  // NOLINT
   ros_joint_trajectory.points.push_back(ros_joint_state);
   tesseract_joint_trajectory.push_back(tesseract_joint_state);
 
-  trajectory_msgs::JointTrajectory calculated_trajectory =
+  trajectory_msgs::msg::JointTrajectory calculated_trajectory =
       tesseract_rosutils::toMsg(tesseract_joint_trajectory, env_state);
 
   EXPECT_EQ(ros_joint_trajectory, calculated_trajectory);

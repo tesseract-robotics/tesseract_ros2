@@ -1,11 +1,13 @@
 cmake_minimum_required(VERSION 3.5.0)
-project(tesseract_msgs)
 
-if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 14)
-endif()
+# Extract package name and version
+find_package(ros_industrial_cmake_boilerplate REQUIRED)
+extract_package_metadata(pkg)
+project(${pkg_extracted_name} VERSION ${pkg_extracted_version} LANGUAGES CXX)
+
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
   add_compile_options(
+    -std=c++14
     -Wall
     -Wextra
     -Winconsistent-missing-override
@@ -13,6 +15,7 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     -Wsign-conversion)
 else()
   add_compile_options(
+    -std=c++14
     -Wall
     -Wextra
     -Wsuggest-override

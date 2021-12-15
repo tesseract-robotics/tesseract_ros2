@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.5.0)
-project(tesseract_rosutils VERSION 0.1.0 LANGUAGES CXX)
+
+# Extract package name and version
+find_package(ros_industrial_cmake_boilerplate REQUIRED)
+extract_package_metadata(pkg)
+project(${pkg_extracted_name} VERSION ${pkg_extracted_version} LANGUAGES CXX)
 
 # ROS packages
 find_package(rclcpp REQUIRED)
@@ -13,7 +17,6 @@ find_package(tf2_ros REQUIRED)
 find_package(tf2_eigen REQUIRED)
 
 # Non-ROS packages
-find_package(ros_industrial_cmake_boilerplate REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(tesseract_environment REQUIRED)
 find_package(tesseract_scene_graph REQUIRED)
@@ -117,9 +120,6 @@ ament_export_dependencies(
     yaml_cpp_vendor
 )
 
-ament_export_include_directories(
-    include
-)
+ament_export_include_directories(include)
 
 ament_package()
-

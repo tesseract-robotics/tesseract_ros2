@@ -27,16 +27,16 @@
 
 #include <tesseract_common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
-#include <ros/ros.h>
-#include <ros/service.h>
 #include <vector>
-#include <tesseract_msgs/GetEnvironmentInformation.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
+ #include <tesseract_msgs/msg/environment_command.h>
 #include <tesseract_environment/commands.h>
 #include <tesseract_environment/environment.h>
 #include <tesseract_rosutils/utils.h>
 #include <tesseract_monitoring/constants.h>
+
+#include <rclcpp/rclcpp.hpp>
 
 namespace tesseract_monitoring
 {
@@ -46,7 +46,7 @@ public:
   using Ptr = std::shared_ptr<EnvironmentMonitorInterface>;
   using ConstPtr = std::shared_ptr<const EnvironmentMonitorInterface>;
 
-  EnvironmentMonitorInterface(const std::string& env_name);
+  EnvironmentMonitorInterface(rclcpp::Node::SharedPtr node, const std::string& env_name);
   virtual ~EnvironmentMonitorInterface() = default;
   EnvironmentMonitorInterface(const EnvironmentMonitorInterface&) = default;
   EnvironmentMonitorInterface& operator=(const EnvironmentMonitorInterface&) = default;
@@ -55,18 +55,18 @@ public:
 
   /**
    * @brief This will wait for all namespaces to begin publishing
-   * @param seconds The number of seconds to wait before returning, if zero it waits indefinitely
+   * @param timeout The duration to wait before returning, if zero it waits indefinitely
    * @return True if namespace is available, otherwise false
    */
-  bool wait(ros::Duration timeout = ros::Duration(-1)) const;
+  bool wait(rclcpp::Duration timeout = rclcpp::Duration::from_nanoseconds(-1)) const;
 
   /**
    * @brief This will wait for a given namespace to begin publishing
    * @param monitor_namespace The namespace to wait for
-   * @param seconds The number of seconds to wait before returning, if zero it waits indefinitely
+   * @param timeout The duration to wait before returning, if zero it waits indefinitely
    * @return True if namespace is available, otherwise false
    */
-  bool waitForNamespace(const std::string& monitor_namespace, ros::Duration timeout = ros::Duration(-1)) const;
+  bool waitForNamespace(const std::string& monitor_namespace, rclcpp::Duration timeout = rclcpp::Duration::from_nanoseconds(-1)) const;
 
   /**
    * @brief Add monitor namespace to interface
@@ -136,14 +136,18 @@ public:
    * @param monitor_namespace The namespace to extract the environment from.
    * @return Environment Shared Pointer, if nullptr it failed
    */
-  static tesseract_environment::Environment::Ptr getEnvironment(const std::string& monitor_namespace);
+  tesseract_environment::Environment::Ptr getEnvironment(const std::string& monitor_namespace);
 
 protected:
-  ros::NodeHandle nh_;
+  rclcpp::Node::SharedPtr node_;
+  // Own a special callback that will be used to receive service replies outside of the main node execution
+  rclcpp::CallbackGroup::SharedPtr callback_group_;
+  rclcpp::Logger logger_;
+
   std::vector<std::string> ns_;
   std::string env_name_;
 
-  bool sendCommands(const std::string& ns, const std::vector<tesseract_msgs::EnvironmentCommand>& commands) const;
+  bool sendCommands(const std::string& ns, const std::vector<tesseract_msgs::msg::EnvironmentCommand>& commands) const;
 };
 }  // namespace tesseract_monitoring
 #endif  // TESSERACT_MONITORING_ENVIRONMENT_MONITOR_INTERFACE_H

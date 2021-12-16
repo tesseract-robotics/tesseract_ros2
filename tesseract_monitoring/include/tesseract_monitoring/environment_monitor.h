@@ -38,23 +38,21 @@
 #define TESSERACT_MONITORING_ENVIRONMENT_H
 
 #include <tesseract_common/macros.h>
-TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
+//TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
+//TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <pluginlib/class_loader.hpp>
-#include <ros/ros.h>
-#include <ros/service_client.h>
-#include <message_filters/subscriber.h>
+
 #include <memory>
 #include <shared_mutex>
 #include <mutex>
 #include <condition_variable>
 #include <thread>
 #include <functional>
-#include <tesseract_msgs/EnvironmentState.h>
-#include <tesseract_msgs/ModifyEnvironment.h>
-#include <tesseract_msgs/GetEnvironmentChanges.h>
-#include <tesseract_msgs/GetEnvironmentInformation.h>
-#include <tesseract_msgs/SaveSceneGraph.h>
-TESSERACT_COMMON_IGNORE_WARNINGS_POP
+#include <tesseract_msgs/msg/environment_state.hpp>
+#include <tesseract_msgs/srv/modify_environment.hpp>
+#include <tesseract_msgs/srv/get_environment_changes.hpp>
+#include <tesseract_msgs/srv/get_environment_information.hpp>
+#include <tesseract_msgs/srv/save_scene_graph.hpp>
 
 #include <tesseract_collision/core/discrete_contact_manager.h>
 #include <tesseract_collision/core/continuous_contact_manager.h>

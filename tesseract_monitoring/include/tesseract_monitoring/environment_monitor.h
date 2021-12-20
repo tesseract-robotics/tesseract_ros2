@@ -139,7 +139,7 @@ public:
    * @param timeout The duration to wait before returning, if not timeout is provided it waits indefinitely
    * @return True if it has connected to upstream environment, otherwise false
    */
-  bool waitForConnection(ros::Duration timeout = ros::Duration(-1)) const;
+  bool waitForConnection(rclcpp::Duration timeout = rclcpp::Duration(-1,0)) const;
 
   /**
    * @brief Apply provided command to the environment owned by this monitor
@@ -261,7 +261,7 @@ public:
   void clearUpdateCallbacks();
 
   /** \brief Return the time when the last update was made to the planning scene (by \e any monitor) */
-  const ros::Time& getLastUpdateTime() const { return last_update_time_; }
+  const rclcpp::Time& getLastUpdateTime() const { return last_update_time_; }
 
   /** @brief This function is called every time there is a change to the planning scene */
   void triggerEnvironmentUpdateEvent();
@@ -271,7 +271,7 @@ public:
    * If there is no state monitor active, there will be no scene updates.
    * Hence, you can specify a timeout to wait for those updates. Default is 1s.
    */
-  bool waitForCurrentState(const ros::Time& t, double wait_time = 1.);
+  bool waitForCurrentState(const rclcpp::Time& t, double wait_time = 1.);
 
   /** \brief Lock the scene for reading (multiple threads can lock for reading at the same time) */
   std::shared_lock<std::shared_mutex> lockEnvironmentRead();
@@ -303,38 +303,38 @@ protected:
 
   tesseract_environment::Environment::Ptr env_;
   mutable std::shared_mutex scene_update_mutex_;  /// mutex for stored scene
-  ros::Time last_update_time_;                    /// Last time the state was updated
-  ros::Time last_robot_motion_time_;              /// Last time the robot has moved
+  rclcpp::Time last_update_time_;                    /// Last time the state was updated
+  rclcpp::Time last_robot_motion_time_;              /// Last time the robot has moved
   bool enforce_next_state_update_;                /// flag to enforce immediate state update in onStateUpdate()
 
-  ros::NodeHandle nh_;
-  ros::NodeHandle root_nh_;
+  rclcpp::Node::SharedPtr node_;
+  //ros::NodeHandle root_nh_;
   std::string robot_description_;
 
   // variables for planning scene publishing
-  ros::Publisher environment_publisher_;
+  rclcpp::Publisher::SharedPtr environment_publisher_;
   std::unique_ptr<std::thread> publish_environment_;
   double publish_environment_frequency_;
   std::condition_variable_any new_environment_update_condition_;
 
   // variables for monitored environment
   MonitoredEnvironmentMode monitored_environment_mode_;
-  ros::Subscriber monitored_environment_subscriber_;
-  ros::ServiceClient get_monitored_environment_changes_client_;
-  ros::ServiceClient get_monitored_environment_information_client_;
-  ros::ServiceClient modify_monitored_environment_client_;
+  rclcpp::Subscription monitored_environment_subscriber_;
+  rclcpp::Client::SharedPtr get_monitored_environment_changes_client_;
+  rclcpp::Client::SharedPtr get_monitored_environment_information_client_;
+  rclcpp::Client::SharedPtr modify_monitored_environment_client_;
 
   // host a service for modifying the environment
-  ros::ServiceServer modify_environment_server_;
+  rclcpp::Service::SharedPtr modify_environment_server_;
 
   // host a service for getting the environment changes
-  ros::ServiceServer get_environment_changes_server_;
+  rclcpp::Service::SharedPtr get_environment_changes_server_;
 
   // host a service for getting the environment information
-  ros::ServiceServer get_environment_information_server_;
+  rclcpp::Service::SharedPtr get_environment_information_server_;
 
   // host a service for saving the scene graph to a DOT file
-  ros::ServiceServer save_scene_graph_server_;
+  rclcpp::Service::SharedPtr save_scene_graph_server_;
 
   // include a current state monitor
   CurrentStateMonitor::Ptr current_state_monitor_;
@@ -355,7 +355,7 @@ private:
   void onJointStateUpdate(const sensor_msgs::JointStateConstPtr& joint_state);
 
   // called by state_update_timer_ when a state update it pending
-  void updateJointStateTimerCallback(const ros::WallTimerEvent& event);
+  void updateJointStateTimerCallback();
 
   // Callback for a new state msg
   void newEnvironmentStateCallback(const tesseract_msgs::EnvironmentStateConstPtr& env);
@@ -389,21 +389,21 @@ private:
 
   /// the amount of time to wait in between updates to the robot state
   // This field is protected by state_pending_mutex_
-  ros::WallDuration dt_state_update_;
+  rclcpp::Duration dt_state_update_;
 
   /// the amount of time to wait when looking up transforms
   // Setting this to a non-zero value resolves issues when the sensor data is
   // arriving so fast that it is preceding the transform state.
-  ros::Duration shape_transform_cache_lookup_wait_time_;
+  rclcpp::Duration shape_transform_cache_lookup_wait_time_;
 
   /// timer for state updates.
   // Check if last_state_update_ is true and if so call updateSceneWithCurrentState()
   // Not safe to access from callback functions.
-  ros::WallTimer state_update_timer_;
+  rclcpp::WallTimer state_update_timer_;
 
   /// Last time the state was updated from current_state_monitor_
   // Only access this from callback functions (and constructor)
-  ros::WallTime last_robot_state_update_wall_time_;
+  rclcpp::WallTime last_robot_state_update_wall_time_;
 };
 
 }  // namespace tesseract_monitoring

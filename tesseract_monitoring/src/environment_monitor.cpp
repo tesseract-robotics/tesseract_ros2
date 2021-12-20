@@ -36,7 +36,6 @@
 
 #include <tesseract_common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
-#include <ros/console.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_monitoring/environment_monitor.h>
@@ -110,10 +109,9 @@ EnvironmentMonitor::~EnvironmentMonitor()
   shutdown();
 }
 
-bool EnvironmentMonitor::waitForConnection(ros::Duration timeout) const
+bool EnvironmentMonitor::waitForConnection(rclcpp::Duration timeout) const
 {
-  const ros::WallTime start_time = ros::WallTime::now();
-  const ros::WallDuration wall_timeout{ timeout.toSec() };
+  const rclcpp::Time start_time = node_->now();
   bool is_connected{ false };
   while (ros::ok())
   {

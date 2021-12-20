@@ -55,6 +55,7 @@ CurrentStateMonitor::CurrentStateMonitor(const tesseract_environment::Environmen
   , state_monitor_started_(false)
   , copy_dynamics_(false)
   , error_(std::numeric_limits<double>::epsilon())
+  , tf_broadcaster_(node_)
 {
 }
 
@@ -106,7 +107,7 @@ void CurrentStateMonitor::startStateMonitor(const std::string& joint_states_topi
     }
     else
     {
-      joint_state_subscriber_ = node_->create_subscription(
+      joint_state_subscriber_ = node_->create_subscription<sensor_msgs::msg::JointState>(
           joint_states_topic, rclcpp::QoS(25),
           std::bind(&CurrentStateMonitor::jointStateCallback, this, std::placeholders::_1));
     }
@@ -196,7 +197,7 @@ bool CurrentStateMonitor::haveCompleteState(std::vector<std::string>& missing_jo
   return result;
 }
 
-bool CurrentStateMonitor::haveCompleteState(const ros::Duration& age) const
+bool CurrentStateMonitor::haveCompleteState(const rclcpp::Duration& age) const
 {
   bool result = true;
   rclcpp::Time now = node_->now();
@@ -217,8 +218,8 @@ bool CurrentStateMonitor::haveCompleteState(const ros::Duration& age) const
       RCLCPP_DEBUG(node_->get_logger(),
           "Joint variable '%s' was last updated %0.3lf seconds ago (older than the allowed %0.3lf seconds)",
           joint.first.c_str(),
-          (now - it->second).toSec(),
-          age.toSec());
+          (now - it->second).seconds(),
+          age.seconds());
       result = false;
     }
   }
@@ -248,8 +249,8 @@ bool CurrentStateMonitor::haveCompleteState(const rclcpp::Duration& age, std::ve
       RCLCPP_DEBUG(node_->get_logger(),
           "Joint variable '%s' was last updated %0.3lf seconds ago (older than the allowed %0.3lf seconds)",
           joint.first.c_str(),
-          (now - it->second).toSec(),
-          age.toSec());
+          (now - it->second).seconds(),
+          age.seconds());
       missing_states.push_back(joint.first);
       result = false;
     }
@@ -260,7 +261,7 @@ bool CurrentStateMonitor::haveCompleteState(const rclcpp::Duration& age, std::ve
 bool CurrentStateMonitor::waitForCurrentState(rclcpp::Time t, double wait_time) const
 {
   rclcpp::Time start = node_->now();
-  rclcpp::Duration elapsed;
+  rclcpp::Duration elapsed(0,0);
   rclcpp::Duration timeout = rclcpp::Duration::from_seconds(wait_time);
 
   std::unique_lock slock(state_update_lock_);
@@ -278,10 +279,11 @@ bool CurrentStateMonitor::waitForCompleteState(double wait_time) const
 {
   double slept_time = 0.0;
   double sleep_step_s = std::min(0.05, wait_time / 10.0);
-  rclcpp::Duration sleep_step = rclcpp::Duration::from_seconds(sleep_step_s);
+  //rclcpp::Duration sleep_step = rclcpp::Duration::from_seconds(sleep_step_s);
+  auto sleep_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>{sleep_step_s});
   while (!haveCompleteState() && slept_time < wait_time)
   {
-    sleep_step.sleep();
+    rclcpp::sleep_for(sleep_duration);
     slept_time += sleep_step_s;
   }
   return haveCompleteState();
@@ -319,7 +321,7 @@ void CurrentStateMonitor::jointStateCallback(sensor_msgs::msg::JointState::Const
 {
   if (joint_state->name.size() != joint_state->position.size())
   {
-    RCLCPP_ERROR_THROTTLE(node_->get_logger(), 1,
+    RCLCPP_ERROR_THROTTLE(node_->get_logger(), *node_->get_clock(), rclcpp::Duration::from_seconds(1).nanoseconds(),
                        "State monitor received invalid joint state (number "
                        "of joint names does not match number of "
                        "positions)");

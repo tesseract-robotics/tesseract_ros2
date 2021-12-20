@@ -52,7 +52,7 @@ tesseract_variables()
 
 # Tesseract ROS Nodes
 add_library(${PROJECT_NAME}_environment SHARED
-  # src/environment_monitor.cpp
+  src/environment_monitor.cpp
   src/current_state_monitor.cpp
 )
 target_link_libraries(${PROJECT_NAME}_environment PUBLIC tesseract::tesseract_environment ${Boost_LIBRARIES})

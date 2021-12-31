@@ -42,8 +42,6 @@ target_link_libraries(${PROJECT_NAME}
     tesseract::tesseract_motion_planners_core
     tesseract::tesseract_process_managers
     tesseract::tesseract_command_language
-    ${rclcpp_LIBRARIES}
-    ${ament_index_cpp_LIBRARIES}
     ${Boost_LIBRARIES}
 )
 
@@ -58,6 +56,7 @@ target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC
     ${Boost_INCLUDE_DIRS})
 
 ament_target_dependencies(${PROJECT_NAME}
+    ament_index_cpp
     tesseract_msgs
     rclcpp
     tf2

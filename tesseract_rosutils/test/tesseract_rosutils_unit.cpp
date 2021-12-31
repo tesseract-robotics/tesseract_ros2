@@ -75,38 +75,37 @@ TEST_F(TesseractROSUtilsUnit, processEnvironmentStateMsg)  // NOLINT
   EXPECT_EQ(environment_state_msg.revision + 1, environment_state_msg2.revision);
 }
 
-// Serialization ToDo
-// TEST_F(TesseractROSUtilsUnit, toFromMsgTesseract)  // NOLINT
-// {
-//   tesseract_msgs::msg::Environment tesseract_msg;
-//   EXPECT_TRUE(toMsg(tesseract_msg, env_));
-//
-//   std::string filepath = "/tmp/tesseract.bin";
-//   EXPECT_TRUE(toFile<tesseract_msgs::msg::Environment>(filepath, tesseract_msg));
-//
-//   auto new_tesseract_msg = fromFile<tesseract_msgs::msg::Environment>(filepath);
-//
-//   auto new_tesseract = fromMsg(tesseract_msg);
-//   EXPECT_TRUE(new_tesseract);
-// }
+TEST_F(TesseractROSUtilsUnit, toFromMsgTesseract)  // NOLINT
+{
+  tesseract_msgs::msg::Environment tesseract_msg;
+  EXPECT_TRUE(toMsg(tesseract_msg, env_));
 
-// TEST_F(TesseractROSUtilsUnit, toFromFile)  // NOLINT
-// {
-//   std_msgs::msg::ColorRGBA msg;
-//   msg.r = 1.1f;
-//   msg.g = 2.2f;
-//   msg.b = 3.3f;
-//   msg.a = 4.4f;
-//
-//   std::string filepath = "/tmp/rgb_a_msg.bin";
-//   EXPECT_TRUE(toFile<std_msgs::ColorRGBA>(filepath, msg));
-//
-//   auto new_msg = fromFile<std_msgs::msg::ColorRGBA>(filepath);
-//   EXPECT_DOUBLE_EQ(msg.r, new_msg.r);
-//   EXPECT_DOUBLE_EQ(msg.g, new_msg.g);
-//   EXPECT_DOUBLE_EQ(msg.b, new_msg.b);
-//   EXPECT_DOUBLE_EQ(msg.a, new_msg.a);
-// }
+  std::string filepath = "/tmp/tesseract.bin";
+  EXPECT_TRUE(toFile<tesseract_msgs::msg::Environment>(filepath, tesseract_msg));
+
+  auto new_tesseract_msg = fromFile<tesseract_msgs::msg::Environment>(filepath);
+
+  auto new_tesseract = fromMsg(tesseract_msg);
+  EXPECT_TRUE(new_tesseract);
+}
+
+TEST_F(TesseractROSUtilsUnit, toFromFile)  // NOLINT
+{
+  std_msgs::msg::ColorRGBA msg;
+  msg.r = 1.1f;
+  msg.g = 2.2f;
+  msg.b = 3.3f;
+  msg.a = 4.4f;
+
+  std::string filepath = "/tmp/rgb_a_msg.bin";
+  EXPECT_TRUE(toFile<std_msgs::msg::ColorRGBA>(filepath, msg));
+
+  auto new_msg = fromFile<std_msgs::msg::ColorRGBA>(filepath);
+  EXPECT_DOUBLE_EQ(msg.r, new_msg.r);
+  EXPECT_DOUBLE_EQ(msg.g, new_msg.g);
+  EXPECT_DOUBLE_EQ(msg.b, new_msg.b);
+  EXPECT_DOUBLE_EQ(msg.a, new_msg.a);
+}
 
 TEST_F(TesseractROSUtilsUnit, KinematicsInformation)  // NOLINT
 {

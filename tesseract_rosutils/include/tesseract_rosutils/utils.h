@@ -71,6 +71,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <geometry_msgs/msg/pose_array.hpp>
 #include <trajectory_msgs/msg/joint_trajectory.hpp>
 #include <rclcpp/serialization.hpp>
+#include <rclcpp/serialized_message.hpp>
 #include <rclcpp/time.hpp>
 
 #include <Eigen/Geometry>
@@ -442,27 +443,21 @@ trajectory_msgs::msg::JointTrajectory toMsg(const tesseract_common::JointTraject
 template <typename MessageType>
 inline bool toFile(const std::string& filepath, const MessageType& msg)
 {
-  //static rclcpp::Serialization<msg> serializer;
-  // ToDo -> Implement serializa
-  /*
-
   std::ofstream ofs(filepath, std::ios::out | std::ios::binary);
 
-  uint32_t serial_size = ros::serialization::serializationLength(msg);
-  boost::shared_array<uint8_t> obuffer(new uint8_t[serial_size]);
+  rclcpp::Serialization<MessageType> serializer;
+  rclcpp::SerializedMessage serialized_msg;
 
-  ros::serialization::OStream ostream(obuffer.get(), serial_size);
-  ros::serialization::serialize(ostream, msg);
+  serializer.serialize_message(&msg, &serialized_msg);
 
-  ofs.write((char*)obuffer.get(), serial_size);
+  ofs.write(reinterpret_cast<char *>(serialized_msg.get_rcl_serialized_message().buffer),
+            static_cast<std::streamsize>(serialized_msg.size()));
 
   ofs.close();
 
-  */
   return true;
 }
 
-/* // ToDo -> Implement Serialization
 template <typename MessageType>
 inline MessageType fromFile(const std::string& filepath)
 {
@@ -472,18 +467,21 @@ inline MessageType fromFile(const std::string& filepath)
   ifs.seekg(0, std::ios::beg);
   std::streampos begin = ifs.tellg();
 
-  auto file_size = static_cast<long>(end - begin);
-  boost::shared_array<uint8_t> ibuffer(new uint8_t[static_cast<unsigned long>(file_size)]);
-  ifs.read((char*)ibuffer.get(), file_size);
-  ros::serialization::IStream istream(ibuffer.get(), static_cast<uint32_t>(file_size));
+  auto file_size = static_cast<unsigned long>(end - begin);
+  rclcpp::Serialization<MessageType> serializer;
+  rclcpp::SerializedMessage serialized_msg(file_size);
+
+  ifs.read(reinterpret_cast<char *>(serialized_msg.get_rcl_serialized_message().buffer),
+           static_cast<std::streamsize>(file_size));
+  // Manually set the buffer length
+  serialized_msg.get_rcl_serialized_message().buffer_length = file_size;
 
   MessageType msg;
-  ros::serialization::deserialize(istream, msg);
+  serializer.deserialize_message(&serialized_msg, &msg);
   ifs.close();
 
   return msg;
 }
-*/
 
 }  // namespace tesseract_rosutils
 

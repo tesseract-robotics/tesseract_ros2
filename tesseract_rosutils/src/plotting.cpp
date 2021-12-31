@@ -89,7 +89,6 @@ void ROSPlotting::waitForConnection(long seconds) const
     }
 
     loop_rate.sleep();
-    rclcpp::spin_some(node_);
   }
 
   return;
@@ -102,7 +101,6 @@ void ROSPlotting::plotEnvironmentState(const tesseract_scene_graph::SceneState& 
 void ROSPlotting::plotTrajectory(const tesseract_msgs::msg::Trajectory& traj, std::string /*ns*/)
 {
   trajectory_pub_->publish(traj);
-  rclcpp::spin_some(node_);
 }
 
 void ROSPlotting::plotTrajectory(const tesseract_common::JointTrajectory& traj,
@@ -189,13 +187,10 @@ void ROSPlotting::plotMarker(const tesseract_visualization::Marker& marker, std:
         visualization_msgs::msg::MarkerArray msg =
             getContactResultsMarkerArrayMsg(marker_counter_, root_link_, topic_namespace_, node_->now(), m);
         collisions_pub_->publish(msg);
-        rclcpp::spin_some(node_);
       }
       break;
     }
   }
-
-  rclcpp::spin_some(node_);
 }
 
 void ROSPlotting::plotMarkers(const std::vector<tesseract_visualization::Marker::Ptr>& /*markers*/, std::string /*ns*/)
@@ -255,7 +250,6 @@ void ROSPlotting::clear(std::string ns)
   collisions_pub_->publish(msg);
   arrows_pub_->publish(msg);
   axes_pub_->publish(msg);
-  rclcpp::spin_some(node_);
 }
 
 static void waitForInputAsync(std::string message)

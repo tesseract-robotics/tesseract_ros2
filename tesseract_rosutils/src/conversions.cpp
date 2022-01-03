@@ -25,8 +25,7 @@
  */
 #include <tesseract_common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
-#include <ros/console.h>
-#include <eigen_conversions/eigen_msg.h>
+#include <tf2_eigen/tf2_eigen.h>
 #include <iostream>
 #include <fstream>
 #include <boost/algorithm/string/classification.hpp>
@@ -45,7 +44,7 @@ Eigen::VectorXd toEigen(const std::vector<double>& vector)
   return Eigen::VectorXd::Map(vector.data(), static_cast<long>(vector.size()));
 }
 
-Eigen::VectorXd toEigen(const sensor_msgs::JointState& joint_state, const std::vector<std::string>& joint_names)
+Eigen::VectorXd toEigen(const sensor_msgs::msg::JointState& joint_state, const std::vector<std::string>& joint_names)
 {
   Eigen::VectorXd position;
   position.resize(static_cast<long>(joint_names.size()));
@@ -62,7 +61,7 @@ Eigen::VectorXd toEigen(const sensor_msgs::JointState& joint_state, const std::v
   return position;
 }
 
-bool toCSVFile(const std::vector<tesseract_msgs::JointState>& trajectory_msg,
+bool toCSVFile(const std::vector<tesseract_msgs::msg::JointState>& trajectory_msg,
                const std::string& file_path,
                char separator)
 {
@@ -74,15 +73,15 @@ bool toCSVFile(const std::vector<tesseract_msgs::JointState>& trajectory_msg,
     myfile << js.joint_names.size();
     std::copy(js.joint_names.begin(), js.joint_names.end(), std::ostream_iterator<std::string>(myfile, &separator));
     std::copy(js.position.begin(), js.position.end(), std::ostream_iterator<double>(myfile, &separator));
-    myfile << "," + std::to_string(js.time_from_start.toSec()) + ",\n";
+    myfile << "," + std::to_string(rclcpp::Duration(js.time_from_start).seconds()) + ",\n";
   }
   myfile.close();
   return true;
 }
 
-std::vector<tesseract_msgs::JointState> trajectoryFromCSVFile(const std::string& file_path, char separator)
+std::vector<tesseract_msgs::msg::JointState> trajectoryFromCSVFile(const std::string& file_path, char separator)
 {
-  std::vector<tesseract_msgs::JointState> trajectory;
+  std::vector<tesseract_msgs::msg::JointState> trajectory;
   std::ifstream csv_file(file_path);
 
   // Make sure the file is open
@@ -103,7 +102,7 @@ std::vector<tesseract_msgs::JointState> trajectoryFromCSVFile(const std::string&
     std::size_t cnt{ 0 };
     tesseract_common::toNumeric<std::size_t>(tokens[cnt++], num_vals);
 
-    tesseract_msgs::JointState js;
+    tesseract_msgs::msg::JointState js;
     js.joint_names.reserve(num_vals);
     js.position.reserve(num_vals);
 
@@ -131,7 +130,7 @@ std::vector<tesseract_msgs::JointState> trajectoryFromCSVFile(const std::string&
 
     double val = 0;
     tesseract_common::toNumeric<double>(tokens[cnt], val);
-    js.time_from_start = ros::Duration(val);
+    js.time_from_start = rclcpp::Duration::from_seconds(val);
 
     trajectory.push_back(js);
   }

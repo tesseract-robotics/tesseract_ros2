@@ -30,10 +30,10 @@
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <Eigen/Core>
 #include <Eigen/Geometry>
-#include <sensor_msgs/JointState.h>
-#include <geometry_msgs/Pose.h>
-#include <geometry_msgs/PoseArray.h>
-#include <tesseract_msgs/JointState.h>
+#include <sensor_msgs/msg/joint_state.hpp>
+#include <geometry_msgs/msg/pose.hpp>
+#include <geometry_msgs/msg/pose_array.hpp>
+#include <tesseract_msgs/msg/joint_state.hpp>
 #include <tesseract_command_language/core/instruction.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
@@ -54,7 +54,7 @@ Eigen::VectorXd toEigen(const std::vector<double>& vector);
  * @param joint_names The vector joint names used to order the output
  * @return Eigen::VectorXd in the same order as joint_names
  */
-Eigen::VectorXd toEigen(const sensor_msgs::JointState& joint_state, const std::vector<std::string>& joint_names);
+Eigen::VectorXd toEigen(const sensor_msgs::msg::JointState& joint_state, const std::vector<std::string>& joint_names);
 
 /**
  * @brief Convert a joint trajectory to csv format and write to file
@@ -63,7 +63,7 @@ Eigen::VectorXd toEigen(const sensor_msgs::JointState& joint_state, const std::v
  * @param separator The separator to use
  * @return true if successful
  */
-bool toCSVFile(const std::vector<tesseract_msgs::JointState>& trajectory_msg,
+bool toCSVFile(const std::vector<tesseract_msgs::msg::JointState>& trajectory_msg,
                const std::string& file_path,
                char separator = ',');
 
@@ -73,7 +73,7 @@ bool toCSVFile(const std::vector<tesseract_msgs::JointState>& trajectory_msg,
  * @param separator The separator to use
  * @return Joint Trajectory
  */
-std::vector<tesseract_msgs::JointState> trajectoryFromCSVFile(const std::string& file_path, char separator = ',');
+std::vector<tesseract_msgs::msg::JointState> trajectoryFromCSVFile(const std::string& file_path, char separator = ',');
 
 }  // namespace tesseract_rosutils
 #endif  // TESSERACT_ROSUTILS_CONVERSIONS_H

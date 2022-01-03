@@ -1,20 +1,18 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>tesseract_ros_examples</name>
-  <version>0.1.0</version>
-  <description>This package contains examples related to this trajopt_ros repository.</description>
+  <version>1.0.0</version>
+  <description>This package contains examples demonstrating tesseract_ros functionality.</description>
 
   <maintainer email="levi.armstrong@swri.org">Levi Armstrong</maintainer>
   <license>Apache 2.0</license>
   <license>BSD 2-Clause</license>
   <author >Levi Armstrong</author>
 
-  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>ament_cmake</buildtool_depend>
   <build_depend>ros_industrial_cmake_boilerplate</build_depend>
-  <build_depend>roscpp</build_depend>
-  <build_export_depend>roscpp</build_export_depend>
-  <exec_depend>roscpp</exec_depend>
-  <depend>roslib</depend>
+
+  <depend>rclcpp</depend>
   <depend>tesseract_collision</depend>
   <depend>tesseract_monitoring</depend>
   <depend>tesseract_command_language</depend>
@@ -34,11 +32,12 @@
   <exec_depend>tesseract_rviz</exec_depend>
   <exec_depend>xacro</exec_depend>
   <exec_depend>rviz</exec_depend>
-  <exec_depend>tf</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
   <exec_depend>joint_state_publisher_gui</exec_depend>
 
-  <test_depend>rostest</test_depend>
+  <test_depend>ros_testing</test_depend>
 
   <export>
+      <build_type>ament_cmake</build_type>
   </export>
 </package>

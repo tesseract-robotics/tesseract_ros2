@@ -65,9 +65,8 @@ public:
   using ConstPtr = std::shared_ptr<const CurrentStateMonitor>;
 
   /** @brief Constructor.
-   *  @param robot_model The current kinematic model to build on
-   *  @param tf A pointer to the tf transformer to use
-   *  @param nh A rclcpp::Node to pass node specific options
+   *  @param env The tesseract environment to modify
+   *  @param node A rclcpp::Node to access ROS info
    */
   CurrentStateMonitor(const tesseract_environment::Environment::ConstPtr& env, rclcpp::Node::SharedPtr node);
 

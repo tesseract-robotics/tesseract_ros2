@@ -40,7 +40,6 @@
 #include <tesseract_common/macros.h>
 //TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 //TESSERACT_COMMON_IGNORE_WARNINGS_POP
-#include <pluginlib/class_loader.hpp>
 
 #include <memory>
 #include <shared_mutex>
@@ -48,6 +47,9 @@
 #include <condition_variable>
 #include <thread>
 #include <functional>
+
+#include <rclcpp/rclcpp.hpp>
+#include <pluginlib/class_loader.hpp>
 #include <tesseract_msgs/msg/environment_state.hpp>
 #include <tesseract_msgs/srv/modify_environment.hpp>
 #include <tesseract_msgs/srv/get_environment_changes.hpp>
@@ -133,6 +135,9 @@ public:
 
   /** \brief Get the name of this monitor */
   const std::string& getName() const;
+
+  /** \brief Access the underlying rclcpp::Node for execution */
+  rclcpp::Node::SharedPtr getNode() const {return node_};
 
   /**
    * @brief Wait for connection to upstream environment

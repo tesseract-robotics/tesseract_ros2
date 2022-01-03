@@ -40,7 +40,6 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_monitoring/environment_monitor.h>
 #include <tesseract_environment/utils.h>
-#include <tesseract_scene_graph/utils.h>
 #include <tesseract_rosutils/utils.h>
 
 namespace tesseract_monitoring
@@ -52,7 +51,7 @@ EnvironmentMonitor::EnvironmentMonitor(const std::string& robot_description,
   : monitor_namespace_(std::move(monitor_namespace))
   , discrete_plugin_name_(std::move(discrete_plugin))
   , continuous_plugin_name_(std::move(continuous_plugin))
-  , nh_("~")
+  , node_{std::make_shared<rclcpp::Node>(monitor_namespace + "_tesseract_monitor")}
 {
   // Initial setup
   std::string urdf_xml_string, srdf_xml_string;
@@ -90,7 +89,7 @@ EnvironmentMonitor::EnvironmentMonitor(tesseract_environment::Environment::Ptr e
   , discrete_plugin_name_(std::move(discrete_plugin))
   , continuous_plugin_name_(std::move(continuous_plugin))
   , env_(std::move(env))
-  , nh_("~")
+  , node_{std::make_shared<rclcpp::Node>(monitor_namespace + "_tesseract_monitor")}
 {
   if (!initialize())
   {

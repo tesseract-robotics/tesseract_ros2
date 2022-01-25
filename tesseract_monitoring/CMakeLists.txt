@@ -55,17 +55,18 @@ add_library(${PROJECT_NAME}_environment SHARED
   src/environment_monitor.cpp
   src/current_state_monitor.cpp
 )
-target_link_libraries(${PROJECT_NAME}_environment PUBLIC tesseract::tesseract_environment ${Boost_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}_environment PUBLIC
+  tesseract::tesseract_environment
+  tesseract_rosutils::tesseract_rosutils
+)
 target_compile_options(${PROJECT_NAME}_environment PRIVATE ${TESSERACT_COMPILE_OPTIONS})
 target_clang_tidy(${PROJECT_NAME}_environment ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS} ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
 target_cxx_version(${PROJECT_NAME}_environment PUBLIC VERSION 17)
 target_include_directories(${PROJECT_NAME}_environment PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
-target_include_directories(${PROJECT_NAME}_environment SYSTEM PUBLIC ${Boost_INCLUDE_DIRS})
 ament_target_dependencies(${PROJECT_NAME}_environment PUBLIC
   tesseract_msgs
-  tesseract_rosutils
   pluginlib
 )
 
@@ -121,11 +122,14 @@ ament_target_dependencies(${PROJECT_NAME}_environment_interface PUBLIC
 #   "$<INSTALL_INTERFACE:include>")
 
 # Mark libraries for installation
+ament_export_targets(${PROJECT_NAME}-targets HAS_LIBRARY_TARGET)
+
 install(
   TARGETS
     # ${PROJECT_NAME}_environment
     ${PROJECT_NAME}_environment_interface
     # ${PROJECT_NAME}_contacts
+  EXPORT ${PROJECT_NAME}-targets
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin

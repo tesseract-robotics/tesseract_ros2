@@ -261,32 +261,33 @@ bool EnvironmentMonitor::initialize()
     }
   );
 
-  using namespace std::placeholders;
+  const auto& _ph1 = std::placeholders::_1;
+  const auto& _ph2 = std::placeholders::_2;
 
   // Create new service
   std::string modify_environment_service =
     R"(/)" + monitor_namespace_ + DEFAULT_MODIFY_ENVIRONMENT_SERVICE;
   modify_environment_server_ = node_->create_service<tesseract_msgs::srv::ModifyEnvironment>(
     modify_environment_service,
-    std::bind(&EnvironmentMonitor::modifyEnvironmentCallback, this, _1, _2));
+    std::bind(&EnvironmentMonitor::modifyEnvironmentCallback, this, _ph1, _ph2));
 
   std::string get_environment_changes_service =
     R"(/)" + monitor_namespace_ + DEFAULT_GET_ENVIRONMENT_CHANGES_SERVICE;
   get_environment_changes_server_ = node_->create_service<tesseract_msgs::srv::GetEnvironmentChanges>(
     get_environment_changes_service,
-    std::bind(&EnvironmentMonitor::getEnvironmentChangesCallback, this, _1, _2));
+    std::bind(&EnvironmentMonitor::getEnvironmentChangesCallback, this, _ph1, _ph2));
 
   std::string get_environment_information_service =
     R"(/)" + monitor_namespace_ + DEFAULT_GET_ENVIRONMENT_INFORMATION_SERVICE;
   get_environment_information_server_ = node_->create_service<tesseract_msgs::srv::GetEnvironmentInformation>(
     get_environment_information_service,
-    std::bind(&EnvironmentMonitor::getEnvironmentInformationCallback, this, _1, _2));
+    std::bind(&EnvironmentMonitor::getEnvironmentInformationCallback, this, _ph1, _ph2));
 
   std::string save_scene_graph_service =
     R"(/)" + monitor_namespace_ + DEFAULT_SAVE_SCENE_GRAPH_SERVICE;
   save_scene_graph_server_ = node_->create_service<tesseract_msgs::srv::SaveSceneGraph>(
     save_scene_graph_service,
-    std::bind(&EnvironmentMonitor::saveSceneGraphCallback, this, _1, _2));
+    std::bind(&EnvironmentMonitor::saveSceneGraphCallback, this, _ph1, _ph2));
 
   return true;
 }

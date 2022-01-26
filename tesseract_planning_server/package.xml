@@ -7,7 +7,7 @@
   <license>Apache 2.0</license>
   <author>Levi Armstrong</author>
 
-  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>ament_cmake</build_depend>
   <build_depend>ros_industrial_cmake_boilerplate</build_depend>
 
   <depend>tesseract_monitoring</depend>
@@ -21,5 +21,6 @@
   <depend>tf2_eigen</depend>
 
   <export>
+    <build_type>ament_cmake</build_type>
   </export>
 </package>

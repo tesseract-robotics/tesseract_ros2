@@ -30,11 +30,11 @@
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <deque>
 #include <shared_mutex>
-#include <ros/ros.h>
-#include <actionlib/server/simple_action_server.h>
+#include <rclcpp/rclcpp.hpp>
+//#include <actionlib/server/simple_action_server.h>
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
-#include <tesseract_msgs/GetMotionPlanAction.h>
+//#include <tesseract_msgs/GetMotionPlanAction.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_monitoring/environment_monitor.h>
@@ -48,41 +48,41 @@ public:
   using Ptr = std::shared_ptr<ROSProcessEnvironmentCache>;
   using ConstPtr = std::shared_ptr<const ROSProcessEnvironmentCache>;
 
-  ROSProcessEnvironmentCache(tesseract_monitoring::EnvironmentMonitor::Ptr env);
+  ROSProcessEnvironmentCache(tesseract_monitoring::EnvironmentMonitor::ConstPtr env);
 
   /**
    * @brief Set the cache size used to hold tesseract objects for motion planning
    * @param size The size of the cache.
    */
-  void setCacheSize(long size) override;
+  void setCacheSize(long size) override final;
 
   /**
    * @brief Get the cache size used to hold tesseract objects for motion planning
    * @return The size of the cache.
    */
-  long getCacheSize() const override;
+  long getCacheSize() const override final;
 
   /** @brief If the environment has changed it will rebuild the cache of tesseract objects */
-  void refreshCache() override;
+  void refreshCache() const override final;
 
   /**
    * @brief This will pop a Tesseract object from the queue
    * @details This will first call refreshCache to ensure it has an updated tesseract then proceed
    */
-  tesseract_environment::Environment::Ptr getCachedEnvironment() override;
+  tesseract_environment::Environment::UPtr getCachedEnvironment() const override final;
 
 protected:
   /** @brief The tesseract_object used to create the cache */
-  tesseract_monitoring::EnvironmentMonitor::Ptr environment_;
-
-  /** @brief The environment revision number at the time the cache was populated */
-  int cache_env_revision_{ 0 };
+  tesseract_monitoring::EnvironmentMonitor::ConstPtr environment_;
 
   /** @brief The assigned cache size */
   std::size_t cache_size_{ 5 };
 
-  /** @brief A vector of cached Tesseact objects */
-  std::deque<tesseract_environment::Environment::Ptr> cache_;
+  /** @brief The environment revision number at the time the cache was populated */
+  mutable int cache_env_revision_{ 0 };
+
+  /** @brief A vector of cached Tesseract objects */
+  mutable std::deque<tesseract_environment::Environment::UPtr> cache_;
 
   /** @brief The mutex used when reading and writing to cache_ */
   mutable std::shared_mutex cache_mutex_;
@@ -95,17 +95,15 @@ public:
 
   static const std::string DEFAULT_GET_MOTION_PLAN_ACTION;  // "/tesseract_get_motion_plan"
 
-  TesseractPlanningServer(const std::string& robot_description,
+  TesseractPlanningServer(rclcpp::Node::SharedPtr node,
+                          const std::string& robot_description,
                           std::string name,
-                          size_t n = std::thread::hardware_concurrency(),
-                          std::string discrete_plugin = "",
-                          std::string continuous_plugin = "");
+                          size_t n = std::thread::hardware_concurrency());
 
-  TesseractPlanningServer(tesseract_environment::Environment::Ptr env,
+  TesseractPlanningServer(rclcpp::Node::SharedPtr node,
+                          tesseract_environment::Environment::UPtr env,
                           std::string name,
-                          size_t n = std::thread::hardware_concurrency(),
-                          std::string discrete_plugin = "",
-                          std::string continuous_plugin = "");
+                          size_t n = std::thread::hardware_concurrency());
 
   ~TesseractPlanningServer() = default;
   TesseractPlanningServer(const TesseractPlanningServer&) = delete;
@@ -122,10 +120,13 @@ public:
   tesseract_planning::EnvironmentCache& getEnvironmentCache();
   const tesseract_planning::EnvironmentCache& getEnvironmentCache() const;
 
+  // TODO
+  /*
   void onMotionPlanningCallback(const tesseract_msgs::GetMotionPlanGoalConstPtr& goal);
+  */
 
 protected:
-  ros::NodeHandle nh_;
+  rclcpp::Node::SharedPtr node_;
 
   /** @brief The environment monitor to keep the planning server updated with the latest */
   tesseract_monitoring::EnvironmentMonitor::Ptr environment_;
@@ -134,13 +135,13 @@ protected:
   tesseract_planning::EnvironmentCache::Ptr environment_cache_;
 
   /** @brief The process planning server */
-  tesseract_planning::ProcessPlanningServer::Ptr planning_server_;
+  tesseract_planning::ProcessPlanningServer::UPtr planning_server_;
 
   /** @brief The motion planning action server */
-  actionlib::SimpleActionServer<tesseract_msgs::GetMotionPlanAction> motion_plan_server_;
+  //actionlib::SimpleActionServer<tesseract_msgs::GetMotionPlanAction> motion_plan_server_;
 
   /** @brief TF buffer to track TCP transforms */
-  std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
+  std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
 
   /** @brief TF listener to lookup TCP transforms */
   tf2_ros::TransformListener tf_listener_;

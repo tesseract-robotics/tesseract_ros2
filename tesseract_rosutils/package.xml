@@ -7,10 +7,10 @@
   <license>Apache 2.0</license>
   <author>Levi Armstrong</author>
 
-  <buildtool_depend>ament_cmake</buildtool_depend>
+  <build_depend>ament_cmake</build_depend>
+  <build_depend>ros_industrial_cmake_boilerplate</build_depend>
 
   <depend>eigen</depend>
-  <depend>rclcpp</depend>
   <depend>tesseract_collision</depend>
   <depend>tesseract_msgs</depend>
   <depend>tesseract_scene_graph</depend>
@@ -20,9 +20,9 @@
   <depend>tesseract_motion_planners</depend>
   <depend>tesseract_process_managers</depend>
   <depend>tesseract_srdf</depend>
-  <depend>yaml_cpp_vendor</depend>
-  <depend>ros_industrial_cmake_boilerplate</depend>
+  <depend>yaml-cpp</depend>
 
+  <depend>rclcpp</depend>
   <depend>visualization_msgs</depend>
   <depend>geometry_msgs</depend>
   <depend>tf2_eigen</depend>

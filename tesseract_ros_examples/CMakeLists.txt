@@ -328,15 +328,16 @@ install(DIRECTORY include/${PROJECT_NAME}
 # Mark libraries for installation
 install(
   TARGETS
-    basic_cartesian_example
-    car_seat_example
-    freespace_ompl_example
-    glass_upright_example
-    online_planning_example
-    pick_and_place_example
-    puzzle_piece_example
-    puzzle_piece_auxillary_axes_example
-    scene_graph_example
+    # basic_cartesian_example
+    # car_seat_example
+    freespace_hybrid_example
+    # freespace_ompl_example
+    # glass_upright_example
+    # online_planning_example
+    # pick_and_place_example
+    # puzzle_piece_example
+    # puzzle_piece_auxillary_axes_example
+    # scene_graph_example
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
@@ -344,15 +345,16 @@ install(
 # Mark executables for installation
 install(
   TARGETS
-    basic_cartesian_example_node
-    car_seat_example_node
-    freespace_ompl_example_node
-    glass_upright_example_node
-    online_planning_example_node
-    pick_and_place_example_node
-    puzzle_piece_example_node
-    puzzle_piece_auxillary_axes_example_node
-    scene_graph_example_node
+    # basic_cartesian_example_node
+    # car_seat_example_node
+    freespace_hybrid_example_node
+    # freespace_ompl_example_node
+    # glass_upright_example_node
+    # online_planning_example_node
+    # pick_and_place_example_node
+    # puzzle_piece_example_node
+    # puzzle_piece_auxillary_axes_example_node
+    # scene_graph_example_node
   RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 

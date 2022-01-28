@@ -42,74 +42,29 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 namespace tesseract_planning_server
 {
-class ROSProcessEnvironmentCache : public tesseract_planning::EnvironmentCache
-{
-public:
-  using Ptr = std::shared_ptr<ROSProcessEnvironmentCache>;
-  using ConstPtr = std::shared_ptr<const ROSProcessEnvironmentCache>;
 
-  ROSProcessEnvironmentCache(tesseract_monitoring::EnvironmentMonitor::ConstPtr env);
-
-  /**
-   * @brief Set the cache size used to hold tesseract objects for motion planning
-   * @param size The size of the cache.
-   */
-  void setCacheSize(long size) override final;
-
-  /**
-   * @brief Get the cache size used to hold tesseract objects for motion planning
-   * @return The size of the cache.
-   */
-  long getCacheSize() const override final;
-
-  /** @brief If the environment has changed it will rebuild the cache of tesseract objects */
-  void refreshCache() const override final;
-
-  /**
-   * @brief This will pop a Tesseract object from the queue
-   * @details This will first call refreshCache to ensure it has an updated tesseract then proceed
-   */
-  tesseract_environment::Environment::UPtr getCachedEnvironment() const override final;
-
-protected:
-  /** @brief The tesseract_object used to create the cache */
-  tesseract_monitoring::EnvironmentMonitor::ConstPtr environment_;
-
-  /** @brief The assigned cache size */
-  std::size_t cache_size_{ 5 };
-
-  /** @brief The environment revision number at the time the cache was populated */
-  mutable int cache_env_revision_{ 0 };
-
-  /** @brief A vector of cached Tesseract objects */
-  mutable std::deque<tesseract_environment::Environment::UPtr> cache_;
-
-  /** @brief The mutex used when reading and writing to cache_ */
-  mutable std::shared_mutex cache_mutex_;
-};
-
-class TesseractPlanningServer
+class ROSPlanningServer
 {
 public:
   static const std::string DEFAULT_PLANNER_PROFILES_PARAM;  // "/tesseract_planner_profiles"
 
   static const std::string DEFAULT_GET_MOTION_PLAN_ACTION;  // "/tesseract_get_motion_plan"
 
-  TesseractPlanningServer(rclcpp::Node::SharedPtr node,
+  ROSPlanningServer(rclcpp::Node::SharedPtr node,
                           const std::string& robot_description,
                           std::string name,
                           size_t n = std::thread::hardware_concurrency());
 
-  TesseractPlanningServer(rclcpp::Node::SharedPtr node,
+  ROSPlanningServer(rclcpp::Node::SharedPtr node,
                           tesseract_environment::Environment::UPtr env,
                           std::string name,
                           size_t n = std::thread::hardware_concurrency());
 
-  ~TesseractPlanningServer() = default;
-  TesseractPlanningServer(const TesseractPlanningServer&) = delete;
-  TesseractPlanningServer& operator=(const TesseractPlanningServer&) = delete;
-  TesseractPlanningServer(TesseractPlanningServer&&) = delete;
-  TesseractPlanningServer& operator=(TesseractPlanningServer&&) = delete;
+  ~ROSPlanningServer() = default;
+  ROSPlanningServer(const ROSPlanningServer&) = delete;
+  ROSPlanningServer& operator=(const ROSPlanningServer&) = delete;
+  ROSPlanningServer(ROSPlanningServer&&) = delete;
+  ROSPlanningServer& operator=(ROSPlanningServer&&) = delete;
 
   tesseract_monitoring::EnvironmentMonitor& getEnvironmentMonitor();
   const tesseract_monitoring::EnvironmentMonitor& getEnvironmentMonitor() const;

@@ -31,6 +31,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_planning_server/tesseract_planning_server.h>
+#include <tesseract_planning_server/environment_cache.h>
 
 #include <tesseract_motion_planners/default_planner_namespaces.h>
 #include <tesseract_motion_planners/descartes/profile/descartes_profile.h>
@@ -61,68 +62,6 @@ using tesseract_rosutils::processMsg;
 namespace tesseract_planning_server
 {
 const std::string TesseractPlanningServer::DEFAULT_GET_MOTION_PLAN_ACTION = "tesseract_get_motion_plan";
-
-ROSProcessEnvironmentCache::ROSProcessEnvironmentCache(tesseract_monitoring::EnvironmentMonitor::ConstPtr env)
-  : environment_(std::move(env))
-{
-}
-
-void ROSProcessEnvironmentCache::setCacheSize(long size)
-{
-  std::unique_lock<std::shared_mutex> lock(cache_mutex_);
-  cache_size_ = static_cast<std::size_t>(size);
-}
-
-long ROSProcessEnvironmentCache::getCacheSize() const { return static_cast<long>(cache_size_); }
-
-void ROSProcessEnvironmentCache::refreshCache() const
-{
-  std::unique_lock<std::shared_mutex> lock(cache_mutex_);
-  tesseract_environment::Environment::UPtr env;
-  {
-    auto lock = environment_->lockEnvironmentRead();
-    int rev = environment_->getEnvironment().getRevision();
-    if (rev != cache_env_revision_ || cache_.empty())
-    {
-      env = environment_->getEnvironment().clone();
-      cache_env_revision_ = rev;
-    }
-  }
-
-  if (env != nullptr)
-  {
-    cache_.clear();
-    for (std::size_t i = 0; i < cache_size_; ++i)
-      cache_.emplace_back(env->clone());
-  }
-  else if (cache_.size() <= 2)
-  {
-    for (std::size_t i = (cache_.size() - 1); i < cache_size_; ++i)
-      cache_.emplace_back(cache_.front()->clone());
-  }
-}
-
-tesseract_environment::Environment::UPtr ROSProcessEnvironmentCache::getCachedEnvironment() const
-{
-  // This is to make sure the cached items are updated if needed
-  refreshCache();
-
-  tesseract_scene_graph::SceneState current_state;
-  {
-    auto lock = environment_->lockEnvironmentRead();
-    current_state = environment_->getEnvironment().getState();
-  }
-
-  std::unique_lock<std::shared_mutex> lock(cache_mutex_);
-  tesseract_environment::Environment::UPtr env = std::move(cache_.back());
-
-  // Update to the current joint values
-  env->setState(current_state.joints);
-
-  cache_.pop_back();
-
-  return env;
-}
 
 TesseractPlanningServer::TesseractPlanningServer(rclcpp::Node::SharedPtr node,
                                                  const std::string& robot_description,

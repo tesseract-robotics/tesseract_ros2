@@ -22,7 +22,10 @@ find_package(tesseract_process_managers REQUIRED)
 # Load variable for clang tidy args, compiler options and cxx version
 tesseract_variables()
 
-add_library(${PROJECT_NAME} SHARED src/tesseract_planning_server.cpp)
+add_library(${PROJECT_NAME} SHARED
+  src/environment_cache.cpp
+  # src/tesseract_planning_server.cpp
+)
 target_link_libraries(${PROJECT_NAME} PUBLIC
     rclcpp::rclcpp
     tesseract::tesseract_command_language
@@ -91,7 +94,7 @@ install(
 #  RUNTIME DESTINATION lib/${PROJECT_NAME}
 #)
 
-install(DIRECTORY include/${PROJECT_NAME}/ DESTINATION include)
+install(DIRECTORY include/${PROJECT_NAME} DESTINATION include)
 install(DIRECTORY launch config DESTINATION share/${PROJECT_NAME})
 
 ament_export_targets(${PROJECT_NAME}-targets HAS_LIBRARY_TARGET)

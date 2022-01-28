@@ -7,14 +7,15 @@ project(${pkg_extracted_name} VERSION ${pkg_extracted_version} LANGUAGES CXX)
 find_package(ament_cmake REQUIRED)
 set(ament_pkg_deps
   rclcpp
+  ament_index_cpp
   tesseract_monitoring
   tesseract_rosutils
   tesseract_planning_server
-  octomap_ros
-  pcl_conversions
+  # octomap_ros
+  # pcl_conversions
 )
 
-foreach(ament_pkg IN ${ament_pkg_deps})
+foreach(ament_pkg IN LISTS ament_pkg_deps)
     find_package(${ament_pkg} REQUIRED)
 endforeach()
 
@@ -25,7 +26,7 @@ find_package(tesseract_process_managers REQUIRED)
 find_package(tesseract_common REQUIRED)
 find_package(trajopt_sqp REQUIRED)
 find_package(trajopt_ifopt REQUIRED)
-find_package(PCL REQUIRED COMPONENTS core features filters io segmentation surface)
+# find_package(PCL REQUIRED COMPONENTS core features filters io segmentation surface)
 
 # Load variable for clang tidy args, compiler options and cxx version
 tesseract_variables()
@@ -97,30 +98,30 @@ tesseract_variables()
 #     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
 #     "$<INSTALL_INTERFACE:include>")
 
-add_library(freespace_hybrid_example src/freespace_hybrid_example.cpp)
-target_link_libraries(freespace_hybrid_example PUBLIC
-    tesseract::tesseract_environment
-    tesseract::tesseract_process_managers)
-target_compile_options(freespace_hybrid_example PUBLIC ${TESSERACT_COMPILE_OPTIONS})
-target_clang_tidy(freespace_hybrid_example
-  ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS}
-  ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
-target_cxx_version(freespace_hybrid_example PUBLIC VERSION 17)
-target_include_directories(freespace_hybrid_example PUBLIC
-    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-    "$<INSTALL_INTERFACE:include>")
-ament_target_dependencies(freespace_hybrid_example PUBLIC ${ament_pkg_deps})
+# add_library(freespace_hybrid_example src/freespace_hybrid_example.cpp)
+# target_link_libraries(freespace_hybrid_example PUBLIC
+#    tesseract::tesseract_environment
+#    tesseract::tesseract_process_managers)
+# target_compile_options(freespace_hybrid_example PUBLIC ${TESSERACT_COMPILE_OPTIONS})
+# target_clang_tidy(freespace_hybrid_example
+#   ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS}
+#   ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
+# target_cxx_version(freespace_hybrid_example PUBLIC VERSION 17)
+# target_include_directories(freespace_hybrid_example PUBLIC
+#     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+#     "$<INSTALL_INTERFACE:include>")
+# ament_target_dependencies(freespace_hybrid_example PUBLIC ${ament_pkg_deps})
 
-add_executable(freespace_hybrid_example_node src/freespace_hybrid_example_node.cpp)
-target_link_libraries(freespace_hybrid_example_node PRIVATE freespace_hybrid_example)
-target_compile_options(freespace_hybrid_example_node PRIVATE ${TESSERACT_COMPILE_OPTIONS})
-target_clang_tidy(freespace_hybrid_example_node
-  ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS}
-  ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
-target_cxx_version(freespace_hybrid_example_node PRIVATE VERSION 17)
-target_include_directories(freespace_hybrid_example_node PRIVATE
-    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-    "$<INSTALL_INTERFACE:include>")
+# add_executable(freespace_hybrid_example_node src/freespace_hybrid_example_node.cpp)
+# target_link_libraries(freespace_hybrid_example_node PRIVATE freespace_hybrid_example)
+# target_compile_options(freespace_hybrid_example_node PRIVATE ${TESSERACT_COMPILE_OPTIONS})
+# target_clang_tidy(freespace_hybrid_example_node
+#   ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS}
+#   ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
+# target_cxx_version(freespace_hybrid_example_node PRIVATE VERSION 17)
+# target_include_directories(freespace_hybrid_example_node PRIVATE
+#     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+#     "$<INSTALL_INTERFACE:include>")
 
 # add_library(car_seat_example src/car_seat_example.cpp)
 # target_link_libraries(car_seat_example PUBLIC
@@ -244,29 +245,33 @@ target_include_directories(freespace_hybrid_example_node PRIVATE
 #     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
 #     "$<INSTALL_INTERFACE:include>")
 
-# add_library(puzzle_piece_example src/puzzle_piece_example.cpp)
-# target_link_libraries(puzzle_piece_example PUBLIC
-#     tesseract::tesseract_environment
-#     tesseract::tesseract_process_managers)
-# target_compile_options(puzzle_piece_example PUBLIC ${TESSERACT_COMPILE_OPTIONS})
-# target_clang_tidy(puzzle_piece_example
-#   ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS}
-#   ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
-# target_cxx_version(puzzle_piece_example PUBLIC VERSION 17)
-# target_include_directories(puzzle_piece_example PUBLIC
-#     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-#     "$<INSTALL_INTERFACE:include>")
+add_library(puzzle_piece_example src/puzzle_piece_example.cpp)
+target_link_libraries(puzzle_piece_example PUBLIC
+  ament_index_cpp::ament_index_cpp
+  tesseract::tesseract_environment
+  tesseract::tesseract_process_managers
+  tesseract_monitoring::tesseract_monitoring_environment
+  tesseract_planning_server::tesseract_planning_server
+)
+target_compile_options(puzzle_piece_example PUBLIC ${TESSERACT_COMPILE_OPTIONS})
+target_clang_tidy(puzzle_piece_example
+  ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS}
+  ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
+target_cxx_version(puzzle_piece_example PUBLIC VERSION 17)
+target_include_directories(puzzle_piece_example PUBLIC
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+  "$<INSTALL_INTERFACE:include>")
 
-# add_executable(puzzle_piece_example_node src/puzzle_piece_example_node.cpp)
-# target_link_libraries(puzzle_piece_example_node PUBLIC puzzle_piece_example)
-# target_compile_options(puzzle_piece_example_node PRIVATE ${TESSERACT_COMPILE_OPTIONS})
-# target_clang_tidy(puzzle_piece_example_node
-#   ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS}
-#   ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
-# target_cxx_version(puzzle_piece_example_node PRIVATE VERSION 17)
-# target_include_directories(puzzle_piece_example_node PRIVATE
-#     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-#     "$<INSTALL_INTERFACE:include>")
+add_executable(puzzle_piece_example_node src/puzzle_piece_example_node.cpp)
+target_link_libraries(puzzle_piece_example_node PUBLIC puzzle_piece_example)
+target_compile_options(puzzle_piece_example_node PRIVATE ${TESSERACT_COMPILE_OPTIONS})
+target_clang_tidy(puzzle_piece_example_node
+  ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS}
+  ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
+target_cxx_version(puzzle_piece_example_node PRIVATE VERSION 17)
+target_include_directories(puzzle_piece_example_node PRIVATE
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+  "$<INSTALL_INTERFACE:include>")
 
 # add_library(puzzle_piece_auxillary_axes_example src/puzzle_piece_auxillary_axes_example.cpp)
 # target_link_libraries(puzzle_piece_auxillary_axes_example PUBLIC
@@ -321,8 +326,6 @@ target_include_directories(freespace_hybrid_example_node PRIVATE
 # Mark cpp header files for installation
 install(DIRECTORY include/${PROJECT_NAME}
   DESTINATION include
-  FILES_MATCHING PATTERN "*.h"
-  PATTERN ".svn" EXCLUDE
  )
 
 # Mark libraries for installation
@@ -330,12 +333,12 @@ install(
   TARGETS
     # basic_cartesian_example
     # car_seat_example
-    freespace_hybrid_example
+    # freespace_hybrid_example
     # freespace_ompl_example
     # glass_upright_example
     # online_planning_example
     # pick_and_place_example
-    # puzzle_piece_example
+    puzzle_piece_example
     # puzzle_piece_auxillary_axes_example
     # scene_graph_example
   ARCHIVE DESTINATION lib
@@ -347,12 +350,12 @@ install(
   TARGETS
     # basic_cartesian_example_node
     # car_seat_example_node
-    freespace_hybrid_example_node
+    # freespace_hybrid_example_node
     # freespace_ompl_example_node
     # glass_upright_example_node
     # online_planning_example_node
     # pick_and_place_example_node
-    # puzzle_piece_example_node
+    puzzle_piece_example_node
     # puzzle_piece_auxillary_axes_example_node
     # scene_graph_example_node
   RUNTIME DESTINATION lib/${PROJECT_NAME}
@@ -380,6 +383,8 @@ install(
   DESTINATION share/${PROJECT_NAME}
   FILES_MATCHING PATTERN "*.test"
 )
+
+ament_package()
 
 if(CATKIN_ENABLE_TESTING)
     find_package(rostest REQUIRED)

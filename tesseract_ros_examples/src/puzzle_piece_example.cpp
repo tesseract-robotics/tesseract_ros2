@@ -25,7 +25,7 @@
  */
 #include <tesseract_common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
-#include <ros/ros.h>
+#include <rclcpp/rclcpp.hpp>
 #include <fstream>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
@@ -36,13 +36,17 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <tesseract_command_language/command_language.h>
 #include <tesseract_command_language/types.h>
 #include <tesseract_command_language/utils/utils.h>
-#include <tesseract_process_managers/taskflow_generators/trajopt_taskflow.h>
+#include <tesseract_motion_planners/default_planner_namespaces.h>
 #include <tesseract_motion_planners/trajopt/profile/trajopt_default_plan_profile.h>
 #include <tesseract_motion_planners/trajopt/profile/trajopt_default_composite_profile.h>
 #include <tesseract_motion_planners/trajopt/profile/trajopt_default_solver_profile.h>
 #include <tesseract_motion_planners/core/utils.h>
-#include <tesseract_planning_server/tesseract_planning_server.h>
+#include <tesseract_process_managers/core/default_process_planners.h>
+#include <tesseract_process_managers/core/process_planning_server.h>
+#include <tesseract_planning_server/environment_cache.h>
 #include <tesseract_visualization/markers/toolpath_marker.h>
+
+#include <ament_index_cpp/get_package_share_directory.hpp>
 
 using namespace trajopt;
 using namespace tesseract_environment;
@@ -50,6 +54,7 @@ using namespace tesseract_scene_graph;
 using namespace tesseract_collision;
 using namespace tesseract_rosutils;
 using namespace tesseract_visualization;
+using namespace tesseract_planning;
 
 /** @brief Default ROS parameter for robot description */
 const std::string ROBOT_DESCRIPTION_PARAM = "robot_description";
@@ -69,7 +74,7 @@ tesseract_common::VectorIsometry3d PuzzlePieceExample::makePuzzleToolPoses()
 
   // You could load your parts from anywhere, but we are transporting them with
   // the git repo
-  std::string filename = ros::package::getPath("tesseract_ros_examples") + "/config/puzzle_bent.csv";
+  std::string filename = ament_index_cpp::get_package_share_directory("tesseract_ros_examples") + "/config/puzzle_bent.csv";
 
   // In a non-trivial app, you'll of course want to check that calls like 'open'
   // succeeded
@@ -124,33 +129,20 @@ tesseract_common::VectorIsometry3d PuzzlePieceExample::makePuzzleToolPoses()
 
 bool PuzzlePieceExample::run()
 {
-  using tesseract_planning::CartesianWaypoint;
-  using tesseract_planning::CompositeInstruction;
-  using tesseract_planning::CompositeInstructionOrder;
-  using tesseract_planning::Instruction;
-  using tesseract_planning::ManipulatorInfo;
-  using tesseract_planning::PlanInstruction;
-  using tesseract_planning::PlanInstructionType;
-  using tesseract_planning::ProcessPlanningFuture;
-  using tesseract_planning::ProcessPlanningRequest;
-  using tesseract_planning::ProcessPlanningServer;
-  using tesseract_planning::StateWaypoint;
-  using tesseract_planning::Waypoint;
   using tesseract_planning_server::ROSProcessEnvironmentCache;
 
   console_bridge::setLogLevel(console_bridge::LogLevel::CONSOLE_BRIDGE_LOG_DEBUG);
 
   // Initial setup
-  std::string urdf_xml_string, srdf_xml_string;
-  nh_.getParam(ROBOT_DESCRIPTION_PARAM, urdf_xml_string);
-  nh_.getParam(ROBOT_SEMANTIC_PARAM, srdf_xml_string);
+  std::string urdf_xml_string = node_->declare_parameter(ROBOT_DESCRIPTION_PARAM, "");
+  std::string srdf_xml_string = node_->declare_parameter(ROBOT_SEMANTIC_PARAM, "");
 
   auto locator = std::make_shared<tesseract_rosutils::ROSResourceLocator>();
   if (!env_->init(urdf_xml_string, srdf_xml_string, locator))
     return false;
 
   // Create monitor
-  monitor_ = std::make_shared<tesseract_monitoring::EnvironmentMonitor>(env_, EXAMPLE_MONITOR_NAMESPACE);
+  monitor_ = std::make_shared<tesseract_monitoring::EnvironmentMonitor>(node_, env_, EXAMPLE_MONITOR_NAMESPACE);
   if (rviz_)
     monitor_->startPublishingEnvironment();
 
@@ -213,36 +205,33 @@ bool PuzzlePieceExample::run()
   // Create a trajopt taskflow without post collision checking
   /** @todo This matches the original example, but should update to include post collision check */
   const std::string new_planner_name = "TRAJOPT_NO_POST_CHECK";
-  tesseract_planning::TrajOptTaskflowParams params;
-  params.enable_post_contact_discrete_check = false;
-  params.enable_post_contact_continuous_check = false;
-  planning_server.registerProcessPlanner(new_planner_name,
-                                         std::make_unique<tesseract_planning::TrajOptTaskflow>(params));
+  planning_server.registerProcessPlanner(new_planner_name, createTrajOptGenerator(true, false));
 
   // Create TrajOpt Profile
-  auto trajopt_plan_profile = std::make_shared<tesseract_planning::TrajOptDefaultPlanProfile>();
+  auto trajopt_plan_profile = std::make_shared<TrajOptDefaultPlanProfile>();
   trajopt_plan_profile->cartesian_coeff = Eigen::VectorXd::Constant(6, 1, 10);
   trajopt_plan_profile->cartesian_coeff(5) = 0;
 
-  auto trajopt_composite_profile = std::make_shared<tesseract_planning::TrajOptDefaultCompositeProfile>();
+  auto trajopt_composite_profile = std::make_shared<TrajOptDefaultCompositeProfile>();
   trajopt_composite_profile->collision_constraint_config.enabled = false;
   trajopt_composite_profile->collision_cost_config.enabled = true;
   trajopt_composite_profile->collision_cost_config.safety_margin = 0.025;
   trajopt_composite_profile->collision_cost_config.type = trajopt::CollisionEvaluatorType::SINGLE_TIMESTEP;
   trajopt_composite_profile->collision_cost_config.coeff = 20;
 
-  auto trajopt_solver_profile = std::make_shared<tesseract_planning::TrajOptDefaultSolverProfile>();
+  auto trajopt_solver_profile = std::make_shared<TrajOptDefaultSolverProfile>();
   trajopt_solver_profile->convex_solver = sco::ModelType::OSQP;
   trajopt_solver_profile->opt_info.max_iter = 200;
   trajopt_solver_profile->opt_info.min_approx_improve = 1e-3;
   trajopt_solver_profile->opt_info.min_trust_box_size = 1e-3;
 
   // Add profile to Dictionary
-  planning_server.getProfiles()->addProfile<tesseract_planning::TrajOptPlanProfile>("CARTESIAN", trajopt_plan_profile);
-  planning_server.getProfiles()->addProfile<tesseract_planning::TrajOptCompositeProfile>("DEFAULT",
-                                                                                         trajopt_composite_profile);
-  planning_server.getProfiles()->addProfile<tesseract_planning::TrajOptSolverProfile>("DEFAULT",
-                                                                                      trajopt_solver_profile);
+  planning_server.getProfiles()->addProfile<TrajOptPlanProfile>(
+      profile_ns::TRAJOPT_DEFAULT_NAMESPACE, "CARTESIAN", trajopt_plan_profile);
+  planning_server.getProfiles()->addProfile<TrajOptCompositeProfile>(
+      profile_ns::TRAJOPT_DEFAULT_NAMESPACE, "DEFAULT", trajopt_composite_profile);
+  planning_server.getProfiles()->addProfile<TrajOptSolverProfile>(
+      profile_ns::TRAJOPT_DEFAULT_NAMESPACE, "DEFAULT", trajopt_solver_profile);
   // Create Process Planning Request
   ProcessPlanningRequest request;
   request.name = new_planner_name;
@@ -250,10 +239,10 @@ bool PuzzlePieceExample::run()
 
   // Create Naive Seed
   /** @todo Need to improve simple planners to support external tcp definitions */
-  tesseract_planning::CompositeInstruction naive_seed;
+  CompositeInstruction naive_seed;
   {
     auto lock = monitor_->lockEnvironmentRead();
-    naive_seed = tesseract_planning::generateNaiveSeed(program, *(monitor_->getEnvironment()));
+    naive_seed = generateNaiveSeed(program, *monitor_->getEnvironment());
   }
   request.seed = Instruction(naive_seed);
 
@@ -272,13 +261,13 @@ bool PuzzlePieceExample::run()
   if (rviz_ && plotter != nullptr && plotter->isConnected())
   {
     plotter->waitForInput();
-    const auto& ci = response.results->as<tesseract_planning::CompositeInstruction>();
-    tesseract_common::JointTrajectory trajectory = tesseract_planning::toJointTrajectory(ci);
+    const auto& ci = response.results->as<CompositeInstruction>();
+    tesseract_common::JointTrajectory trajectory = toJointTrajectory(ci);
     auto state_solver = env_->getStateSolver();
     plotter->plotTrajectory(trajectory, *state_solver);
   }
 
-  ROS_INFO("Final trajectory is collision free");
+  RCLCPP_INFO(node_->get_logger(), "Final trajectory is collision free");
   return true;
 }
 }  // namespace tesseract_ros_examples

@@ -26,18 +26,9 @@
 #ifndef TESSERACT_ROS_EXAMPLES_EXAMPLES_H
 #define TESSERACT_ROS_EXAMPLES_EXAMPLES_H
 
-#include <tesseract_common/macros.h>
-TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
-#include <tesseract_msgs/ModifyEnvironment.h>
-#include <tesseract_msgs/GetEnvironmentChanges.h>
-#include <ros/console.h>
-#include <ros/service_client.h>
 #include <memory>
-TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_environment/environment.h>
-#include <tesseract_rosutils/utils.h>
-#include <tesseract_rosutils/conversions.h>
 #include <tesseract_monitoring/environment_monitor.h>
 
 namespace tesseract_ros_examples
@@ -58,10 +49,6 @@ public:
   {
   }
   virtual ~Example() = default;
-  Example(const Example&) = default;
-  Example& operator=(const Example&) = default;
-  Example(Example&&) = default;
-  Example& operator=(Example&&) = default;
 
   virtual bool run() = 0;
 

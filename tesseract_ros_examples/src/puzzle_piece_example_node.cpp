@@ -26,21 +26,17 @@
 
 #include <tesseract_ros_examples/puzzle_piece_example.h>
 
-using namespace tesseract_ros_examples;
-
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "puzzle_piece_example_node");
-  ros::NodeHandle pnh("~");
-  ros::NodeHandle nh;
+  rclcpp::init(argc, argv);
 
-  bool plotting = true;
-  bool rviz = true;
+  auto node = std::make_shared<rclcpp::Node>("puzzle_piece_example_node");
 
-  // Get ROS Parameters
-  pnh.param("plotting", plotting, plotting);
-  pnh.param("rviz", rviz, rviz);
+  bool plotting = node->declare_parameter("plotting", true);
+  bool rviz = node->declare_parameter("rviz", true);
 
-  PuzzlePieceExample example(nh, plotting, rviz);
+  tesseract_ros_examples::PuzzlePieceExample example(node, plotting, rviz);
   example.run();
+
+  return 0;
 }

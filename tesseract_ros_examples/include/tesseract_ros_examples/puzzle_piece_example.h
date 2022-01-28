@@ -31,7 +31,7 @@
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <trajopt/problem_description.hpp>
 #include <string>
-#include <ros/ros.h>
+#include <rclcpp/rclcpp.hpp>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_common/types.h>
@@ -46,19 +46,14 @@ namespace tesseract_ros_examples
 class PuzzlePieceExample : public Example
 {
 public:
-  PuzzlePieceExample(const ros::NodeHandle& nh, bool plotting, bool rviz) : Example(plotting, rviz), nh_(nh) {}
-  ~PuzzlePieceExample() override = default;
-  PuzzlePieceExample(const PuzzlePieceExample&) = default;
-  PuzzlePieceExample& operator=(const PuzzlePieceExample&) = default;
-  PuzzlePieceExample(PuzzlePieceExample&&) = default;
-  PuzzlePieceExample& operator=(PuzzlePieceExample&&) = default;
+  PuzzlePieceExample(rclcpp::Node::SharedPtr node, bool plotting, bool rviz) : Example(plotting, rviz), node_(node) {}
 
   bool run() override;
 
 private:
-  ros::NodeHandle nh_;
-
   tesseract_common::VectorIsometry3d makePuzzleToolPoses();
+
+  rclcpp::Node::SharedPtr node_;
 };
 
 }  // namespace tesseract_ros_examples

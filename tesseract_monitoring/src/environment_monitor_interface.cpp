@@ -59,7 +59,7 @@ typename SrvType::Response::SharedPtr call_service(
   }
 
   rclcpp::executors::SingleThreadedExecutor exec;
-  exec.add_callback_group(cbg, node.get_node_base_interface());
+  //exec.add_callback_group(cbg, node.get_node_base_interface());
 
   auto future = client->async_send_request(request);
   auto retcode = exec.spin_until_future_complete(future, timeout);
@@ -78,7 +78,7 @@ EnvironmentMonitorInterface::EnvironmentMonitorInterface(rclcpp::Node::SharedPtr
   env_name_{env_name},
   logger_{node_->get_logger().get_child(env_name_ + "_env_monitor")}
 {
-  callback_group_ = node_->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive, false);
+  //callback_group_ = node_->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive, false);
 }
 
 bool EnvironmentMonitorInterface::wait(rclcpp::Duration timeout) const
@@ -96,7 +96,7 @@ bool EnvironmentMonitorInterface::wait(rclcpp::Duration timeout) const
     if (!results)
       return false;
 
-    if (timeout > rclcpp::Duration::from_nanoseconds(0) && (node_->now() - start_time) >= timeout)
+    if (timeout > rclcpp::Duration::from_seconds(0) && (node_->now() - start_time) >= timeout)
     {
       RCLCPP_ERROR(logger_, "Timeout waiting for namespaces");
       return false;

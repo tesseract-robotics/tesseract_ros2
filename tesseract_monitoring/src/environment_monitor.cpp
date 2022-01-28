@@ -731,11 +731,11 @@ bool EnvironmentMonitor::waitForCurrentState(const rclcpp::Time& t, double wait_
   return success;
 }
 
-std::shared_lock<std::shared_mutex> EnvironmentMonitor::lockEnvironmentRead()
+std::shared_lock<std::shared_mutex> EnvironmentMonitor::lockEnvironmentRead() const
 {
   return std::shared_lock(scene_update_mutex_);
 }
-std::unique_lock<std::shared_mutex> EnvironmentMonitor::lockEnvironmentWrite()
+std::unique_lock<std::shared_mutex> EnvironmentMonitor::lockEnvironmentWrite() const
 {
   return std::unique_lock(scene_update_mutex_);
 }

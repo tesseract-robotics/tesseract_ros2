@@ -284,11 +284,11 @@ public:
   bool waitForCurrentState(const rclcpp::Time& t, double wait_time=1.0);
 
   /** \brief Lock the scene for reading (multiple threads can lock for reading at the same time) */
-  std::shared_lock<std::shared_mutex> lockEnvironmentRead();
+  std::shared_lock<std::shared_mutex> lockEnvironmentRead() const;
 
   /** \brief Lock the scene for writing (only one thread can lock for writing and no other thread can lock for reading)
    */
-  std::unique_lock<std::shared_mutex> lockEnvironmentWrite();
+  std::unique_lock<std::shared_mutex> lockEnvironmentWrite() const;
 
   void getStateMonitoredTopics(std::vector<std::string>& topics) const;
 

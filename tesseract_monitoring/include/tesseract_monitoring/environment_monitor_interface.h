@@ -58,7 +58,7 @@ public:
    * @param timeout The duration to wait before returning, if zero it waits indefinitely
    * @return True if namespace is available, otherwise false
    */
-  bool wait(rclcpp::Duration timeout = rclcpp::Duration::from_nanoseconds(-1)) const;
+  bool wait(rclcpp::Duration timeout = rclcpp::Duration::from_seconds(0)) const;
 
   /**
    * @brief This will wait for a given namespace to begin publishing
@@ -66,7 +66,7 @@ public:
    * @param timeout The duration to wait before returning, if zero it waits indefinitely
    * @return True if namespace is available, otherwise false
    */
-  bool waitForNamespace(const std::string& monitor_namespace, rclcpp::Duration timeout = rclcpp::Duration::from_nanoseconds(-1)) const;
+  bool waitForNamespace(const std::string& monitor_namespace, rclcpp::Duration timeout = rclcpp::Duration::from_seconds(0)) const;
 
   /**
    * @brief Add monitor namespace to interface

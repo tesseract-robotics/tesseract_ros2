@@ -24,6 +24,8 @@
  * limitations under the License.
  */
 
+#include <thread>
+
 #include <tesseract_ros_examples/puzzle_piece_example.h>
 
 int main(int argc, char** argv)
@@ -36,7 +38,19 @@ int main(int argc, char** argv)
   bool rviz = node->declare_parameter("rviz", true);
 
   tesseract_ros_examples::PuzzlePieceExample example(node, plotting, rviz);
+
+  std::thread spinner{
+    [node]()
+    {
+      rclcpp::spin(node);
+    }
+  };
+
   example.run();
+
+  RCLCPP_INFO(node->get_logger(), "Example completed, waiting for ROS shutdown...");
+  spinner.join();
+  RCLCPP_INFO(node->get_logger(), "Shutdown!");
 
   return 0;
 }

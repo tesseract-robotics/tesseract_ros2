@@ -3,7 +3,7 @@
   <!-- By default we do not overwrite the URDF. Change the following to true to change the default behavior -->
   <!-- The name of the parameter under which the URDF is loaded -->
   <arg name="plotting" default="false"/>
-  <arg name="rviz" default="false"/>
+  <arg name="rviz" default="true"/>
   <arg name="testing" default="false"/>
 
   <!-- Load universal robot description format (URDF) -->
@@ -14,6 +14,9 @@
   <let name="robot_description_semantic"
        value="$(command 'cat $(find-pkg-share tesseract_ros_examples)/config/puzzle_piece_workcell.srdf')" />
 
+  <node pkg="robot_state_publisher" exec="robot_state_publisher" name="robot_state_publisher">
+      <param name="robot_description" value="$(var robot_description)" />
+  </node>
   <!--
   <group unless="$(arg testing)">
   -->
@@ -22,7 +25,7 @@
     <node pkg="tf" type="static_transform_publisher" name="virtual_joint_broadcaster_0" args="0 0 0 0 0 0 world base_link 100" />
     -->
 
-    <node pkg="tesseract_ros_examples" exec="puzzle_piece_example_node" name="tesseract_ros_examples_puzzle_piece_example_node" output="screen">
+    <node pkg="tesseract_ros_examples" exec="puzzle_piece_example_node" output="screen">
       <param name="plotting" type="bool" value="$(var plotting)"/>
       <param name="rviz" type="bool" value="$(var rviz)"/>
       <param name="robot_description" value="$(var robot_description)" type="str"/>
@@ -34,10 +37,10 @@
     </node>
 
     <!-- Launch visualization -->
-    <!--
-    <node pkg="rviz" exec="rviz" name="tesseract_ros_examples_puzzle_piece_example_rviz"
-        args="-d $(find tesseract_ros_examples)/config/examples.rviz" />
-    -->
+    <node pkg="rviz2" exec="rviz2"
+        args=""> <!---d $(find-pkg-share tesseract_ros_examples)/config/examples.rviz">-->
+      <param name="robot_description" value="$(var robot_description)" type="str"/>
+    </node>
   <!--
   </group>
   -->

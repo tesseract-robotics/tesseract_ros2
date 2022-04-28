@@ -331,24 +331,36 @@ void EnvironmentMonitor::stopPublishingEnvironment()
 
 void EnvironmentMonitor::startPublishingEnvironment()
 {
-  if (!publish_environment_ && env_->isInitialized())
+  rclcpp::Logger logger = node_->get_logger().get_child(monitor_namespace_ + "_monitor");
+  if (publish_environment_)
   {
-    std::string environment_topic = R"(/)" + monitor_namespace_ + DEFAULT_PUBLISH_ENVIRONMENT_TOPIC;
-    environment_publisher_ =
-        node_->create_publisher<tesseract_msgs::msg::EnvironmentState>(environment_topic, rclcpp::QoS(100));
-    RCLCPP_INFO(node_->get_logger().get_child(monitor_namespace_),
-                "Publishing maintained environment on '%s'",
-                environment_topic.c_str());
-    publish_environment_ =
-        std::make_unique<std::thread>(std::bind(&EnvironmentMonitor::environmentPublishingThread, this));
+    RCLCPP_ERROR(logger, "Environment publishing thread already exists!");
+    return;
   }
+  if (! env_->isInitialized())
+  {
+    RCLCPP_ERROR(logger, "Tesseract environment not initialized, can't publish environment!");
+    return;
+  }
+
+  std::string environment_topic = R"(/)" + monitor_namespace_ + DEFAULT_PUBLISH_ENVIRONMENT_TOPIC;
+  environment_publisher_ = node_->create_publisher<tesseract_msgs::msg::EnvironmentState>(
+      environment_topic, rclcpp::QoS(100));
+  RCLCPP_INFO(logger, "Publishing maintained environment on '%s'", environment_topic.c_str());
+  publish_environment_ = std::make_unique<std::thread>(
+      [this]()
+      {
+        environmentPublishingThread();
+      }
+  );
 }
 
 double EnvironmentMonitor::getEnvironmentPublishingFrequency() const { return publish_environment_frequency_; }
 
 void EnvironmentMonitor::environmentPublishingThread()
 {
-  RCLCPP_DEBUG(node_->get_logger().get_child(monitor_namespace_), "Started environment state publishing thread ...");
+  rclcpp::Logger logger = node_->get_logger().get_child(monitor_namespace_ + "_monitor");
+  RCLCPP_INFO(logger, "Started environment state publishing thread ...");
 
   // publish the full planning scene
   tesseract_msgs::msg::EnvironmentState start_msg;
@@ -358,9 +370,7 @@ void EnvironmentMonitor::environmentPublishingThread()
   std::this_thread::sleep_for(std::chrono::duration<double>(1.5));
   environment_publisher_->publish(start_msg);
 
-  RCLCPP_DEBUG(node_->get_logger().get_child(monitor_namespace_),
-               "Published the Tesseract Environment State for: '%s'",
-               start_msg.id.c_str());
+  RCLCPP_INFO(logger, "Published the Tesseract Environment State for: '%s'", start_msg.id.c_str());
 
   do
   {
@@ -383,6 +393,8 @@ void EnvironmentMonitor::environmentPublishingThread()
       rate.sleep();
     }
   } while (publish_environment_);
+
+  RCLCPP_INFO(logger, "Stopping env publishing thread");
 }
 
 CurrentStateMonitor::ConstPtr EnvironmentMonitor::getStateMonitor() const { return current_state_monitor_; }

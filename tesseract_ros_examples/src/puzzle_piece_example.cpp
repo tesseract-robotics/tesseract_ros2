@@ -31,7 +31,6 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_ros_examples/puzzle_piece_example.h>
 #include <tesseract_environment/utils.h>
-#include <tesseract_rosutils/plotting.h>
 #include <tesseract_rosutils/utils.h>
 #include <tesseract_command_language/command_language.h>
 #include <tesseract_command_language/types.h>
@@ -52,7 +51,6 @@ using namespace trajopt;
 using namespace tesseract_environment;
 using namespace tesseract_scene_graph;
 using namespace tesseract_collision;
-using namespace tesseract_rosutils;
 using namespace tesseract_visualization;
 using namespace tesseract_planning;
 
@@ -128,6 +126,11 @@ tesseract_common::VectorIsometry3d PuzzlePieceExample::makePuzzleToolPoses()
   return path;
 }
 
+PuzzlePieceExample::~PuzzlePieceExample()
+{
+  RCLCPP_WARN(node_->get_logger(), "Destroying example");
+}
+
 bool PuzzlePieceExample::run()
 {
   using tesseract_planning_server::ROSProcessEnvironmentCache;
@@ -148,9 +151,13 @@ bool PuzzlePieceExample::run()
     monitor_->startPublishingEnvironment();
 
   // Create plotting tool
-  ROSPlottingPtr plotter = std::make_shared<ROSPlotting>(monitor_->getSceneGraph()->getRoot());
-  if (rviz_)
-    plotter->waitForConnection();
+  if (plotting_)
+  {
+    plotter_ = std::make_shared<tesseract_rosutils::ROSPlotting>(monitor_->getSceneGraph()->getRoot());
+    plotter_->waitForConnection();
+  }
+
+  std::this_thread::sleep_for(std::chrono::seconds{5});
 
   // Set the robot initial state
   std::vector<std::string> joint_names;
@@ -251,24 +258,24 @@ bool PuzzlePieceExample::run()
   request.instructions.print("Program: ");
   request.seed.print("Seed: ");
 
-  if (rviz_)
-    plotter->waitForInput();
+  if (plotting_)
+    plotter_->waitForInput();
 
   // Solve process plan
-  ProcessPlanningFuture response = planning_server.run(request);
-  planning_server.waitForAll();
+  //ProcessPlanningFuture response = planning_server.run(request);
+  //planning_server.waitForAll();
+  RCLCPP_INFO(node_->get_logger(), "Final trajectory is collision free");
 
   // Plot Process Trajectory
-  if (rviz_ && plotter != nullptr && plotter->isConnected())
+  if (rviz_ && plotter_ != nullptr && plotter_->isConnected())
   {
     plotter->waitForInput();
     const auto& ci = response.problem->results->as<CompositeInstruction>();
     tesseract_common::JointTrajectory trajectory = toJointTrajectory(ci);
     auto state_solver = env_->getStateSolver();
-    plotter->plotTrajectory(trajectory, *state_solver);
+    //plotter_->plotTrajectory(trajectory, *state_solver);
   }
 
-  RCLCPP_INFO(node_->get_logger(), "Final trajectory is collision free");
   return true;
 }
 }  // namespace tesseract_ros_examples

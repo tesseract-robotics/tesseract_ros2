@@ -34,8 +34,9 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <rclcpp/rclcpp.hpp>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
-#include <tesseract_common/types.h>
 #include <tesseract_ros_examples/example.h>
+#include <tesseract_common/types.h>
+#include <tesseract_rosutils/plotting.h>
 
 namespace tesseract_ros_examples
 {
@@ -47,6 +48,7 @@ class PuzzlePieceExample : public Example
 {
 public:
   PuzzlePieceExample(rclcpp::Node::SharedPtr node, bool plotting, bool rviz) : Example(plotting, rviz), node_(node) {}
+  ~PuzzlePieceExample();
 
   bool run() override;
 
@@ -54,6 +56,7 @@ private:
   tesseract_common::VectorIsometry3d makePuzzleToolPoses();
 
   rclcpp::Node::SharedPtr node_;
+  tesseract_rosutils::ROSPlottingPtr plotter_;
 };
 
 }  // namespace tesseract_ros_examples

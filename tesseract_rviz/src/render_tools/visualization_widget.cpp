@@ -30,7 +30,7 @@
 #include "tesseract_rviz/render_tools/visualization_widget.h"
 #include "tesseract_rviz/render_tools/joint_widget.h"
 #include "tesseract_rviz/render_tools/link_widget.h"
-#include "tesseract_scene_graph/allowed_collision_matrix.h"
+#include "tesseract_common/allowed_collision_matrix.h"
 
 #include <tesseract_common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
@@ -51,6 +51,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <OgreSceneNode.h>
 
 #include <console_bridge/console.h>
+#include <ament_index_cpp/get_package_share_directory.hpp>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_rviz/conversions.h>
@@ -59,9 +60,10 @@ namespace tesseract_rviz
 {
 VisualizationWidget::VisualizationWidget(Ogre::SceneNode* root_node,
                                          rviz_common::DisplayContext* context,
-                                         const std::string& name,
+                                         std::string name,
                                          rviz_common::properties::Property* parent_property)
   : scene_manager_(context->getSceneManager())
+  , scene_graph_(std::make_shared<tesseract_scene_graph::SceneGraph>())
   , visible_(true)
   , visual_visible_(true)
   , collision_visible_(false)
@@ -70,11 +72,16 @@ VisualizationWidget::VisualizationWidget(Ogre::SceneNode* root_node,
   , end_state_visible_(false)
   , trajectory_visible_(false)
   , context_(context)
+  , link_tree_(nullptr)
   , doing_set_checkbox_(false)
-  , env_loaded_(false)
   , inChangedEnableAllLinks(false)
-  , name_(name)
+  , name_(std::move(name))
 {
+  // Add tesseract resources to ogre
+  std::string tesseract_rviz_path = ament_index_cpp::get_package_share_directory("tesseract_rviz");
+  Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
+      tesseract_rviz_path + "/ogre_media/models", "FileSystem", "tesseract_rviz");
+
   root_visual_node_ = root_node->createChildSceneNode();
   root_collision_node_ = root_node->createChildSceneNode();
   root_other_node_ = root_node->createChildSceneNode();
@@ -118,6 +125,7 @@ VisualizationWidget::~VisualizationWidget()
   scene_manager_->destroySceneNode(root_collision_node_->getName());
   scene_manager_->destroySceneNode(root_other_node_->getName());
   delete link_factory_;
+  delete link_tree_;
 }
 
 void VisualizationWidget::setLinkFactory(LinkFactory* link_factory)
@@ -228,14 +236,20 @@ void VisualizationWidget::clear()
   root_visual_node_->removeAndDestroyAllChildren();
   root_collision_node_->removeAndDestroyAllChildren();
   root_other_node_->removeAndDestroyAllChildren();
+  scene_graph_->clear();
+
+  root_link_ = nullptr;
+  link_tree_->hide();
 }
 
-LinkWidget* VisualizationWidget::LinkFactory::createLink(VisualizationWidget* robot,
+bool VisualizationWidget::isInitialized() const { return initialized_; }
+
+LinkWidget* VisualizationWidget::LinkFactory::createLink(VisualizationWidget* env,
                                                          const tesseract_scene_graph::Link& link,
                                                          bool visual,
                                                          bool collision)
 {
-  return new LinkWidget(robot, link, visual, collision);
+  return new LinkWidget(env, link, visual, collision);
 }
 
 JointWidget* VisualizationWidget::LinkFactory::createJoint(VisualizationWidget* robot,
@@ -244,14 +258,10 @@ JointWidget* VisualizationWidget::LinkFactory::createJoint(VisualizationWidget* 
   return new JointWidget(robot, joint);
 }
 
-void VisualizationWidget::load(const tesseract_scene_graph::SceneGraph::ConstPtr& scene_graph,
-                               bool visual,
-                               bool collision,
-                               bool show_active,
-                               bool show_static)
+void VisualizationWidget::initialize(bool visual, bool collision, bool show_active, bool show_static)
 {
   link_tree_->hide();  // hide until loaded
-  env_loaded_ = false;
+  initialized_ = false;
   load_visual_ = visual;
   load_collision_ = collision;
   load_active_ = show_active;
@@ -263,40 +273,11 @@ void VisualizationWidget::load(const tesseract_scene_graph::SceneGraph::ConstPtr
   // Populate the list of active links
   //  tesseract::tesseract_ros::getActiveLinkNamesRecursive(active_links_, urdf->getRoot(), false);
 
-  // the root link is discovered below.  Set to nullptr until found.
-  root_link_ = nullptr;
-
-  // Create properties for each link.
-  // Properties are not added to display until changedLinkTreeStyle() is called
-  // (below).
-  {
-    std::vector<tesseract_scene_graph::Link::ConstPtr> links = scene_graph->getLinks();
-    for (const tesseract_scene_graph::Link::ConstPtr& tlink : links)
-      addLink(*tlink);
-
-    root_link_ = links_[scene_graph->getRoot()];
-  }
-
-  // Create properties for each joint.
-  // Properties are not added to display until changedLinkTreeStyle() is called
-  // (below).
-  {
-    std::vector<tesseract_scene_graph::Joint::ConstPtr> joints = scene_graph->getJoints();
-    for (const tesseract_scene_graph::Joint::ConstPtr& tjoint : joints)
-      addJoint(*tjoint);
-  }
-
-  // Add allowed collision matrix
-  for (const auto& acm_pair : scene_graph->getAllowedCollisionMatrix()->getAllAllowedCollisions())
-    addAllowedCollision(acm_pair.first.first, acm_pair.first.second, acm_pair.second);
-
-  // environment is now loaded
-  env_loaded_ = true;
+  // Show Tree
   link_tree_->show();
 
   // set the link tree style and add link/joint properties to rviz pane.
   setLinkTreeStyle(LinkTreeStyle(link_tree_style_->getOptionInt()));
-  changedLinkTreeStyle();
 
   // at startup the link tree is collapsed since it is large and not often
   // needed.
@@ -304,11 +285,108 @@ void VisualizationWidget::load(const tesseract_scene_graph::SceneGraph::ConstPtr
 
   setVisualVisible(isVisualVisible());
   setCollisionVisible(isCollisionVisible());
+
+  initialized_ = true;
 }
 
-bool VisualizationWidget::addLink(const tesseract_scene_graph::Link& link)
+bool VisualizationWidget::addSceneGraph(const tesseract_scene_graph::SceneGraph& scene_graph, const std::string& prefix)
 {
-  if (links_.find(link.getName()) != links_.end())
+  unparentLinkProperties();
+
+  // Create properties for each link.
+  // Properties are not added to display until changedLinkTreeStyle() is called
+  // (below).
+  {
+    bool is_scene_empty = scene_graph_->isEmpty();
+    std::vector<tesseract_scene_graph::Link::ConstPtr> links = scene_graph.getLinks();
+    for (const tesseract_scene_graph::Link::ConstPtr& tlink : links)
+    {
+      if (prefix.empty())
+        addLink(tlink->clone());
+      else
+        addLink(tlink->clone(prefix));
+    }
+
+    if (is_scene_empty)
+    {
+      scene_graph_->setRoot(scene_graph_->getRoot());
+      root_link_ = links_[scene_graph_->getRoot()];
+    }
+  }
+
+  // Create properties for each joint.
+  // Properties are not added to display until changedLinkTreeStyle() is called
+  // (below).
+  {
+    std::vector<tesseract_scene_graph::Joint::ConstPtr> joints = scene_graph.getJoints();
+    for (const tesseract_scene_graph::Joint::ConstPtr& tjoint : joints)
+    {
+      if (prefix.empty())
+        addJoint(tjoint->clone());
+      else
+        addJoint(tjoint->clone(prefix));
+    }
+  }
+
+  // Add allowed collision matrix
+  for (const auto& acm_pair : scene_graph.getAllowedCollisionMatrix()->getAllAllowedCollisions())
+    addAllowedCollision(acm_pair.first.first, acm_pair.first.second, acm_pair.second);
+
+  return true;
+}
+
+bool VisualizationWidget::addSceneGraph(const tesseract_scene_graph::SceneGraph& scene_graph,
+                                        const tesseract_scene_graph::Joint& joint,
+                                        const std::string& prefix)
+{
+  unparentLinkProperties();
+
+  // Create properties for each link.
+  // Properties are not added to display until changedLinkTreeStyle() is called
+  // (below).
+  {
+    assert(!scene_graph_->isEmpty());
+    std::vector<tesseract_scene_graph::Link::ConstPtr> links = scene_graph.getLinks();
+    for (const tesseract_scene_graph::Link::ConstPtr& tlink : links)
+    {
+      if (prefix.empty())
+        addLink(tlink->clone());
+      else
+        addLink(tlink->clone(prefix));
+    }
+  }
+
+  // Create properties for each joint.
+  // Properties are not added to display until changedLinkTreeStyle() is called
+  // (below).
+  {
+    // Add connecting joint
+    addJoint(joint);
+
+    // Add all other joints
+    std::vector<tesseract_scene_graph::Joint::ConstPtr> joints = scene_graph.getJoints();
+    for (const tesseract_scene_graph::Joint::ConstPtr& tjoint : joints)
+    {
+      if (prefix.empty())
+        addJoint(tjoint->clone());
+      else
+        addJoint(tjoint->clone(prefix));
+    }
+  }
+
+  // Add allowed collision matrix
+  for (const auto& acm_pair : scene_graph.getAllowedCollisionMatrix()->getAllAllowedCollisions())
+    addAllowedCollision(acm_pair.first.first, acm_pair.first.second, acm_pair.second);
+
+  return true;
+}
+
+bool VisualizationWidget::addLink(const tesseract_scene_graph::Link& link, bool replace_allowed)
+{
+  unparentLinkProperties();
+
+  bool link_exists = (links_.find(link.getName()) != links_.end());
+  if (link_exists && !replace_allowed)
   {
     CONSOLE_BRIDGE_logWarn("Tried to add link (%s) with same name as an existing link.", link.getName().c_str());
     return false;
@@ -319,20 +397,31 @@ bool VisualizationWidget::addLink(const tesseract_scene_graph::Link& link)
   if ((!load_active_ && is_active) || (!load_static_ && !is_active))
     show_geom = false;
 
+  // Add or replace link
+  if (!scene_graph_->addLink(link, link_exists))
+    return false;
+
+  // Remove current link widget if exists
+  if (link_exists)
+  {
+    LinkWidget* current_link = links_[link.getName()];
+    links_.erase(link.getName());
+    current_link->setParentProperty(nullptr);
+    delete current_link;
+  }
+
   LinkWidget* tlink = link_factory_->createLink(this, link, load_visual_ & show_geom, load_collision_ & show_geom);
-
-  links_[link.getName()] = tlink;
-
   tlink->setAlpha(alpha_);
   tlink->updateVisibility();
 
-  changedLinkTreeStyle();
+  links_[link.getName()] = tlink;
 
   return true;
 }
 
 bool VisualizationWidget::removeLink(const std::string& name)
 {
+  unparentLinkProperties();
   auto it = links_.find(name);
   if (it == links_.end())
   {
@@ -340,31 +429,113 @@ bool VisualizationWidget::removeLink(const std::string& name)
     return false;
   }
 
+  std::vector<tesseract_scene_graph::Joint::ConstPtr> joints = scene_graph_->getInboundJoints(name);
+  assert(joints.size() <= 1);
+
+  // get child link names to remove
+  std::vector<std::string> child_link_names = scene_graph_->getLinkChildrenNames(name);
+
   LinkWidget* link = it->second;
   link->setParentProperty(nullptr);
   delete link;
   links_.erase(name);
+  scene_graph_->removeLink(name);
 
-  changedLinkTreeStyle();
+  for (const auto& link_name : child_link_names)
+  {
+    auto it2 = links_.find(link_name);
+    LinkWidget* link = it2->second;
+    link->setParentProperty(nullptr);
+    delete link;
+    links_.erase(link_name);
+
+    std::vector<tesseract_scene_graph::Joint::ConstPtr> joints = scene_graph_->getInboundJoints(link_name);
+    if (joints.size() == 1)
+    {
+      auto it3 = joints_.find(name);
+      if (it3 != joints_.end())
+      {
+        JointWidget* joint = it3->second;
+        joint->setParentProperty(nullptr);
+        delete joint;
+        joints_.erase(joints[0]->getName());
+      }
+    }
+    scene_graph_->removeLink(link_name);
+  }
 
   return true;
 }
 
-bool VisualizationWidget::addJoint(const tesseract_scene_graph::Joint& joint)
+bool VisualizationWidget::moveLink(const tesseract_scene_graph::Joint& joint)
 {
-  if (joints_.find(joint.getName()) != joints_.end())
+  unparentLinkProperties();
+
+  std::vector<tesseract_scene_graph::Joint::ConstPtr> joints = scene_graph_->getInboundJoints(joint.child_link_name);
+  assert(joints.size() == 1);
+
+  auto it = joints_.find(joints[0]->getName());
+  if (it != joints_.end())
+  {
+    JointWidget* joint = it->second;
+    joint->setParentProperty(nullptr);
+    delete joint;
+    joints_.erase(joints[0]->getName());
+  }
+
+  if (!addJoint(joint.clone()))
+    return false;
+
+  scene_graph_->removeJoint(joints[0]->getName());
+
+  return true;
+}
+
+bool VisualizationWidget::addJoint(const tesseract_scene_graph::Joint& joint, bool replace)
+{
+  unparentLinkProperties();
+
+  bool joint_exists = (joints_.find(joint.getName()) != joints_.end());
+  if (joint_exists && !replace)
   {
     CONSOLE_BRIDGE_logWarn("Tried to add joint (%s) with same name as an existing joint.", joint.getName().c_str());
     return false;
   }
 
+  if (!joint_exists && replace)
+  {
+    CONSOLE_BRIDGE_logWarn("Tried to replace joint (%s) which does not exist.", joint.getName().c_str());
+    return false;
+  }
+
+  if (joint_exists)
+  {
+    // Add link to scene_graph
+    if (!scene_graph_->removeJoint(joint.getName()))
+      return false;
+
+    // Add link to scene_graph
+    if (!scene_graph_->addJoint(joint.clone()))
+      return false;
+
+    // Remove current joint widget
+    JointWidget* current_joint = joints_[joint.getName()];
+    current_joint->setParentProperty(nullptr);
+    delete current_joint;
+    joints_.erase(joint.getName());
+  }
+  else
+  {
+    // Add link to scene_graph
+    if (!scene_graph_->addJoint(joint.clone()))
+      return false;
+  }
+
+  // Add new joint widget
   JointWidget* tjoint = link_factory_->createJoint(this, joint);
-
-  joints_[joint.getName()] = tjoint;
-
   tjoint->setAlpha(alpha_);
 
-  changedLinkTreeStyle();
+  joints_[joint.getName()] = tjoint;
 
   return true;
 }
@@ -379,17 +550,13 @@ bool VisualizationWidget::removeJoint(const std::string& name)
   }
 
   JointWidget* joint = it->second;
-  joint->setParentProperty(nullptr);
-  delete joint;
-  joints_.erase(name);
-
-  changedLinkTreeStyle();
-
-  return true;
+  return removeLink(joint->getChildLinkName());
 }
 
 bool VisualizationWidget::moveJoint(const std::string& joint_name, const std::string& parent_link)
 {
+  unparentLinkProperties();
+
   auto it = joints_.find(joint_name);
   if (it == joints_.end())
   {
@@ -400,7 +567,17 @@ bool VisualizationWidget::moveJoint(const std::string& joint_name, const std::st
   JointWidget* joint = it->second;
   joint->setParentLinkName(parent_link);
 
-  changedLinkTreeStyle();
+  // Move joint in scene_graph
+  tesseract_scene_graph::Joint::ConstPtr cj = scene_graph_->getJoint(joint_name);
+  tesseract_scene_graph::Joint nj = cj->clone(joint_name);
+  nj.parent_link_name = parent_link;
+  std::vector<tesseract_scene_graph::Joint::ConstPtr> joints = scene_graph_->getInboundJoints(cj->child_link_name);
+  assert(joints.size() == 1);
+  if (!scene_graph_->removeJoint(joints[0]->getName()))
+    return false;
+
+  if (!scene_graph_->addJoint(std::move(nj)))
+    return false;
 
   return true;
 }
@@ -421,6 +598,8 @@ bool VisualizationWidget::changeJointOrigin(const std::string& name, const Eigen
   Ogre::Quaternion quat;
   toOgre(pos, quat, new_origin);
   joint->setTransforms(pos, quat);
+
+  scene_graph_->changeJointOrigin(name, new_origin);
   return true;
 }
 
@@ -428,6 +607,8 @@ void VisualizationWidget::addAllowedCollision(const std::string& link_name1,
                                               const std::string& link_name2,
                                               const std::string& reason)
 {
+  unparentLinkProperties();
+
   auto it1 = links_.find(link_name1);
   if (it1 == links_.end())
   {
@@ -448,11 +629,14 @@ void VisualizationWidget::addAllowedCollision(const std::string& link_name1,
   LinkWidget* link2 = it2->second;
   link2->addAllowedCollision(link_name1, reason);
 
-  changedLinkTreeStyle();
+  // Add to scene graph
+  scene_graph_->addAllowedCollision(link_name1, link_name2, reason);
 }
 
 void VisualizationWidget::removeAllowedCollision(const std::string& link_name1, const std::string& link_name2)
 {
+  unparentLinkProperties();
+
   auto it1 = links_.find(link_name1);
   if (it1 == links_.end())
   {
@@ -473,11 +657,14 @@ void VisualizationWidget::removeAllowedCollision(const std::string& link_name1, 
   LinkWidget* link2 = it2->second;
   link2->removeAllowedCollision(link_name1);
 
-  changedLinkTreeStyle();
+  // Remove from scene graph
+  scene_graph_->removeAllowedCollision(link_name1, link_name2);
 }
 
 void VisualizationWidget::removeAllowedCollision(const std::string& link_name)
 {
+  unparentLinkProperties();
+
   auto it = links_.find(link_name);
   if (it == links_.end())
   {
@@ -492,6 +679,9 @@ void VisualizationWidget::removeAllowedCollision(const std::string& link_name)
     LinkWidget* link = link_pair.second;
     link->removeAllowedCollision(link_name);
   }
+
+  // Remove from scene graph
+  scene_graph_->removeAllowedCollision(link_name);
 }
 
 void VisualizationWidget::setLinkCollisionEnabled(const std::string& name, bool enabled)
@@ -505,6 +695,21 @@ void VisualizationWidget::setLinkCollisionEnabled(const std::string& name, bool 
 
   LinkWidget* link = it->second;
   link->setCollisionEnabled(enabled);
+  scene_graph_->setLinkCollisionEnabled(name, enabled);
+}
+
+void VisualizationWidget::setLinkVisibleEnabled(const std::string& name, bool enabled)
+{
+  auto it = links_.find(name);
+  if (it == links_.end())
+  {
+    CONSOLE_BRIDGE_logWarn("Tried to change link (%s) collision enabled, which does not exist", name.c_str());
+    return;
+  }
+
+  LinkWidget* link = it->second;
+  link->setVisibleEnabled(enabled);
+  scene_graph_->setLinkCollisionEnabled(name, enabled);
 }
 
 void VisualizationWidget::unparentLinkProperties()
@@ -597,7 +802,7 @@ void VisualizationWidget::changedEnableAllLinks()
   inChangedEnableAllLinks = false;
 }
 
-void VisualizationWidget::setEnableAllLinksCheckbox(QVariant val)
+void VisualizationWidget::setEnableAllLinksCheckbox(const QVariant& val)
 {
   // doing_set_checkbox_ prevents changedEnableAllLinks from turning all
   // links off when we modify the enable_all_links_ property.
@@ -676,10 +881,7 @@ JointWidget* VisualizationWidget::findChildJoint(LinkWidget* link)
 // insert properties into link_tree_ according to style
 void VisualizationWidget::changedLinkTreeStyle()
 {
-  if (!env_loaded_)
-    return;
-
-  LinkTreeStyle style = LinkTreeStyle(link_tree_style_->getOptionInt());
+  auto style = LinkTreeStyle(link_tree_style_->getOptionInt());
 
   unparentLinkProperties();
 
@@ -757,8 +959,8 @@ void VisualizationWidget::changedLinkTreeStyle()
     case STYLE_JOINT_LIST:
     {
       useDetailProperty(false);
-      M_NameToJoint::iterator joint_it = joints_.begin();
-      M_NameToJoint::iterator joint_end = joints_.end();
+      auto joint_it = joints_.begin();
+      auto joint_end = joints_.end();
       for (; joint_it != joint_end; ++joint_it)
       {
         joint_it->second->setParentProperty(link_tree_);
@@ -814,6 +1016,9 @@ void VisualizationWidget::changedLinkTreeStyle()
       break;
   }
 
+  if (link_tree_->getHidden())
+    link_tree_->show();
+
   expand_link_details_->setValue(false);
   expand_joint_details_->setValue(false);
   expand_tree_->setValue(false);
@@ -822,7 +1027,7 @@ void VisualizationWidget::changedLinkTreeStyle()
 
 LinkWidget* VisualizationWidget::getLink(const std::string& name)
 {
-  M_NameToLink::iterator it = links_.find(name);
+  auto it = links_.find(name);
   if (it == links_.end())
   {
     CONSOLE_BRIDGE_logWarn("Link [%s] does not exist", name.c_str());
@@ -834,7 +1039,7 @@ LinkWidget* VisualizationWidget::getLink(const std::string& name)
 
 JointWidget* VisualizationWidget::getJoint(const std::string& name)
 {
-  M_NameToJoint::iterator it = joints_.find(name);
+  auto it = joints_.find(name);
   if (it == joints_.end())
   {
     CONSOLE_BRIDGE_logWarn("Joint [%s] does not exist", name.c_str());
@@ -846,7 +1051,7 @@ JointWidget* VisualizationWidget::getJoint(const std::string& name)
 
 void VisualizationWidget::calculateJointCheckboxes()
 {
-  if (inChangedEnableAllLinks || !env_loaded_)
+  if (inChangedEnableAllLinks)
     return;
 
   int links_with_geom_checked = 0;
@@ -896,6 +1101,8 @@ void VisualizationWidget::calculateJointCheckboxes()
   }
 }
 
+void VisualizationWidget::update() { changedLinkTreeStyle(); }
+
 void VisualizationWidget::update(const TransformMap& transforms)
 {
   for (auto& link_pair : links_)
@@ -906,44 +1113,9 @@ void VisualizationWidget::update(const TransformMap& transforms)
     auto it = transforms.find(link->getName());
     if (it != transforms.end())
     {
-      //      // Check if visual_orientation, visual_position, collision_orientation,
-      //      // and collision_position are NaN.
-      //      if (visual_orientation.isNaN())
-      //      {
-      //        ROS_ERROR_THROTTLE(1.0,
-      //                           "visual orientation of %s contains NaNs. "
-      //                           "Skipping render as long as the orientation is "
-      //                           "invalid.",
-      //                           link->getName().c_str());
-      //        continue;
-      //      }
-      //      if (visual_position.isNaN())
-      //      {
-      //        ROS_ERROR_THROTTLE(1.0,
-      //                           "visual position of %s contains NaNs. Skipping "
-      //                           "render as long as the position is invalid.",
-      //                           link->getName().c_str());
-      //        continue;
-      //      }
-      //      if (collision_orientation.isNaN())
-      //      {
-      //        ROS_ERROR_THROTTLE(1.0,
-      //                           "collision orientation of %s contains NaNs. "
-      //                           "Skipping render as long as the orientation is "
-      //                           "invalid.",
-      //                           link->getName().c_str());
-      //        continue;
-      //      }
-      //      if (collision_position.isNaN())
-      //      {
-      //        ROS_ERROR_THROTTLE(1.0,
-      //                           "collision position of %s contains NaNs. "
-      //                           "Skipping render as long as the position is "
-      //                           "invalid.",
-      //                           link->getName().c_str());
-      //        continue;
-      //      }
       link->setCurrentTransform(it->second);
+      link->setStartTransform(it->second);
+      link->setEndTransform(it->second);
     }
     else
     {
@@ -958,6 +1130,44 @@ void VisualizationWidget::update(const TransformMap& transforms)
 
     LinkWidget* p_link = links_[joint->getParentLinkName()];
     joint->setTransforms(p_link->getPosition(), p_link->getOrientation());
+  }
+}
+
+void VisualizationWidget::setStartState(const TransformMap& transforms)
+{
+  for (auto& link_pair : links_)
+  {
+    LinkWidget* link = link_pair.second;
+
+    link->setToNormalMaterial();
+    auto it = transforms.find(link->getName());
+    if (it != transforms.end())
+    {
+      link->setStartTransform(it->second);
+    }
+    else
+    {
+      link->setToErrorMaterial();
+    }
+  }
+}
+
+void VisualizationWidget::setEndState(const TransformMap& transforms)
+{
+  for (auto& link_pair : links_)
+  {
+    LinkWidget* link = link_pair.second;
+
+    link->setToNormalMaterial();
+    auto it = transforms.find(link->getName());
+    if (it != transforms.end())
+    {
+      link->setEndTransform(it->second);
+    }
+    else
+    {
+      link->setToErrorMaterial();
+    }
   }
 }
 

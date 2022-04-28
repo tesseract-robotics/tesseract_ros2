@@ -38,7 +38,6 @@
 namespace Ogre
 {
 class SceneNode;
-//class Vector3;
 class Quaternion;
 class Entity;
 }  // namespace Ogre
@@ -56,10 +55,10 @@ typedef std::pair<std::string, int32_t> MarkerID;
 class MarkerBase
 {
 public:
-  using SharedPtr = std::shared_ptr<MarkerBase>;
-  using ConstSharedPtr = std::shared_ptr<const MarkerBase>;
+  using Ptr = std::shared_ptr<MarkerBase>;
+  using ConstPtr = std::shared_ptr<const MarkerBase>;
 
-  MarkerBase(const std::string& ns, const int id, rviz_common::DisplayContext* context, Ogre::SceneNode* parent_node);
+  MarkerBase(std::string ns, const int id, rviz_common::DisplayContext* context, Ogre::SceneNode* parent_node);
   virtual ~MarkerBase();
 
   MarkerID getID() { return MarkerID(ns_, id_); }

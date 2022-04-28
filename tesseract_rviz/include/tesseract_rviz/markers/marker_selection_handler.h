@@ -39,8 +39,8 @@ typedef std::pair<std::string, int32_t> MarkerID;
 class MarkerSelectionHandler : public rviz_common::interaction::SelectionHandler
 {
 public:
-  using SharedPtr = std::shared_ptr<MarkerSelectionHandler>;
-  using ConstSharedPtr = std::shared_ptr<const MarkerSelectionHandler>;
+  using Ptr = std::shared_ptr<MarkerSelectionHandler>;
+  using ConstPtr = std::shared_ptr<const MarkerSelectionHandler>;
 
   MarkerSelectionHandler(const MarkerBase* marker, MarkerID id, rviz_common::DisplayContext* context);
   virtual ~MarkerSelectionHandler();

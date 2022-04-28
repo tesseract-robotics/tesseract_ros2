@@ -41,7 +41,7 @@
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 
 #ifndef Q_MOC_RUN
-//#include <ros/ros.h>
+#include <rclcpp/rclcpp.hpp>
 #endif
 
 #include <rviz_common/panel.hpp>

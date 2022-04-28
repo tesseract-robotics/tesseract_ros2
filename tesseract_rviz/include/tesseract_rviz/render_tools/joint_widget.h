@@ -55,7 +55,6 @@ class SceneManager;
 class Entity;
 class SubEntity;
 class SceneNode;
-//class Vector3;
 class Quaternion;
 class Any;
 class RibbonTrail;
@@ -155,7 +154,7 @@ private:
                          bool recursive) const;           // True: all descendant links.  False: just single child link.
 
   // set the value of the enable checkbox without touching child joints/links
-  void setJointCheckbox(QVariant val);
+  void setJointCheckbox(const QVariant& val);
 
 protected:
   VisualizationWidget* env_;
@@ -183,8 +182,8 @@ private:
 
   bool doing_set_checkbox_;  // prevents updateChildVisibility() from  touching children
 
-  rviz_rendering::Axes* axes_;
-  rviz_rendering::Arrow* axis_;
+  std::unique_ptr<rviz_rendering::Axes> axes_;
+  std::unique_ptr<rviz_rendering::Arrow> axis_;
 };
 
 }  // namespace tesseract_rviz

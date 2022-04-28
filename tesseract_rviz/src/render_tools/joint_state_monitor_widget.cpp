@@ -12,7 +12,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 namespace tesseract_rviz
 {
 JointStateMonitorWidget::JointStateMonitorWidget(rviz_common::properties::Property* widget, rviz_common::Display* display)
-  : widget_(widget), display_(display), visualization_(nullptr), tesseract_(nullptr), update_required_(false)
+  : widget_(widget), display_(display), visualization_(nullptr), env_(nullptr), update_required_(false)
 {
   main_property_ = new rviz_common::properties::Property(
       "Joint State Monitor", "", "Monitor a joint state topic and update the visualization", widget_, nullptr, this);
@@ -27,15 +27,15 @@ JointStateMonitorWidget::JointStateMonitorWidget(rviz_common::properties::Proper
                                                            this);
 }
 
-JointStateMonitorWidget::~JointStateMonitorWidget() { /*joint_state_subscriber_.shutdown();*/ }
+JointStateMonitorWidget::~JointStateMonitorWidget() { }
 
-void JointStateMonitorWidget::onInitialize(VisualizationWidget::SharedPtr visualization,
-                                           tesseract::Tesseract::Ptr tesseract,
+void JointStateMonitorWidget::onInitialize(VisualizationWidget::Ptr visualization,
+                                           tesseract_environment::Environment::Ptr env,
                                            rviz_common::DisplayContext* context,
                                            rclcpp::Node::SharedPtr update_node)
 {
   visualization_ = std::move(visualization);
-  tesseract_ = std::move(tesseract);
+  env_ = std::move(env);
   node_ = update_node;
 
   auto rviz_ros_node = context->getRosNodeAbstraction();
@@ -58,13 +58,13 @@ void JointStateMonitorWidget::changedJointStateTopic()
 
 void JointStateMonitorWidget::newJointStateCallback(const sensor_msgs::msg::JointState::ConstSharedPtr joint_state_msg)
 {
-  if (!tesseract_->isInitialized())
+  RCLCPP_INFO(node_->get_logger().get_child("joint_state_monitor"), "Got joints!");
+  if (!env_->isInitialized())
     return;
 
   if (isUpdateRequired(*joint_state_msg))
   {
-    CONSOLE_BRIDGE_logWarn("Conversion has not been defined in rosutils yet. Go do that.");
-    tesseract_rosutils::processMsg(tesseract_->getEnvironment(), *joint_state_msg);
+    tesseract_rosutils::processMsg(*env_, *joint_state_msg);
     update_required_ = true;
   }
 }
@@ -75,10 +75,10 @@ void JointStateMonitorWidget::onDisable() { joint_state_subscriber_.reset(); }
 
 void JointStateMonitorWidget::onUpdate()
 {
-  if (visualization_ && update_required_ && tesseract_->getEnvironment())
+  if (visualization_ && update_required_ && env_)
   {
     update_required_ = false;
-    visualization_->update(tesseract_->getEnvironment()->getCurrentState()->link_transforms);
+    visualization_->update(env_->getState().link_transforms);
   }
 }
 
@@ -86,7 +86,7 @@ void JointStateMonitorWidget::onReset() { changedJointStateTopic(); }
 
 bool JointStateMonitorWidget::isUpdateRequired(const sensor_msgs::msg::JointState& joint_state)
 {
-  std::unordered_map<std::string, double> joints = tesseract_->getEnvironment()->getCurrentState()->joints;
+  std::unordered_map<std::string, double> joints = env_->getState().joints;
   for (auto i = 0u; i < joint_state.name.size(); ++i)
     if (std::abs(joints[joint_state.name[i]] - joint_state.position[i]) > 1e-5)
       return true;

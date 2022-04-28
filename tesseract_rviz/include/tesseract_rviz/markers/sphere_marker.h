@@ -42,8 +42,8 @@ namespace tesseract_rviz
 class SphereMarker : public MarkerBase
 {
 public:
-  using SharedPtr = std::shared_ptr<SphereMarker>;
-  using ConstSharedPtr = std::shared_ptr<const SphereMarker>;
+  using Ptr = std::shared_ptr<SphereMarker>;
+  using ConstPtr = std::shared_ptr<const SphereMarker>;
 
   SphereMarker(const std::string& ns,
                const int id,

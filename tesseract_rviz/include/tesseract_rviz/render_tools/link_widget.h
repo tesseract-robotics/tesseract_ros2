@@ -67,7 +67,6 @@ class SceneManager;
 class Entity;
 class SubEntity;
 class SceneNode;
-//class Vector3;
 class Quaternion;
 class Any;
 class RibbonTrail;
@@ -154,12 +153,21 @@ public:
 
   /**
    * @brief Set trajectory for the link
+   * @details With large trajectories maintaining the scene nodes is expensive if not being used.
+   * This method no longer creates the scene nodes and just stores the trajectory.
+   * The showTrajectory will create the scene nodes and clearTrajectory destroys them.
    * @param trajectory
    */
-  virtual void setTrajectory(const std::vector<Eigen::Isometry3d>& trajectory);
+  virtual void setTrajectory(const tesseract_common::VectorIsometry3d& trajectory);
+
+  /** @brief Show trajectory by creating visualization for the trajectory */
+  virtual void showTrajectory();
+
+  /** @brief Remove/destroy visual scene nodes for the trajectory */
+  virtual void clearTrajectory();
 
   /** @brief Hide trajectory */
-  virtual void clearTrajectory();
+  virtual void hideTrajectory();
 
   // This is usefule when wanting to simulate the trajectory
   virtual void showTrajectoryWaypointOnly(int waypoint);
@@ -199,6 +207,7 @@ public:
   Ogre::Vector3 getPosition();
   Ogre::Quaternion getOrientation();
 
+  void setVisibleEnabled(bool enabled);
   void setCollisionEnabled(bool enabled);
   void addAllowedCollision(const std::string& link_name, const std::string& reason);
   void removeAllowedCollision(const std::string& link_name);
@@ -250,7 +259,7 @@ private:
   void createCollision(const tesseract_scene_graph::Link& link);
 
   void createSelection();
-  Ogre::MaterialPtr getMaterialForLink(const tesseract_scene_graph::Link& link, const std::string material_name = "");
+  Ogre::MaterialPtr getMaterialForLink(const tesseract_scene_graph::Link& link, const std::string& material_name = "");
 
   void setOctomapColor(double z_pos, double min_z, double max_z, double color_factor, rviz_rendering::PointCloud::Point* point);
 
@@ -282,6 +291,7 @@ private:
   M_SubEntityToMaterial materials_;
   Ogre::MaterialPtr default_material_;
   std::string default_material_name_;
+  tesseract_common::VectorIsometry3d trajectory_;
   std::map<std::string, rviz_common::properties::StringProperty*> acm_;
 
   std::vector<Ogre::Entity*> visual_current_meshes_;     ///< The entities representing the visual mesh of this link (if
@@ -315,6 +325,7 @@ private:
     rviz_rendering::PointCloud* point_cloud;
     std::vector<rviz_rendering::PointCloud::Point> points;
     float size;
+    tesseract_geometry::Octree::SubType shape_type;
 
     rviz_rendering::PointCloud* clone();
   };
@@ -359,7 +370,7 @@ private:
 
   Ogre::RibbonTrail* trail_;
 
-  rviz_rendering::Axes* axes_;
+  std::unique_ptr<rviz_rendering::Axes> axes_;
 
   float material_alpha_;  ///< If material is not a texture, this saves the alpha value set in the URDF, otherwise is
                           /// 1.0.

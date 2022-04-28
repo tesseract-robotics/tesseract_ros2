@@ -11,7 +11,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/joint_state.hpp>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
-#include <tesseract/tesseract.h>
+#include <tesseract_environment/environment.h>
 #endif
 
 #include <tesseract_rviz/render_tools/visualization_widget.h>
@@ -29,15 +29,15 @@ class JointStateMonitorWidget : public QObject
   Q_OBJECT
 
 public:
-  using SharedPtr = std::shared_ptr<JointStateMonitorWidget>;
-  using ConstSharedPtr = std::shared_ptr<const JointStateMonitorWidget>;
+  using Ptr = std::shared_ptr<JointStateMonitorWidget>;
+  using ConstPtr = std::shared_ptr<const JointStateMonitorWidget>;
 
   JointStateMonitorWidget(rviz_common::properties::Property* widget, rviz_common::Display* display);
 
   virtual ~JointStateMonitorWidget();
 
-  void onInitialize(VisualizationWidget::SharedPtr visualization,
-                    tesseract::Tesseract::Ptr tesseract,
+  void onInitialize(VisualizationWidget::Ptr visualization,
+                    tesseract_environment::Environment::Ptr env,
                     rviz_common::DisplayContext* context,
                     rclcpp::Node::SharedPtr update_node);
 
@@ -52,8 +52,8 @@ private Q_SLOTS:
 protected:
   rviz_common::properties::Property* widget_;
   rviz_common::Display* display_;
-  VisualizationWidget::SharedPtr visualization_;
-  tesseract::Tesseract::Ptr tesseract_;
+  VisualizationWidget::Ptr visualization_;
+  tesseract_environment::Environment::Ptr env_;
   rclcpp::Node::SharedPtr node_;
   rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_state_subscriber_;
   bool update_required_;

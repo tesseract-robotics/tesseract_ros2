@@ -39,17 +39,13 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/replace.hpp>
 
-#include <rviz/display_context.h>
-#include <rviz/properties/bool_property.h>
-#include <rviz/properties/color_property.h>
-#include <rviz/properties/editable_enum_property.h>
-#include <rviz/properties/enum_property.h>
-#include <rviz/properties/float_property.h>
-#include <rviz/properties/int_property.h>
-#include <rviz/properties/property.h>
-#include <rviz/properties/ros_topic_property.h>
-#include <rviz/properties/string_property.h>
-#include <rviz/window_manager_interface.h>
+#include <rviz_common/display_context.hpp>
+#include <rviz_common/properties/bool_property.hpp>
+#include <rviz_common/properties/enum_property.hpp>
+#include <rviz_common/properties/float_property.hpp>
+#include <rviz_common/properties/int_property.hpp>
+#include <rviz_common/properties/property.hpp>
+#include <rviz_common/window_manager_interface.hpp>
 
 #include <tesseract_command_language/utils/utils.h>
 #include <tesseract_command_language/core/serialization.h>
@@ -64,7 +60,7 @@ namespace tesseract_rviz
 {
 const double SLIDER_RESOLUTION = 0.001;
 
-VisualizeTrajectoryWidget::VisualizeTrajectoryWidget(rviz::Property* widget, rviz::Display* display)
+VisualizeTrajectoryWidget::VisualizeTrajectoryWidget(rviz_common::properties::Property* widget, rviz_common::Display* display)
   : widget_(widget)
   , display_(display)
   , visualization_(nullptr)
@@ -75,15 +71,15 @@ VisualizeTrajectoryWidget::VisualizeTrajectoryWidget(rviz::Property* widget, rvi
   , trajectory_slider_panel_(nullptr)
   , trajectory_slider_dock_panel_(nullptr)
 {
-  main_property_ = new rviz::Property("Trajectory Visualization", "", "Displays a trajectory", widget_, nullptr, this);
+  main_property_ = new rviz_common::properties::Property("Trajectory Visualization", "", "Displays a trajectory", widget_, nullptr, this);
 
-  display_mode_property_ = new rviz::EnumProperty(
+  display_mode_property_ = new rviz_common::properties::EnumProperty(
       "Display Mode", "Loop", "How to display the trajectoy.", main_property_, SLOT(changedDisplayMode()), this);
   display_mode_property_->addOptionStd("Single", 0);
   display_mode_property_->addOptionStd("Loop", 1);
   display_mode_property_->addOptionStd("Trail", 2);
 
-  time_scale_property_ = new rviz::FloatProperty("Time Scale",
+  time_scale_property_ = new rviz_common::properties::FloatProperty("Time Scale",
                                                  1,
                                                  "A time scale factor applied during play back of trajectory",
                                                  main_property_,
@@ -91,7 +87,7 @@ VisualizeTrajectoryWidget::VisualizeTrajectoryWidget(rviz::Property* widget, rvi
                                                  this);
   time_scale_property_->setMin(1e-8f);
 
-  trail_step_size_property_ = new rviz::IntProperty("Trail Step Size",
+  trail_step_size_property_ = new rviz_common::properties::IntProperty("Trail Step Size",
                                                     1,
                                                     "Specifies the step size of the samples "
                                                     "shown in the trajectory trail.",
@@ -100,7 +96,7 @@ VisualizeTrajectoryWidget::VisualizeTrajectoryWidget(rviz::Property* widget, rvi
                                                     this);
   trail_step_size_property_->setMin(1);
 
-  interrupt_display_property_ = new rviz::BoolProperty("Interrupt Display",
+  interrupt_display_property_ = new rviz_common::properties::BoolProperty("Interrupt Display",
                                                        false,
                                                        "Immediately show newly planned trajectory, "
                                                        "interrupting the currently displayed one.",
@@ -118,7 +114,7 @@ VisualizeTrajectoryWidget::~VisualizeTrajectoryWidget()
 
 void VisualizeTrajectoryWidget::onInitialize(VisualizationWidget::Ptr visualization,
                                              tesseract_environment::Environment::Ptr env,
-                                             rviz::DisplayContext* context)
+                                             rviz_common::DisplayContext* context)
 {
   // Save pointers for later use
   visualization_ = std::move(visualization);
@@ -127,7 +123,7 @@ void VisualizeTrajectoryWidget::onInitialize(VisualizationWidget::Ptr visualizat
 
   previous_display_mode_ = display_mode_property_->getOptionInt();
 
-  rviz::WindowManagerInterface* window_context = context_->getWindowManager();
+  rviz_common::WindowManagerInterface* window_context = context_->getWindowManager();
   if (window_context)
   {
     trajectory_slider_panel_ = new TrajectoryPanel(window_context->getParentWindow());
@@ -418,12 +414,12 @@ void VisualizeTrajectoryWidget::onUpdate(float /*wall_dt*/)
   }
 }
 
-void VisualizeTrajectoryWidget::setDisplayTrajectory(const tesseract_msgs::Trajectory::ConstPtr& msg)
+void VisualizeTrajectoryWidget::setDisplayTrajectory(const tesseract_msgs::msg::Trajectory& msg)
 {
   // Error check
   if (!env_->isInitialized())
   {
-    ROS_ERROR_STREAM_NAMED("VisualizeTrajectoryWidget", "No environment");
+    CONSOLE_BRIDGE_logError("<VisualizeTrajectoryWidget> No environment");
     return;
   }
 
@@ -433,31 +429,31 @@ void VisualizeTrajectoryWidget::setDisplayTrajectory(const tesseract_msgs::Traje
       visualization_->setStartStateVisible(true);
   }
 
-  if (msg->environment.command_history.size() > 0)
+  if (msg.environment.command_history.size() > 0)
   {
-    tesseract_environment::Environment::Ptr env = tesseract_rosutils::fromMsg(msg->environment);
+    tesseract_environment::Environment::Ptr env = tesseract_rosutils::fromMsg(msg.environment);
     if (env)
       setEnvironment(env);
   }
 
   trajectory_env_commands_.clear();
-  if (!msg->commands.empty())
-    trajectory_env_commands_ = tesseract_rosutils::fromMsg(msg->commands);
+  if (!msg.commands.empty())
+    trajectory_env_commands_ = tesseract_rosutils::fromMsg(msg.commands);
 
-  if (!msg->instructions.empty())
+  if (!msg.instructions.empty())
   {
     using namespace tesseract_planning;
-    Instruction program = Serialization::fromArchiveStringXML<Instruction>(msg->instructions);
+    Instruction program = Serialization::fromArchiveStringXML<Instruction>(msg.instructions);
     boost::mutex::scoped_lock lock(update_trajectory_message_);
     const auto& ci = program.as<CompositeInstruction>();
     trajectory_to_display_ = toJointTrajectory(ci);
     if (interrupt_display_property_->getBool())
       interruptCurrentDisplay();
   }
-  else if (!msg->joint_trajectory.empty())
+  else if (!msg.joint_trajectory.empty())
   {
     boost::mutex::scoped_lock lock(update_trajectory_message_);
-    trajectory_to_display_ = tesseract_rosutils::fromMsg(msg->joint_trajectory);
+    trajectory_to_display_ = tesseract_rosutils::fromMsg(msg.joint_trajectory);
     if (interrupt_display_property_->getBool())
       interruptCurrentDisplay();
   }

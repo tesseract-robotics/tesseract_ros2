@@ -42,8 +42,8 @@ namespace tesseract_rviz
 class CylinderMarker : public MarkerBase
 {
 public:
-  using SharedPtr = std::shared_ptr<CylinderMarker>;
-  using ConstSharedPtr = std::shared_ptr<const CylinderMarker>;
+  using Ptr = std::shared_ptr<CylinderMarker>;
+  using ConstPtr = std::shared_ptr<const CylinderMarker>;
 
   CylinderMarker(const std::string& ns,
                  const int id,

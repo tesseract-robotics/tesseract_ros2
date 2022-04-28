@@ -64,8 +64,8 @@ class InteractiveMarker : public QObject
 {
   Q_OBJECT
 public:
-  using SharedPtr = std::shared_ptr<InteractiveMarker>;
-  using ConstSharedPtr = std::shared_ptr<const InteractiveMarker>;
+  using Ptr = std::shared_ptr<InteractiveMarker>;
+  using ConstPtr = std::shared_ptr<const InteractiveMarker>;
 
   InteractiveMarker(const std::string& name,
                     const std::string& description,
@@ -76,7 +76,7 @@ public:
                     const float scale = 1);
   virtual ~InteractiveMarker();
 
-  InteractiveMarkerControl::SharedPtr createInteractiveControl(const std::string& name,
+  InteractiveMarkerControl::Ptr createInteractiveControl(const std::string& name,
                                                          const std::string& description,
                                                          const InteractiveMode interactive_mode,
                                                          const OrientationMode orientation_mode,
@@ -99,11 +99,11 @@ public:
   void startDragging();
   void stopDragging();
 
-  const Ogre::Vector3& getPosition() { return position_; }
-  const Ogre::Quaternion& getOrientation() { return orientation_; }
+  const Ogre::Vector3& getPosition() const { return position_; }
+  const Ogre::Quaternion& getOrientation() const { return orientation_; }
 
   void setSize(float scale);
-  float getSize() { return scale_; }
+  float getSize() const { return scale_; }
   const std::string& getReferenceFrame() { return reference_frame_; }
   const std::string& getName() { return name_; }
 
@@ -167,8 +167,8 @@ public:
 Q_SIGNALS:
 
   void userFeedback(std::string reference_frame,
-                    Eigen::Isometry3d transform,
-                    Eigen::Vector3d mouse_point,
+                    const Eigen::Isometry3d& transform,
+                    const Eigen::Vector3d& mouse_point,
                     bool mouse_point_valid);
   void statusUpdate(rviz_common::properties::StatusProperty::Level level, const std::string& name, const std::string& text);
 
@@ -217,7 +217,7 @@ protected:
   bool pose_changed_;
   double time_since_last_feedback_;
 
-  std::map<std::string, InteractiveMarkerControl::SharedPtr> controls_;
+  std::map<std::string, InteractiveMarkerControl::Ptr> controls_;
 
   std::string name_;
   std::string description_;
@@ -254,7 +254,7 @@ protected:
 
   rviz_rendering::Axes* axes_;
 
-  InteractiveMarkerControl::SharedPtr description_control_;
+  InteractiveMarkerControl::Ptr description_control_;
 
   std::string topic_ns_;
   std::string client_id_;

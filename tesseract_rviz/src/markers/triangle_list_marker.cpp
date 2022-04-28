@@ -43,7 +43,6 @@
 
 #include <tesseract_rviz/markers/triangle_list_marker.h>
 #include <tesseract_rviz/markers/marker_selection_handler.h>
-#include <console_bridge/console.h>
 
 namespace tesseract_rviz
 {
@@ -82,7 +81,7 @@ TriangleListMarker::TriangleListMarker(const std::string& ns,
       ss << "TriMesh marker [" << getStringID() << "] has a point count which is not divisible by 3 [" << num_points
          << "]";
     }
-    CONSOLE_BRIDGE_logDebug("%s", ss.str().c_str());
+    //ROS_DEBUG("%s", ss.str().c_str());
 
     scene_node_->setVisible(false);
     return;

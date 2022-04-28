@@ -5,4 +5,4 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_rviz/environment_state_plugin/environment_state_display.h>
 
-CLASS_LOADER_REGISTER_CLASS(tesseract_rviz::EnvironmentStateDisplay, rviz::Display)
+CLASS_LOADER_REGISTER_CLASS(tesseract_rviz::EnvironmentStateDisplay, rviz_common::Display)

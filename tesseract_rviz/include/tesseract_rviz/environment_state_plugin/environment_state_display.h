@@ -45,7 +45,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #ifndef Q_MOC_RUN
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <rclcpp/rclcpp.hpp>
-#include <tesseract/tesseract.h>
+#include <tesseract_environment/environment.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #endif
 
@@ -55,16 +55,16 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 namespace tesseract_rviz
 {
-class TesseractStateDisplay : public rviz_common::Display
+class EnvironmentStateDisplay : public rviz_common::Display
 {
   Q_OBJECT
 
 public:
-  using SharedPtr = std::shared_ptr<TesseractStateDisplay>;
-  using ConstSharedPtr = std::shared_ptr<const TesseractStateDisplay>;
+  using Ptr = std::shared_ptr<EnvironmentStateDisplay>;
+  using ConstPtr = std::shared_ptr<const EnvironmentStateDisplay>;
 
-  TesseractStateDisplay();
-  ~TesseractStateDisplay() override;
+  EnvironmentStateDisplay();
+  ~EnvironmentStateDisplay() override;
 
   void update(float wall_dt, float ros_dt) override;
   void reset() override;
@@ -79,12 +79,13 @@ protected:
   void onDisable() override;
   //  void fixedFrameChanged() override;
 
-  rclcpp::Node::SharedPtr node_;
+  rclcpp::Node::SharedPtr node_ = nullptr;
+  rclcpp::TimerBase::SharedPtr timer_;
 
-  tesseract::Tesseract::Ptr tesseract_;
-  VisualizationWidget::SharedPtr visualization_;
-  JointStateMonitorWidget::SharedPtr state_monitor_;
-  EnvironmentWidget::SharedPtr environment_monitor_;
+  tesseract_environment::Environment::Ptr env_;
+  VisualizationWidget::Ptr visualization_;
+  JointStateMonitorWidget::Ptr state_monitor_;
+  EnvironmentWidget::Ptr environment_widget_;
 };
 
 }  // namespace tesseract_rviz

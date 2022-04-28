@@ -44,6 +44,8 @@ public:
                  const char* changed_slot = nullptr,
                  QObject* receiver = nullptr);
 
+  virtual ~ButtonProperty() = default;
+
   QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option) override;
 
   bool paint(QPainter* painter, const QStyleOptionViewItem& option) const override;

@@ -54,8 +54,8 @@ namespace tesseract_rviz
 class TriangleListMarker : public MarkerBase
 {
 public:
-  using SharedPtr = std::shared_ptr<TriangleListMarker>;
-  using ConstSharedPtr = std::shared_ptr<const TriangleListMarker>;
+  using Ptr = std::shared_ptr<TriangleListMarker>;
+  using ConstPtr = std::shared_ptr<const TriangleListMarker>;
 
   TriangleListMarker(const std::string& ns,
                      const int id,

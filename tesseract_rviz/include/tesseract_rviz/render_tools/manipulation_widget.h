@@ -36,7 +36,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <ros/ros.h>
 #include <tesseract_msgs/Trajectory.h>
-#include <tesseract/tesseract.h>
+#include <tesseract_environment/environment.h>
 #include <sensor_msgs/JointState.h>
 #include <boost/thread/mutex.hpp>
 #include <tesseract_kinematics/core/inverse_kinematics.h>
@@ -69,8 +69,8 @@ class ManipulationWidget : public QObject
   Q_OBJECT
 
 public:
-  using SharedPtr = std::shared_ptr<ManipulationWidget>;
-  using ConstSharedPtr = std::shared_ptr<const ManipulationWidget>;
+  using Ptr = std::shared_ptr<ManipulationWidget>;
+  using ConstPtr = std::shared_ptr<const ManipulationWidget>;
 
   enum class ManipulatorState
   {
@@ -84,11 +84,11 @@ public:
 
   void onInitialize(Ogre::SceneNode* root_node,
                     rviz_common::DisplayContext* context,
-                    VisualizationWidget::SharedPtr visualization,
-                    tesseract::Tesseract::Ptr tesseract,
-                    ros::NodeHandle update_nh,
+                    VisualizationWidget::Ptr visualization,
+                    tesseract_environment::Environment::Ptr env,
+                    rclcpp::Node::SharedPtr update_node,
                     ManipulatorState state,
-                    QString joint_state_topic);
+                    const QString& joint_state_topic);
 
   void onEnable();
   void onDisable();
@@ -99,32 +99,36 @@ public:
 
 Q_SIGNALS:
   void availableManipulatorsChanged(QStringList manipulators);
-  void availableTCPLinksChanged(QStringList tcp_links);
+  void availableTCPFramesChanged(QStringList tcp_frames);
+  void availableTCPOffsetsChanged(tesseract_common::TransformMap tcp_offsets);
 
 public
   Q_SLOT : void enableCartesianManipulation(bool enabled);
   void enableJointManipulation(bool enabled);
   void resetToCurrentState();
-  bool changeManipulator(QString manipulator);
-  bool changeTCP(QString tcp_link);
+  bool changeManipulator(const QString& manipulator);
+  bool changeTCPFrame(const QString& tcp_frame);
+  bool changeTCPOffset(const QString& tcp_offset);
 
 private Q_SLOTS:
   void changedManipulator();
-  void changedTCP();
+  void changedTCPFrame();
+  void changedTCPOffset();
   void changedJointStateTopic();
   void changedCartesianMarkerScale();
   void changedCartesianManipulationEnabled();
   void changedJointMarkerScale();
   void changedJointManipulationEnabled();
   void clickedResetToCurrentState();
-  void markerFeedback(std::string reference_frame,
-                      Eigen::Isometry3d transform,
-                      Eigen::Vector3d mouse_point,
+  void userInputJointValuesChanged();
+  void markerFeedback(const std::string& reference_frame,
+                      const Eigen::Isometry3d& transform,
+                      const Eigen::Vector3d& mouse_point,
                       bool mouse_point_valid);
-  void jointMarkerFeedback(std::string joint_name,
-                           std::string reference_frame,
-                           Eigen::Isometry3d transform,
-                           Eigen::Vector3d mouse_point,
+  void jointMarkerFeedback(const std::string& joint_name,
+                           const std::string& reference_frame,
+                           const Eigen::Isometry3d& transform,
+                           const Eigen::Vector3d& mouse_point,
                            bool mouse_point_valid);
   //  void trajectorySliderPanelVisibilityChange(bool enable);
 

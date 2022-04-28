@@ -38,13 +38,11 @@
 #include <rviz_common/display_context.hpp>
 #include <rviz_rendering/objects/shape.hpp>
 
-#include <boost/make_shared.hpp>
-
 namespace tesseract_rviz
 {
 void makeSphere(InteractiveMarkerControl& control, float radius)
 {
-  SphereMarker::SharedPtr marker = boost::make_shared<SphereMarker>(
+  SphereMarker::Ptr marker = std::make_shared<SphereMarker>(
       control.getName(), 0, control.getDisplayContext(), control.getMarkerSceneNode(), radius);
   marker->setScale(Ogre::Vector3(control.getSize(), control.getSize(), control.getSize()));
   marker->setColor(Ogre::ColourValue(1.0f, 1.0f, 0.0f, 0.5f));
@@ -74,7 +72,7 @@ void makeArrow(InteractiveMarkerControl& control, float pos)
   point2.y = 0;
   point2.z = 0;
 
-  ArrowMarker::SharedPtr marker = boost::make_shared<ArrowMarker>(
+  ArrowMarker::Ptr marker = std::make_shared<ArrowMarker>(
       control.getName(), 0, point1, point2, control.getDisplayContext(), control.getMarkerSceneNode());
   marker->setColor(default_color);
   marker->setOrientation(control.getControlOrientation());
@@ -86,7 +84,7 @@ void makeArrow(InteractiveMarkerControl& control, float pos)
 void makeTitle(InteractiveMarkerControl& control, const std::string& text)
 {
   Ogre::ColourValue default_color(1, 1, 1, 1);
-  TextViewFacingMarker::SharedPtr marker = boost::make_shared<TextViewFacingMarker>(
+  TextViewFacingMarker::Ptr marker = std::make_shared<TextViewFacingMarker>(
       control.getName(), 0, text, control.getDisplayContext(), control.getMarkerSceneNode());
   marker->setColor(default_color);
   float scale = control.getSize();
@@ -224,7 +222,7 @@ void makeDisc(InteractiveMarkerControl& control, float width)
       break;
   }
 
-  TriangleListMarker::SharedPtr marker = boost::make_shared<TriangleListMarker>(
+  TriangleListMarker::Ptr marker = std::make_shared<TriangleListMarker>(
       control.getName(), 0, control.getDisplayContext(), control.getMarkerSceneNode(), default_color, points, colors);
   marker->setOrientation(control.getControlOrientation());
   float scale = control.getSize();
@@ -260,7 +258,7 @@ void makeDisc(InteractiveMarkerControl& control, float width)
 
 void make6Dof(InteractiveMarker& interactive_marker)
 {
-  InteractiveMarkerControl::SharedPtr control = interactive_marker.createInteractiveControl("move_rotate_3d",
+  InteractiveMarkerControl::Ptr control = interactive_marker.createInteractiveControl("move_rotate_3d",
                                                                                       "Move Rotate 3D",
                                                                                       InteractiveMode::MOVE_ROTATE_3D,
                                                                                       OrientationMode::INHERIT,
@@ -268,7 +266,7 @@ void make6Dof(InteractiveMarker& interactive_marker)
                                                                                       Ogre::Quaternion(1, 0, 0, 0));
   makeSphere(*control, 0.5f);
 
-  InteractiveMarkerControl::SharedPtr control1 = interactive_marker.createInteractiveControl("move_x",
+  InteractiveMarkerControl::Ptr control1 = interactive_marker.createInteractiveControl("move_x",
                                                                                        "Move along X Axis",
                                                                                        InteractiveMode::MOVE_AXIS,
                                                                                        OrientationMode::INHERIT,
@@ -277,7 +275,7 @@ void make6Dof(InteractiveMarker& interactive_marker)
   makeArrow(*control1, 0.5);
   makeArrow(*control1, -0.5);
 
-  InteractiveMarkerControl::SharedPtr control4 = interactive_marker.createInteractiveControl("rotate_x",
+  InteractiveMarkerControl::Ptr control4 = interactive_marker.createInteractiveControl("rotate_x",
                                                                                        "Rotate around X Axis",
                                                                                        InteractiveMode::ROTATE_AXIS,
                                                                                        OrientationMode::INHERIT,
@@ -285,7 +283,7 @@ void make6Dof(InteractiveMarker& interactive_marker)
                                                                                        Ogre::Quaternion(1, 1, 0, 0));
   makeDisc(*control4, 0.3f);
 
-  InteractiveMarkerControl::SharedPtr control2 = interactive_marker.createInteractiveControl("move_y",
+  InteractiveMarkerControl::Ptr control2 = interactive_marker.createInteractiveControl("move_y",
                                                                                        "Move along Y Axis",
                                                                                        InteractiveMode::MOVE_AXIS,
                                                                                        OrientationMode::INHERIT,
@@ -294,7 +292,7 @@ void make6Dof(InteractiveMarker& interactive_marker)
   makeArrow(*control2, 0.5);
   makeArrow(*control2, -0.5);
 
-  InteractiveMarkerControl::SharedPtr control5 = interactive_marker.createInteractiveControl("rotate_y",
+  InteractiveMarkerControl::Ptr control5 = interactive_marker.createInteractiveControl("rotate_y",
                                                                                        "Rotate around Y Axis",
                                                                                        InteractiveMode::ROTATE_AXIS,
                                                                                        OrientationMode::INHERIT,
@@ -302,7 +300,7 @@ void make6Dof(InteractiveMarker& interactive_marker)
                                                                                        Ogre::Quaternion(1, 0, 0, 1));
   makeDisc(*control5, 0.3f);
 
-  InteractiveMarkerControl::SharedPtr control3 = interactive_marker.createInteractiveControl("move_z",
+  InteractiveMarkerControl::Ptr control3 = interactive_marker.createInteractiveControl("move_z",
                                                                                        "Move along Z Axis",
                                                                                        InteractiveMode::MOVE_AXIS,
                                                                                        OrientationMode::INHERIT,
@@ -311,7 +309,7 @@ void make6Dof(InteractiveMarker& interactive_marker)
   makeArrow(*control3, 0.5);
   makeArrow(*control3, -0.5);
 
-  InteractiveMarkerControl::SharedPtr control6 = interactive_marker.createInteractiveControl("rotate_z",
+  InteractiveMarkerControl::Ptr control6 = interactive_marker.createInteractiveControl("rotate_z",
                                                                                        "Rotate around Z Axis",
                                                                                        InteractiveMode::ROTATE_AXIS,
                                                                                        OrientationMode::INHERIT,

@@ -36,76 +36,80 @@
 #include <tesseract_common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 
-//#include <eigen_conversions/eigen_msg.h>
-#include <rviz_common/display_context.hpp>
-#include <rviz_common/frame_manager_iface.hpp>
-//#include <rviz_common/visualization_manager.hpp>
-
 #include <OgreSceneManager.h>
 #include <OgreSceneNode.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
-#include <tesseract_rviz/tesseract_state_plugin/tesseract_state_display.h>
+#include <tesseract_rviz/environment_state_plugin/environment_state_display.h>
+#include <rviz_common/display_context.hpp>
 
 namespace tesseract_rviz
 {
-TesseractStateDisplay::TesseractStateDisplay() : Display(), node_(new rclcpp::Node("tesseract_state_display"))
+EnvironmentStateDisplay::EnvironmentStateDisplay()
 {
-  tesseract_ = std::make_shared<tesseract::Tesseract>();
-  environment_monitor_ = std::make_shared<EnvironmentWidget>(this, this);
+  env_ = std::make_shared<tesseract_environment::Environment>();
+  environment_widget_ = std::make_shared<EnvironmentWidget>(this, this);
   state_monitor_ = std::make_shared<JointStateMonitorWidget>(this, this);
 }
 
-TesseractStateDisplay::~TesseractStateDisplay() {}
+EnvironmentStateDisplay::~EnvironmentStateDisplay() = default;
 
-void TesseractStateDisplay::onInitialize()
+void EnvironmentStateDisplay::onInitialize()
 {
   Display::onInitialize();
+
+  node_ = context_->getRosNodeAbstraction().lock()->get_raw_node();
+  timer_ = node_->create_wall_timer(std::chrono::seconds{2},
+      [this]()
+      {
+        RCLCPP_INFO(node_->get_logger(), "Callback!");
+      }
+  );
   visualization_ = std::make_shared<VisualizationWidget>(scene_node_, context_, "Tesseract State", this);
 
-  environment_monitor_->onInitialize(visualization_, tesseract_, context_, node_, false);
-  state_monitor_->onInitialize(visualization_, tesseract_, context_, node_);
+  environment_widget_->onInitialize(visualization_, env_, context_, node_, false);
+  state_monitor_->onInitialize(visualization_, env_, context_, node_);
 
   visualization_->setVisible(false);
 }
 
-void TesseractStateDisplay::reset()
+void EnvironmentStateDisplay::reset()
 {
   visualization_->clear();
   Display::reset();
 
-  environment_monitor_->onReset();
+  environment_widget_->onReset();
   state_monitor_->onReset();
 }
 
-void TesseractStateDisplay::onEnable()
+void EnvironmentStateDisplay::onEnable()
 {
   Display::onEnable();
 
-  environment_monitor_->onEnable();
+  environment_widget_->onEnable();
   state_monitor_->onEnable();
 }
 
-void TesseractStateDisplay::onDisable()
+void EnvironmentStateDisplay::onDisable()
 {
-  environment_monitor_->onDisable();
+  environment_widget_->onDisable();
   state_monitor_->onDisable();
 
   Display::onDisable();
 }
 
-void TesseractStateDisplay::update(float wall_dt, float ros_dt)
+void EnvironmentStateDisplay::update(float wall_dt, float ros_dt)
 {
   Display::update(wall_dt, ros_dt);
 
-  environment_monitor_->onUpdate();
+  environment_widget_->onUpdate();
   state_monitor_->onUpdate();
 }
 
 // ******************************************************************************************
 // Calculate Offset Position
 // ******************************************************************************************
-// void TesseractStateDisplay::calculateOffsetPosition()
+// void EnvironmentStateDisplay::calculateOffsetPosition()
 //{
 //  if (!env_)
 //    return;
@@ -118,7 +122,7 @@ void TesseractStateDisplay::update(float wall_dt, float ros_dt)
 //  scene_node_->setOrientation(orientation);
 //}
 
-// void TesseractStateDisplay::fixedFrameChanged()
+// void EnvironmentStateDisplay::fixedFrameChanged()
 //{
 //  Display::fixedFrameChanged();
 //  calculateOffsetPosition();

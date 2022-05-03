@@ -82,12 +82,6 @@ static Ogre::NameGenerator material_name_generator("Tesseract_Material");
 static Ogre::NameGenerator trail_name_generator("Tesseract_Trail");
 static Ogre::NameGenerator point_cloud_name_generator("Tesseract_PointCloud");
 
-#ifdef noetic_BUILD
-const std::string GROUP_NAME = Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME;
-#else
-const std::string GROUP_NAME = "rviz";
-#endif
-
 class EnvLinkSelectionHandler : public rviz_common::interaction::SelectionHandler
 {
 public:
@@ -677,7 +671,8 @@ Ogre::MaterialPtr LinkWidget::getMaterialForLink(const tesseract_scene_graph::Li
     return Ogre::MaterialManager::getSingleton().getByName("RVIZ/ShadedRed");
   }
 
-  Ogre::MaterialPtr mat = Ogre::MaterialManager::getSingleton().create(material_name_generator.generate(), GROUP_NAME);
+  Ogre::MaterialPtr mat = Ogre::MaterialManager::getSingleton().create(material_name_generator.generate(),
+      Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
   mat->getTechnique(0)->setLightingEnabled(true);
 
   tesseract_scene_graph::Visual::Ptr visual = nullptr;

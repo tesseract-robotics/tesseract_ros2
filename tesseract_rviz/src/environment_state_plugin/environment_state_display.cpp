@@ -58,15 +58,9 @@ void EnvironmentStateDisplay::onInitialize()
 {
   Display::onInitialize();
 
-  node_ = context_->getRosNodeAbstraction().lock()->get_raw_node();
-  timer_ = node_->create_wall_timer(std::chrono::seconds{2},
-      [this]()
-      {
-        RCLCPP_INFO(node_->get_logger(), "Callback!");
-      }
-  );
   visualization_ = std::make_shared<VisualizationWidget>(scene_node_, context_, "Tesseract State", this);
 
+  node_ = context_->getRosNodeAbstraction().lock()->get_raw_node();
   environment_widget_->onInitialize(visualization_, env_, context_, node_, false);
   state_monitor_->onInitialize(visualization_, env_, context_, node_);
 

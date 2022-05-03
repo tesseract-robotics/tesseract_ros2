@@ -77,7 +77,7 @@ protected:
   void onDisable() override;
 
   // ROS Node Handle
-  rclcpp::Node::SharedPtr node_;
+  rclcpp::Node::SharedPtr node_ = nullptr;
 
   tesseract_environment::Environment::Ptr env_;
   VisualizationWidget::Ptr visualization_;

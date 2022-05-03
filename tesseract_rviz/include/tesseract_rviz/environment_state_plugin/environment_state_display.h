@@ -80,7 +80,6 @@ protected:
   //  void fixedFrameChanged() override;
 
   rclcpp::Node::SharedPtr node_ = nullptr;
-  rclcpp::TimerBase::SharedPtr timer_;
 
   tesseract_environment::Environment::Ptr env_;
   VisualizationWidget::Ptr visualization_;

@@ -9,8 +9,6 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <rviz_common/properties/string_property.hpp>
 #include <rviz_common/properties/enum_property.hpp>
 #include <rviz_common/window_manager_interface.hpp>
-
-#include <tesseract_rosutils/utils.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_rosutils/utils.h>
@@ -25,6 +23,11 @@ namespace tesseract_rviz
 {
 const std::string DEFAULT_GET_ENVIRONMENT_CHANGES_SERVICE = "get_tesseract_changes_rviz";
 const std::string DEFAULT_MODIFY_ENVIRONMENT_SERVICE = "modify_tesseract_rviz";
+
+/**
+ * @brief Declare URDF and SRDF parameters for later accessing
+ */
+void declareDescriptionParameters(rclcpp::Node::SharedPtr, const std::string& desc_param);
 
 EnvironmentWidget::EnvironmentWidget(rviz_common::properties::Property* widget, rviz_common::Display* display, const std::string& widget_ns)
   : widget_(widget)
@@ -150,10 +153,14 @@ void EnvironmentWidget::onInitialize(VisualizationWidget::Ptr visualization,
   get_environment_changes_server_ = node_->create_service<tesseract_msgs::srv::GetEnvironmentChanges>(
       widget_ns_ + DEFAULT_GET_ENVIRONMENT_CHANGES_SERVICE, std::bind(&EnvironmentWidget::getEnvironmentChangesCallback, this, _1, _2, _3));
 */
-
   changedEnableVisualVisible();
   changedEnableCollisionVisible();
   changedDisplayMode();
+
+  if (display_mode_property_->getOptionInt() == 0) // URDF from parameter
+  {
+    declareDescriptionParameters(node_, urdf_description_property_->getString().toStdString());
+  }
 }
 
 void EnvironmentWidget::onEnable()
@@ -324,6 +331,8 @@ void EnvironmentWidget::changedURDFDescription()
 {
   if (display_->isEnabled())
     onReset();
+
+  declareDescriptionParameters(node_, urdf_description_property_->getString().toStdString());
 }
 void EnvironmentWidget::changedURDFSceneAlpha()
 {
@@ -631,8 +640,14 @@ void EnvironmentWidget::loadEnvironment()
     if (urdf_xml_string.empty())
     {
       load_tesseract_ = true;
-      // TODO:
-      //    setStatus(rviz_common::properties::StatusProperty::Error, "EnvironmentState", "No URDF model loaded");
+      RCLCPP_ERROR(node_->get_logger().get_child("EnvironmentState"), "URDF parameter empty!");
+      //setStatus(rviz_common::properties::StatusProperty::Error, "EnvironmentState", "No URDF model loaded");
+    }
+    else if (srdf_xml_string.empty())
+    {
+      load_tesseract_ = true;
+      RCLCPP_ERROR(node_->get_logger().get_child("EnvironmentState"), "SRDF parameter empty!");
+      //setStatus(rviz_common::properties::StatusProperty::Error, "EnvironmentState", "No SRDF model loaded");
     }
     else
     {
@@ -644,12 +659,12 @@ void EnvironmentWidget::loadEnvironment()
 
         monitor_ = std::make_unique<tesseract_monitoring::EnvironmentMonitor>(node_, env_, widget_ns_);
         revision_ = env_->getRevision();
-        //        setStatus(rviz_common::properties::StatusProperty::Ok, "Tesseract", "Tesseract Environment Loaded Successfully");
+        //setStatus(rviz_common::properties::StatusProperty::Ok, "Tesseract", "Tesseract Environment Loaded Successfully");
       }
       else
       {
         load_tesseract_ = true;
-        //      setStatus(rviz_common::properties::StatusProperty::Error, "Tesseract", "URDF file failed to parse");
+        //setStatus(rviz_common::properties::StatusProperty::Error, "Tesseract", "URDF file failed to parse");
       }
     }
   }
@@ -685,6 +700,25 @@ void EnvironmentWidget::loadEnvironment()
   }
 
   highlights_.clear();
+}
+
+/**
+ * Declare the URDF and SRDF parameters for later accessing. Does nothing if the parameters already
+ * exist (i.e., have been declared elsewhere). Defaults them to empty strings if they weren't set on
+ * the node.
+ */
+void declareDescriptionParameters(rclcpp::Node::SharedPtr node, const std::string& desc_param)
+{
+  if (! node->has_parameter(desc_param))
+  {
+    node->declare_parameter(desc_param, "");
+  }
+
+  std::string srdf_param = desc_param + "_semantic";
+  if (! node->has_parameter(srdf_param))
+  {
+    node->declare_parameter(srdf_param, "");
+  }
 }
 
 int EnvironmentWidget::environment_widget_counter_ = -1;

@@ -250,9 +250,11 @@ install(TARGETS ${PROJECT_NAME}_render_tools
     EXPORT ${PACKAGE_NAME}-targets
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
-    RUNTIME DESTINATION lib/${PROJECT_NAME}
+    RUNTIME DESTINATION bin
     INCLUDES DESTINATION include
 )
+
+install(TARGETS ${PROJECT_NAME}_test DESTINATION lib/${PROJECT_NAME})
 
 # Mark cpp header files for installation
 install(DIRECTORY include/
@@ -260,6 +262,9 @@ install(DIRECTORY include/
   FILES_MATCHING PATTERN "*.h"
   PATTERN ".svn" EXCLUDE
 )
+
+# Resource files for visualizations
+install(DIRECTORY ogre_media DESTINATION share/${PROJECT_NAME})
 
 # Mark plugin XML files for installation
 install(FILES tesseract_rviz_state_plugin_description.xml

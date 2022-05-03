@@ -43,10 +43,11 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_rviz/tesseract_trajectory_plugin/tesseract_trajectory_display.h>
+#include <rviz_common/display_context.hpp>
 
 namespace tesseract_rviz
 {
-TesseractTrajectoryDisplay::TesseractTrajectoryDisplay() : node_{std::make_shared<rclcpp::Node>("tesseract_trajectory_display")}
+TesseractTrajectoryDisplay::TesseractTrajectoryDisplay()
 {
   env_ = std::make_shared<tesseract_environment::Environment>();
   environment_monitor_ = std::make_shared<EnvironmentWidget>(this, this);
@@ -62,6 +63,7 @@ void TesseractTrajectoryDisplay::onInitialize()
   visualization_ = std::make_shared<VisualizationWidget>(scene_node_, context_, "Tesseract State", this);
   visualization_->setCurrentStateVisible(false);
 
+  node_ = context_->getRosNodeAbstraction().lock()->get_raw_node();
   environment_monitor_->onInitialize(visualization_, env_, context_, node_, false);
   state_monitor_->onInitialize(visualization_, env_, context_, node_);
   trajectory_monitor_->onInitialize(visualization_, env_, context_, node_);

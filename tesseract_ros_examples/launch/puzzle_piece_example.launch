@@ -25,21 +25,26 @@
     <node pkg="tf" type="static_transform_publisher" name="virtual_joint_broadcaster_0" args="0 0 0 0 0 0 world base_link 100" />
     -->
 
+    <!--
     <node pkg="tesseract_ros_examples" exec="puzzle_piece_example_node" output="screen">
       <param name="plotting" type="bool" value="$(var plotting)"/>
       <param name="rviz" type="bool" value="$(var rviz)"/>
       <param name="robot_description" value="$(var robot_description)" type="str"/>
       <param name="robot_description_semantic" value="$(var robot_description_semantic)" type="str"/>
+    -->
       <!--
       <param from="$(find-pkg-share tesseract_ros_examples)/config/joint_limits.yaml"/>
       <param from="$(find-pkg-share tesseract_ros_examples)/config/kinematics.yaml"/>
       -->
+      <!--
     </node>
+      -->
 
     <!-- Launch visualization -->
     <node pkg="rviz2" exec="rviz2"
-        args=""> <!---d $(find-pkg-share tesseract_ros_examples)/config/examples.rviz">-->
+        args="-d $(find-pkg-share tesseract_ros_examples)/config/examples.rviz">
       <param name="robot_description" value="$(var robot_description)" type="str"/>
+      <param name="robot_description_semantic" value="$(var robot_description_semantic)" type="str"/>
     </node>
   <!--
   </group>

@@ -44,21 +44,25 @@ void JointStateMonitorWidget::onInitialize(VisualizationWidget::Ptr visualizatio
 
 void JointStateMonitorWidget::changedJointStateTopic()
 {
-  if(joint_state_topic_property_ && joint_state_topic_property_->getStdString() != "")
+  if (joint_state_topic_property_ && joint_state_topic_property_->getStdString() != "")
   {
-  joint_state_subscriber_.reset();
-
-  auto current_state_cb = std::bind(&JointStateMonitorWidget::newJointStateCallback, this, std::placeholders::_1);
-  joint_state_subscriber_ = node_->create_subscription<sensor_msgs::msg::JointState>(
-      joint_state_topic_property_->getStdString(), 10, current_state_cb);
+    joint_state_subscriber_.reset();
+    joint_state_subscriber_ = node_->create_subscription<sensor_msgs::msg::JointState>(
+        joint_state_topic_property_->getStdString(), 10,
+        [this](sensor_msgs::msg::JointState::ConstSharedPtr msg)
+        {
+          newJointStateCallback(msg);
+        }
+    );
   }
   else
+  {
     CONSOLE_BRIDGE_logWarn("joint state topic is invalid");
+  }
 }
 
 void JointStateMonitorWidget::newJointStateCallback(const sensor_msgs::msg::JointState::ConstSharedPtr joint_state_msg)
 {
-  RCLCPP_INFO(node_->get_logger().get_child("joint_state_monitor"), "Got joints!");
   if (!env_->isInitialized())
     return;
 

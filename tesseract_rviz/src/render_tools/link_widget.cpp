@@ -454,17 +454,22 @@ LinkWidget::~LinkWidget()
   }
   collision_end_octrees_.clear();
 
-  scene_manager_->destroySceneNode(visual_current_node_);
-  scene_manager_->destroySceneNode(collision_current_node_);
-
-  scene_manager_->destroySceneNode(visual_start_node_);
-  scene_manager_->destroySceneNode(collision_start_node_);
-
-  scene_manager_->destroySceneNode(visual_trajectory_node_);
-  scene_manager_->destroySceneNode(collision_trajectory_node_);
-
-  scene_manager_->destroySceneNode(visual_end_node_);
-  scene_manager_->destroySceneNode(collision_end_node_);
+  for (auto* node : {
+        visual_current_node_,
+        collision_current_node_,
+        visual_start_node_,
+        collision_start_node_,
+        visual_trajectory_node_,
+        collision_trajectory_node_,
+        visual_end_node_,
+        collision_end_node_
+      })
+  {
+    if (node)
+    {
+      scene_manager_->destroySceneNode(node);
+    }
+  }
 
   if (trail_)
   {
@@ -499,16 +504,15 @@ void LinkWidget::setAlpha(float a)
 
 void LinkWidget::setRenderQueueGroup(Ogre::uint8 group)
 {
-  Ogre::SceneNode::ChildNodeIterator child_it = visual_current_node_->getChildIterator();
-  while (child_it.hasMoreElements())
+  Ogre::SceneNode::ChildNodeMap childs = visual_current_node_->getChildren();
+  for (Ogre::Node* child_node : childs)
   {
-    auto* child = dynamic_cast<Ogre::SceneNode*>(child_it.getNext());
+    auto* child = dynamic_cast<Ogre::SceneNode*>(child_node);
     if (child)
     {
-      Ogre::SceneNode::ObjectIterator object_it = child->getAttachedObjectIterator();
-      while (object_it.hasMoreElements())
+      auto objects = child->getAttachedObjects();
+      for (Ogre::MovableObject* obj : objects)
       {
-        Ogre::MovableObject* obj = object_it.getNext();
         obj->setRenderQueueGroup(group);
       }
     }
@@ -1220,12 +1224,11 @@ void LinkWidget::clone(Ogre::SceneNode* scene_node,
                        std::vector<Ogre::Entity*>& meshes,
                        std::vector<rviz_rendering::PointCloud*>& octrees)
 {
-  Ogre::SceneNode::ObjectIterator iter = scene_node->getAttachedObjectIterator();
-  while (iter.hasMoreElements())
+  auto movable_objs = scene_node->getAttachedObjects();
+  for (Ogre::MovableObject* movable : movable_objs)
   {
-    auto* movable = static_cast<Ogre::MovableObject*>(iter.getNext());
     auto* entity = dynamic_cast<Ogre::Entity*>(movable);
-    if (entity != nullptr)
+    if (entity)
     {
       Ogre::Entity* cloned_entity = entity->clone(clone_link_name_generator.generate());
       meshes.push_back(cloned_entity);
@@ -1250,19 +1253,18 @@ void LinkWidget::clone(Ogre::SceneNode* scene_node,
   cloned_scene_node->setPosition(scene_node->getPosition());
   cloned_scene_node->setOrientation(scene_node->getOrientation());
 
-  Ogre::SceneNode::ChildNodeIterator nodei = scene_node->getChildIterator();
-  while (nodei.hasMoreElements())
+  Ogre::SceneNode::ChildNodeMap children = scene_node->getChildren();
+  for (Ogre::Node* node : children)
   {
-    auto* child_node = static_cast<Ogre::SceneNode*>(nodei.getNext());
+    auto* child_node = static_cast<Ogre::SceneNode*>(node);
 
     Ogre::SceneNode* cloned_child_scene_node = cloned_scene_node->createChildSceneNode();
 
-    Ogre::SceneNode::ObjectIterator child_node_iter = child_node->getAttachedObjectIterator();
-    while (child_node_iter.hasMoreElements())
+    auto movable_objs = child_node->getAttachedObjects();
+    for (Ogre::MovableObject* movable : movable_objs)
     {
-      auto* movable = static_cast<Ogre::MovableObject*>(child_node_iter.getNext());
       auto* entity = dynamic_cast<Ogre::Entity*>(movable);
-      if (entity != nullptr)
+      if (entity)
       {
         Ogre::Entity* cloned_entity = entity->clone(clone_link_name_generator.generate());
         meshes.push_back(cloned_entity);
@@ -1688,8 +1690,16 @@ void LinkWidget::clearTrajectory()
   }
   collision_trajectory_meshes_.clear();
 
-  scene_manager_->destroySceneNode(visual_trajectory_node_);
-  scene_manager_->destroySceneNode(collision_trajectory_node_);
+  /*
+  if (visual_trajectory_node_)
+  {
+    scene_manager_->destroySceneNode(visual_trajectory_node_);
+  }
+  if (collision_trajectory_node_)
+  {
+    scene_manager_->destroySceneNode(collision_trajectory_node_);
+  }
+  */
 
   visual_trajectory_waypoint_nodes_.clear();
   collision_trajectory_waypoint_nodes_.clear();

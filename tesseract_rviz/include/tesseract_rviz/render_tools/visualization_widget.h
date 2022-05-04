@@ -93,7 +93,7 @@ using AlignedMap = std::map<Key, Value, std::less<Key>, Eigen::aligned_allocator
 using TransformMap = AlignedMap<std::string, Eigen::Isometry3d>;
 
 /**
- * \class EnvVisualization
+ * \class VisualizationWidget
  *
  * A helper class to draw a representation of a environment.  Can display either the visual models of
  * the environment, or the collision models.

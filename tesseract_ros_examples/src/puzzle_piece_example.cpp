@@ -150,9 +150,9 @@ bool PuzzlePieceExample::run()
     monitor_->startPublishingEnvironment();
 
   // Create plotting tool
+  plotter_ = std::make_shared<tesseract_rosutils::ROSPlotting>(monitor_->getSceneGraph()->getRoot());
   if (plotting_)
   {
-    plotter_ = std::make_shared<tesseract_rosutils::ROSPlotting>(monitor_->getSceneGraph()->getRoot());
     plotter_->waitForConnection();
   }
 
@@ -261,19 +261,19 @@ bool PuzzlePieceExample::run()
     plotter_->waitForInput();
 
   // Solve process plan
-  //ProcessPlanningFuture response = planning_server.run(request);
-  //planning_server.waitForAll();
+  ProcessPlanningFuture response = planning_server.run(request);
+  planning_server.waitForAll();
   RCLCPP_INFO(node_->get_logger(), "Final trajectory is collision free");
 
   // Plot Process Trajectory
   if (rviz_ && plotter_ != nullptr && plotter_->isConnected())
   {
     RCLCPP_INFO(node_->get_logger(), "Sending trajectory for visualization");
-    plotter_->waitForInput();
-    //const auto& ci = response.results->as<CompositeInstruction>();
-    //tesseract_common::JointTrajectory trajectory = toJointTrajectory(ci);
+    //plotter_->waitForInput();
+    const auto& ci = response.results->as<CompositeInstruction>();
+    tesseract_common::JointTrajectory trajectory = toJointTrajectory(ci);
     auto state_solver = env_->getStateSolver();
-    //plotter_->plotTrajectory(trajectory, *state_solver);
+    plotter_->plotTrajectory(trajectory, *state_solver);
   }
 
   return true;

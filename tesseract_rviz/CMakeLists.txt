@@ -36,7 +36,6 @@ set(CMAKE_AUTOMOC ON)
 tesseract_variables()
 
 # Rviz Render Tools
-# qt5_wrap_cpp(${PROJECT_NAME}_render_tools_cpp_MOCS
 set(render_tools_qobjects
   include/tesseract_rviz/render_tools/trajectory_panel.h
   include/tesseract_rviz/render_tools/visualization_widget.h
@@ -45,7 +44,7 @@ set(render_tools_qobjects
   include/tesseract_rviz/render_tools/joint_widget.h
   include/tesseract_rviz/render_tools/joint_state_monitor_widget.h
   include/tesseract_rviz/render_tools/environment_widget.h
-# include/tesseract_rviz/render_tools/trajectory_monitor_widget.h
+  include/tesseract_rviz/render_tools/trajectory_monitor_widget.h
 # include/tesseract_rviz/render_tools/manipulation_widget.h
   include/tesseract_rviz/interactive_marker/integer_action.h
 # include/tesseract_rviz/interactive_marker/interactive_marker.h
@@ -60,7 +59,7 @@ add_library(${PROJECT_NAME}_render_tools SHARED
   src/render_tools/trajectory_panel.cpp
   src/render_tools/joint_state_monitor_widget.cpp
   src/render_tools/environment_widget.cpp
-# src/render_tools/trajectory_monitor_widget.cpp
+  src/render_tools/trajectory_monitor_widget.cpp
 # src/render_tools/manipulation_widget.cpp
   src/interactive_marker/integer_action.cpp
 # src/interactive_marker/interactive_marker.cpp
@@ -75,7 +74,6 @@ add_library(${PROJECT_NAME}_render_tools SHARED
   src/markers/triangle_list_marker.cpp
   src/markers/text_view_facing_marker.cpp
   src/property/button_property.cpp
-  #${${PROJECT_NAME}_render_tools_cpp_MOCS}
   ${render_tools_qobjects}
 )
 target_link_libraries(${PROJECT_NAME}_render_tools PUBLIC
@@ -93,7 +91,6 @@ ament_target_dependencies(${PROJECT_NAME}_render_tools PUBLIC
   tesseract_monitoring
   tesseract_rosutils
 )
-
 target_compile_options(${PROJECT_NAME}_render_tools PUBLIC ${TESSERACT_COMPILE_OPTIONS})
 target_cxx_version(${PROJECT_NAME}_render_tools PUBLIC VERSION 17)
 target_include_directories(${PROJECT_NAME}_render_tools PUBLIC
@@ -111,14 +108,11 @@ target_compile_definitions(${PROJECT_NAME}_render_tools PUBLIC $ENV{ROS_DISTRO}_
 #add_library(${PROJECT_NAME}_scene_plugin src/tesseract_scene_plugin/plugin_init.cpp)
 #ament_add_dependencies(${PROJECT_NAME}_scene_plugin ${PROJECT_NAME}_scene_plugin_core ${Boost_LIBRARIES})
 
-# Trajectory State Display
-# qt_wrap_cpp(${PROJECT_NAME}_state_plugin_core_cpp_MOCS
-# include/tesseract_rviz/environment_state_plugin/environment_state_display.h)
-
+# Environment State Display
 add_library(${PROJECT_NAME}_state_plugin_core SHARED
     src/environment_state_plugin/environment_state_display.cpp
-    include/tesseract_rviz/environment_state_plugin/environment_state_display.h)
-    # ${${PROJECT_NAME}_state_plugin_core_cpp_MOCS})
+    include/tesseract_rviz/environment_state_plugin/environment_state_display.h
+)
 target_link_libraries(${PROJECT_NAME}_state_plugin_core PUBLIC
     ${PROJECT_NAME}_render_tools)
 target_compile_options(${PROJECT_NAME}_state_plugin_core PUBLIC ${TESSERACT_COMPILE_OPTIONS})
@@ -137,14 +131,10 @@ target_include_directories(${PROJECT_NAME}_state_plugin PRIVATE
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
     "$<INSTALL_INTERFACE:include>")
 
-## Trajectory Display
-# qt5_wrap_cpp(${PROJECT_NAME}_trajectory_plugin_core_cpp_MOCS
-# include/tesseract_rviz/tesseract_trajectory_plugin/tesseract_trajectory_display.h)
-
+# Trajectory Display
 add_library(${PROJECT_NAME}_trajectory_plugin_core SHARED
   src/tesseract_trajectory_plugin/tesseract_trajectory_display.cpp
   include/tesseract_rviz/tesseract_trajectory_plugin/tesseract_trajectory_display.h
-  #${${PROJECT_NAME}_trajectory_plugin_core_cpp_MOCS}
 )
 target_link_libraries(${PROJECT_NAME}_trajectory_plugin_core PUBLIC
   ${PROJECT_NAME}_render_tools
@@ -239,7 +229,7 @@ target_include_directories(${PROJECT_NAME}_test PRIVATE
 #")
 
 
-# Mark executables and/or libraries for installation
+# Install libraries
 install(TARGETS ${PROJECT_NAME}_render_tools
     ${PROJECT_NAME}_state_plugin_core
     ${PROJECT_NAME}_state_plugin
@@ -254,6 +244,7 @@ install(TARGETS ${PROJECT_NAME}_render_tools
     INCLUDES DESTINATION include
 )
 
+# Install executables
 install(TARGETS ${PROJECT_NAME}_test DESTINATION lib/${PROJECT_NAME})
 
 # Mark cpp header files for installation
@@ -291,5 +282,5 @@ ament_export_dependencies(
     console_bridge
     Eigen3)
 
-ament_export_interfaces(${PACKAGE_NAME}-targets)
+ament_export_targets(${PACKAGE_NAME}-targets)
 ament_package()

@@ -29,6 +29,8 @@
   <depend>rviz</depend>
   -->
   <depend>Qt5</depend>
+  <depend>libqt5-core</depend>
+  <depend>libqt5-widgets</depend>
   <depend>libconsole-bridge-dev</depend>
 
   <export>

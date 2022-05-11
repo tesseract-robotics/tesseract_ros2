@@ -28,6 +28,8 @@
   <depend>roscpp</depend>
   <depend>rviz</depend>
   -->
+  <depend>Qt5</depend>
+  <depend>libconsole-bridge-dev</depend>
 
   <export>
     <build_type>ament_cmake</build_type>

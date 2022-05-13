@@ -20,6 +20,7 @@ jobs:
       ROS_REPO: main
       UPSTREAM_WORKSPACE: 'dependencies.repos'
       # ROSDEP_SKIP_KEYS: "bullet bullet-extras ros_industrial_cmake_boilerplate fcl iwyu taskflow"
+      ROSDEP_SKIP_KEYS: "catkin taskflow"
       DOCKER_IMAGE: "ros:foxy"
       PARALLEL_TESTS: false
       NOT_TEST_BUILD: true

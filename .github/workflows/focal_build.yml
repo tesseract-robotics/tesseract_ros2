@@ -19,12 +19,11 @@ jobs:
       ROS_DISTRO: foxy
       ROS_REPO: main
       UPSTREAM_WORKSPACE: 'dependencies.repos'
-      ROSDEP_SKIP_KEYS: "catkin taskflow"
+      # ROSDEP_SKIP_KEYS: "bullet bullet-extras ros_industrial_cmake_boilerplate fcl iwyu taskflow"
       DOCKER_IMAGE: "ros:foxy"
-      AFTER_INSTALL_UPSTREAM_DEPENDENCIES: "sh .ci-install-taskflow.sh"
       PARALLEL_TESTS: false
       NOT_TEST_BUILD: true
-      CCACHE_DIR: "/home/runner/work/tesseract_ros/tesseract_ros/Focal-Build/.ccache"
+      # CCACHE_DIR: "/home/runner/work/tesseract_ros/tesseract_ros/Focal-Build/.ccache"
       UPSTREAM_CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=Release"
       TARGET_CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=Debug"
     steps:

@@ -24,7 +24,7 @@ jobs:
       DOCKER_IMAGE: "ros:foxy"
       PARALLEL_TESTS: false
       NOT_TEST_BUILD: true
-      # CCACHE_DIR: "/home/runner/work/tesseract_ros/tesseract_ros/Focal-Build/.ccache"
+      CCACHE_DIR: "/home/runner/work/tesseract_ros/tesseract_ros/Focal-Build/.ccache"
       UPSTREAM_CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=Release"
       TARGET_CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=Debug"
     steps:
@@ -54,6 +54,12 @@ jobs:
           key: ${{ env.CI_NAME }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
           restore-keys: |
             ${{ env.CI_NAME }}-ccache-
+
+      - name: Install ROS-I dependencies
+        run: |
+          sudo add-apt-repository -y ppa:ros-industrial/ppa
+          sudo apt-get update
+          sudo apt-get install -y taskflow
 
       - uses: 'ros-industrial/industrial_ci@master'
         env: ${{env}}

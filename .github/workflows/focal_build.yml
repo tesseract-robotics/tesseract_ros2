@@ -55,11 +55,17 @@ jobs:
           restore-keys: |
             ${{ env.CI_NAME }}-ccache-
 
-      - name: Install ROS-I dependencies
+      - name: Install taskflow
+        working-directory: /home/runner
+        env:
+          TASKFLOW_VERSION: v3.3.0
         run: |
-          sudo add-apt-repository -y ppa:ros-industrial/ppa
-          sudo apt-get update
-          sudo apt-get install -y taskflow
+          git clone https://github.com/taskflow/taskflow.git
+          git -C taskflow checkout $TASKFLOW_VERSION
+          mkdir taskflow-build
+          cmake -S taskflow -B taskflow-build -DCMAKE_INSTALL_PREFIX=/usr -DTF_BUILD_TESTS=OFF -DTF_BUILD_EXAMPLES=OFF
+          sudo make -C taskflow-build/ install
+          rm -rf taskflow/ taskflow-build/
 
       - uses: 'ros-industrial/industrial_ci@master'
         env: ${{env}}

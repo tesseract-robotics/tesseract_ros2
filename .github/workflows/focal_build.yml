@@ -22,6 +22,7 @@ jobs:
       # ROSDEP_SKIP_KEYS: "bullet bullet-extras ros_industrial_cmake_boilerplate fcl iwyu taskflow"
       ROSDEP_SKIP_KEYS: "catkin taskflow"
       DOCKER_IMAGE: "ros:foxy"
+      AFTER_INSTALL_UPSTREAM_DEPENDENCIES: "sh .ci-install-taskflow.sh"
       PARALLEL_TESTS: false
       NOT_TEST_BUILD: true
       CCACHE_DIR: "/home/runner/work/tesseract_ros/tesseract_ros/Focal-Build/.ccache"
@@ -54,18 +55,6 @@ jobs:
           key: ${{ env.CI_NAME }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
           restore-keys: |
             ${{ env.CI_NAME }}-ccache-
-
-      - name: Install taskflow
-        working-directory: /home/runner
-        env:
-          TASKFLOW_VERSION: v3.3.0
-        run: |
-          git clone https://github.com/taskflow/taskflow.git
-          git -C taskflow checkout $TASKFLOW_VERSION
-          mkdir taskflow-build
-          cmake -S taskflow -B taskflow-build -DCMAKE_INSTALL_PREFIX=/usr -DTF_BUILD_TESTS=OFF -DTF_BUILD_EXAMPLES=OFF
-          sudo make -C taskflow-build/ install
-          rm -rf taskflow/ taskflow-build/
 
       - uses: 'ros-industrial/industrial_ci@master'
         env: ${{env}}

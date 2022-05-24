@@ -74,7 +74,8 @@ tesseract_common::VectorIsometry3d PuzzlePieceExample::makePuzzleToolPoses()
 
   // You could load your parts from anywhere, but we are transporting them with
   // the git repo
-  std::string filename = ament_index_cpp::get_package_share_directory("tesseract_ros_examples") + "/config/puzzle_bent.csv";
+  std::string filename = ament_index_cpp::get_package_share_directory("tesseract_ros_examples") + "/config/"
+                                                                                                  "puzzle_bent.csv";
 
   // In a non-trivial app, you'll of course want to check that calls like 'open'
   // succeeded

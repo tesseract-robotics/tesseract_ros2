@@ -297,8 +297,7 @@ bool EnvironmentWidget::applyEnvironmentCommands(const tesseract_environment::Co
   update_required_ = true;
   switch (command.getType())
   {
-    case tesseract_environment::CommandType::ADD_LINK:
-    {
+    case tesseract_environment::CommandType::ADD_LINK: {
       const auto& cmd = static_cast<const tesseract_environment::AddLinkCommand&>(command);
 
       bool link_exists = false;
@@ -346,8 +345,7 @@ bool EnvironmentWidget::applyEnvironmentCommands(const tesseract_environment::Co
 
       break;
     }
-    case tesseract_environment::CommandType::ADD_SCENE_GRAPH:
-    {
+    case tesseract_environment::CommandType::ADD_SCENE_GRAPH: {
       // Done
       const auto& cmd = static_cast<const tesseract_environment::AddSceneGraphCommand&>(command);
 
@@ -364,16 +362,14 @@ bool EnvironmentWidget::applyEnvironmentCommands(const tesseract_environment::Co
 
       break;
     }
-    case tesseract_environment::CommandType::MOVE_LINK:
-    {
+    case tesseract_environment::CommandType::MOVE_LINK: {
       const auto& cmd = static_cast<const tesseract_environment::MoveLinkCommand&>(command);
       if (!visualization_->moveLink(cmd.getJoint()->clone()))
         return false;
 
       break;
     }
-    case tesseract_environment::CommandType::MOVE_JOINT:
-    {
+    case tesseract_environment::CommandType::MOVE_JOINT: {
       // Done
       const auto& cmd = static_cast<const tesseract_environment::MoveJointCommand&>(command);
       if (!visualization_->moveJoint(cmd.getJointName(), cmd.getParentLink()))
@@ -381,8 +377,7 @@ bool EnvironmentWidget::applyEnvironmentCommands(const tesseract_environment::Co
 
       break;
     }
-    case tesseract_environment::CommandType::REMOVE_LINK:
-    {
+    case tesseract_environment::CommandType::REMOVE_LINK: {
       // Done
       const auto& cmd = static_cast<const tesseract_environment::RemoveLinkCommand&>(command);
       if (!visualization_->removeLink(cmd.getLinkName()))
@@ -390,8 +385,7 @@ bool EnvironmentWidget::applyEnvironmentCommands(const tesseract_environment::Co
 
       break;
     }
-    case tesseract_environment::CommandType::REMOVE_JOINT:
-    {
+    case tesseract_environment::CommandType::REMOVE_JOINT: {
       // Done
       const auto& cmd = static_cast<const tesseract_environment::RemoveJointCommand&>(command);
       if (!visualization_->removeJoint(cmd.getJointName()))
@@ -399,8 +393,7 @@ bool EnvironmentWidget::applyEnvironmentCommands(const tesseract_environment::Co
 
       break;
     }
-    case tesseract_environment::CommandType::REPLACE_JOINT:
-    {
+    case tesseract_environment::CommandType::REPLACE_JOINT: {
       // Done
       const auto& cmd = static_cast<const tesseract_environment::ReplaceJointCommand&>(command);
       if (!visualization_->addJoint(cmd.getJoint()->clone(), true))
@@ -408,13 +401,11 @@ bool EnvironmentWidget::applyEnvironmentCommands(const tesseract_environment::Co
 
       break;
     }
-    case tesseract_environment::CommandType::CHANGE_LINK_ORIGIN:
-    {
+    case tesseract_environment::CommandType::CHANGE_LINK_ORIGIN: {
       assert(false);
       break;
     }
-    case tesseract_environment::CommandType::CHANGE_JOINT_ORIGIN:
-    {
+    case tesseract_environment::CommandType::CHANGE_JOINT_ORIGIN: {
       // Done
       const auto& cmd = static_cast<const tesseract_environment::ChangeJointOriginCommand&>(command);
       if (!visualization_->changeJointOrigin(cmd.getJointName(), cmd.getOrigin()))
@@ -422,63 +413,54 @@ bool EnvironmentWidget::applyEnvironmentCommands(const tesseract_environment::Co
 
       break;
     }
-    case tesseract_environment::CommandType::CHANGE_LINK_COLLISION_ENABLED:
-    {
+    case tesseract_environment::CommandType::CHANGE_LINK_COLLISION_ENABLED: {
       // Done
       const auto& cmd = static_cast<const tesseract_environment::ChangeLinkCollisionEnabledCommand&>(command);
       visualization_->setLinkCollisionEnabled(cmd.getLinkName(), cmd.getEnabled());
       break;
     }
-    case tesseract_environment::CommandType::CHANGE_LINK_VISIBILITY:
-    {
+    case tesseract_environment::CommandType::CHANGE_LINK_VISIBILITY: {
       // Done
       const auto& cmd = static_cast<const tesseract_environment::ChangeLinkVisibilityCommand&>(command);
       visualization_->setLinkCollisionEnabled(cmd.getLinkName(), cmd.getEnabled());
       break;
     }
-    case tesseract_environment::CommandType::ADD_ALLOWED_COLLISION:
-    {
+    case tesseract_environment::CommandType::ADD_ALLOWED_COLLISION: {
       // Done
       const auto& cmd = static_cast<const tesseract_environment::AddAllowedCollisionCommand&>(command);
 
       visualization_->addAllowedCollision(cmd.getLinkName1(), cmd.getLinkName2(), cmd.getReason());
       break;
     }
-    case tesseract_environment::CommandType::REMOVE_ALLOWED_COLLISION:
-    {
+    case tesseract_environment::CommandType::REMOVE_ALLOWED_COLLISION: {
       // Done
       const auto& cmd = static_cast<const tesseract_environment::RemoveAllowedCollisionCommand&>(command);
       visualization_->removeAllowedCollision(cmd.getLinkName1(), cmd.getLinkName2());
       break;
     }
-    case tesseract_environment::CommandType::REMOVE_ALLOWED_COLLISION_LINK:
-    {
+    case tesseract_environment::CommandType::REMOVE_ALLOWED_COLLISION_LINK: {
       // Done
       const auto& cmd = static_cast<const tesseract_environment::RemoveAllowedCollisionLinkCommand&>(command);
       visualization_->removeAllowedCollision(cmd.getLinkName());
       break;
     }
-    case tesseract_environment::CommandType::CHANGE_JOINT_POSITION_LIMITS:
-    {
+    case tesseract_environment::CommandType::CHANGE_JOINT_POSITION_LIMITS: {
       // Done
       // const auto& cmd = static_cast<const tesseract_environment::ChangeJointPositionLimitsCommand&>(command);
       break;
     }
-    case tesseract_environment::CommandType::CHANGE_JOINT_VELOCITY_LIMITS:
-    {
+    case tesseract_environment::CommandType::CHANGE_JOINT_VELOCITY_LIMITS: {
       // Done
       // const auto& cmd = static_cast<const tesseract_environment::ChangeJointVelocityLimitsCommand&>(command);
       break;
     }
-    case tesseract_environment::CommandType::CHANGE_JOINT_ACCELERATION_LIMITS:
-    {
+    case tesseract_environment::CommandType::CHANGE_JOINT_ACCELERATION_LIMITS: {
       // Done
       // const auto& cmd = static_cast<const tesseract_environment::ChangeJointAccelerationLimitsCommand&>(command);
       break;
     }
     case tesseract_environment::CommandType::ADD_KINEMATICS_INFORMATION:
-    case tesseract_environment::CommandType::CHANGE_COLLISION_MARGINS:
-    {
+    case tesseract_environment::CommandType::CHANGE_COLLISION_MARGINS: {
       break;
     }
   }

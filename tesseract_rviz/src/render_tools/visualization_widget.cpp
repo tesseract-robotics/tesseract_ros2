@@ -958,8 +958,7 @@ void VisualizationWidget::changedLinkTreeStyle()
       }
       break;
 
-    case STYLE_JOINT_LIST:
-    {
+    case STYLE_JOINT_LIST: {
       useDetailProperty(false);
       auto joint_it = joints_.begin();
       auto joint_end = joints_.end();

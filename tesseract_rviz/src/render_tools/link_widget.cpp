@@ -894,21 +894,24 @@ bool LinkWidget::createEntityForGeometryElement(const tesseract_scene_graph::Lin
 
   switch (geom.getType())
   {
-    case tesseract_geometry::GeometryType::SPHERE: {
+    case tesseract_geometry::GeometryType::SPHERE:
+    {
       const auto& sphere = static_cast<const tesseract_geometry::Sphere&>(geom);
       entity = scene_manager_->createEntity(entity_name, "tesseract_sphere.mesh");
       float diameter = static_cast<float>(sphere.getRadius()) * 2.0f;
       scale = Ogre::Vector3(diameter, diameter, diameter);
       break;
     }
-    case tesseract_geometry::GeometryType::BOX: {
+    case tesseract_geometry::GeometryType::BOX:
+    {
       const auto& box = static_cast<const tesseract_geometry::Box&>(geom);
       entity = scene_manager_->createEntity(entity_name, "tesseract_cube.mesh");
       scale =
           Ogre::Vector3(static_cast<float>(box.getX()), static_cast<float>(box.getY()), static_cast<float>(box.getZ()));
       break;
     }
-    case tesseract_geometry::GeometryType::CYLINDER: {
+    case tesseract_geometry::GeometryType::CYLINDER:
+    {
       const auto& cylinder = static_cast<const tesseract_geometry::Cylinder&>(geom);
       entity = scene_manager_->createEntity(entity_name, "tesseract_cylinder.mesh");
       scale = Ogre::Vector3(static_cast<float>(cylinder.getRadius() * 2),
@@ -916,7 +919,8 @@ bool LinkWidget::createEntityForGeometryElement(const tesseract_scene_graph::Lin
                             static_cast<float>(cylinder.getLength()));
       break;
     }
-    case tesseract_geometry::GeometryType::CONE: {
+    case tesseract_geometry::GeometryType::CONE:
+    {
       const auto& cone = static_cast<const tesseract_geometry::Cone&>(geom);
       entity = scene_manager_->createEntity(entity_name, "tesseract_cone.mesh");
       scale = Ogre::Vector3(static_cast<float>(cone.getRadius() * 2),
@@ -924,7 +928,8 @@ bool LinkWidget::createEntityForGeometryElement(const tesseract_scene_graph::Lin
                             static_cast<float>(cone.getLength()));
       break;
     }
-    case tesseract_geometry::GeometryType::CAPSULE: {
+    case tesseract_geometry::GeometryType::CAPSULE:
+    {
       const auto& capsule = static_cast<const tesseract_geometry::Capsule&>(geom);
       entity = scene_manager_->createEntity(entity_name, "tesseract_capsule.mesh");
       scale = Ogre::Vector3(static_cast<float>(capsule.getRadius() * 2),
@@ -932,7 +937,8 @@ bool LinkWidget::createEntityForGeometryElement(const tesseract_scene_graph::Lin
                             static_cast<float>((0.5 * capsule.getLength()) + capsule.getRadius()));
       break;
     }
-    case tesseract_geometry::GeometryType::MESH: {
+    case tesseract_geometry::GeometryType::MESH:
+    {
       const auto& mesh = static_cast<const tesseract_geometry::Mesh&>(geom);
 
       if (mesh.getResource() && mesh.getResource()->isFile() && isVisual)
@@ -969,7 +975,8 @@ bool LinkWidget::createEntityForGeometryElement(const tesseract_scene_graph::Lin
 
       break;
     }
-    case tesseract_geometry::GeometryType::CONVEX_MESH: {
+    case tesseract_geometry::GeometryType::CONVEX_MESH:
+    {
       const auto& mesh = static_cast<const tesseract_geometry::ConvexMesh&>(geom);
 
       if (mesh.getResource() && mesh.getResource()->isFile() && isVisual)
@@ -1005,7 +1012,8 @@ bool LinkWidget::createEntityForGeometryElement(const tesseract_scene_graph::Lin
       }
       break;
     }
-    case tesseract_geometry::GeometryType::OCTREE: {
+    case tesseract_geometry::GeometryType::OCTREE:
+    {
       std::size_t max_octree_depth = 0;
       double color_factor = 0.8;
       OctreeVoxelRenderMode octree_voxel_rendering = OCTOMAP_OCCUPIED_VOXELS;

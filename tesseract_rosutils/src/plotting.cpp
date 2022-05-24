@@ -141,7 +141,8 @@ void ROSPlotting::plotMarker(const tesseract_visualization::Marker& marker, std:
 {
   switch (marker.getType())
   {
-    case static_cast<int>(tesseract_visualization::MarkerType::ARROW): {
+    case static_cast<int>(tesseract_visualization::MarkerType::ARROW):
+    {
       const auto& m = dynamic_cast<const tesseract_visualization::ArrowMarker&>(marker);
       visualization_msgs::msg::MarkerArray msg;
       auto arrow_marker_msg = getMarkerArrowMsg(marker_counter_, root_link_, topic_namespace_, node_->now(), m);
@@ -149,14 +150,16 @@ void ROSPlotting::plotMarker(const tesseract_visualization::Marker& marker, std:
       arrows_pub_->publish(msg);
       break;
     }
-    case static_cast<int>(tesseract_visualization::MarkerType::AXIS): {
+    case static_cast<int>(tesseract_visualization::MarkerType::AXIS):
+    {
       const auto& m = dynamic_cast<const tesseract_visualization::AxisMarker&>(marker);
       visualization_msgs::msg::MarkerArray msg =
           getMarkerAxisMsg(marker_counter_, root_link_, topic_namespace_, node_->now(), m.axis, m.getScale());
       axes_pub_->publish(msg);
       break;
     }
-    case static_cast<int>(tesseract_visualization::MarkerType::TOOLPATH): {
+    case static_cast<int>(tesseract_visualization::MarkerType::TOOLPATH):
+    {
       const auto& m = dynamic_cast<const tesseract_visualization::ToolpathMarker&>(marker);
       std::string prefix_ns = topic_namespace_;
       if (!ns.empty())
@@ -178,7 +181,8 @@ void ROSPlotting::plotMarker(const tesseract_visualization::Marker& marker, std:
       tool_path_pub_->publish(msg);
       break;
     }
-    case static_cast<int>(tesseract_visualization::MarkerType::CONTACT_RESULTS): {
+    case static_cast<int>(tesseract_visualization::MarkerType::CONTACT_RESULTS):
+    {
       const auto& m = dynamic_cast<const tesseract_visualization::ContactResultsMarker&>(marker);
       if (!m.dist_results.empty())
       {

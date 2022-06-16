@@ -20,6 +20,8 @@
   <depend>tesseract_motion_planners</depend>
   <depend>tesseract_process_managers</depend>
   <depend>tesseract_srdf</depend>
+  <depend>tesseract_command_language</depend>
+  <depend>tesseract_support</depend>
   <depend>yaml-cpp</depend>
 
   <depend>rclcpp</depend>

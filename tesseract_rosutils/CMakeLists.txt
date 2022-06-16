@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.5.0)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # Extract package name and version
 find_package(ros_industrial_cmake_boilerplate REQUIRED)
 extract_package_metadata(pkg)
@@ -28,6 +30,8 @@ find_package(tesseract_visualization REQUIRED)
 find_package(tesseract_common REQUIRED)
 find_package(tesseract_motion_planners REQUIRED)
 find_package(tesseract_process_managers REQUIRED)
+find_package(tesseract_command_language REQUIRED)
+find_package(tesseract_support REQUIRED)
 find_package(yaml-cpp REQUIRED)
 
 # Load variable for clang tidy args, compiler options and cxx version
@@ -47,6 +51,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     tesseract::tesseract_motion_planners_core
     tesseract::tesseract_process_managers
     tesseract::tesseract_command_language
+    tesseract::tesseract_support
     tf2::tf2
     tf2_ros::tf2_ros
     yaml-cpp
@@ -92,6 +97,7 @@ ament_export_dependencies(
   tesseract_motion_planners
   tesseract_process_managers
   tesseract_command_language
+  tesseract_support
   tf2
   tf2_eigen
   tf2_ros

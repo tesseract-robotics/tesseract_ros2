@@ -86,12 +86,13 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <tesseract_common/joint_state.h>
 #include <tesseract_motion_planners/core/types.h>
 #include <tesseract_process_managers/core/task_info.h>
+#include <tesseract_support/tesseract_support_resource_locator.h>
 
 namespace tesseract_rosutils
 {
 std::string locateResource(const std::string& url);
 
-class ROSResourceLocator : public tesseract_common::SimpleResourceLocator
+class ROSResourceLocator : public tesseract_common::TesseractSupportResourceLocator
 {
 public:
   ROSResourceLocator();

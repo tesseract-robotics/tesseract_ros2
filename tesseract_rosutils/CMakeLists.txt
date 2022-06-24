@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.5.0)
 
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
 # Extract package name and version
 find_package(ros_industrial_cmake_boilerplate REQUIRED)
 extract_package_metadata(pkg)

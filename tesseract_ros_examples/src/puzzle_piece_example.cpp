@@ -262,7 +262,7 @@ bool PuzzlePieceExample::run()
   if (rviz_ && plotter != nullptr && plotter->isConnected())
   {
     plotter->waitForInput();
-    const auto& ci = response.results->as<CompositeInstruction>();
+    const auto& ci = response.problem->results->as<CompositeInstruction>();
     tesseract_common::JointTrajectory trajectory = toJointTrajectory(ci);
     auto state_solver = env_->getStateSolver();
     plotter->plotTrajectory(trajectory, *state_solver);

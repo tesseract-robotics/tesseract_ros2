@@ -494,4 +494,8 @@ inline MessageType fromFile(const std::string& filepath)
 
 }  // namespace tesseract_rosutils
 
+#include <boost/serialization/export.hpp>
+#include <boost/serialization/tracking.hpp>
+BOOST_CLASS_EXPORT_KEY2(tesseract_rosutils::ROSResourceLocator, "ROSResourceLocator")
+
 #endif

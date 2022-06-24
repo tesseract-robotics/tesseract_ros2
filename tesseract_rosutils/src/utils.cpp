@@ -2234,3 +2234,7 @@ trajectory_msgs::msg::JointTrajectory toMsg(const tesseract_common::JointTraject
 }
 
 }  // namespace tesseract_rosutils
+
+#include <tesseract_common/serialization.h>
+TESSERACT_SERIALIZE_ARCHIVES_INSTANTIATE(tesseract_rosutils::ROSResourceLocator)
+BOOST_CLASS_EXPORT_IMPLEMENT(tesseract_rosutils::ROSResourceLocator)

@@ -54,7 +54,7 @@ std::shared_ptr<tesseract_common::Resource> ROSResourceLocator::locateResource(c
 
     std::string package = mod_url.substr(0, pos);
     mod_url.erase(0, pos);
-    std::string package_path = ros::package::getPath(package);
+    std::string package_path =  ament_index_cpp::get_package_share_directory(package);
 
     if (package_path.empty())
       return nullptr;

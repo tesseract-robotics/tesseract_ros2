@@ -92,10 +92,18 @@ namespace tesseract_rosutils
 {
 std::string locateResource(const std::string& url);
 
-class ROSResourceLocator : public tesseract_common::TesseractSupportResourceLocator
+class ROSResourceLocator : public tesseract_common::ResourceLocator
 {
 public:
-  ROSResourceLocator();
+  using Ptr = std::shared_ptr<ROSResourceLocator>;
+  using ConstPtr = std::shared_ptr<const ROSResourceLocator>;
+
+  std::shared_ptr<tesseract_common::Resource> locateResource(const std::string& url) const override final;
+
+private:
+  friend class boost::serialization::access;
+  template <class Archive>
+  void serialize(Archive& ar, const unsigned int version);  // NOLINT
 };
 
 bool isMsgEmpty(const sensor_msgs::msg::JointState& msg);

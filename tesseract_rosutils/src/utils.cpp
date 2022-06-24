@@ -42,7 +42,45 @@ const std::string LOGGER_ID{"tesseract_rosutils_utils"};
 namespace tesseract_rosutils
 {
 
-ROSResourceLocator::ROSResourceLocator() : tesseract_common::TesseractSupportResourceLocator() {}
+std::shared_ptr<tesseract_common::Resource> ROSResourceLocator::locateResource(const std::string& url) const
+{
+  std::string mod_url = url;
+  if (url.find("package://") == 0)
+  {
+    mod_url.erase(0, strlen("package://"));
+    size_t pos = mod_url.find('/');
+    if (pos == std::string::npos)
+      return nullptr;
+
+    std::string package = mod_url.substr(0, pos);
+    mod_url.erase(0, pos);
+    std::string package_path = ros::package::getPath(package);
+
+    if (package_path.empty())
+      return nullptr;
+
+    mod_url = package_path + mod_url;
+  }
+  else if (url.find("file://") == 0)
+  {
+    mod_url.erase(0, strlen("file://"));
+    size_t pos = mod_url.find('/');
+    if (pos == std::string::npos)
+      return nullptr;
+  }
+
+  if (!tesseract_common::fs::path(mod_url).is_complete())
+    return nullptr;
+
+  return std::make_shared<tesseract_common::SimpleLocatedResource>(
+      url, mod_url, std::make_shared<ROSResourceLocator>(*this));
+}
+
+template <class Archive>
+void ROSResourceLocator::serialize(Archive& ar, const unsigned int /*version*/)
+{
+  ar& BOOST_SERIALIZATION_BASE_OBJECT_NVP(tesseract_common::ResourceLocator);
+}
 
 bool isMsgEmpty(const sensor_msgs::msg::JointState& msg)
 {

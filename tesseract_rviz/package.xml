@@ -37,6 +37,7 @@
   <depend>libqt5-core</depend>
   <depend>libqt5-widgets</depend>
   <depend>libconsole-bridge-dev</depend>
+  <depend>ros_industrial_cmake_boilerplate</depend>
 
   <export>
     <build_type>ament_cmake</build_type>

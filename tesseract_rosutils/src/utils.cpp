@@ -38,7 +38,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <tesseract_command_language/core/serialization.h>
 #include <tesseract_rosutils/utils.h>
 
-const std::string LOGGER_ID{"tesseract_rosutils_utils"};
+const std::string LOGGER_ID{ "tesseract_rosutils_utils" };
 namespace tesseract_rosutils
 {
 std::string locateResource(const std::string& url)
@@ -223,7 +223,9 @@ bool isIdentical(const tesseract_geometry::Geometry& shape1, const tesseract_geo
       break;
     }
     default:
-      RCLCPP_ERROR(rclcpp::get_logger(LOGGER_ID), "This geometric shape type (%d) is not supported", static_cast<int>(shape1.getType()));
+      RCLCPP_ERROR(rclcpp::get_logger(LOGGER_ID),
+                   "This geometric shape type (%d) is not supported",
+                   static_cast<int>(shape1.getType()));
       return false;
   }
 
@@ -464,8 +466,9 @@ bool toMsg(tesseract_msgs::msg::Geometry& geometry_msgs, const tesseract_geometr
     }
     default:
     {
-      RCLCPP_ERROR(rclcpp::get_logger(LOGGER_ID), "Unable to construct primitive shape message for shape of type %d",
-                static_cast<int>(geometry.getType()));
+      RCLCPP_ERROR(rclcpp::get_logger(LOGGER_ID),
+                   "Unable to construct primitive shape message for shape of type %d",
+                   static_cast<int>(geometry.getType()));
       return false;
     }
   }
@@ -580,7 +583,9 @@ bool fromMsg(tesseract_geometry::Geometry::Ptr& geometry, const tesseract_msgs::
 
   if (geometry == nullptr)
   {
-    RCLCPP_ERROR(rclcpp::get_logger(LOGGER_ID), "Unable to construct shape corresponding to shape_msg of type %d", static_cast<int>(geometry_msg.type));
+    RCLCPP_ERROR(rclcpp::get_logger(LOGGER_ID),
+                 "Unable to construct shape corresponding to shape_msg of type %d",
+                 static_cast<int>(geometry_msg.type));
     return false;
   }
 
@@ -692,7 +697,8 @@ bool toMsg(tesseract_msgs::msg::CollisionGeometry& collision_msg, const tesserac
   return true;
 }
 
-bool fromMsg(tesseract_scene_graph::Collision::Ptr& collision, const tesseract_msgs::msg::CollisionGeometry& collision_msg)
+bool fromMsg(tesseract_scene_graph::Collision::Ptr& collision,
+             const tesseract_msgs::msg::CollisionGeometry& collision_msg)
 {
   collision = std::make_shared<tesseract_scene_graph::Collision>();
   collision->name = collision_msg.name;
@@ -806,7 +812,8 @@ bool fromMsg(tesseract_scene_graph::JointDynamics::Ptr& joint_dynamics,
   return true;
 }
 
-bool toMsg(tesseract_msgs::msg::JointLimits& joint_limits_msg, const tesseract_scene_graph::JointLimits::Ptr& joint_limits)
+bool toMsg(tesseract_msgs::msg::JointLimits& joint_limits_msg,
+           const tesseract_scene_graph::JointLimits::Ptr& joint_limits)
 {
   if (joint_limits == nullptr)
   {
@@ -827,7 +834,8 @@ bool toMsg(tesseract_msgs::msg::JointLimits& joint_limits_msg, const tesseract_s
   return true;
 }
 
-bool fromMsg(tesseract_scene_graph::JointLimits::Ptr& joint_limits, const tesseract_msgs::msg::JointLimits& joint_limits_msg)
+bool fromMsg(tesseract_scene_graph::JointLimits::Ptr& joint_limits,
+             const tesseract_msgs::msg::JointLimits& joint_limits_msg)
 {
   if (joint_limits_msg.empty)
   {
@@ -867,7 +875,8 @@ bool toMsg(tesseract_msgs::msg::JointMimic& joint_mimic_msg, const tesseract_sce
   return true;
 }
 
-bool fromMsg(tesseract_scene_graph::JointMimic::Ptr& joint_mimic, const tesseract_msgs::msg::JointMimic& joint_mimic_msg)
+bool fromMsg(tesseract_scene_graph::JointMimic::Ptr& joint_mimic,
+             const tesseract_msgs::msg::JointMimic& joint_mimic_msg)
 {
   if (joint_mimic_msg.empty)
   {
@@ -886,7 +895,8 @@ bool fromMsg(tesseract_scene_graph::JointMimic::Ptr& joint_mimic, const tesserac
   return true;
 }
 
-bool toMsg(tesseract_msgs::msg::JointSafety& joint_safety_msg, const tesseract_scene_graph::JointSafety::Ptr& joint_safety)
+bool toMsg(tesseract_msgs::msg::JointSafety& joint_safety_msg,
+           const tesseract_scene_graph::JointSafety::Ptr& joint_safety)
 {
   if (joint_safety == nullptr)
   {
@@ -905,7 +915,8 @@ bool toMsg(tesseract_msgs::msg::JointSafety& joint_safety_msg, const tesseract_s
   return true;
 }
 
-bool fromMsg(tesseract_scene_graph::JointSafety::Ptr& joint_safety, const tesseract_msgs::msg::JointSafety& joint_safety_msg)
+bool fromMsg(tesseract_scene_graph::JointSafety::Ptr& joint_safety,
+             const tesseract_msgs::msg::JointSafety& joint_safety_msg)
 {
   if (joint_safety_msg.empty)
   {
@@ -1591,7 +1602,8 @@ void toMsg(tesseract_msgs::msg::EnvironmentState& state_msg,
     toMsg(state_msg.joint_state, env.getState().joints);
 }
 
-void toMsg(const tesseract_msgs::msg::EnvironmentState::SharedPtr& state_msg, const tesseract_environment::Environment& env)
+void toMsg(const tesseract_msgs::msg::EnvironmentState::SharedPtr& state_msg,
+           const tesseract_environment::Environment& env)
 {
   toMsg(*state_msg, env);
 }
@@ -1866,7 +1878,8 @@ tesseract_msgs::msg::GroupsTCPs toMsg(tesseract_srdf::GroupTCPs::const_reference
   return g;
 }
 
-bool toMsg(tesseract_msgs::msg::KinematicsInformation& kin_info_msg, const tesseract_srdf::KinematicsInformation& kin_info)
+bool toMsg(tesseract_msgs::msg::KinematicsInformation& kin_info_msg,
+           const tesseract_srdf::KinematicsInformation& kin_info)
 {
   kin_info_msg.group_names.insert(
       kin_info_msg.group_names.end(), kin_info.group_names.begin(), kin_info.group_names.end());
@@ -1926,7 +1939,8 @@ bool toMsg(tesseract_msgs::msg::KinematicsInformation& kin_info_msg, const tesse
   return true;
 }
 
-bool fromMsg(tesseract_srdf::KinematicsInformation& kin_info, const tesseract_msgs::msg::KinematicsInformation& kin_info_msg)
+bool fromMsg(tesseract_srdf::KinematicsInformation& kin_info,
+             const tesseract_msgs::msg::KinematicsInformation& kin_info_msg)
 {
   kin_info.group_names.insert(kin_info_msg.group_names.begin(), kin_info_msg.group_names.end());
 
@@ -2127,7 +2141,9 @@ tesseract_environment::Environment::Ptr fromMsg(const tesseract_msgs::msg::Envir
   }
   catch (const std::exception& e)
   {
-    RCLCPP_ERROR(rclcpp::get_logger(LOGGER_ID), "fromMsg(Environment): Failed to convert command history message: %s!", e.what());
+    RCLCPP_ERROR(rclcpp::get_logger(LOGGER_ID),
+                 "fromMsg(Environment): Failed to convert command history message: %s!",
+                 e.what());
     return nullptr;
   }
 

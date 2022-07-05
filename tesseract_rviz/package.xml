@@ -7,7 +7,9 @@
   <license>BSD</license>
   <author >Levi Armstrong</author>
 
+  <!-- TODO
   <buildtool_depend>catkin</buildtool_depend>
+  -->
   <build_depend>ros_industrial_cmake_boilerplate</build_depend>
 
   <depend>tesseract_msgs</depend>
@@ -19,11 +21,13 @@
 
   <build_depend>eigen</build_depend>
   <build_export_depend>eigen</build_export_depend>
+  <!-- TODO
   <depend>interactive_markers</depend>
   <depend>message_generation</depend>
   <depend>pluginlib</depend>
   <depend>roscpp</depend>
   <depend>rviz</depend>
+  -->
 
   <export>
     <rviz plugin="${prefix}/tesseract_rviz_state_plugin_description.xml"/>

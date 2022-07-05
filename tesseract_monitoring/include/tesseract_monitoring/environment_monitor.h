@@ -38,8 +38,8 @@
 #define TESSERACT_MONITORING_ENVIRONMENT_H
 
 #include <tesseract_common/macros.h>
-//TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
-//TESSERACT_COMMON_IGNORE_WARNINGS_POP
+// TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
+// TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <memory>
 #include <shared_mutex>
@@ -143,7 +143,7 @@ public:
    * @param timeout The duration to wait before returning, if not timeout is provided it waits indefinitely
    * @return True if it has connected to upstream environment, otherwise false
    */
-  bool waitForConnection(rclcpp::Duration timeout = rclcpp::Duration(-1,0)) const;
+  bool waitForConnection(rclcpp::Duration timeout = rclcpp::Duration(-1, 0)) const;
 
   /**
    * @brief Apply provided command to the environment owned by this monitor
@@ -281,7 +281,7 @@ public:
    * If there is no state monitor active, there will be no scene updates.
    * Hence, you can specify a timeout to wait for those updates. Default is 1s.
    */
-  bool waitForCurrentState(const rclcpp::Time& t, double wait_time=1.0);
+  bool waitForCurrentState(const rclcpp::Time& t, double wait_time = 1.0);
 
   /** \brief Lock the scene for reading (multiple threads can lock for reading at the same time) */
   std::shared_lock<std::shared_mutex> lockEnvironmentRead() const;
@@ -313,8 +313,8 @@ protected:
 
   tesseract_environment::Environment::Ptr env_;
   mutable std::shared_mutex scene_update_mutex_;  /// mutex for stored scene
-  rclcpp::Time last_update_time_;                    /// Last time the state was updated
-  rclcpp::Time last_robot_motion_time_;              /// Last time the robot has moved
+  rclcpp::Time last_update_time_;                 /// Last time the state was updated
+  rclcpp::Time last_robot_motion_time_;           /// Last time the robot has moved
   bool enforce_next_state_update_;                /// flag to enforce immediate state update in onStateUpdate()
 
   std::string robot_description_;
@@ -375,24 +375,20 @@ private:
   */
 
   /** @brief Callback for modifying the environment via service request */
-  void modifyEnvironmentCallback(
-    tesseract_msgs::srv::ModifyEnvironment::Request::SharedPtr req,
-    tesseract_msgs::srv::ModifyEnvironment::Response::SharedPtr res);
+  void modifyEnvironmentCallback(tesseract_msgs::srv::ModifyEnvironment::Request::SharedPtr req,
+                                 tesseract_msgs::srv::ModifyEnvironment::Response::SharedPtr res);
 
   /** @brief Callback for get the environment changes via service request */
-  void getEnvironmentChangesCallback(
-    tesseract_msgs::srv::GetEnvironmentChanges::Request::SharedPtr req,
-    tesseract_msgs::srv::GetEnvironmentChanges::Response::SharedPtr res);
+  void getEnvironmentChangesCallback(tesseract_msgs::srv::GetEnvironmentChanges::Request::SharedPtr req,
+                                     tesseract_msgs::srv::GetEnvironmentChanges::Response::SharedPtr res);
 
   /** @brief Callback for get the environment information via service request */
-  void getEnvironmentInformationCallback(
-    tesseract_msgs::srv::GetEnvironmentInformation::Request::SharedPtr req,
-    tesseract_msgs::srv::GetEnvironmentInformation::Response::SharedPtr res);
+  void getEnvironmentInformationCallback(tesseract_msgs::srv::GetEnvironmentInformation::Request::SharedPtr req,
+                                         tesseract_msgs::srv::GetEnvironmentInformation::Response::SharedPtr res);
 
   /** @brief Callback to save the scene graph to a DOT via a service request */
-  void saveSceneGraphCallback(
-    tesseract_msgs::srv::SaveSceneGraph::Request::SharedPtr req,
-    tesseract_msgs::srv::SaveSceneGraph::Response::SharedPtr res);
+  void saveSceneGraphCallback(tesseract_msgs::srv::SaveSceneGraph::Request::SharedPtr req,
+                              tesseract_msgs::srv::SaveSceneGraph::Response::SharedPtr res);
 
   // Called when new service request is called to modify the environment.
   bool applyEnvironmentCommandsMessage(const std::string& id,

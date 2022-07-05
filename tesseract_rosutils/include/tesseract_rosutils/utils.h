@@ -127,7 +127,8 @@ bool fromMsg(tesseract_scene_graph::Visual::Ptr& visual, const tesseract_msgs::m
 
 bool toMsg(tesseract_msgs::msg::CollisionGeometry& collision_msg, const tesseract_scene_graph::Collision& collision);
 
-bool fromMsg(tesseract_scene_graph::Collision::Ptr& collision, const tesseract_msgs::msg::CollisionGeometry& collision_msg);
+bool fromMsg(tesseract_scene_graph::Collision::Ptr& collision,
+             const tesseract_msgs::msg::CollisionGeometry& collision_msg);
 
 bool toMsg(tesseract_msgs::msg::Link& link_msg, const tesseract_scene_graph::Link& link);
 
@@ -145,16 +146,19 @@ bool toMsg(tesseract_msgs::msg::JointDynamics& joint_dynamics_msg,
 bool fromMsg(tesseract_scene_graph::JointDynamics::Ptr& joint_dynamics,
              const tesseract_msgs::msg::JointDynamics& joint_dynamics_msg);
 
-bool toMsg(tesseract_msgs::msg::JointLimits& joint_limits_msg, const tesseract_scene_graph::JointLimits::Ptr& joint_limits);
+bool toMsg(tesseract_msgs::msg::JointLimits& joint_limits_msg,
+           const tesseract_scene_graph::JointLimits::Ptr& joint_limits);
 
 bool fromMsg(tesseract_scene_graph::JointLimits::Ptr& joint_limits,
              const tesseract_msgs::msg::JointLimits& joint_limits_msg);
 
 bool toMsg(tesseract_msgs::msg::JointMimic& joint_mimic_msg, const tesseract_scene_graph::JointMimic::Ptr& joint_mimic);
 
-bool fromMsg(tesseract_scene_graph::JointMimic::Ptr& joint_mimic, const tesseract_msgs::msg::JointMimic& joint_mimic_msg);
+bool fromMsg(tesseract_scene_graph::JointMimic::Ptr& joint_mimic,
+             const tesseract_msgs::msg::JointMimic& joint_mimic_msg);
 
-bool toMsg(tesseract_msgs::msg::JointSafety& joint_safety_msg, const tesseract_scene_graph::JointSafety::Ptr& joint_safety);
+bool toMsg(tesseract_msgs::msg::JointSafety& joint_safety_msg,
+           const tesseract_scene_graph::JointSafety::Ptr& joint_safety);
 
 bool fromMsg(tesseract_scene_graph::JointSafety::Ptr& joint_safety,
              const tesseract_msgs::msg::JointSafety& joint_safety_msg);
@@ -163,7 +167,8 @@ bool toMsg(tesseract_msgs::msg::Joint& joint_msg, const tesseract_scene_graph::J
 
 tesseract_planning::PlannerProfileRemapping
 fromMsg(const tesseract_msgs::msg::PlannerProfileRemapping& profile_remapping_msg);
-tesseract_msgs::msg::PlannerProfileRemapping toMsg(const tesseract_planning::PlannerProfileRemapping& profile_remapping);
+tesseract_msgs::msg::PlannerProfileRemapping
+toMsg(const tesseract_planning::PlannerProfileRemapping& profile_remapping);
 
 tesseract_common::PairsCollisionMarginData
 fromMsg(const std::vector<tesseract_msgs::msg::ContactMarginPair>& contact_margin_pairs_msg);
@@ -207,7 +212,8 @@ void toMsg(tesseract_msgs::msg::EnvironmentState& state_msg,
            const tesseract_environment::Environment& env,
            bool include_joint_states = true);
 
-void toMsg(const tesseract_msgs::msg::EnvironmentState::SharedPtr& state_msg, const tesseract_environment::Environment& env);
+void toMsg(const tesseract_msgs::msg::EnvironmentState::SharedPtr& state_msg,
+           const tesseract_environment::Environment& env);
 
 /**
  * @brief Generate a JointTrajectory Message that contains only trajectory joints
@@ -317,7 +323,8 @@ tesseract_msgs::msg::GroupsTCPs toMsg(tesseract_srdf::GroupTCPs::const_reference
  * @param manager The Manipulator manager to convert to message
  * @return True if successful, otherwise false
  */
-bool toMsg(tesseract_msgs::msg::KinematicsInformation& kin_info_msg, const tesseract_srdf::KinematicsInformation& kin_info);
+bool toMsg(tesseract_msgs::msg::KinematicsInformation& kin_info_msg,
+           const tesseract_srdf::KinematicsInformation& kin_info);
 
 /**
  * @brief This will populate the kinematics information from the kinematics information message
@@ -450,7 +457,7 @@ inline bool toFile(const std::string& filepath, const MessageType& msg)
 
   serializer.serialize_message(&msg, &serialized_msg);
 
-  ofs.write(reinterpret_cast<char *>(serialized_msg.get_rcl_serialized_message().buffer),
+  ofs.write(reinterpret_cast<char*>(serialized_msg.get_rcl_serialized_message().buffer),
             static_cast<std::streamsize>(serialized_msg.size()));
 
   ofs.close();
@@ -471,7 +478,7 @@ inline MessageType fromFile(const std::string& filepath)
   rclcpp::Serialization<MessageType> serializer;
   rclcpp::SerializedMessage serialized_msg(file_size);
 
-  ifs.read(reinterpret_cast<char *>(serialized_msg.get_rcl_serialized_message().buffer),
+  ifs.read(reinterpret_cast<char*>(serialized_msg.get_rcl_serialized_message().buffer),
            static_cast<std::streamsize>(file_size));
   // Manually set the buffer length
   serialized_msg.get_rcl_serialized_message().buffer_length = file_size;

@@ -34,7 +34,6 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 namespace tesseract_monitoring
 {
-
 using namespace std::chrono_literals;
 
 /**
@@ -42,16 +41,15 @@ using namespace std::chrono_literals;
  *
  * @throws std::runtime_error if something goes wrong
  */
-template<class SrvType>
-typename SrvType::Response::SharedPtr call_service(
-    const std::string& name,
-    typename SrvType::Request::SharedPtr request,
-    rclcpp::Node& node,
-    rclcpp::CallbackGroup::SharedPtr cbg,
-    std::chrono::duration<double> timeout)
+template <class SrvType>
+typename SrvType::Response::SharedPtr call_service(const std::string& name,
+                                                   typename SrvType::Request::SharedPtr request,
+                                                   rclcpp::Node& node,
+                                                   rclcpp::CallbackGroup::SharedPtr cbg,
+                                                   std::chrono::duration<double> timeout)
 {
   auto client = node.create_client<SrvType>(name, ::rmw_qos_profile_services_default, cbg);
-  if (! client->service_is_ready())
+  if (!client->service_is_ready())
   {
     std::ostringstream ss;
     ss << "Service '" << name << "' not available!";
@@ -59,7 +57,7 @@ typename SrvType::Response::SharedPtr call_service(
   }
 
   rclcpp::executors::SingleThreadedExecutor exec;
-  //exec.add_callback_group(cbg, node.get_node_base_interface());
+  // exec.add_callback_group(cbg, node.get_node_base_interface());
 
   auto future = client->async_send_request(request);
   auto retcode = exec.spin_until_future_complete(future, timeout);
@@ -73,12 +71,10 @@ typename SrvType::Response::SharedPtr call_service(
   return future.get();
 }
 
-EnvironmentMonitorInterface::EnvironmentMonitorInterface(rclcpp::Node::SharedPtr node, const std::string& env_name) :
-  node_{node},
-  env_name_{env_name},
-  logger_{node_->get_logger().get_child(env_name_ + "_env_monitor")}
+EnvironmentMonitorInterface::EnvironmentMonitorInterface(rclcpp::Node::SharedPtr node, const std::string& env_name)
+  : node_{ node }, env_name_{ env_name }, logger_{ node_->get_logger().get_child(env_name_ + "_env_monitor") }
 {
-  //callback_group_ = node_->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive, false);
+  // callback_group_ = node_->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive, false);
 }
 
 bool EnvironmentMonitorInterface::wait(rclcpp::Duration timeout) const
@@ -114,9 +110,9 @@ bool EnvironmentMonitorInterface::waitForNamespace(const std::string& monitor_na
 
   try
   {
-    auto res = call_service<tesseract_msgs::srv::GetEnvironmentInformation>(
-        service_name, req, *node_, callback_group_, 5s);
-    if (! res->success)
+    auto res =
+        call_service<tesseract_msgs::srv::GetEnvironmentInformation>(service_name, req, *node_, callback_group_, 5s);
+    if (!res->success)
     {
       RCLCPP_ERROR_STREAM(logger_, "Service '" << service_name << "' returned failure");
       return false;
@@ -188,9 +184,8 @@ bool EnvironmentMonitorInterface::applyCommand(const std::string& monitor_namesp
   }
   else
   {
-    RCLCPP_ERROR_STREAM(
-      node_->get_logger().get_child("environment_monitor_interface").get_child(monitor_namespace),
-      "Failed to convert latest changes to message and update monitored environment!");
+    RCLCPP_ERROR_STREAM(node_->get_logger().get_child("environment_monitor_interface").get_child(monitor_namespace),
+                        "Failed to convert latest changes to message and update monitored environment!");
     return false;
   }
 }
@@ -205,9 +200,8 @@ bool EnvironmentMonitorInterface::applyCommands(const std::string& monitor_names
   }
   else
   {
-    RCLCPP_ERROR_STREAM(
-      node_->get_logger().get_child("environment_monitor_interface").get_child(monitor_namespace),
-      "Failed to convert latest changes to message and update monitored environment!");
+    RCLCPP_ERROR_STREAM(node_->get_logger().get_child("environment_monitor_interface").get_child(monitor_namespace),
+                        "Failed to convert latest changes to message and update monitored environment!");
     return false;
   }
 }
@@ -226,9 +220,8 @@ bool EnvironmentMonitorInterface::applyCommands(const std::string& monitor_names
     }
     else
     {
-      RCLCPP_ERROR_STREAM(
-        node_->get_logger().get_child("environment_monitor_interface").get_child(monitor_namespace),
-        "Failed to convert latest changes to message and update monitored environment!");
+      RCLCPP_ERROR_STREAM(node_->get_logger().get_child("environment_monitor_interface").get_child(monitor_namespace),
+                          "Failed to convert latest changes to message and update monitored environment!");
       return false;
     }
   }
@@ -236,8 +229,9 @@ bool EnvironmentMonitorInterface::applyCommands(const std::string& monitor_names
   return sendCommands(monitor_namespace, commands_msg);
 }
 
-bool EnvironmentMonitorInterface::sendCommands(const std::string& ns,
-                                               const std::vector<tesseract_msgs::msg::EnvironmentCommand>& commands) const
+bool EnvironmentMonitorInterface::sendCommands(
+    const std::string& ns,
+    const std::vector<tesseract_msgs::msg::EnvironmentCommand>& commands) const
 {
   auto req = std::make_shared<tesseract_msgs::srv::ModifyEnvironment::Request>();
   req->id = env_name_;
@@ -247,9 +241,9 @@ bool EnvironmentMonitorInterface::sendCommands(const std::string& ns,
   try
   {
     auto response = call_service<tesseract_msgs::srv::ModifyEnvironment>(
-      ns + DEFAULT_MODIFY_ENVIRONMENT_SERVICE, req, *node_, callback_group_, 10s);
+        ns + DEFAULT_MODIFY_ENVIRONMENT_SERVICE, req, *node_, callback_group_, 10s);
 
-    if (! response->success)
+    if (!response->success)
     {
       RCLCPP_ERROR_STREAM(logger_, "sendCommands (" + ns + "): Failed to update monitored environment!");
       return false;
@@ -257,8 +251,8 @@ bool EnvironmentMonitorInterface::sendCommands(const std::string& ns,
   }
   catch (std::runtime_error& ex)
   {
-      RCLCPP_ERROR_STREAM(logger_, "sendCommands (" + ns + "): Failed - " << ex.what());
-      return false;
+    RCLCPP_ERROR_STREAM(logger_, "sendCommands (" + ns + "): Failed - " << ex.what());
+    return false;
   }
   return true;
 }
@@ -268,14 +262,13 @@ EnvironmentMonitorInterface::getEnvironmentState(const std::string& monitor_name
 {
   auto req = std::make_shared<tesseract_msgs::srv::GetEnvironmentInformation::Request>();
   req->flags = tesseract_msgs::srv::GetEnvironmentInformation::Request::JOINT_STATES |
-              tesseract_msgs::srv::GetEnvironmentInformation::Request::LINK_TRANSFORMS |
-              tesseract_msgs::srv::GetEnvironmentInformation::Request::JOINT_TRANSFORMS;
+               tesseract_msgs::srv::GetEnvironmentInformation::Request::LINK_TRANSFORMS |
+               tesseract_msgs::srv::GetEnvironmentInformation::Request::JOINT_TRANSFORMS;
 
   try
   {
     const std::string srv_name = R"(/)" + monitor_namespace + DEFAULT_GET_ENVIRONMENT_INFORMATION_SERVICE;
-    auto res = call_service<tesseract_msgs::srv::GetEnvironmentInformation>(
-      srv_name, req, *node_, callback_group_, 3s);
+    auto res = call_service<tesseract_msgs::srv::GetEnvironmentInformation>(srv_name, req, *node_, callback_group_, 3s);
 
     tesseract_scene_graph::SceneState env_state;
     tesseract_rosutils::fromMsg(env_state.joints, res->joint_states);
@@ -285,7 +278,7 @@ EnvironmentMonitorInterface::getEnvironmentState(const std::string& monitor_name
   }
   catch (std::runtime_error& ex)
   {
-    throw std::runtime_error(std::string{"getEnvironmentState: Failed - "} + ex.what());
+    throw std::runtime_error(std::string{ "getEnvironmentState: Failed - " } + ex.what());
   }
 }
 
@@ -372,8 +365,7 @@ EnvironmentMonitorInterface::getEnvironment(const std::string& monitor_namespace
   try
   {
     const std::string srv_name = R"(/)" + monitor_namespace + DEFAULT_GET_ENVIRONMENT_INFORMATION_SERVICE;
-    auto res = call_service<tesseract_msgs::srv::GetEnvironmentInformation>(
-        srv_name, req, *node_, callback_group_, 3s);
+    auto res = call_service<tesseract_msgs::srv::GetEnvironmentInformation>(srv_name, req, *node_, callback_group_, 3s);
 
     tesseract_environment::Commands commands;
     commands = tesseract_rosutils::fromMsg(res->command_history);

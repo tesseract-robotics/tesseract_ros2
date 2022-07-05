@@ -21,7 +21,6 @@
 
 namespace tesseract_planning_server
 {
-
 ROSProcessEnvironmentCache::ROSProcessEnvironmentCache(tesseract_monitoring::EnvironmentMonitor::ConstPtr env)
   : environment_(std::move(env))
 {
@@ -84,4 +83,4 @@ tesseract_environment::Environment::UPtr ROSProcessEnvironmentCache::getCachedEn
   return env;
 }
 
-}
+}  // namespace tesseract_planning_server

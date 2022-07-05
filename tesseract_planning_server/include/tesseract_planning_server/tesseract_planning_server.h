@@ -42,7 +42,6 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 namespace tesseract_planning_server
 {
-
 class ROSPlanningServer
 {
 public:
@@ -51,14 +50,14 @@ public:
   static const std::string DEFAULT_GET_MOTION_PLAN_ACTION;  // "/tesseract_get_motion_plan"
 
   ROSPlanningServer(rclcpp::Node::SharedPtr node,
-                          const std::string& robot_description,
-                          std::string name,
-                          size_t n = std::thread::hardware_concurrency());
+                    const std::string& robot_description,
+                    std::string name,
+                    size_t n = std::thread::hardware_concurrency());
 
   ROSPlanningServer(rclcpp::Node::SharedPtr node,
-                          tesseract_environment::Environment::UPtr env,
-                          std::string name,
-                          size_t n = std::thread::hardware_concurrency());
+                    tesseract_environment::Environment::UPtr env,
+                    std::string name,
+                    size_t n = std::thread::hardware_concurrency());
 
   ~ROSPlanningServer() = default;
   ROSPlanningServer(const ROSPlanningServer&) = delete;
@@ -93,7 +92,7 @@ protected:
   tesseract_planning::ProcessPlanningServer::UPtr planning_server_;
 
   /** @brief The motion planning action server */
-  //actionlib::SimpleActionServer<tesseract_msgs::GetMotionPlanAction> motion_plan_server_;
+  // actionlib::SimpleActionServer<tesseract_msgs::GetMotionPlanAction> motion_plan_server_;
 
   /** @brief TF buffer to track TCP transforms */
   std::unique_ptr<tf2_ros::Buffer> tf_buffer_;

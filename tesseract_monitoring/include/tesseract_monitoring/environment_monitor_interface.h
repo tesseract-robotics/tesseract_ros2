@@ -30,7 +30,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <vector>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
- #include <tesseract_msgs/msg/environment_command.h>
+#include <tesseract_msgs/msg/environment_command.h>
 #include <tesseract_environment/commands.h>
 #include <tesseract_environment/environment.h>
 #include <tesseract_rosutils/utils.h>
@@ -66,7 +66,8 @@ public:
    * @param timeout The duration to wait before returning, if zero it waits indefinitely
    * @return True if namespace is available, otherwise false
    */
-  bool waitForNamespace(const std::string& monitor_namespace, rclcpp::Duration timeout = rclcpp::Duration::from_seconds(0)) const;
+  bool waitForNamespace(const std::string& monitor_namespace,
+                        rclcpp::Duration timeout = rclcpp::Duration::from_seconds(0)) const;
 
   /**
    * @brief Add monitor namespace to interface

@@ -9,16 +9,20 @@
   <author>Levi Armstrong</author>
   <author>John Schulman</author>
 
+  <!-- TODO
   <buildtool_depend>catkin</buildtool_depend>
+  -->
   <build_depend>ros_industrial_cmake_boilerplate</build_depend>
 
   <depend>tesseract_msgs</depend>
   <depend>tesseract_collision</depend>
   <depend>tesseract_common</depend>
 
+  <!-- TODO
   <depend>eigen_conversions</depend>
   <depend>pluginlib</depend>
   <depend>roscpp</depend>
+  -->
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

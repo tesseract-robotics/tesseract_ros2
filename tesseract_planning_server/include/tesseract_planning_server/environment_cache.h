@@ -22,7 +22,6 @@
 
 namespace tesseract_planning_server
 {
-
 class ROSProcessEnvironmentCache : public tesseract_planning::EnvironmentCache
 {
 public:
@@ -69,4 +68,4 @@ protected:
   mutable std::shared_mutex cache_mutex_;
 };
 
-}
+}  // namespace tesseract_planning_server

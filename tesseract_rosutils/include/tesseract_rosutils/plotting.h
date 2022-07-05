@@ -81,26 +81,26 @@ public:
   const std::string& getRootLink() const;
 
   static visualization_msgs::msg::MarkerArray getMarkerAxisMsg(int& id_counter,
-                                                          const std::string& frame_id,
-                                                          const std::string& ns,
-                                                          const rclcpp::Time& time_stamp,
-                                                          const Eigen::Isometry3d& axis,
-                                                          const Eigen::Vector3d& scale);
+                                                               const std::string& frame_id,
+                                                               const std::string& ns,
+                                                               const rclcpp::Time& time_stamp,
+                                                               const Eigen::Isometry3d& axis,
+                                                               const Eigen::Vector3d& scale);
 
   static visualization_msgs::msg::Marker getMarkerArrowMsg(int& id_counter,
-                                                      const std::string& frame_id,
-                                                      const std::string& ns,
-                                                      const rclcpp::Time& time_stamp,
-                                                      const tesseract_visualization::ArrowMarker& marker);
+                                                           const std::string& frame_id,
+                                                           const std::string& ns,
+                                                           const rclcpp::Time& time_stamp,
+                                                           const tesseract_visualization::ArrowMarker& marker);
 
   static visualization_msgs::msg::Marker getMarkerCylinderMsg(int& id_counter,
-                                                         const std::string& frame_id,
-                                                         const std::string& ns,
-                                                         const rclcpp::Time& time_stamp,
-                                                         const Eigen::Ref<const Eigen::Vector3d>& pt1,
-                                                         const Eigen::Ref<const Eigen::Vector3d>& pt2,
-                                                         const Eigen::Ref<const Eigen::Vector4d>& rgba,
-                                                         double scale);
+                                                              const std::string& frame_id,
+                                                              const std::string& ns,
+                                                              const rclcpp::Time& time_stamp,
+                                                              const Eigen::Ref<const Eigen::Vector3d>& pt1,
+                                                              const Eigen::Ref<const Eigen::Vector3d>& pt2,
+                                                              const Eigen::Ref<const Eigen::Vector4d>& rgba,
+                                                              double scale);
 
   static visualization_msgs::msg::MarkerArray
   getContactResultsMarkerArrayMsg(int& id_counter,
@@ -110,16 +110,18 @@ public:
                                   const tesseract_visualization::ContactResultsMarker& marker);
 
 private:
-  std::string root_link_;         /**< Root link of markers */
-  std::string topic_namespace_;   /**< Namespace used when publishing markers */
-  int marker_counter_;            /**< Counter when plotting */
+  std::string root_link_;       /**< Root link of markers */
+  std::string topic_namespace_; /**< Namespace used when publishing markers */
+  int marker_counter_;          /**< Counter when plotting */
   rclcpp::Node::SharedPtr node_;
-  //rclcpp::Publisher<tesseract_msgs::msg::SceneGraph>::SharedPtr scene_pub_;      /**< Scene publisher, unused */
-  rclcpp::Publisher<tesseract_msgs::msg::Trajectory>::SharedPtr trajectory_pub_; /**< Trajectory publisher */
+  // rclcpp::Publisher<tesseract_msgs::msg::SceneGraph>::SharedPtr scene_pub_;      /**< Scene publisher, unused */
+  rclcpp::Publisher<tesseract_msgs::msg::Trajectory>::SharedPtr trajectory_pub_;      /**< Trajectory publisher */
   rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr collisions_pub_; /**< Collision Data publisher */
-  rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr arrows_pub_;     /**< Used for publishing arrow markers */
-  rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr axes_pub_;       /**< Used for publishing axis markers */
-  rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr tool_path_pub_;  /**< Used for publishing tool path markers */
+  rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr arrows_pub_; /**< Used for publishing arrow markers
+                                                                                   */
+  rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr axes_pub_; /**< Used for publishing axis markers */
+  rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr tool_path_pub_; /**< Used for publishing tool path
+                                                                                        markers */
 };
 using ROSPlottingPtr = std::shared_ptr<ROSPlotting>;
 using ROSPlottingConstPtr = std::shared_ptr<const ROSPlotting>;

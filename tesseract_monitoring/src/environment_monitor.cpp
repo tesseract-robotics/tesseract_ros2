@@ -48,25 +48,23 @@ BOOST_BIND_NO_PLACEHOLDERS
 
 namespace tesseract_monitoring
 {
-EnvironmentMonitor::EnvironmentMonitor(
-    rclcpp::Node::SharedPtr node,
-    const std::string& robot_description,
-    std::string monitor_namespace,
-    std::string discrete_plugin,
-    std::string continuous_plugin
-  )
-  : node_{node}
+EnvironmentMonitor::EnvironmentMonitor(rclcpp::Node::SharedPtr node,
+                                       const std::string& robot_description,
+                                       std::string monitor_namespace,
+                                       std::string discrete_plugin,
+                                       std::string continuous_plugin)
+  : node_{ node }
   , monitor_namespace_(std::move(monitor_namespace))
   , discrete_plugin_name_(std::move(discrete_plugin))
   , continuous_plugin_name_(std::move(continuous_plugin))
 {
   // Initial environment data
-  if (! node_->has_parameter(robot_description))
+  if (!node_->has_parameter(robot_description))
   {
     throw std::runtime_error("Failed to find parameter: '" + robot_description + "'");
   }
 
-  if (! node_->has_parameter(robot_description + "_semantic"))
+  if (!node_->has_parameter(robot_description + "_semantic"))
   {
     throw std::runtime_error("Failed to find parameter: '" + robot_description + "_semantic'");
   }
@@ -76,7 +74,7 @@ EnvironmentMonitor::EnvironmentMonitor(
 
   env_ = std::make_shared<tesseract_environment::Environment>();
   auto locator = std::make_shared<tesseract_rosutils::ROSResourceLocator>();
-  if (! env_->init(urdf_xml, srdf_xml, locator))
+  if (!env_->init(urdf_xml, srdf_xml, locator))
   {
     throw std::runtime_error("Failed to initialize environment from URDF and SRDF");
   }
@@ -87,20 +85,18 @@ EnvironmentMonitor::EnvironmentMonitor(
   }
 }
 
-EnvironmentMonitor::EnvironmentMonitor(
-    rclcpp::Node::SharedPtr node,
-    tesseract_environment::Environment::Ptr env,
-    std::string monitor_namespace,
-    std::string discrete_plugin,
-    std::string continuous_plugin
-  )
-  : node_{node}
+EnvironmentMonitor::EnvironmentMonitor(rclcpp::Node::SharedPtr node,
+                                       tesseract_environment::Environment::Ptr env,
+                                       std::string monitor_namespace,
+                                       std::string discrete_plugin,
+                                       std::string continuous_plugin)
+  : node_{ node }
   , monitor_namespace_(std::move(monitor_namespace))
   , discrete_plugin_name_(std::move(discrete_plugin))
   , continuous_plugin_name_(std::move(continuous_plugin))
   , env_(std::move(env))
 {
-  if (! initialize())
+  if (!initialize())
   {
     throw std::runtime_error("EnvironmentMonitor failed to initialize from tesseract env");
   }
@@ -148,7 +144,7 @@ bool EnvironmentMonitor::waitForConnection(rclcpp::Duration timeout) const
 
 void EnvironmentMonitor::shutdown()
 {
-  //monitored_environment_subscriber_.reset();
+  // monitored_environment_subscriber_.reset();
   modify_environment_server_.reset();
   get_environment_changes_server_.reset();
   get_environment_information_server_.reset();
@@ -164,31 +160,32 @@ bool EnvironmentMonitor::initialize()
     throw std::runtime_error("The monitor namespace cannot be empty");
   }
 
-  if (! env_->isInitialized())
+  if (!env_->isInitialized())
   {
     throw std::runtime_error("Failed to initalize environment monitor, the tesseract is uninitialized");
   }
 
   try
   {
-    discrete_manager_loader_.reset(new DiscreteContactManagerPluginLoader(
-          "tesseract_collision", "tesseract_collision::DiscreteContactManager"));
+    discrete_manager_loader_.reset(
+        new DiscreteContactManagerPluginLoader("tesseract_collision", "tesseract_collision::DiscreteContactManager"));
     for (auto plugin : discrete_manager_loader_->getDeclaredClasses())
     {
       auto fn = [&]() -> tesseract_collision::DiscreteContactManager::Ptr {
         return discrete_manager_loader_->createUniqueInstance(plugin);
       };
       // TODO
-      //env_->registerDiscreteContactManager(discrete_manager_loader_->getClassType(plugin), fn);
+      // env_->registerDiscreteContactManager(discrete_manager_loader_->getClassType(plugin), fn);
 
       RCLCPP_INFO(node_->get_logger(),
-          "Discrete Contact Monitor Registered: %s", discrete_manager_loader_->getClassType(plugin).c_str());
+                  "Discrete Contact Monitor Registered: %s",
+                  discrete_manager_loader_->getClassType(plugin).c_str());
     }
 
     // The tesseract sets a default so it is ok if one is not provided here.
-    if (! discrete_plugin_name_.empty())
+    if (!discrete_plugin_name_.empty())
     {
-      if (! discrete_manager_loader_->isClassAvailable(discrete_plugin_name_))
+      if (!discrete_manager_loader_->isClassAvailable(discrete_plugin_name_))
       {
         std::string msg = "\nFailed to set default discrete contact checker plugin: ";
         msg += discrete_plugin_name_ + '\n';
@@ -206,8 +203,9 @@ bool EnvironmentMonitor::initialize()
       }
     }
 
-    continuous_manager_loader_.reset(new ContinuousContactManagerPluginLoader(
-          "tesseract_collision", "tesseract_collision::ContinuousContactManager"));
+    continuous_manager_loader_.reset(new ContinuousContactManagerPluginLoader("tesseract_collision",
+                                                                              "tesseract_collision::"
+                                                                              "ContinuousContactManager"));
     for (auto plugin : continuous_manager_loader_->getDeclaredClasses())
     {
       auto fn = [&]() -> tesseract_collision::ContinuousContactManager::Ptr {
@@ -217,12 +215,13 @@ bool EnvironmentMonitor::initialize()
       //  env_->registerContinuousContactManager(continuous_manager_loader_->getClassType(plugin), fn);
 
       RCLCPP_INFO(node_->get_logger(),
-          "Continuous Contact Monitor Registered: %s", continuous_manager_loader_->getClassType(plugin).c_str());
+                  "Continuous Contact Monitor Registered: %s",
+                  continuous_manager_loader_->getClassType(plugin).c_str());
     }
 
-    if (! continuous_plugin_name_.empty())
+    if (!continuous_plugin_name_.empty())
     {
-      if (! continuous_manager_loader_->isClassAvailable(continuous_plugin_name_))
+      if (!continuous_manager_loader_->isClassAvailable(continuous_plugin_name_))
       {
         std::string msg = "\nFailed to set default continuous contact checker plugin: ";
         msg += continuous_plugin_name_ + '\n';
@@ -253,41 +252,30 @@ bool EnvironmentMonitor::initialize()
   dt_state_update_ = rclcpp::Duration::from_seconds(0.1);
 
   state_update_pending_ = false;
-  state_update_timer_ = node_->create_wall_timer(
-    dt_state_update_.to_chrono<std::chrono::duration<double>>(),
-    [this]()
-    {
-      updateJointStateTimerCallback();
-    }
-  );
+  state_update_timer_ = node_->create_wall_timer(dt_state_update_.to_chrono<std::chrono::duration<double>>(),
+                                                 [this]() { updateJointStateTimerCallback(); });
 
   const auto& _ph1 = std::placeholders::_1;
   const auto& _ph2 = std::placeholders::_2;
 
   // Create new service
-  std::string modify_environment_service =
-    R"(/)" + monitor_namespace_ + DEFAULT_MODIFY_ENVIRONMENT_SERVICE;
+  std::string modify_environment_service = R"(/)" + monitor_namespace_ + DEFAULT_MODIFY_ENVIRONMENT_SERVICE;
   modify_environment_server_ = node_->create_service<tesseract_msgs::srv::ModifyEnvironment>(
-    modify_environment_service,
-    std::bind(&EnvironmentMonitor::modifyEnvironmentCallback, this, _ph1, _ph2));
+      modify_environment_service, std::bind(&EnvironmentMonitor::modifyEnvironmentCallback, this, _ph1, _ph2));
 
-  std::string get_environment_changes_service =
-    R"(/)" + monitor_namespace_ + DEFAULT_GET_ENVIRONMENT_CHANGES_SERVICE;
+  std::string get_environment_changes_service = R"(/)" + monitor_namespace_ + DEFAULT_GET_ENVIRONMENT_CHANGES_SERVICE;
   get_environment_changes_server_ = node_->create_service<tesseract_msgs::srv::GetEnvironmentChanges>(
-    get_environment_changes_service,
-    std::bind(&EnvironmentMonitor::getEnvironmentChangesCallback, this, _ph1, _ph2));
+      get_environment_changes_service, std::bind(&EnvironmentMonitor::getEnvironmentChangesCallback, this, _ph1, _ph2));
 
   std::string get_environment_information_service =
-    R"(/)" + monitor_namespace_ + DEFAULT_GET_ENVIRONMENT_INFORMATION_SERVICE;
+      R"(/)" + monitor_namespace_ + DEFAULT_GET_ENVIRONMENT_INFORMATION_SERVICE;
   get_environment_information_server_ = node_->create_service<tesseract_msgs::srv::GetEnvironmentInformation>(
-    get_environment_information_service,
-    std::bind(&EnvironmentMonitor::getEnvironmentInformationCallback, this, _ph1, _ph2));
+      get_environment_information_service,
+      std::bind(&EnvironmentMonitor::getEnvironmentInformationCallback, this, _ph1, _ph2));
 
-  std::string save_scene_graph_service =
-    R"(/)" + monitor_namespace_ + DEFAULT_SAVE_SCENE_GRAPH_SERVICE;
+  std::string save_scene_graph_service = R"(/)" + monitor_namespace_ + DEFAULT_SAVE_SCENE_GRAPH_SERVICE;
   save_scene_graph_server_ = node_->create_service<tesseract_msgs::srv::SaveSceneGraph>(
-    save_scene_graph_service,
-    std::bind(&EnvironmentMonitor::saveSceneGraphCallback, this, _ph1, _ph2));
+      save_scene_graph_service, std::bind(&EnvironmentMonitor::saveSceneGraphCallback, this, _ph1, _ph2));
 
   return true;
 }
@@ -346,10 +334,11 @@ void EnvironmentMonitor::startPublishingEnvironment()
   if (!publish_environment_ && env_->isInitialized())
   {
     std::string environment_topic = R"(/)" + monitor_namespace_ + DEFAULT_PUBLISH_ENVIRONMENT_TOPIC;
-    environment_publisher_ = node_->create_publisher<tesseract_msgs::msg::EnvironmentState>(
-        environment_topic, rclcpp::QoS(100));
+    environment_publisher_ =
+        node_->create_publisher<tesseract_msgs::msg::EnvironmentState>(environment_topic, rclcpp::QoS(100));
     RCLCPP_INFO(node_->get_logger().get_child(monitor_namespace_),
-        "Publishing maintained environment on '%s'", environment_topic.c_str());
+                "Publishing maintained environment on '%s'",
+                environment_topic.c_str());
     publish_environment_ =
         std::make_unique<std::thread>(std::bind(&EnvironmentMonitor::environmentPublishingThread, this));
   }
@@ -359,8 +348,7 @@ double EnvironmentMonitor::getEnvironmentPublishingFrequency() const { return pu
 
 void EnvironmentMonitor::environmentPublishingThread()
 {
-  RCLCPP_DEBUG(node_->get_logger().get_child(monitor_namespace_),
-    "Started environment state publishing thread ...");
+  RCLCPP_DEBUG(node_->get_logger().get_child(monitor_namespace_), "Started environment state publishing thread ...");
 
   // publish the full planning scene
   tesseract_msgs::msg::EnvironmentState start_msg;
@@ -371,7 +359,8 @@ void EnvironmentMonitor::environmentPublishingThread()
   environment_publisher_->publish(start_msg);
 
   RCLCPP_DEBUG(node_->get_logger().get_child(monitor_namespace_),
-    "Published the Tesseract Environment State for: '%s'", start_msg.id.c_str());
+               "Published the Tesseract Environment State for: '%s'",
+               start_msg.id.c_str());
 
   do
   {
@@ -423,7 +412,8 @@ void EnvironmentMonitor::startMonitoringEnvironment(const std::string& monitored
 
   monitored_environment_subscriber_ =
       nh_.subscribe(monitored_environment_topic, 1000, &EnvironmentMonitor::newEnvironmentStateCallback, this);
-  RCLCPP_INFO(node_->get_logger().get_child(monitor_namespace_), "Monitoring external environment on '%s'", monitored_environment_topic.c_str());
+  RCLCPP_INFO(node_->get_logger().get_child(monitor_namespace_), "Monitoring external environment on '%s'",
+monitored_environment_topic.c_str());
 }
 
 void EnvironmentMonitor::stopMonitoringEnvironment()
@@ -499,8 +489,8 @@ void EnvironmentMonitor::newEnvironmentStateCallback(const tesseract_msgs::Envir
 
       if (!env_->init(commands))
       {
-        RCLCPP_ERROR_STREAM(node_->get_logger().get_child(monitor_namespace_), "newEnvironmentStateCallback: Failed to initialize environment!");
-        return;
+        RCLCPP_ERROR_STREAM(node_->get_logger().get_child(monitor_namespace_), "newEnvironmentStateCallback: Failed to
+initialize environment!"); return;
       }
 
       if (!initialize())
@@ -660,9 +650,8 @@ bool EnvironmentMonitor::applyEnvironmentCommandsMessage(
   return result;
 }
 
-void EnvironmentMonitor::saveSceneGraphCallback(
-  tesseract_msgs::srv::SaveSceneGraph::Request::SharedPtr req,
-  tesseract_msgs::srv::SaveSceneGraph::Response::SharedPtr res)
+void EnvironmentMonitor::saveSceneGraphCallback(tesseract_msgs::srv::SaveSceneGraph::Request::SharedPtr req,
+                                                tesseract_msgs::srv::SaveSceneGraph::Response::SharedPtr res)
 {
   res->success = !(env_ == nullptr);
   env_->getSceneGraph()->saveDOT(req->filepath);
@@ -711,10 +700,10 @@ bool EnvironmentMonitor::waitForCurrentState(const rclcpp::Time& t, double wait_
   std::shared_lock<std::shared_mutex> lock(scene_update_mutex_);
   rclcpp::Time prev_robot_motion_time = last_robot_motion_time_;
   while (last_robot_motion_time_ < t &&  // Wait until the state update actually reaches the scene.
-         timeout > rclcpp::Duration(0,0))
+         timeout > rclcpp::Duration(0, 0))
   {
     RCLCPP_DEBUG_STREAM(node_->get_logger().get_child(monitor_namespace_),
-        "last robot motion: " << (t - last_robot_motion_time_).seconds() << " ago");
+                        "last robot motion: " << (t - last_robot_motion_time_).seconds() << " ago");
     new_environment_update_condition_.wait_for(lock, std::chrono::nanoseconds(timeout.nanoseconds()));
     timeout = timeout - (node_->now() - start);  // compute remaining wait_time
   }
@@ -722,12 +711,12 @@ bool EnvironmentMonitor::waitForCurrentState(const rclcpp::Time& t, double wait_
   // suppress warning if we received an update at all
   if (!success && prev_robot_motion_time != last_robot_motion_time_)
     RCLCPP_WARN(node_->get_logger().get_child(monitor_namespace_),
-                   "Maybe failed to update robot state, time diff: %.3fs",
-                   (t - last_robot_motion_time_).seconds());
+                "Maybe failed to update robot state, time diff: %.3fs",
+                (t - last_robot_motion_time_).seconds());
 
   RCLCPP_DEBUG_STREAM(node_->get_logger().get_child(monitor_namespace_),
-                         "sync done: robot motion: " << (t - last_robot_motion_time_).seconds()
-                                                     << " scene update: " << (t - last_update_time_).seconds());
+                      "sync done: robot motion: " << (t - last_robot_motion_time_).seconds()
+                                                  << " scene update: " << (t - last_update_time_).seconds());
   return success;
 }
 
@@ -749,7 +738,7 @@ void EnvironmentMonitor::startStateMonitor(const std::string& joint_states_topic
       current_state_monitor_.reset(new CurrentStateMonitor(env_, node_));
 
     current_state_monitor_->addUpdateCallback(
-      std::bind(&EnvironmentMonitor::onJointStateUpdate, this, std::placeholders::_1));
+        std::bind(&EnvironmentMonitor::onJointStateUpdate, this, std::placeholders::_1));
     current_state_monitor_->startStateMonitor(joint_states_topic, publish_tf);
 
     {
@@ -764,7 +753,7 @@ void EnvironmentMonitor::startStateMonitor(const std::string& joint_states_topic
   else
   {
     RCLCPP_ERROR(node_->get_logger().get_child(monitor_namespace_),
-      "Cannot monitor robot state because planning scene is not configured");
+                 "Cannot monitor robot state because planning scene is not configured");
   }
 }
 
@@ -824,7 +813,7 @@ void EnvironmentMonitor::updateJointStateTimerCallback()
         last_robot_state_update_wall_time_ = node_->now();
         update = true;
         RCLCPP_DEBUG_STREAM(node_->get_logger().get_child(monitor_namespace_),
-                               "performPendingStateUpdate: " << fmod(last_robot_state_update_wall_time_.seconds(), 10));
+                            "performPendingStateUpdate: " << fmod(last_robot_state_update_wall_time_.seconds(), 10));
       }
     }
 
@@ -845,8 +834,8 @@ void EnvironmentMonitor::setStateUpdateFrequency(double hz)
     std::scoped_lock lock(state_pending_mutex_);
     dt_state_update_ = rclcpp::Duration::from_seconds(1.0 / hz);
     // TODO
-    //state_update_timer_.setPeriod(dt_state_update_);
-    //state_update_timer_.start();
+    // state_update_timer_.setPeriod(dt_state_update_);
+    // state_update_timer_.start();
   }
   else
   {
@@ -854,12 +843,13 @@ void EnvironmentMonitor::setStateUpdateFrequency(double hz)
     // TODO
     // state_update_timer_.stop();
     std::scoped_lock lock(state_pending_mutex_);
-    dt_state_update_ = rclcpp::Duration(0,0);
+    dt_state_update_ = rclcpp::Duration(0, 0);
     if (state_update_pending_)
       update = true;
   }
   RCLCPP_INFO(node_->get_logger().get_child(monitor_namespace_),
-    "Updating internal planning scene state at most every %lf seconds", dt_state_update_.seconds());
+              "Updating internal planning scene state at most every %lf seconds",
+              dt_state_update_.seconds());
 
   if (update)
     updateEnvironmentWithCurrentState();
@@ -874,23 +864,28 @@ void EnvironmentMonitor::updateEnvironmentWithCurrentState()
         (node_->now() - current_state_monitor_->getMonitorStartTime()).seconds() > 1.0)
     {
       std::string missing_str = boost::algorithm::join(missing, ", ");
-      RCLCPP_WARN_THROTTLE(node_->get_logger().get_child(monitor_namespace_), *node_->get_clock(),
-          1.0, "The complete state of the robot is not yet known.  Missing %s", missing_str.c_str());
+      RCLCPP_WARN_THROTTLE(node_->get_logger().get_child(monitor_namespace_),
+                           *node_->get_clock(),
+                           1.0,
+                           "The complete state of the robot is not yet known.  Missing %s",
+                           missing_str.c_str());
     }
 
     {
       std::unique_lock<std::shared_mutex> ulock(scene_update_mutex_);
       last_update_time_ = last_robot_motion_time_ = current_state_monitor_->getCurrentStateTime();
       RCLCPP_DEBUG_STREAM(node_->get_logger().get_child(monitor_namespace_),
-        "robot state update " << fmod(last_robot_motion_time_.seconds(), 10.));
+                          "robot state update " << fmod(last_robot_motion_time_.seconds(), 10.));
 
       env_->setState(current_state_monitor_->getCurrentState().joints);
     }
     triggerEnvironmentUpdateEvent();
   }
   else
-    RCLCPP_ERROR_THROTTLE(node_->get_logger().get_child(monitor_namespace_), *node_->get_clock(),
-        1.0, "State monitor is not active. Unable to set the planning scene state");
+    RCLCPP_ERROR_THROTTLE(node_->get_logger().get_child(monitor_namespace_),
+                          *node_->get_clock(),
+                          1.0,
+                          "State monitor is not active. Unable to set the planning scene state");
 }
 
 void EnvironmentMonitor::addUpdateCallback(const std::function<void()>& fn)
@@ -910,13 +905,12 @@ void EnvironmentMonitor::setEnvironmentPublishingFrequency(double hz)
 {
   publish_environment_frequency_ = hz;
   RCLCPP_DEBUG(node_->get_logger().get_child(monitor_namespace_),
-                  "Maximum frquency for publishing an environment is now %lf Hz",
-                  publish_environment_frequency_);
+               "Maximum frquency for publishing an environment is now %lf Hz",
+               publish_environment_frequency_);
 }
 
-void EnvironmentMonitor::modifyEnvironmentCallback(
-  tesseract_msgs::srv::ModifyEnvironment::Request::SharedPtr req,
-  tesseract_msgs::srv::ModifyEnvironment::Response::SharedPtr res)
+void EnvironmentMonitor::modifyEnvironmentCallback(tesseract_msgs::srv::ModifyEnvironment::Request::SharedPtr req,
+                                                   tesseract_msgs::srv::ModifyEnvironment::Response::SharedPtr res)
 {
   if (req->append)
     res->success = applyEnvironmentCommandsMessage(req->id, env_->getRevision(), req->commands);
@@ -927,8 +921,8 @@ void EnvironmentMonitor::modifyEnvironmentCallback(
 }
 
 void EnvironmentMonitor::getEnvironmentChangesCallback(
-  tesseract_msgs::srv::GetEnvironmentChanges::Request::SharedPtr req,
-  tesseract_msgs::srv::GetEnvironmentChanges::Response::SharedPtr res)
+    tesseract_msgs::srv::GetEnvironmentChanges::Request::SharedPtr req,
+    tesseract_msgs::srv::GetEnvironmentChanges::Response::SharedPtr res)
 {
   auto lock_read = lockEnvironmentRead();
 
@@ -950,8 +944,8 @@ void EnvironmentMonitor::getEnvironmentChangesCallback(
 }
 
 void EnvironmentMonitor::getEnvironmentInformationCallback(
-  tesseract_msgs::srv::GetEnvironmentInformation::Request::SharedPtr req,
-  tesseract_msgs::srv::GetEnvironmentInformation::Response::SharedPtr res)
+    tesseract_msgs::srv::GetEnvironmentInformation::Request::SharedPtr req,
+    tesseract_msgs::srv::GetEnvironmentInformation::Response::SharedPtr res)
 {
   auto lock_read = lockEnvironmentRead();
 

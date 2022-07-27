@@ -641,13 +641,13 @@ void EnvironmentWidget::loadEnvironment()
     {
       load_tesseract_ = true;
       RCLCPP_ERROR(node_->get_logger().get_child("EnvironmentState"), "URDF parameter empty!");
-      //setStatus(rviz_common::properties::StatusProperty::Error, "EnvironmentState", "No URDF model loaded");
+      //setStatus(rviz_common::properties::properties::StatusProperty::Error, "EnvironmentState", "No URDF model loaded");
     }
     else if (srdf_xml_string.empty())
     {
       load_tesseract_ = true;
       RCLCPP_ERROR(node_->get_logger().get_child("EnvironmentState"), "SRDF parameter empty!");
-      //setStatus(rviz_common::properties::StatusProperty::Error, "EnvironmentState", "No SRDF model loaded");
+      //setStatus(rviz_common::properties::properties::StatusProperty::Error, "EnvironmentState", "No SRDF model loaded");
     }
     else
     {

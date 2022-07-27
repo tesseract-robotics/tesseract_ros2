@@ -12,9 +12,10 @@
 #include <tesseract_qt/common/theme_utils.h>
 #include <tesseract_qt/common/icon_utils.h>
 
-#include <rviz/panel_dock_widget.h>
-#include <rviz/display_context.h>
-#include <rviz/window_manager_interface.h>
+#include <rviz_common//panel_dock_widget.hpp>
+#include <rviz_common/display_context.hpp>
+#include <rviz_common/window_manager_interface.hpp>
+#include <rviz_common/properties/property.hpp>
 
 #include <OgreSceneNode.h>
 
@@ -56,8 +57,8 @@ int WorkbenchDisplayPrivate::workbench_display_counter = -1;  // NOLINT
 WorkbenchDisplay::WorkbenchDisplay() : data_(std::make_unique<WorkbenchDisplayPrivate>())
 {
   auto* monitor_property =
-      new rviz::Property("Environment Properties", "", "Tesseract environment properties", this, nullptr, this);
-  auto* joint_trajectory_property = new rviz::Property(
+      new rviz_common::properties::Property("Environment Properties", "", "Tesseract environment properties", this, nullptr, this);
+  auto* joint_trajectory_property = new rviz_common::properties::Property(
       "Joint Trajectory Properties", "", "Tesseract joint trajectory properties", this, nullptr, this);
 
   data_->monitor_properties =
@@ -120,16 +121,16 @@ void WorkbenchDisplay::update(float wall_dt, float ros_dt)
   data_->widget->onRender(wall_dt);
 }
 
-void WorkbenchDisplay::load(const rviz::Config& config)
+void WorkbenchDisplay::load(const rviz_common::Config& config)
 {
-  rviz::Display::load(config);
+  rviz_common::Display::load(config);
   data_->monitor_properties->load(config);
 }
 
-void WorkbenchDisplay::save(rviz::Config config) const
+void WorkbenchDisplay::save(rviz_common::Config config) const
 {
   data_->monitor_properties->save(config);
-  rviz::Display::save(config);
+  rviz_common::Display::save(config);
 }
 
 void WorkbenchDisplay::onEnableChanged()

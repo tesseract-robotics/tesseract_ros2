@@ -72,7 +72,7 @@ class RosTopicProperty;
 class EditableEnumProperty;
 class EnumProperty;
 class ColorProperty;
-}  // namespace rviz
+}  // namespace rviz_common::properties
 
 namespace tesseract_rviz
 {

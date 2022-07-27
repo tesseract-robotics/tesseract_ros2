@@ -78,9 +78,9 @@ Ogre::Entity* createEntityForMeshData(Ogre::SceneManager& scene,
                                       const std::shared_ptr<const tesseract_common::VectorVector3d>& mesh_vertices,
                                       const std::shared_ptr<const Eigen::VectorXi>& mesh_faces);
 
-void setOctomapColor(double z_pos, double min_z, double max_z, double color_factor, rviz::PointCloud::Point* point);
+void setOctomapColor(double z_pos, double min_z, double max_z, double color_factor, rviz_rendering::PointCloud::Point* point);
 
-std::shared_ptr<rviz::PointCloud> createPointCloud(std::vector<rviz::PointCloud::Point>&& points,
+std::shared_ptr<rviz_rendering::PointCloud> createPointCloud(std::vector<rviz_rendering::PointCloud::Point>&& points,
                                                    tesseract_gui::EntityContainer& entity_container,
                                                    float size,
                                                    tesseract_geometry::Octree::SubType subtype);

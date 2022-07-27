@@ -7,7 +7,7 @@ namespace Ogre
 class SceneNode;
 }  // namespace Ogre
 
-namespace rviz
+namespace rviz_common
 {
 class DisplayContext;
 }
@@ -24,7 +24,7 @@ class ROSManipulationWidget : public tesseract_gui::ManipulationWidget
 {
   Q_OBJECT
 public:
-  ROSManipulationWidget(rviz::DisplayContext* context, Ogre::SceneNode* scene_node);
+  ROSManipulationWidget(rviz_common::DisplayContext* context, Ogre::SceneNode* scene_node);
   ~ROSManipulationWidget() override;
 
 public Q_SLOTS:

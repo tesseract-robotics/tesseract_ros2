@@ -70,6 +70,8 @@ add_library(${PROJECT_NAME}_markers SHARED
 target_link_libraries(${PROJECT_NAME}_markers PUBLIC
   rviz_ogre_vendor::OgreMain
   rviz_ogre_vendor::OgreOverlay
+  rviz_common::rviz_common
+  rviz_rendering::rviz_rendering
   Qt5::Widgets
   ${Boost_LIBRARIES}
 )
@@ -86,30 +88,32 @@ target_include_directories(${PROJECT_NAME}_markers SYSTEM PUBLIC
     ${EIGEN3_INCLUDE_DIRS})
 target_compile_definitions(${PROJECT_NAME}_markers PUBLIC $ENV{ROS_DISTRO}_BUILD)
 
-add_library(${PROJECT_NAME}_interactive_marker SHARED
-  src/interactive_marker/integer_action.cpp
-  src/interactive_marker/interactive_marker.cpp
-  src/interactive_marker/interactive_marker_control.cpp
-  ${${PROJECT_NAME}_interactive_marker_cpp_MOCS}
-)
-target_link_libraries(${PROJECT_NAME}_interactive_marker PUBLIC
-  ${PROJECT_NAME}_markers
-  rviz_ogre_vendor::OgreMain
-  rviz_ogre_vendor::OgreOverlay
-  Qt5::Widgets
-  ${Boost_LIBRARIES}
-)
-target_compile_options(${PROJECT_NAME}_interactive_marker PUBLIC ${TESSERACT_COMPILE_OPTIONS})
-target_cxx_version(${PROJECT_NAME}_interactive_marker PUBLIC VERSION 17)
-target_include_directories(${PROJECT_NAME}_interactive_marker PUBLIC
-    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-    "$<INSTALL_INTERFACE:include>")
-target_include_directories(${PROJECT_NAME}_interactive_marker SYSTEM PUBLIC
-    ${Boost_INCLUDE_DIRS}
-    ${QT_INCLUDE_DIR}
-#    ${OGRE_INCLUDE_DIRS}
-    ${EIGEN3_INCLUDE_DIRS})
-target_compile_definitions(${PROJECT_NAME}_interactive_marker PUBLIC $ENV{ROS_DISTRO}_BUILD)
+#add_library(${PROJECT_NAME}_interactive_marker SHARED
+#  src/interactive_marker/integer_action.cpp
+#  src/interactive_marker/interactive_marker.cpp
+#  src/interactive_marker/interactive_marker_control.cpp
+#  ${${PROJECT_NAME}_interactive_marker_cpp_MOCS}
+#)
+#target_link_libraries(${PROJECT_NAME}_interactive_marker PUBLIC
+#  ${PROJECT_NAME}_markers
+#  rviz_ogre_vendor::OgreMain
+#  rviz_ogre_vendor::OgreOverlay
+#  rviz_common::rviz_common
+#  rviz_rendering::rviz_rendering
+#  Qt5::Widgets
+#  ${Boost_LIBRARIES}
+#)
+#target_compile_options(${PROJECT_NAME}_interactive_marker PUBLIC ${TESSERACT_COMPILE_OPTIONS})
+#target_cxx_version(${PROJECT_NAME}_interactive_marker PUBLIC VERSION 17)
+#target_include_directories(${PROJECT_NAME}_interactive_marker PUBLIC
+#    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+#    "$<INSTALL_INTERFACE:include>")
+#target_include_directories(${PROJECT_NAME}_interactive_marker SYSTEM PUBLIC
+#    ${Boost_INCLUDE_DIRS}
+#    ${QT_INCLUDE_DIR}
+##    ${OGRE_INCLUDE_DIRS}
+#    ${EIGEN3_INCLUDE_DIRS})
+#target_compile_definitions(${PROJECT_NAME}_interactive_marker PUBLIC $ENV{ROS_DISTRO}_BUILD)
 
 # Rviz Render Tools
 set(render_tools_qobjects
@@ -280,58 +284,59 @@ target_include_directories(${PROJECT_NAME}_trajectory_plugin PRIVATE
 #    ${Boost_INCLUDE_DIRS}
 #    ${EIGEN3_INCLUDE_DIRS})
 
-########################################
-### New Panels using tesseract_widget ##
-########################################
-#find_package(tesseract_qt REQUIRED)
+#######################################
+## New Panels using tesseract_widget ##
+#######################################
+find_package(tesseract_qt REQUIRED)
 
-## Environment Panel
-#add_library(${PROJECT_NAME}_trajectory_plugin_core SHARED
-#  src/environment_plugin/ros_environment_widget.cpp
+# Environment Panel
+add_library(${PROJECT_NAME}_environment_plugin_core SHARED
+  src/environment_plugin/ros_environment_widget.cpp
 #  src/environment_plugin/ros_manipulation_widget.cpp
-#  src/environment_plugin/rostopic_combo_box.cpp
-#  src/environment_plugin/environment_display.cpp
-#  src/environment_plugin/environment_monitor_properties.cpp
-#  src/environment_plugin/joint_trajectory_monitor_properties.cpp
-#  src/environment_plugin/workbench_display.cpp
-#  src/environment_plugin/conversions.cpp
-#  src/environment_plugin/set_theme_tool.cpp
-#  include/tesseract_rviz/environment_plugin/ros_environment_widget.h
+  src/environment_plugin/rostopic_combo_box.cpp
+  src/environment_plugin/environment_display.cpp
+  src/environment_plugin/environment_monitor_properties.cpp
+  src/environment_plugin/joint_trajectory_monitor_properties.cpp
+  src/environment_plugin/workbench_display.cpp
+  src/environment_plugin/conversions.cpp
+  src/environment_plugin/set_theme_tool.cpp
+  include/tesseract_rviz/environment_plugin/ros_environment_widget.h
 #  include/tesseract_rviz/environment_plugin/ros_manipulation_widget.h
-#  include/tesseract_rviz/environment_plugin/rostopic_combo_box.h
-#  include/tesseract_rviz/environment_plugin/environment_display.h
-#  include/tesseract_rviz/environment_plugin/environment_monitor_properties.h
-#  include/tesseract_rviz/environment_plugin/joint_trajectory_monitor_properties.h
-#  include/tesseract_rviz/environment_plugin/workbench_display.h
-#  include/tesseract_rviz/environment_plugin/conversions.h
-#  include/tesseract_rviz/environment_plugin/set_theme_tool.h
-#)
-#target_link_libraries(${PROJECT_NAME}_trajectory_plugin_core PUBLIC
-#  tesseract::tesseract_qt_common
-#  tesseract::tesseract_qt_environment
-#  tesseract::tesseract_qt_manipulation
-#  tesseract::tesseract_qt_workbench
-#  ${PROJECT_NAME}_markers
-#  ${PROJECT_NAME}_interactive_marker
-#  ${OGRE_LIBRARIES}
-#  ${QT_LIBRARIES}
-#  ${Boost_LIBRARIES})
-#)
-#target_compile_options(${PROJECT_NAME}_trajectory_plugin_core PUBLIC ${TESSERACT_COMPILE_OPTIONS})
-#target_cxx_version(${PROJECT_NAME}_trajectory_plugin_core PUBLIC VERSION 17)
-#target_include_directories(${PROJECT_NAME}_trajectory_plugin_core PUBLIC
-#    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-#    "$<INSTALL_INTERFACE:include>")
+  include/tesseract_rviz/environment_plugin/rostopic_combo_box.h
+  include/tesseract_rviz/environment_plugin/environment_display.h
+  include/tesseract_rviz/environment_plugin/environment_monitor_properties.h
+  include/tesseract_rviz/environment_plugin/joint_trajectory_monitor_properties.h
+  include/tesseract_rviz/environment_plugin/workbench_display.h
+  include/tesseract_rviz/environment_plugin/conversions.h
+  include/tesseract_rviz/environment_plugin/set_theme_tool.h
+)
+target_link_libraries(${PROJECT_NAME}_environment_plugin_core PUBLIC
+  tesseract_monitoring::tesseract_monitoring_environment
+  tesseract::tesseract_qt_common
+  tesseract::tesseract_qt_environment
+  tesseract::tesseract_qt_manipulation
+  tesseract::tesseract_qt_workbench
+  ${PROJECT_NAME}_markers
+  ${PROJECT_NAME}_interactive_marker
+  ${OGRE_LIBRARIES}
+  ${QT_LIBRARIES}
+  ${Boost_LIBRARIES}
+)
+target_compile_options(${PROJECT_NAME}_environment_plugin_core PUBLIC ${TESSERACT_COMPILE_OPTIONS})
+target_cxx_version(${PROJECT_NAME}_environment_plugin_core PUBLIC VERSION 17)
+target_include_directories(${PROJECT_NAME}_environment_plugin_core PUBLIC
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+    "$<INSTALL_INTERFACE:include>")
 
-#add_library(${PROJECT_NAME}_trajectory_plugin SHARED src/tesseract_trajectory_plugin/plugin_init.cpp)
-#target_link_libraries(${PROJECT_NAME}_trajectory_plugin PRIVATE
-#    ${PROJECT_NAME}_trajectory_plugin_core
-#    tesseract::tesseract_environment)
-#target_compile_options(${PROJECT_NAME}_trajectory_plugin PUBLIC ${TESSERACT_COMPILE_OPTIONS})
-#target_cxx_version(${PROJECT_NAME}_trajectory_plugin PUBLIC VERSION 17)
-#target_include_directories(${PROJECT_NAME}_trajectory_plugin PRIVATE
-#    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-#    "$<INSTALL_INTERFACE:include>")
+add_library(${PROJECT_NAME}_environment_plugin SHARED src/environment_plugin/environment_plugin_init.cpp)
+target_link_libraries(${PROJECT_NAME}_environment_plugin PRIVATE
+    ${PROJECT_NAME}_environment_plugin_core
+    tesseract::tesseract_environment)
+target_compile_options(${PROJECT_NAME}_environment_plugin PUBLIC ${TESSERACT_COMPILE_OPTIONS})
+target_cxx_version(${PROJECT_NAME}_environment_plugin PUBLIC VERSION 17)
+target_include_directories(${PROJECT_NAME}_environment_plugin PRIVATE
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+    "$<INSTALL_INTERFACE:include>")
 
 
 add_executable(${PROJECT_NAME}_test src/test.cpp)
@@ -362,7 +367,7 @@ target_include_directories(${PROJECT_NAME}_test PRIVATE
 # Install libraries
 install(TARGETS
     ${PROJECT_NAME}_markers
-    ${PROJECT_NAME}_interactive_marker
+#    ${PROJECT_NAME}_interactive_marker
     ${PROJECT_NAME}_render_tools
     ${PROJECT_NAME}_state_plugin_core
     ${PROJECT_NAME}_state_plugin
@@ -370,6 +375,8 @@ install(TARGETS
     ${PROJECT_NAME}_trajectory_plugin
 #    ${PROJECT_NAME}_manipulation_plugin_core
 #    ${PROJECT_NAME}_manipulation_plugin
+    ${PROJECT_NAME}_environment_plugin_core
+    ${PROJECT_NAME}_environment_plugin
     EXPORT ${PACKAGE_NAME}-targets
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib

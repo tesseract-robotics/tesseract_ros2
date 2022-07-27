@@ -67,14 +67,14 @@ namespace rviz_common
 class Object;
 class Axes;
 class DisplayContext;
-}
+} //namespace rviz_common
 
 namespace rviz_common::properties
 {
 class Property;
 class EnumProperty;
 class BoolProperty;
-}  // namespace rviz
+}  // namespace rviz_common::properties
 
 namespace tf
 {

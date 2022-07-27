@@ -47,7 +47,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <tesseract_rviz/render_tools/visualization_widget.h>
 #include <tesseract_rviz/interactive_marker/interactive_marker.h>
 
-namespace rviz
+namespace rviz_common::properties
 {
 class Property;
 class RosTopicProperty;
@@ -55,7 +55,7 @@ class EnumProperty;
 class FloatProperty;
 class BoolProperty;
 class StringProperty;
-}  // namespace rviz
+}  // namespace rviz_common::properties
 
 namespace Ogre
 {

@@ -39,15 +39,16 @@
 #include <OgreMath.h>
 #include <OgreRenderWindow.h>
 
-#include <ros/ros.h>
+#include <rclcpp/rclcpp.hpp>
 
-#include "rviz/frame_manager.h"
+#include "rviz_common/frame_manager_iface.hpp"
 #include "rviz_common/display_context.hpp"
-#include "rviz/selection/selection_manager.h"
-#include "rviz/frame_manager.h"
-#include "rviz/render_panel.h"
-#include "rviz/geometry.h"
-#include "rviz/validate_quaternions.h"
+#include "rviz_common/interaction/selection_manager.hpp"
+//#include "rviz/frame_manager.h"
+#include "rviz_common/render_panel.hpp"
+#include "rviz_rendering/geometry.hpp"
+#include "rviz_common/properties/quaternion_property.hpp"
+//#include "rviz/validate_quaternions.h"
 
 #include <tesseract_rviz/interactive_marker/integer_action.h>
 #include <tesseract_rviz/interactive_marker/interactive_marker.h>
@@ -56,13 +57,13 @@
 
 namespace tesseract_rviz
 {
-InteractiveMarker::InteractiveMarker(std::string name,
-                                     std::string description,
-                                     std::string reference_frame,
+InteractiveMarker::InteractiveMarker(const std::string& name,
+                                     const std::string& description,
+                                     const std::string& reference_frame,
                                      Ogre::SceneNode* scene_node,
                                      rviz_common::DisplayContext* context,
-                                     bool reference_frame_locked,
-                                     float scale)
+                                     const bool reference_frame_locked,
+                                     const float scale)
   : visible_(true)
   , context_(context)
   , reference_frame_(std::move(reference_frame))
@@ -144,11 +145,11 @@ InteractiveMarker::InteractiveMarker(std::string name,
   {
     std::ostringstream s;
     s << "Locked to frame " << reference_frame_;
-    Q_EMIT statusUpdate(rviz::StatusProperty::Ok, name_, s.str());
+    Q_EMIT statusUpdate(rviz::properties::StatusProperty::Ok, name_, s.str());
   }
   else
   {
-    Q_EMIT statusUpdate(rviz::StatusProperty::Ok, name_, "Position is fixed.");
+    Q_EMIT statusUpdate(rviz::properties::StatusProperty::Ok, name_, "Position is fixed.");
   }
 }
 
@@ -462,7 +463,7 @@ void InteractiveMarker::updateReferencePose()
   //        std::ostringstream s;
   //        s <<"Error getting time of latest transform between " << reference_frame_
   //            << " and " << fixed_frame << ": " << error << " (error code: " << retval << ")";
-  //        Q_EMIT statusUpdate( rviz::StatusProperty::Error, name_, s.str() );
+  //        Q_EMIT statusUpdate( rviz::properties::StatusProperty::Error, name_, s.str() );
   //        reference_node_->setVisible( false );
   //        return;
   //      }
@@ -474,7 +475,7 @@ void InteractiveMarker::updateReferencePose()
   //  {
   //    std::string error;
   //    context_->getFrameManager()->transformHasProblems(reference_frame_, ros::Time(), error);
-  //    Q_EMIT statusUpdate( rviz::StatusProperty::Error, name_, error);
+  //    Q_EMIT statusUpdate( rviz::properties::StatusProperty::Error, name_, error);
   //    reference_node_->setVisible( false );
   //    return;
   //  }

@@ -31,7 +31,7 @@
 
 #include <QComboBox>
 #include <QString>
-#include <ros/builtin_message_traits.h>
+#include <rviz_common/properties/ros_topic_property.hpp>
 
 namespace tesseract_rviz
 {
@@ -42,10 +42,9 @@ public:
   explicit ROSTopicComboBox(QWidget* parent = nullptr);
   ~ROSTopicComboBox();
 
-  template <typename T>
-  void setMessageType()
+  void setMessageType(const QString & message_type)
   {
-    message_type_ = ros::message_traits::datatype<T>();
+    message_type_ = message_type;
   }
 
   void showPopup() override;

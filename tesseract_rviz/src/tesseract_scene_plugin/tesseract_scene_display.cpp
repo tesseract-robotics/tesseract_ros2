@@ -83,7 +83,7 @@ TesseractSceneDisplay::TesseractSceneDisplay(bool listen_to_planning_scene, bool
     planning_scene_topic_property_ =
         new rviz_common::properties::RosTopicProperty("Planning Scene Topic",
                                    "move_group/monitored_planning_scene",
-                                   ros::message_traits::datatype<moveit_msgs::PlanningScene>(),
+                                   rosidl_generator_traits::data_type<moveit_msgs::PlanningScene>(),
                                    "The topic on which the moveit_msgs::PlanningScene messages are "
                                    "received",
                                    this,
@@ -544,12 +544,12 @@ void TesseractSceneDisplay::loadRobotModel()
   {
     planning_scene_monitor_.swap(psm);
     addMainLoopJob(boost::bind(&TesseractSceneDisplay::onRobotModelLoaded, this));
-    setStatus(rviz::StatusProperty::Ok, "PlanningScene", "Planning Scene Loaded Successfully");
+    setStatus(rviz_common::properties::StatusProperty::Ok, "PlanningScene", "Planning Scene Loaded Successfully");
     waitForAllMainLoopJobs();
   }
   else
   {
-    setStatus(rviz::StatusProperty::Error, "PlanningScene", "No Planning Scene Loaded");
+    setStatus(rviz_common::properties::StatusProperty::Error, "PlanningScene", "No Planning Scene Loaded");
   }
 
   if (planning_scene_monitor_)
@@ -652,8 +652,8 @@ void TesseractSceneDisplay::updateInternal(float wall_dt, float ros_dt)
   }
 }
 
-void TesseractSceneDisplay::load(const rviz::Config& config) { Display::load(config); }
-void TesseractSceneDisplay::save(rviz::Config config) const { Display::save(config); }
+void TesseractSceneDisplay::load(const rviz_common::Config& config) { Display::load(config); }
+void TesseractSceneDisplay::save(rviz_common::Config config) const { Display::save(config); }
 // ******************************************************************************************
 // Calculate Offset Position
 // ******************************************************************************************

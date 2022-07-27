@@ -6,7 +6,7 @@
 
 class QAction;
 
-namespace rviz
+namespace rviz_common
 {
 class DisplayContext;
 }
@@ -26,7 +26,7 @@ public:
   SetThemeTool& operator=(SetThemeTool&&) = delete;
 
   bool isInitialized() const;
-  void initialized(rviz::DisplayContext* context);
+  void initialized(rviz_common::DisplayContext* context);
 
   static std::shared_ptr<SetThemeTool> instance();
 

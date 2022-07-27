@@ -16,18 +16,18 @@
 
 #include <resource_retriever/retriever.h>
 #include <octomap/octomap.h>
-#include <octomap_msgs/Octomap.h>
-#include <ros/console.h>
-#include <ros/package.h>
+#include <octomap_msgs/msg/octomap.hpp>
+#include <rclcpp/rclcpp.hpp>
+#include <ament_index_cpp/get_package_share_directory.hpp>
 #include <boost/algorithm/string.hpp>
 
-#include <rviz/load_resource.h>
-#include <rviz/mesh_loader.h>
-#include <rviz/ogre_helpers/axes.h>
-#include <rviz/ogre_helpers/mesh_shape.h>
-#include <rviz/ogre_helpers/object.h>
-#include <rviz/ogre_helpers/shape.h>
-#include <rviz/ogre_helpers/point_cloud.h>
+#include "rviz_common/load_resource.hpp"
+#include <rviz_rendering/mesh_loader.hpp>
+#include <rviz_rendering/objects/axes.hpp>
+//#include <rviz_rendering/objects/mesh_shape.hpp>
+#include <rviz_rendering/objects/object.hpp>
+#include <rviz_rendering/objects/shape.hpp>
+#include <rviz_rendering/objects/point_cloud.hpp>
 
 #include <tesseract_geometry/geometries.h>
 
@@ -51,7 +51,7 @@ bool isMeshWithColor(const std::string& file_path)
 
 void addOgreResourceLocation()
 {
-  std::string tesseract_rviz_path = ros::package::getPath("tesseract_rviz");
+  std::string tesseract_rviz_path = ament_index_cpp::get_package_share_directory("tesseract_rviz");
   Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
       tesseract_rviz_path + "/ogre_media/models", "FileSystem", "tesseract_rviz");
 }
@@ -152,33 +152,33 @@ Ogre::Entity* createEntityForMeshData(Ogre::SceneManager& scene,
   return ogre_entity;
 }
 
-std::shared_ptr<rviz::PointCloud> createPointCloud(std::vector<rviz::PointCloud::Point>&& points,
+std::shared_ptr<rviz_rendering::PointCloud> createPointCloud(std::vector<rviz_rendering::PointCloud::Point>&& points,
                                                    tesseract_gui::EntityContainer& entity_container,
                                                    float size,
                                                    tesseract_geometry::Octree::SubType subtype)
 {
   auto entity = entity_container.addUntrackedEntity(tesseract_gui::EntityContainer::RESOURCE_NS);
-  auto cloud = std::make_shared<rviz::PointCloud>();
+  auto cloud = std::make_shared<rviz_rendering::PointCloud>();
   cloud->clear();
   cloud->setName(entity.unique_name);
 
   float new_size = size;
   if (subtype == tesseract_geometry::Octree::SubType::BOX)
   {
-    cloud->setRenderMode(rviz::PointCloud::RM_BOXES);
+    cloud->setRenderMode(rviz_rendering::PointCloud::RM_BOXES);
   }
   else if (subtype == tesseract_geometry::Octree::SubType::SPHERE_INSIDE)
   {
-    cloud->setRenderMode(rviz::PointCloud::RM_SPHERES);
+    cloud->setRenderMode(rviz_rendering::PointCloud::RM_SPHERES);
   }
   else if (subtype == tesseract_geometry::Octree::SubType::SPHERE_OUTSIDE)
   {
-    cloud->setRenderMode(rviz::PointCloud::RM_SPHERES);
+    cloud->setRenderMode(rviz_rendering::PointCloud::RM_SPHERES);
     new_size = std::sqrt(float(2) * size * size);
   }
 
   cloud->setDimensions(new_size, new_size, new_size);
-  cloud->addPoints(&points.front(), static_cast<unsigned>(points.size()));
+  cloud->addPoints(points.begin(), points.end());
   points.clear();
   return cloud;
 }
@@ -307,7 +307,7 @@ Ogre::SceneNode* loadLinkAxis(Ogre::SceneManager& scene,
   Ogre::SceneNode* scene_node = scene.createSceneNode(entity.unique_name);
 
   /** @todo Does this need to be manually deleted */
-  auto axis = std::make_shared<rviz::Axes>(&scene, scene_node);
+  auto axis = std::make_shared<rviz_rendering::Axes>(&scene, scene_node);
   axis->setScale(Ogre::Vector3(0.1, 0.1, 0.1));
   entity_container.addUnmanagedObject(tesseract_gui::EntityContainer::VISUAL_NS, axis);
 
@@ -495,18 +495,18 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
 
         try
         {
-          rviz::loadMeshFromResource(model_name);
+          rviz_rendering::loadMeshFromResource(model_name);
           auto entity = entity_container.addUntrackedEntity(tesseract_gui::EntityContainer::RESOURCE_NS);
           ogre_entity = scene.createEntity(entity.unique_name, model_name);
         }
         catch (Ogre::InvalidParametersException& e)
         {
-          ROS_ERROR(
+          RCLCPP_ERROR(rclcpp::get_logger("tesseract_environment_plugin"),
               "Could not convert mesh resource '%s'. It might be an empty mesh: %s", model_name.c_str(), e.what());
         }
         catch (Ogre::Exception& e)
         {
-          ROS_ERROR("Could not load model '%s': %s", model_name.c_str(), e.what());
+          RCLCPP_ERROR(rclcpp::get_logger("tesseract_environment_plugin"), "Could not load model '%s': %s", model_name.c_str(), e.what());
         }
       }
       else
@@ -530,18 +530,18 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
 
         try
         {
-          rviz::loadMeshFromResource(model_name);
+          rviz_rendering::loadMeshFromResource(model_name);
           auto entity = entity_container.addUntrackedEntity(tesseract_gui::EntityContainer::RESOURCE_NS);
           ogre_entity = scene.createEntity(entity.unique_name, model_name);
         }
         catch (Ogre::InvalidParametersException& e)
         {
-          ROS_ERROR(
+          RCLCPP_ERROR(rclcpp::get_logger("tesseract_environment_plugin"),
               "Could not convert mesh resource '%s'. It might be an empty mesh: %s", model_name.c_str(), e.what());
         }
         catch (Ogre::Exception& e)
         {
-          ROS_ERROR("Could not load model '%s': %s", model_name.c_str(), e.what());
+          RCLCPP_ERROR(rclcpp::get_logger("tesseract_environment_plugin"), "Could not load model '%s': %s", model_name.c_str(), e.what());
         }
       }
       else
@@ -568,7 +568,7 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
       else
         octree_depth = std::min(max_octree_depth, static_cast<size_t>(octree->getTreeDepth()));
 
-      std::vector<std::vector<rviz::PointCloud::Point>> pointBuf;
+      std::vector<std::vector<rviz_rendering::PointCloud::Point>> pointBuf;
       pointBuf.resize(octree_depth);
 
       // get dimensions of octree
@@ -635,7 +635,7 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
 
           if (display_voxel)
           {
-            rviz::PointCloud::Point newPoint;
+            rviz_rendering::PointCloud::Point newPoint;
 
             newPoint.position.x = static_cast<float>(it.getX());
             newPoint.position.y = static_cast<float>(it.getY());
@@ -669,7 +669,7 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
       {
         OctreeDataContainer data;
         data.size = static_cast<float>(octree->getNodeSize(static_cast<unsigned>(i + 1)));
-        data.points = std::vector<rviz::PointCloud::Point>(pointBuf[i]);
+        data.points = std::vector<rviz_rendering::PointCloud::Point>(pointBuf[i]);
         data.point_cloud = createPointCloud(std::move(pointBuf[i]), entity_container, data.size, octomap.getSubType());
         data.shape_type = octomap.getSubType();
 
@@ -684,7 +684,7 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
       return offset_node;
     }
     default:
-      ROS_WARN("Unsupported geometry type for element: %d", geometry.getType());
+      RCLCPP_WARN(rclcpp::get_logger("tesseract_environment_plugin"), "Unsupported geometry type for element: %d", geometry.getType());
       break;
   }
 
@@ -776,7 +776,7 @@ Ogre::MaterialPtr loadLinkMaterial(Ogre::SceneManager& scene,
       }
       catch (resource_retriever::Exception& e)
       {
-        ROS_ERROR("%s", e.what());
+        RCLCPP_ERROR(rclcpp::get_logger("tesseract_environment_plugin"), "%s", e.what());
       }
 
       if (res.size != 0)
@@ -798,7 +798,7 @@ Ogre::MaterialPtr loadLinkMaterial(Ogre::SceneManager& scene,
         }
         catch (Ogre::Exception& e)
         {
-          ROS_ERROR("Could not load texture [%s]: %s", filename.c_str(), e.what());
+          RCLCPP_ERROR(rclcpp::get_logger("tesseract_environment_plugin"), "Could not load texture [%s]: %s", filename.c_str(), e.what());
         }
       }
     }
@@ -858,7 +858,7 @@ Ogre::MaterialPtr loadMaterial(const tesseract_scene_graph::Material::ConstPtr& 
   return mat;
 }
 
-void setOctomapColor(double z_pos, double min_z, double max_z, double color_factor, rviz::PointCloud::Point* point)
+void setOctomapColor(double z_pos, double min_z, double max_z, double color_factor, rviz_rendering::PointCloud::Point* point)
 {
   int i;
   float m, n, f;

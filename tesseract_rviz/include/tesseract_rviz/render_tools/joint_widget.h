@@ -79,7 +79,7 @@ class BoolProperty;
 class QuaternionProperty;
 class VectorProperty;
 class StringProperty;
-}  // namespace rviz
+}  // namespace rviz_common::properties
 
 namespace tesseract_rviz
 {

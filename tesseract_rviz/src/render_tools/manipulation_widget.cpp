@@ -77,7 +77,7 @@ ManipulationWidget::ManipulationWidget(rviz_common::properties::Property* widget
 
   joint_state_topic_property_ = new rviz_common::properties::RosTopicProperty("Topic",
                                                            "/tesseract/manipulation_joint_states",
-                                                           ros::message_traits::datatype<sensor_msgs::JointState>(),
+                                                           rosidl_generator_traits::data_type<sensor_msgs::JointState>(),
                                                            "The topic on which the sensor_msgs::JointState messages "
                                                            "are published",
                                                            main_property_,

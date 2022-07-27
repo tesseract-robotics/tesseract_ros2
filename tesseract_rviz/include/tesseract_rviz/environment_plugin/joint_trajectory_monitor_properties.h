@@ -4,12 +4,16 @@
 #include <memory>
 #include <QObject>
 
-namespace rviz
+
+namespace rviz_common
 {
 class Display;
 class Config;
+namespace properties
+{
 class Property;
-}  // namespace rviz
+} // namespace properties
+}  // namespace rviz_common
 
 namespace tesseract_gui
 {
@@ -30,13 +34,13 @@ public:
    * @param parent The parent rviz display
    * @param main_property The property to add these properties to. If nullptr then they are added to the display
    */
-  JointTrajectoryMonitorProperties(rviz::Display* parent, rviz::Property* main_property = nullptr);
+  JointTrajectoryMonitorProperties(rviz_common::Display* parent, rviz_common::properties::Property* main_property = nullptr);
   ~JointTrajectoryMonitorProperties() override;
 
   void onInitialize(tesseract_gui::JointTrajectoryWidget* widget);
 
-  void load(const rviz::Config& config);
-  void save(rviz::Config config) const;
+  void load(const rviz_common::Config& config);
+  void save(rviz_common::Config config) const;
 
 public Q_SLOTS:
   void onLegacyJointTrajectoryTopicConnect();

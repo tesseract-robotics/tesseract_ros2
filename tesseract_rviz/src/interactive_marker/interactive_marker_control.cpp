@@ -49,6 +49,8 @@
 
 #include "rviz_rendering/objects/line.hpp"
 
+#include "interactive_markers/interactive_marker_client.h"
+
 //#include "rviz/default_plugin/marker_utils.h"
 //#include "rviz/default_plugin/markers/points_marker.h"
 

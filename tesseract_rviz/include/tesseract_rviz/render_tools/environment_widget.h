@@ -23,7 +23,7 @@ class Property;
 class RosTopicProperty;
 class StringProperty;
 class FloatProperty;
-}  // namespace rviz
+}  // namespace rviz_common::properties
 
 namespace tesseract_rviz
 {

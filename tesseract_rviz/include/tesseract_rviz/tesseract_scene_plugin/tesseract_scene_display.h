@@ -37,7 +37,7 @@
 #ifndef TESSERACT_RVIZ_TESSERACT_SCENE_DISPLAY_PLUGIN
 #define TESSERACT_RVIZ_TESSERACT_SCENE_DISPLAY_PLUGIN
 
-#include <rviz/display.h>
+#include <rviz_common/display.hpp>
 
 #ifndef Q_MOC_RUN
 #include "tesseract_rviz/render_tools/scene_render.h"
@@ -51,7 +51,7 @@ namespace Ogre
 class SceneNode;
 }
 
-namespace rviz
+namespace rviz_common::properties
 {
 class Property;
 class StringProperty;
@@ -60,7 +60,7 @@ class FloatProperty;
 class RosTopicProperty;
 class ColorProperty;
 class EnumProperty;
-}  // namespace rviz
+}  // namespace rviz_common::properties
 
 namespace tesseract_rviz
 {
@@ -74,8 +74,8 @@ public:
   TesseractSceneDisplay(bool listen_to_planning_scene = true, bool show_scene_robot = true);
   virtual ~TesseractSceneDisplay();
 
-  virtual void load(const rviz::Config& config);
-  virtual void save(rviz::Config config) const;
+  virtual void load(const rviz_common::Config& config);
+  virtual void save(rviz_common::Config config) const;
 
   virtual void update(float wall_dt, float ros_dt);
   virtual void reset();

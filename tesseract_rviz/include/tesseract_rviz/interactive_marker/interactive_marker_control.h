@@ -53,13 +53,13 @@ namespace Ogre
 class SceneNode;
 }
 
-namespace rviz
+namespace rviz_common
 {
 class DisplayContext;
 class PointsMarker;
 class Line;
 class Shape;
-}  // namespace rviz
+}  // namespace rviz_common
 
 namespace tesseract_rviz
 {

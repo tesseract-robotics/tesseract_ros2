@@ -4,12 +4,15 @@
 #include <memory>
 #include <QObject>
 
-namespace rviz
+namespace rviz_common
 {
 class Display;
 class Config;
+namespace properties
+{
 class Property;
-}  // namespace rviz
+} // namespace properties
+}  // namespace rviz_common
 
 namespace tesseract_gui
 {
@@ -25,9 +28,9 @@ class EnvironmentMonitorProperties : public QObject
 {
   Q_OBJECT
 public:
-  EnvironmentMonitorProperties(rviz::Display* parent,
+  EnvironmentMonitorProperties(rviz_common::Display* parent,
                                std::string monitor_namespace,
-                               rviz::Property* main_property = nullptr);
+                               rviz_common::properties::Property* main_property = nullptr);
   ~EnvironmentMonitorProperties() override;
 
   void onInitialize(ROSEnvironmentWidget* widget);
@@ -38,8 +41,8 @@ public:
    */
   std::shared_ptr<tesseract_gui::EnvironmentWidgetConfig> getConfig() const;
 
-  void load(const rviz::Config& config);
-  void save(rviz::Config config) const;
+  void load(const rviz_common::Config& config);
+  void save(rviz_common::Config config) const;
 
 public Q_SLOTS:
   void onDisplayModeChanged();

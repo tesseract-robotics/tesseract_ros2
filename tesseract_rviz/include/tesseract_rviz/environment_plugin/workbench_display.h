@@ -1,13 +1,13 @@
 #ifndef TESSERACT_RVIZ_WORKBENCH_DISPLAY_H
 #define TESSERACT_RVIZ_WORKBENCH_DISPLAY_H
 
-#include <rviz/display.h>
+#include <rviz_common/display.hpp>
 
 namespace tesseract_rviz
 {
 struct WorkbenchDisplayPrivate;
 
-class WorkbenchDisplay : public rviz::Display
+class WorkbenchDisplay : public rviz_common::Display
 {
   Q_OBJECT
 public:
@@ -17,8 +17,8 @@ public:
   void update(float wall_dt, float ros_dt) override;
   void reset() override;
 
-  void load(const rviz::Config& config) override;
-  void save(rviz::Config config) const override;
+  void load(const rviz_common::Config& config) override;
+  void save(rviz_common::Config config) const override;
 
 public Q_SLOTS:
   void onEnableChanged() override;

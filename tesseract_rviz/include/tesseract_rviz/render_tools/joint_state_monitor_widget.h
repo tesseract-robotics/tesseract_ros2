@@ -20,7 +20,7 @@ namespace rviz_common::properties
 {
 class Property;
 class RosTopicProperty;
-}  // namespace rviz
+}  // namespace rviz_common::properties
 
 namespace tesseract_rviz
 {

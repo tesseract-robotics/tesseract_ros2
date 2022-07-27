@@ -3,8 +3,8 @@
 #include <tesseract_qt/common/icon_utils.h>
 #include <tesseract_qt/common/theme_utils.h>
 
-#include <rviz/display_context.h>
-#include <rviz/window_manager_interface.h>
+#include <rviz_common/display_context.hpp>
+#include <rviz_common/window_manager_interface.hpp>
 
 #include <QApplication>
 #include <QMainWindow>
@@ -40,7 +40,7 @@ SetThemeTool::~SetThemeTool()
 
 bool SetThemeTool::isInitialized() const { return (data_->toolbar != nullptr); }
 
-void SetThemeTool::initialized(rviz::DisplayContext* context)
+void SetThemeTool::initialized(rviz_common::DisplayContext* context)
 {
   if (!isInitialized())
   {

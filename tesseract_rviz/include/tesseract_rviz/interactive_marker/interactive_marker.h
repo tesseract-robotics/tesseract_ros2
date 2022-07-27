@@ -53,11 +53,11 @@ class SceneNode;
 
 class QMenu;
 
-namespace rviz
+namespace rviz_common
 {
 class DisplayContext;
 // class InteractiveMarkerDisplay;
-}  // namespace rviz
+}  // namespace rviz_common
 namespace tesseract_rviz
 {
 class InteractiveMarker : public QObject

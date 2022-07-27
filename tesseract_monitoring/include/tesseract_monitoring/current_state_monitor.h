@@ -63,6 +63,8 @@ class CurrentStateMonitor
 public:
   using Ptr = std::shared_ptr<CurrentStateMonitor>;
   using ConstPtr = std::shared_ptr<const CurrentStateMonitor>;
+  using UPtr = std::unique_ptr<CurrentStateMonitor>;
+  using ConstUPtr = std::unique_ptr<const CurrentStateMonitor>;
 
   /** @brief Constructor.
    *  @param env The tesseract environment to modify

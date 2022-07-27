@@ -23,7 +23,7 @@ find_package(tesseract_process_managers REQUIRED)
 tesseract_variables()
 
 add_library(${PROJECT_NAME} SHARED
-  src/environment_cache.cpp
+#  src/environment_cache.cpp
   # src/tesseract_planning_server.cpp
 )
 target_link_libraries(${PROJECT_NAME} PUBLIC

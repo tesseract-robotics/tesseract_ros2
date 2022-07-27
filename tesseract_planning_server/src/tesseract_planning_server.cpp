@@ -31,7 +31,6 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_planning_server/tesseract_planning_server.h>
-#include <tesseract_planning_server/environment_cache.h>
 
 #include <tesseract_motion_planners/default_planner_namespaces.h>
 #include <tesseract_motion_planners/descartes/profile/descartes_profile.h>
@@ -69,7 +68,7 @@ TesseractPlanningServer::TesseractPlanningServer(rclcpp::Node::SharedPtr node,
                                                  size_t n)
   : node_(node)
   , environment_(std::make_shared<tesseract_monitoring::EnvironmentMonitor>(robot_description, name))
-  , environment_cache_(std::make_shared<ROSProcessEnvironmentCache>(environment_))
+  , environment_cache_(std::make_shared<tesseract_planning::ProcessEnvironmentCache>(monitor_->getEnvironment()))
   , planning_server_(std::make_unique<tesseract_planning::ProcessPlanningServer>(environment_cache_, n))
   /*
   , motion_plan_server_(nh_,
@@ -89,7 +88,7 @@ TesseractPlanningServer::TesseractPlanningServer(rclcpp::Node::SharedPtr node,
                                                  size_t n)
   : nh_("~")
   , environment_(std::make_shared<tesseract_monitoring::EnvironmentMonitor>(std::move(env), name))
-  , environment_cache_(std::make_shared<ROSProcessEnvironmentCache>(environment_))
+  , environment_cache_(std::make_shared<tesseract_planning::ProcessEnvironmentCache>(monitor_->getEnvironment()))
   , planning_server_(std::make_unique<tesseract_planning::ProcessPlanningServer>(environment_cache_, n))
   /*
   , motion_plan_server_(nh_,

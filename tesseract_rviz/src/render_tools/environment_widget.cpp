@@ -187,7 +187,7 @@ void EnvironmentWidget::onUpdate()
 
   std::shared_lock<std::shared_mutex> lock;
   if (monitor_ != nullptr)
-    lock = monitor_->lockEnvironmentRead();
+    lock = monitor_->environment().lockRead();
 
   if (visualization_ && env_->isInitialized())
   {
@@ -657,7 +657,7 @@ void EnvironmentWidget::loadEnvironment()
         if (monitor_ != nullptr)
           monitor_->shutdown();
 
-        monitor_ = std::make_unique<tesseract_monitoring::EnvironmentMonitor>(node_, env_, widget_ns_);
+        monitor_ = std::make_unique<tesseract_monitoring::ROSEnvironmentMonitor>(node_, env_, widget_ns_);
         revision_ = env_->getRevision();
         //setStatus(rviz_common::properties::StatusProperty::Ok, "Tesseract", "Tesseract Environment Loaded Successfully");
       }
@@ -673,7 +673,7 @@ void EnvironmentWidget::loadEnvironment()
     if (monitor_ != nullptr)
       monitor_->shutdown();
 
-    monitor_ = std::make_unique<tesseract_monitoring::EnvironmentMonitor>(node_, env_, widget_ns_);
+    monitor_ = std::make_unique<tesseract_monitoring::ROSEnvironmentMonitor>(node_, env_, widget_ns_);
     if (env_->isInitialized())
       revision_ = env_->getRevision();
     else

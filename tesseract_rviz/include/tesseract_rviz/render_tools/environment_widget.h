@@ -71,13 +71,13 @@ protected:
   tesseract_environment::Environment::Ptr env_;
   rclcpp::Node::SharedPtr node_;
   rclcpp::SubscriptionBase::SharedPtr robot_description_sub_;
-  std::unique_ptr<tesseract_monitoring::EnvironmentMonitor> monitor_;
+  std::unique_ptr<tesseract_monitoring::ROSEnvironmentMonitor> monitor_;
   int revision_{ 0 }; /**< The current revision of the visualization environment */
   bool update_required_;
   bool update_state_;    /**< @brief Update visualization current state from environment message */
   bool load_tesseract_;  // for delayed initialization
   std::map<std::string, std_msgs::msg::ColorRGBA> highlights_;
-  std::chrono::high_resolution_clock::duration state_timestamp_{
+  std::chrono::system_clock::time_point state_timestamp_{
     std::chrono::high_resolution_clock::now().time_since_epoch()
   };
 

@@ -48,7 +48,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <rviz_common/window_manager_interface.hpp>
 
 #include <tesseract_command_language/utils/utils.h>
-#include <tesseract_command_language/core/serialization.h>
+#include <tesseract_common/serialization.h>
 #include <tesseract_rosutils/utils.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
@@ -443,7 +443,7 @@ void VisualizeTrajectoryWidget::setDisplayTrajectory(const tesseract_msgs::msg::
   if (!msg.instructions.empty())
   {
     using namespace tesseract_planning;
-    Instruction program = Serialization::fromArchiveStringXML<Instruction>(msg.instructions);
+    Instruction program = tesseract_common::Serialization::fromArchiveStringXML<Instruction>(msg.instructions);
     boost::mutex::scoped_lock lock(update_trajectory_message_);
     const auto& ci = program.as<CompositeInstruction>();
     trajectory_to_display_ = toJointTrajectory(ci);

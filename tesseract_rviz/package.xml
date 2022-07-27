@@ -10,7 +10,6 @@
   <!-- TODO
   <buildtool_depend>catkin</buildtool_depend>
   -->
-  <build_depend>ros_industrial_cmake_boilerplate</build_depend>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
   <depend>rclcpp</depend>

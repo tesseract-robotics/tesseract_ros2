@@ -41,7 +41,6 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 const std::string LOGGER_ID{ "tesseract_rosutils_utils" };
 namespace tesseract_rosutils
 {
-
 std::shared_ptr<tesseract_common::Resource> ROSResourceLocator::locateResource(const std::string& url) const
 {
   std::string mod_url = url;
@@ -50,14 +49,18 @@ std::shared_ptr<tesseract_common::Resource> ROSResourceLocator::locateResource(c
     mod_url.erase(0, strlen("package://"));
     size_t pos = mod_url.find('/');
     if (pos == std::string::npos)
+    {
       return nullptr;
+    }
 
     std::string package = mod_url.substr(0, pos);
     mod_url.erase(0, pos);
     std::string package_path =  ament_index_cpp::get_package_share_directory(package);
 
     if (package_path.empty())
+    {
       return nullptr;
+    }
 
     mod_url = package_path + mod_url;
   }
@@ -66,12 +69,10 @@ std::shared_ptr<tesseract_common::Resource> ROSResourceLocator::locateResource(c
     mod_url.erase(0, strlen("file://"));
     size_t pos = mod_url.find('/');
     if (pos == std::string::npos)
+    {
       return nullptr;
+    }
   }
-
-  if (!tesseract_common::fs::path(mod_url).is_complete())
-    return nullptr;
-
   return std::make_shared<tesseract_common::SimpleLocatedResource>(
       url, mod_url, std::make_shared<ROSResourceLocator>(*this));
 }

@@ -68,6 +68,7 @@ set(message_files
   "msg/JointMimic.msg"
   "msg/JointSafety.msg"
   "msg/JointState.msg"
+  "msg/JointTrajectory.msg"
   "msg/KinematicsInformation.msg"
   "msg/KinematicsPluginInfo.msg"
   "msg/Link.msg"

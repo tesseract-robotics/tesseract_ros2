@@ -1612,6 +1612,32 @@ void toMsg(const tesseract_msgs::msg::EnvironmentState::SharedPtr& state_msg,
   toMsg(*state_msg, env);
 }
 
+void toMsg(tesseract_msgs::msg::JointTrajectory& traj_msg, const tesseract_common::JointTrajectory& traj)
+{
+  for (const auto& js : traj)
+  {
+    assert(js.joint_names.size() == static_cast<unsigned>(js.position.size()));
+
+    tesseract_msgs::msg::JointState js_msg;
+    js_msg.joint_names = js.joint_names;
+    js_msg.position.resize(static_cast<size_t>(js.position.size()));
+    js_msg.velocity.resize(static_cast<size_t>(js.velocity.size()));
+    js_msg.acceleration.resize(static_cast<size_t>(js.acceleration.size()));
+
+    for (int i = 0; i < js.position.size(); ++i)
+      js_msg.position[static_cast<size_t>(i)] = js.position(i);
+
+    for (int i = 0; i < js.velocity.size(); ++i)
+      js_msg.velocity[static_cast<size_t>(i)] = js.velocity(i);
+
+    for (int i = 0; i < js.acceleration.size(); ++i)
+      js_msg.acceleration[static_cast<size_t>(i)] = js.acceleration(i);
+
+    js_msg.time_from_start = rclcpp::Duration(js.time);
+    traj_msg.states.push_back(js_msg);
+  }
+}
+
 void toMsg(std::vector<tesseract_msgs::msg::JointState>& traj_msg, const tesseract_common::JointTrajectory& traj)
 {
   for (const auto& js : traj)

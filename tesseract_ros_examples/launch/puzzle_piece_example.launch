@@ -8,15 +8,16 @@
 
   <!-- Load universal robot description format (URDF) -->
   <let name="robot_description"
-       value="$(command 'xacro $(find-pkg-share tesseract_ros_examples)/urdf/puzzle_piece_workcell.xacro')" />
+       value="$(command 'xacro $(find-pkg-share tesseract_support)/urdf/puzzle_piece_workcell.xacro')" />
 
   <!-- The semantic description that corresponds to the URDF -->
   <let name="robot_description_semantic"
-       value="$(command 'cat $(find-pkg-share tesseract_ros_examples)/config/puzzle_piece_workcell.srdf')" />
+       value="$(command 'cat $(find-pkg-share tesseract_support)/urdf/puzzle_piece_workcell.srdf')" />
 
-  <node pkg="robot_state_publisher" exec="robot_state_publisher" name="robot_state_publisher">
+  <!--<node pkg="robot_state_publisher" exec="robot_state_publisher" name="robot_state_publisher">
       <param name="robot_description" value="$(var robot_description)" />
-  </node>
+  </node>-->
+  <node pkg="tf2_ros" exec="static_transform_publisher" args="0 0 0 0 0 0 world base_link" />
   <!--
   <group unless="$(arg testing)">
   -->
@@ -25,7 +26,7 @@
     <node pkg="tf" type="static_transform_publisher" name="virtual_joint_broadcaster_0" args="0 0 0 0 0 0 world base_link 100" />
     -->
 
-    <node pkg="tesseract_ros_examples" exec="puzzle_piece_example_node" output="screen">
+    <node pkg="tesseract_ros_examples" exec="tesseract_ros_examples_puzzle_piece_example_node" output="screen">
       <param name="plotting" type="bool" value="$(var plotting)"/>
       <param name="rviz" type="bool" value="$(var rviz)"/>
       <param name="robot_description" value="$(var robot_description)" type="str"/>
@@ -38,18 +39,18 @@
 
     <!-- Launch visualization -->
     <node pkg="rviz2" exec="rviz2"
-      args="-d $(find-pkg-share tesseract_ros_examples)/config/examples.rviz"
+
       output="screen">
-      <param name="robot_description" value="$(var robot_description)" type="str"/>
-      <param name="robot_description_semantic" value="$(var robot_description_semantic)" type="str"/>
+      <!--<param name="robot_description" value="$(var robot_description)" type="str"/>
+      <param name="robot_description_semantic" value="$(var robot_description_semantic)" type="str"/>-->
     </node>
   <!--
   </group>
   -->
 
   <!-- Robot control -->
-  <node pkg="joint_state_publisher_gui" exec="joint_state_publisher_gui">
+  <!--<node pkg="joint_state_publisher_gui" exec="joint_state_publisher_gui">
     <param name="robot_description" value="$(var robot_description)"/>
-  </node>
+  </node>-->
 
 </launch>

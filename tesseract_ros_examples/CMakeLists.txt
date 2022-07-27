@@ -20,16 +20,33 @@ foreach(ament_pkg IN LISTS ament_pkg_deps)
 endforeach()
 
 find_package(tesseract_environment REQUIRED)
-find_package(tesseract_command_language REQUIRED)
-find_package(tesseract_motion_planners REQUIRED)
-find_package(tesseract_process_managers REQUIRED)
-find_package(tesseract_common REQUIRED)
+#find_package(tesseract_command_language REQUIRED)
+#find_package(tesseract_motion_planners REQUIRED)
+#find_package(tesseract_process_managers REQUIRED)
+#find_package(tesseract_common REQUIRED)
+find_package(tesseract_examples REQUIRED)
 find_package(trajopt_sqp REQUIRED)
 find_package(trajopt_ifopt REQUIRED)
 # find_package(PCL REQUIRED COMPONENTS core features filters io segmentation surface)
 
 # Load variable for clang tidy args, compiler options and cxx version
 tesseract_variables()
+
+macro(add_example test_name test_file)
+  add_executable(${test_name} ${test_file})
+  target_link_libraries(${test_name}
+    tesseract::tesseract_examples
+    tesseract::tesseract_environment
+    tesseract_monitoring::tesseract_monitoring_environment)
+  target_compile_options(${test_name} PRIVATE ${TESSERACT_COMPILE_OPTIONS})
+  target_clang_tidy(${test_name} ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS} ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
+  target_cxx_version(${test_name} PUBLIC VERSION ${TESSERACT_CXX_VERSION})
+  target_include_directories(${test_name} PRIVATE
+      "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+      "$<INSTALL_INTERFACE:include>")
+endmacro()
+
+add_example(${PROJECT_NAME}_puzzle_piece_example_node src/puzzle_piece_example_node.cpp)
 
 # add_library(basic_cartesian_example src/basic_cartesian_example.cpp# )
 # target_link_libraries(basic_cartesian_example PUBLIC
@@ -245,33 +262,34 @@ tesseract_variables()
 #     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
 #     "$<INSTALL_INTERFACE:include>")
 
-add_library(puzzle_piece_example src/puzzle_piece_example.cpp)
-target_link_libraries(puzzle_piece_example PUBLIC
-  ament_index_cpp::ament_index_cpp
-  tesseract::tesseract_environment
-  tesseract::tesseract_process_managers
-  tesseract_monitoring::tesseract_monitoring_environment
-  tesseract_planning_server::tesseract_planning_server
-)
-target_compile_options(puzzle_piece_example PUBLIC ${TESSERACT_COMPILE_OPTIONS})
-target_clang_tidy(puzzle_piece_example
-  ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS}
-  ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
-target_cxx_version(puzzle_piece_example PUBLIC VERSION 17)
-target_include_directories(puzzle_piece_example PUBLIC
-  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-  "$<INSTALL_INTERFACE:include>")
+#add_library(puzzle_piece_example src/puzzle_piece_example.cpp)
+#target_link_libraries(puzzle_piece_example PUBLIC
+#  ament_index_cpp::ament_index_cpp
+#  tesseract::tesseract_environment
+#  tesseract::tesseract_process_managers
+#  tesseract_monitoring::tesseract_monitoring_environment
+#  tesseract_planning_server::tesseract_planning_server
+#  tesseract::tesseract_examples
+#)
+#target_compile_options(puzzle_piece_example PUBLIC ${TESSERACT_COMPILE_OPTIONS})
+#target_clang_tidy(puzzle_piece_example
+#  ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS}
+#  ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
+#target_cxx_version(puzzle_piece_example PUBLIC VERSION 17)
+#target_include_directories(puzzle_piece_example PUBLIC
+#  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+#  "$<INSTALL_INTERFACE:include>")
 
-add_executable(puzzle_piece_example_node src/puzzle_piece_example_node.cpp)
-target_link_libraries(puzzle_piece_example_node PUBLIC puzzle_piece_example)
-target_compile_options(puzzle_piece_example_node PRIVATE ${TESSERACT_COMPILE_OPTIONS})
-target_clang_tidy(puzzle_piece_example_node
-  ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS}
-  ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
-target_cxx_version(puzzle_piece_example_node PRIVATE VERSION 17)
-target_include_directories(puzzle_piece_example_node PRIVATE
-  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-  "$<INSTALL_INTERFACE:include>")
+#add_executable(puzzle_piece_example_node src/puzzle_piece_example_node.cpp)
+#target_link_libraries(puzzle_piece_example_node PUBLIC puzzle_piece_example)
+#target_compile_options(puzzle_piece_example_node PRIVATE ${TESSERACT_COMPILE_OPTIONS})
+#target_clang_tidy(puzzle_piece_example_node
+#  ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS}
+#  ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
+#target_cxx_version(puzzle_piece_example_node PRIVATE VERSION 17)
+#target_include_directories(puzzle_piece_example_node PRIVATE
+#  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+#  "$<INSTALL_INTERFACE:include>")
 
 # add_library(puzzle_piece_auxillary_axes_example src/puzzle_piece_auxillary_axes_example.cpp)
 # target_link_libraries(puzzle_piece_auxillary_axes_example PUBLIC
@@ -328,23 +346,23 @@ install(DIRECTORY include/${PROJECT_NAME}
   DESTINATION include
  )
 
-# Mark libraries for installation
-install(
-  TARGETS
-    # basic_cartesian_example
-    # car_seat_example
-    # freespace_hybrid_example
-    # freespace_ompl_example
-    # glass_upright_example
-    # online_planning_example
-    # pick_and_place_example
-    puzzle_piece_example
-    # puzzle_piece_auxillary_axes_example
-    # scene_graph_example
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib
-  RUNTIME DESTINATION bin
-)
+## Mark libraries for installation
+#install(
+#  TARGETS
+#    # basic_cartesian_example
+#    # car_seat_example
+#    # freespace_hybrid_example
+#    # freespace_ompl_example
+#    # glass_upright_example
+#    # online_planning_example
+#    # pick_and_place_example
+#    ${PROJECT_NAME}_puzzle_piece_example_node
+#    # puzzle_piece_auxillary_axes_example
+#    # scene_graph_example
+#  ARCHIVE DESTINATION lib
+#  LIBRARY DESTINATION lib
+#  RUNTIME DESTINATION bin
+#)
 # Mark executables for installation
 install(
   TARGETS
@@ -355,7 +373,7 @@ install(
     # glass_upright_example_node
     # online_planning_example_node
     # pick_and_place_example_node
-    puzzle_piece_example_node
+    ${PROJECT_NAME}_puzzle_piece_example_node
     # puzzle_piece_auxillary_axes_example_node
     # scene_graph_example_node
   RUNTIME DESTINATION lib/${PROJECT_NAME}

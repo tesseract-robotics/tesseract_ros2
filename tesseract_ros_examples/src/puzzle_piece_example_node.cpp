@@ -25,8 +25,21 @@
  */
 
 #include <thread>
+#include <tesseract_examples/puzzle_piece_example.h>
+#include <tesseract_monitoring/environment_monitor.h>
+#include <tesseract_rosutils/plotting.h>
 
-#include <tesseract_ros_examples/puzzle_piece_example.h>
+using namespace tesseract_examples;
+using namespace tesseract_rosutils;
+
+/** @brief Default ROS parameter for robot description */
+const std::string ROBOT_DESCRIPTION_PARAM = "robot_description";
+
+/** @brief Default ROS parameter for robot description */
+const std::string ROBOT_SEMANTIC_PARAM = "robot_description_semantic";
+
+/** @brief RViz Example Namespace */
+const std::string EXAMPLE_MONITOR_NAMESPACE = "tesseract_ros_examples";
 
 int main(int argc, char** argv)
 {
@@ -37,20 +50,33 @@ int main(int argc, char** argv)
   bool plotting = node->declare_parameter("plotting", true);
   bool rviz = node->declare_parameter("rviz", true);
 
-  tesseract_ros_examples::PuzzlePieceExample example(node, plotting, rviz);
+  // Initial setup
+  std::string urdf_xml_string = node->declare_parameter(ROBOT_DESCRIPTION_PARAM, "");
+  std::string srdf_xml_string = node->declare_parameter(ROBOT_SEMANTIC_PARAM, "");
+
+  auto env = std::make_shared<tesseract_environment::Environment>();
+  auto locator = std::make_shared<tesseract_rosutils::ROSResourceLocator>();
+  if (!env->init(urdf_xml_string, srdf_xml_string, locator))
+    exit(1);
 
   std::thread spinner{
-    [node]()
-    {
-      rclcpp::spin(node);
-    }
-  };
+      [node]()
+      {
+        rclcpp::spin(node);
+      }
+    };
 
+  // Create monitor
+  auto monitor = std::make_shared<tesseract_monitoring::ROSEnvironmentMonitor>(node, env, EXAMPLE_MONITOR_NAMESPACE);
+  if (rviz)
+    monitor->startPublishingEnvironment();
+
+  ROSPlottingPtr plotter;
+  if (plotting)
+    plotter = std::make_shared<ROSPlotting>(env->getSceneGraph()->getRoot());
+
+  PuzzlePieceExample example(env, plotter);
   example.run();
 
-  RCLCPP_INFO(node->get_logger(), "Example completed, waiting for ROS shutdown...");
   spinner.join();
-  RCLCPP_INFO(node->get_logger(), "Shutdown!");
-
-  return 0;
 }

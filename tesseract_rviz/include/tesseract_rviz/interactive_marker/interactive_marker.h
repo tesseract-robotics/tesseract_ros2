@@ -64,8 +64,8 @@ class InteractiveMarker : public QObject
 {
   Q_OBJECT
 public:
-  using Ptr = std::shared_ptr<InteractiveMarker>;
-  using ConstPtr = std::shared_ptr<const InteractiveMarker>;
+  using Ptr = boost::shared_ptr<InteractiveMarker>;
+  using ConstPtr = boost::shared_ptr<const InteractiveMarker>;
 
   InteractiveMarker(const std::string& name,
                     const std::string& description,

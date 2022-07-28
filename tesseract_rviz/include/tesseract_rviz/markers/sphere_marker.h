@@ -42,12 +42,12 @@ namespace tesseract_rviz
 class SphereMarker : public MarkerBase
 {
 public:
-  using Ptr = std::shared_ptr<SphereMarker>;
-  using ConstPtr = std::shared_ptr<const SphereMarker>;
+  using Ptr = boost::shared_ptr<SphereMarker>;
+  using ConstPtr = boost::shared_ptr<const SphereMarker>;
 
   SphereMarker(const std::string& ns,
                const int id,
-               rviz_common::DisplayContext* context,
+               Ogre::SceneManager* scene_manager,
                Ogre::SceneNode* parent_node,
                float radius = 1);
   ~SphereMarker() override;
@@ -61,6 +61,8 @@ public:
   void setColor(Ogre::ColourValue color) override;
 
   std::set<Ogre::MaterialPtr> getMaterials() override;
+
+  void createMarkerSelectionHandler(rviz_common::DisplayContext* context) override;
 
 protected:
   rviz_rendering::Shape* shape_;

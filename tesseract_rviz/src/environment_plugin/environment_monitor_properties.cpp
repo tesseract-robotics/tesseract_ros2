@@ -163,7 +163,8 @@ void EnvironmentMonitorProperties::onURDFDescriptionChanged()
     if (data_->monitor != nullptr)
       data_->monitor->shutdown();
 
-    data_->monitor = std::make_unique<tesseract_monitoring::ROSEnvironmentMonitor>(it->second->getEnvironment(),
+    data_->monitor = std::make_unique<tesseract_monitoring::ROSEnvironmentMonitor>(data_->node,
+                                                                                   it->second->getEnvironment(),
                                                                                    data_->monitor_namespace);
     if (data_->monitor != nullptr)
     {
@@ -185,7 +186,7 @@ void EnvironmentMonitorProperties::onURDFDescriptionChanged()
       if (data_->monitor != nullptr)
         data_->monitor->shutdown();
 
-      data_->monitor = std::make_unique<tesseract_monitoring::ROSEnvironmentMonitor>(env, data_->monitor_namespace);
+      data_->monitor = std::make_unique<tesseract_monitoring::ROSEnvironmentMonitor>(data_->node, env, data_->monitor_namespace);
       if (data_->monitor != nullptr)
       {
         auto config = std::make_shared<tesseract_gui::EnvironmentWidgetConfig>();
@@ -213,7 +214,8 @@ void EnvironmentMonitorProperties::onEnvironmentTopicChanged()
   auto it = data_->configs.find(data_->environment_topic_property->getStdString());
   if (it != data_->configs.end())
   {
-    data_->monitor = std::make_unique<tesseract_monitoring::ROSEnvironmentMonitor>(it->second->getEnvironment(),
+    data_->monitor = std::make_unique<tesseract_monitoring::ROSEnvironmentMonitor>(data_->node,
+                                                                                   it->second->getEnvironment(),
                                                                                    data_->monitor_namespace);
     if (data_->monitor != nullptr)
     {
@@ -224,7 +226,7 @@ void EnvironmentMonitorProperties::onEnvironmentTopicChanged()
   else
   {
     auto env = std::make_shared<tesseract_environment::Environment>();
-    data_->monitor = std::make_unique<tesseract_monitoring::ROSEnvironmentMonitor>(env, data_->monitor_namespace);
+    data_->monitor = std::make_unique<tesseract_monitoring::ROSEnvironmentMonitor>(data_->node, env, data_->monitor_namespace);
 
     if (data_->monitor != nullptr)
     {

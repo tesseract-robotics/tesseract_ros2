@@ -46,13 +46,13 @@ namespace tesseract_rviz
 class TextViewFacingMarker : public MarkerBase
 {
 public:
-  using Ptr = std::shared_ptr<TextViewFacingMarker>;
-  using ConstPtr = std::shared_ptr<const TextViewFacingMarker>;
+  using Ptr = boost::shared_ptr<TextViewFacingMarker>;
+  using ConstPtr = boost::shared_ptr<const TextViewFacingMarker>;
 
   TextViewFacingMarker(const std::string& ns,
                        const int id,
                        const std::string& caption,
-                       rviz_common::DisplayContext* context,
+                       Ogre::SceneManager* scene_manager,
                        Ogre::SceneNode* parent_node);
 
   ~TextViewFacingMarker() override;
@@ -67,6 +67,8 @@ public:
   void setColor(Ogre::ColourValue color) override;
 
   std::set<Ogre::MaterialPtr> getMaterials() override;
+
+  void createMarkerSelectionHandler(rviz_common::DisplayContext* context) override;
 
 protected:
   rviz_rendering::MovableText* text_;

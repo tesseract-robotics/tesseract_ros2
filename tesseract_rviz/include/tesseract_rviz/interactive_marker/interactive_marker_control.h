@@ -99,8 +99,8 @@ class InteractiveMarkerControl : public Ogre::SceneManager::Listener,
                                  public std::enable_shared_from_this<InteractiveMarkerControl>
 {
 public:
-  using Ptr = std::shared_ptr<InteractiveMarkerControl>;
-  using ConstPtr = std::shared_ptr<const InteractiveMarkerControl>;
+  using Ptr = boost::shared_ptr<InteractiveMarkerControl>;
+  using ConstPtr = boost::shared_ptr<const InteractiveMarkerControl>;
 
   InteractiveMarkerControl(std::string name,
                            std::string description,
@@ -113,6 +113,12 @@ public:
                            const Ogre::Quaternion& orientation);
 
   virtual ~InteractiveMarkerControl();
+
+  /**
+   * @brief Get marker scene manager for control to create markers for.
+   * @return Marker Scene Manager
+   */
+  Ogre::SceneManager* getMarkerSceneManager();
 
   /**
    * @brief Get marker scene node for control to create markers for.
@@ -412,7 +418,7 @@ protected:
 
   std::string name_;
 
-  std::vector<std::shared_ptr<MarkerBase>> markers_;
+  std::vector<boost::shared_ptr<MarkerBase>> markers_;
 
   InteractiveMarker* parent_;
 

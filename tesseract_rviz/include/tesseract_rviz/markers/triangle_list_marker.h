@@ -54,12 +54,12 @@ namespace tesseract_rviz
 class TriangleListMarker : public MarkerBase
 {
 public:
-  using Ptr = std::shared_ptr<TriangleListMarker>;
-  using ConstPtr = std::shared_ptr<const TriangleListMarker>;
+  using Ptr = boost::shared_ptr<TriangleListMarker>;
+  using ConstPtr = boost::shared_ptr<const TriangleListMarker>;
 
   TriangleListMarker(const std::string& ns,
                      const int id,
-                     rviz_common::DisplayContext* context,
+                     Ogre::SceneManager* scene_manager,
                      Ogre::SceneNode* parent_node,
                      const Ogre::ColourValue color,
                      const std::vector<Ogre::Vector3>& points,
@@ -73,6 +73,8 @@ public:
   void setColor(Ogre::ColourValue color) override;
 
   std::set<Ogre::MaterialPtr> getMaterials() override;
+
+  void createMarkerSelectionHandler(rviz_common::DisplayContext* context) override;
 
 protected:
   bool has_vertex_colors_;

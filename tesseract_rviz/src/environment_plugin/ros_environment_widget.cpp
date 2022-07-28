@@ -10,6 +10,7 @@
 #include <tesseract_qt/common/entity_manager.h>
 
 #include <QLayout>
+#include <OgreSceneNode.h>
 
 namespace tesseract_rviz
 {

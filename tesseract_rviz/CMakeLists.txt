@@ -24,12 +24,12 @@ find_package(ros_industrial_cmake_boilerplate REQUIRED)
 find_package(console_bridge REQUIRED)
 
 # Ogre
-#find_package(PkgConfig REQUIRED)
-#pkg_check_modules(OGRE OGRE)
-#link_directories(${OGRE_LIBRARY_DIRS} )
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(OGRE OGRE)
+link_directories(${OGRE_LIBRARY_DIRS} )
 
 find_package(Qt5 REQUIRED COMPONENTS Core Widgets)
-add_definitions(-DQT_NO_KEYWORDS)
+#add_definitions(-DQT_NO_KEYWORDS)
 set(CMAKE_AUTOMOC ON)
 #if(rviz_QT_VERSION VERSION_LESS "5")
 #  find_package(Qt4 ${rviz_QT_VERSION} REQUIRED QtCore QtGui)
@@ -88,32 +88,32 @@ target_include_directories(${PROJECT_NAME}_markers SYSTEM PUBLIC
     ${EIGEN3_INCLUDE_DIRS})
 target_compile_definitions(${PROJECT_NAME}_markers PUBLIC $ENV{ROS_DISTRO}_BUILD)
 
-#add_library(${PROJECT_NAME}_interactive_marker SHARED
-#  src/interactive_marker/integer_action.cpp
-#  src/interactive_marker/interactive_marker.cpp
-#  src/interactive_marker/interactive_marker_control.cpp
-#  ${${PROJECT_NAME}_interactive_marker_cpp_MOCS}
-#)
-#target_link_libraries(${PROJECT_NAME}_interactive_marker PUBLIC
-#  ${PROJECT_NAME}_markers
-#  rviz_ogre_vendor::OgreMain
-#  rviz_ogre_vendor::OgreOverlay
-#  rviz_common::rviz_common
-#  rviz_rendering::rviz_rendering
-#  Qt5::Widgets
-#  ${Boost_LIBRARIES}
-#)
-#target_compile_options(${PROJECT_NAME}_interactive_marker PUBLIC ${TESSERACT_COMPILE_OPTIONS})
-#target_cxx_version(${PROJECT_NAME}_interactive_marker PUBLIC VERSION 17)
-#target_include_directories(${PROJECT_NAME}_interactive_marker PUBLIC
-#    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-#    "$<INSTALL_INTERFACE:include>")
-#target_include_directories(${PROJECT_NAME}_interactive_marker SYSTEM PUBLIC
-#    ${Boost_INCLUDE_DIRS}
-#    ${QT_INCLUDE_DIR}
-##    ${OGRE_INCLUDE_DIRS}
-#    ${EIGEN3_INCLUDE_DIRS})
-#target_compile_definitions(${PROJECT_NAME}_interactive_marker PUBLIC $ENV{ROS_DISTRO}_BUILD)
+add_library(${PROJECT_NAME}_interactive_marker SHARED
+  src/interactive_marker/integer_action.cpp
+  src/interactive_marker/interactive_marker.cpp
+  src/interactive_marker/interactive_marker_control.cpp
+  ${${PROJECT_NAME}_interactive_marker_cpp_MOCS}
+)
+target_link_libraries(${PROJECT_NAME}_interactive_marker PUBLIC
+  ${PROJECT_NAME}_markers
+  rviz_ogre_vendor::OgreMain
+  rviz_ogre_vendor::OgreOverlay
+  rviz_common::rviz_common
+  rviz_rendering::rviz_rendering
+  Qt5::Widgets
+  ${Boost_LIBRARIES}
+)
+target_compile_options(${PROJECT_NAME}_interactive_marker PUBLIC ${TESSERACT_COMPILE_OPTIONS})
+target_cxx_version(${PROJECT_NAME}_interactive_marker PUBLIC VERSION 17)
+target_include_directories(${PROJECT_NAME}_interactive_marker PUBLIC
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+    "$<INSTALL_INTERFACE:include>")
+target_include_directories(${PROJECT_NAME}_interactive_marker SYSTEM PUBLIC
+    ${Boost_INCLUDE_DIRS}
+    ${QT_INCLUDE_DIR}
+#    ${OGRE_INCLUDE_DIRS}
+    ${EIGEN3_INCLUDE_DIRS})
+target_compile_definitions(${PROJECT_NAME}_interactive_marker PUBLIC $ENV{ROS_DISTRO}_BUILD)
 
 # Rviz Render Tools
 set(render_tools_qobjects
@@ -367,7 +367,7 @@ target_include_directories(${PROJECT_NAME}_test PRIVATE
 # Install libraries
 install(TARGETS
     ${PROJECT_NAME}_markers
-#    ${PROJECT_NAME}_interactive_marker
+    ${PROJECT_NAME}_interactive_marker
     ${PROJECT_NAME}_render_tools
     ${PROJECT_NAME}_state_plugin_core
     ${PROJECT_NAME}_state_plugin

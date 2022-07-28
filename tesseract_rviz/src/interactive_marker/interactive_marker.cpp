@@ -48,7 +48,9 @@
 #include "rviz_common/render_panel.hpp"
 #include "rviz_rendering/geometry.hpp"
 #include "rviz_common/properties/quaternion_property.hpp"
+#include "rviz_common/interaction/view_picker_iface.hpp"
 //#include "rviz/validate_quaternions.h"
+#include "rviz_rendering/render_window.hpp"
 
 #include <tesseract_rviz/interactive_marker/integer_action.h>
 #include <tesseract_rviz/interactive_marker/interactive_marker.h>
@@ -145,11 +147,11 @@ InteractiveMarker::InteractiveMarker(const std::string& name,
   {
     std::ostringstream s;
     s << "Locked to frame " << reference_frame_;
-    Q_EMIT statusUpdate(rviz::properties::StatusProperty::Ok, name_, s.str());
+    Q_EMIT statusUpdate(rviz_common::properties::StatusProperty::Ok, name_, s.str());
   }
   else
   {
-    Q_EMIT statusUpdate(rviz::properties::StatusProperty::Ok, name_, "Position is fixed.");
+    Q_EMIT statusUpdate(rviz_common::properties::StatusProperty::Ok, name_, "Position is fixed.");
   }
 }
 
@@ -177,7 +179,7 @@ InteractiveMarkerControl::Ptr InteractiveMarker::createInteractiveControl(const 
   else
   {
     // Else make new control
-    auto control = std::make_shared<InteractiveMarkerControl>(name,
+    auto control = boost::make_shared<InteractiveMarkerControl>(name,
                                                                 description,
                                                                 context_,
                                                                 reference_node_,
@@ -371,8 +373,8 @@ void InteractiveMarker::populateMenu(QMenu* /*menu*/, std::vector<uint32_t>& ids
   for (unsigned int id : ids)
   {
     auto node_it = menu_entries_.find(id);
-    ROS_ASSERT_MSG(
-        node_it != menu_entries_.end(), "interactive marker menu entry %u not found during populateMenu().", id);
+//    ROS_ASSERT_MSG(
+//        node_it != menu_entries_.end(), "interactive marker menu entry %u not found during populateMenu().", id);
     MenuNode node = (*node_it).second;
 
     //    if ( node.child_ids.empty() )
@@ -671,7 +673,9 @@ bool InteractiveMarker::handle3DCursorEvent(rviz_common::ViewportMouseEvent& eve
       // Save the 3D mouse point to send with the menu feedback, if any.
       Ogre::Vector3 three_d_point = cursor_pos;
       bool valid_point = true;
-      Ogre::Vector2 mouse_pos = rviz::project3DPointToViewportXY(event.viewport, cursor_pos);
+      Ogre::Vector2 mouse_pos = rviz_rendering::project3DPointToViewportXY(
+        rviz_rendering::RenderWindowOgreAdapter::getOgreViewport(event.panel->getRenderWindow()),
+        cursor_pos);
       QCursor::setPos(event.panel->mapToGlobal(QPoint(static_cast<int>(mouse_pos.x), static_cast<int>(mouse_pos.y))));
       showMenu(event, control_name, three_d_point, valid_point);
       return true;
@@ -688,7 +692,7 @@ bool InteractiveMarker::handleMouseEvent(rviz_common::ViewportMouseEvent& event,
   if (event.acting_button == Qt::LeftButton)
   {
     Ogre::Vector3 point_rel_world;
-    bool got_3D_point = context_->getSelectionManager()->get3DPoint(event.viewport, event.x, event.y, point_rel_world);
+    bool got_3D_point = context_->getViewPicker()->get3DPoint(event.panel, event.x, event.y, point_rel_world);
 
     publishFeedback(got_3D_point, point_rel_world);
   }
@@ -706,7 +710,7 @@ bool InteractiveMarker::handleMouseEvent(rviz_common::ViewportMouseEvent& event,
     {
       // Save the 3D mouse point to send with the menu feedback, if any.
       Ogre::Vector3 three_d_point;
-      bool valid_point = context_->getSelectionManager()->get3DPoint(event.viewport, event.x, event.y, three_d_point);
+      bool valid_point = context_->getViewPicker()->get3DPoint(event.panel, event.x, event.y, three_d_point);
       showMenu(event, control_name, three_d_point, valid_point);
       return true;
     }

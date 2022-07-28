@@ -42,12 +42,12 @@ namespace tesseract_rviz
 class CubeMarker : public MarkerBase
 {
 public:
-  using Ptr = std::shared_ptr<CubeMarker>;
-  using ConstPtr = std::shared_ptr<const CubeMarker>;
+  using Ptr = boost::shared_ptr<CubeMarker>;
+  using ConstPtr = boost::shared_ptr<const CubeMarker>;
 
   CubeMarker(const std::string& ns,
              const int id,
-             rviz_common::DisplayContext* context,
+             Ogre::SceneManager* scene_manager,
              Ogre::SceneNode* parent_node,
              float size = 1);
   ~CubeMarker() override;
@@ -61,6 +61,8 @@ public:
   void setColor(Ogre::ColourValue color) override;
 
   std::set<Ogre::MaterialPtr> getMaterials() override;
+
+  void createMarkerSelectionHandler(rviz_common::DisplayContext* context) override;
 
 protected:
   rviz_rendering::Shape* shape_;

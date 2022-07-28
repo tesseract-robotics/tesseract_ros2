@@ -450,10 +450,15 @@ void VisualizeTrajectoryWidget::setDisplayTrajectory(const tesseract_msgs::msg::
     if (interrupt_display_property_->getBool())
       interruptCurrentDisplay();
   }
-  else if (!msg.joint_trajectory.empty())
+  else if (!msg.joint_trajectories.empty())
   {
     boost::mutex::scoped_lock lock(update_trajectory_message_);
-    trajectory_to_display_ = tesseract_rosutils::fromMsg(msg.joint_trajectory);
+    trajectory_to_display_.clear();
+    for (const auto& joint_trajectory_msg : msg.joint_trajectories)
+    {
+      tesseract_common::JointTrajectory joint_trajectory = tesseract_rosutils::fromMsg(joint_trajectory_msg);
+      trajectory_to_display_.insert(trajectory_to_display_.end(), joint_trajectory.begin(), joint_trajectory.end());
+    }
     if (interrupt_display_property_->getBool())
       interruptCurrentDisplay();
   }

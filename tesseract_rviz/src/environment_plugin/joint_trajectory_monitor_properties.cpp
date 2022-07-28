@@ -18,8 +18,10 @@
 
 namespace tesseract_rviz
 {
-struct JointTrajectoryMonitorPropertiesPrivate
+class JointTrajectoryMonitorPropertiesPrivate
 {
+  public:
+
   std::shared_ptr<rclcpp::Node> node;
   rviz_common::Display* parent;
   rviz_common::properties::Property* main_property;
@@ -34,8 +36,8 @@ struct JointTrajectoryMonitorPropertiesPrivate
   rclcpp::Subscription<trajectory_msgs::msg::JointTrajectory>::SharedPtr legacy_joint_trajectory_sub;
   rclcpp::Subscription<tesseract_msgs::msg::Trajectory>::SharedPtr tesseract_joint_trajectory_sub;
 
-  void legacyJointTrajectoryCallback(const trajectory_msgs::msg::JointTrajectory::ConstPtr& msg);
-  void tesseractJointTrajectoryCallback(const tesseract_msgs::msg::Trajectory::ConstPtr& msg);
+  void legacyJointTrajectoryCallback(const trajectory_msgs::msg::JointTrajectory::SharedPtr msg);
+  void tesseractJointTrajectoryCallback(const tesseract_msgs::msg::Trajectory::SharedPtr msg);
 };
 
 JointTrajectoryMonitorProperties::JointTrajectoryMonitorProperties(rviz_common::Display* parent, rviz_common::properties::Property* main_property)
@@ -117,8 +119,7 @@ void JointTrajectoryMonitorProperties::onLegacyJointTrajectoryTopicConnect()
       data_->node->create_subscription<trajectory_msgs::msg::JointTrajectory>(
                           data_->legacy_joint_trajectory_topic_property->getStdString(),
                           20,
-                          &JointTrajectoryMonitorPropertiesPrivate::legacyJointTrajectoryCallback,
-                          data_.get());
+                          std::bind(&JointTrajectoryMonitorPropertiesPrivate::legacyJointTrajectoryCallback, *data_, std::placeholders::_1));
 }
 
 void JointTrajectoryMonitorProperties::onTesseractJointTrajectoryTopicConnect()
@@ -127,8 +128,7 @@ void JointTrajectoryMonitorProperties::onTesseractJointTrajectoryTopicConnect()
       data_->node->create_subscription<tesseract_msgs::msg::Trajectory>(
                           data_->tesseract_joint_trajectory_topic_property->getStdString(),
                           20,
-                          &JointTrajectoryMonitorPropertiesPrivate::tesseractJointTrajectoryCallback,
-                          data_.get());
+                          std::bind(&JointTrajectoryMonitorPropertiesPrivate::tesseractJointTrajectoryCallback, *data_, std::placeholders::_1));
 }
 
 void JointTrajectoryMonitorProperties::onLegacyJointTrajectoryTopicDisconnect()
@@ -170,7 +170,7 @@ void JointTrajectoryMonitorProperties::onTesseractJointTrajectoryChanged()
 }
 
 void JointTrajectoryMonitorPropertiesPrivate::legacyJointTrajectoryCallback(
-    const trajectory_msgs::msg::JointTrajectory::ConstPtr& msg)
+    const trajectory_msgs::msg::JointTrajectory::SharedPtr msg)
 {
   if (msg->joint_names.empty())
     return;
@@ -189,7 +189,7 @@ void JointTrajectoryMonitorPropertiesPrivate::legacyJointTrajectoryCallback(
 }
 
 void JointTrajectoryMonitorPropertiesPrivate::tesseractJointTrajectoryCallback(
-    const tesseract_msgs::msg::Trajectory::ConstPtr& msg)
+    const tesseract_msgs::msg::Trajectory::SharedPtr msg)
 {
   try
   {

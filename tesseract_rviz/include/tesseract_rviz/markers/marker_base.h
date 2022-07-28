@@ -33,6 +33,7 @@
 #include "rviz_common/interactive_object.hpp"
 
 #ifndef Q_MOC_RUN
+#include <boost/shared_ptr.hpp>
 #endif
 
 namespace Ogre
@@ -55,10 +56,10 @@ typedef std::pair<std::string, int32_t> MarkerID;
 class MarkerBase
 {
 public:
-  using Ptr = std::shared_ptr<MarkerBase>;
-  using ConstPtr = std::shared_ptr<const MarkerBase>;
+  using Ptr = boost::shared_ptr<MarkerBase>;
+  using ConstPtr = boost::shared_ptr<const MarkerBase>;
 
-  MarkerBase(std::string ns, const int id, rviz_common::DisplayContext* context, Ogre::SceneNode* parent_node);
+  MarkerBase(std::string ns, const int id, Ogre::SceneManager* scene_manager, Ogre::SceneNode* parent_node);
   virtual ~MarkerBase();
 
   MarkerID getID() { return MarkerID(ns_, id_); }
@@ -85,6 +86,8 @@ public:
 
   virtual std::set<Ogre::MaterialPtr> getMaterials() { return std::set<Ogre::MaterialPtr>(); }
 
+  virtual void createMarkerSelectionHandler(rviz_common::DisplayContext* context) = 0;
+
 protected:
   void extractMaterials(Ogre::Entity* entity, std::set<Ogre::MaterialPtr>& materials);
 
@@ -92,11 +95,11 @@ protected:
 
   int id_;
 
-  rviz_common::DisplayContext* context_;
+  Ogre::SceneManager* scene_manager_;
 
   Ogre::SceneNode* scene_node_;
 
-  std::shared_ptr<MarkerSelectionHandler> handler_;
+  boost::shared_ptr<MarkerSelectionHandler> handler_;
 };
 
 }  // namespace tesseract_rviz

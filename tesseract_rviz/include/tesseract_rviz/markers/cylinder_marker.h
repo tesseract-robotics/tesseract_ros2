@@ -42,12 +42,12 @@ namespace tesseract_rviz
 class CylinderMarker : public MarkerBase
 {
 public:
-  using Ptr = std::shared_ptr<CylinderMarker>;
-  using ConstPtr = std::shared_ptr<const CylinderMarker>;
+  using Ptr = boost::shared_ptr<CylinderMarker>;
+  using ConstPtr = boost::shared_ptr<const CylinderMarker>;
 
   CylinderMarker(const std::string& ns,
                  const int id,
-                 rviz_common::DisplayContext* context,
+                 Ogre::SceneManager* scene_manager,
                  Ogre::SceneNode* parent_node,
                  float radius = 1,
                  float height = 2);
@@ -65,6 +65,8 @@ public:
   void setColor(Ogre::ColourValue color) override;
 
   std::set<Ogre::MaterialPtr> getMaterials() override;
+
+  void createMarkerSelectionHandler(rviz_common::DisplayContext* context) override;
 
 protected:
   rviz_rendering::Shape* shape_;

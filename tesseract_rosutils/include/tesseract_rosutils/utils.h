@@ -233,6 +233,13 @@ void toMsg(const tesseract_msgs::msg::EnvironmentState::SharedPtr& state_msg,
 void toMsg(tesseract_msgs::msg::JointTrajectory& traj_msg, const tesseract_common::JointTrajectory& traj);
 
 /**
+ * @brief Generate a JointTrajectory from message
+ * @param traj_msg The trajectory message to convert
+ * @param traj The joint trajectory
+ */
+tesseract_common::JointTrajectory fromMsg(const tesseract_msgs::msg::JointTrajectory& traj_msg);
+
+/**
  * @brief Generate a JointTrajectory Message that contains only trajectory joints
  * @param traj_msg The output JointTrajectory Message
  * @param joint_names The joint names corresponding to the trajectory
@@ -439,7 +446,7 @@ bool toMsg(tesseract_msgs::msg::Environment& environment_msg,
  * @param tesseract_msg Input Tesseract msg
  * @return Resulting Tesseract Object if successful, nullptr otherwise
  */
-tesseract_environment::Environment::Ptr fromMsg(const tesseract_msgs::msg::Environment& environment_msg);
+tesseract_environment::Environment::UPtr fromMsg(const tesseract_msgs::msg::Environment& environment_msg);
 
 /**
  * @brief Converts a TaskInfo object to a TaskInfo msg
@@ -463,6 +470,13 @@ tesseract_planning::TaskInfo::Ptr fromMsg(const tesseract_msgs::msg::TaskInfo& t
  */
 trajectory_msgs::msg::JointTrajectory toMsg(const tesseract_common::JointTrajectory& joint_trajectory,
                                             const tesseract_scene_graph::SceneState& initial_state);
+
+/**
+ * @brief Convert trajectory_msgs::JointTrajectory to Tesseract tesseract_common::JointTrajectory
+ * @param joint_trajectory The trajectory to convert
+ * @return A tesseract joint trajectory
+ */
+tesseract_common::JointTrajectory fromMsg(const trajectory_msgs::msg::JointTrajectory& joint_trajectory_msg);
 
 template <typename MessageType>
 inline bool toFile(const std::string& filepath, const MessageType& msg)

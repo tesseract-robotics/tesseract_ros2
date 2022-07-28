@@ -1638,6 +1638,34 @@ void toMsg(tesseract_msgs::msg::JointTrajectory& traj_msg, const tesseract_commo
   }
 }
 
+tesseract_common::JointTrajectory fromMsg(const tesseract_msgs::msg::JointTrajectory& traj_msg)
+{
+  tesseract_common::JointTrajectory trajectory;
+  for (const auto& js_msg : traj_msg.states)
+  {
+    assert(js_msg.joint_names.size() == static_cast<unsigned>(js_msg.position.size()));
+
+    tesseract_common::JointState js;
+    js.joint_names = js_msg.joint_names;
+    js.position.resize(static_cast<long>(js_msg.position.size()));
+    js.velocity.resize(static_cast<long>(js_msg.velocity.size()));
+    js.acceleration.resize(static_cast<long>(js_msg.acceleration.size()));
+
+    for (std::size_t i = 0; i < js_msg.position.size(); ++i)
+      js.position(static_cast<long>(i)) = js_msg.position[i];
+
+    for (std::size_t i = 0; i < js_msg.velocity.size(); ++i)
+      js.velocity(static_cast<long>(i)) = js_msg.velocity[i];
+
+    for (std::size_t i = 0; i < js_msg.acceleration.size(); ++i)
+      js.acceleration(static_cast<long>(i)) = js_msg.acceleration[i];
+
+    js.time = js_msg.time_from_start.sec;
+    trajectory.push_back(js);
+  }
+  return trajectory;
+}
+
 void toMsg(std::vector<tesseract_msgs::msg::JointState>& traj_msg, const tesseract_common::JointTrajectory& traj)
 {
   for (const auto& js : traj)
@@ -2162,7 +2190,7 @@ bool toMsg(tesseract_msgs::msg::Environment& environment_msg,
   return toMsg(environment_msg, *env, include_joint_states);
 }
 
-tesseract_environment::Environment::Ptr fromMsg(const tesseract_msgs::msg::Environment& environment_msg)
+tesseract_environment::Environment::UPtr fromMsg(const tesseract_msgs::msg::Environment& environment_msg)
 {
   tesseract_environment::Commands commands;
   try
@@ -2177,7 +2205,7 @@ tesseract_environment::Environment::Ptr fromMsg(const tesseract_msgs::msg::Envir
     return nullptr;
   }
 
-  auto env = std::make_shared<tesseract_environment::Environment>();
+  auto env = std::make_unique<tesseract_environment::Environment>();
   if (!env->init(commands))  // TODO: Get state solver
   {
     RCLCPP_ERROR_STREAM(rclcpp::get_logger(LOGGER_ID), "fromMsg(Environment): Failed to initialize environment!");
@@ -2274,6 +2302,28 @@ trajectory_msgs::msg::JointTrajectory toMsg(const tesseract_common::JointTraject
   }
   result.points = points;
   return result;
+}
+
+tesseract_common::JointTrajectory fromMsg(const trajectory_msgs::msg::JointTrajectory& joint_trajectory_msg)
+{
+  tesseract_common::JointTrajectory joint_trajectory;
+  joint_trajectory.reserve(joint_trajectory_msg.points.size());
+  for (const auto& state_msg : joint_trajectory_msg.points)
+  {
+    tesseract_common::JointState state;
+    state.joint_names = joint_trajectory_msg.joint_names;
+    state.position = Eigen::Map<const Eigen::VectorXd>(state_msg.positions.data(),
+                                                       static_cast<Eigen::Index>(state_msg.positions.size()));
+    state.velocity = Eigen::Map<const Eigen::VectorXd>(state_msg.velocities.data(),
+                                                       static_cast<Eigen::Index>(state_msg.velocities.size()));
+    state.acceleration = Eigen::Map<const Eigen::VectorXd>(state_msg.accelerations.data(),
+                                                           static_cast<Eigen::Index>(state_msg.accelerations.size()));
+    state.effort =
+        Eigen::Map<const Eigen::VectorXd>(state_msg.effort.data(), static_cast<Eigen::Index>(state_msg.effort.size()));
+    state.time = state_msg.time_from_start.sec;
+    joint_trajectory.push_back(state);
+  }
+  return joint_trajectory;
 }
 
 }  // namespace tesseract_rosutils

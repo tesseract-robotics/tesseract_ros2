@@ -45,7 +45,8 @@ namespace rviz_rendering
 class Arrow;
 }
 
-namespace rviz_common {
+namespace rviz_common
+{
 class DisplayContext;
 }  // namespace rviz_common
 

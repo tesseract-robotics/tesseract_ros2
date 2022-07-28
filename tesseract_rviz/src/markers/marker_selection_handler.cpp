@@ -36,7 +36,9 @@
 
 namespace tesseract_rviz
 {
-MarkerSelectionHandler::MarkerSelectionHandler(const MarkerBase* marker, MarkerID id, rviz_common::DisplayContext* context)
+MarkerSelectionHandler::MarkerSelectionHandler(const MarkerBase* marker,
+                                               MarkerID id,
+                                               rviz_common::DisplayContext* context)
   : SelectionHandler(context)
   , marker_(marker)
   , marker_id_(QString::fromStdString(id.first) + "/" + QString::number(id.second))

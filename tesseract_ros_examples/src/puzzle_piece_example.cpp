@@ -126,10 +126,7 @@ tesseract_common::VectorIsometry3d PuzzlePieceExample::makePuzzleToolPoses()
   return path;
 }
 
-PuzzlePieceExample::~PuzzlePieceExample()
-{
-  RCLCPP_WARN(node_->get_logger(), "Destroying example");
-}
+PuzzlePieceExample::~PuzzlePieceExample() { RCLCPP_WARN(node_->get_logger(), "Destroying example"); }
 
 bool PuzzlePieceExample::run()
 {
@@ -157,7 +154,7 @@ bool PuzzlePieceExample::run()
     plotter_->waitForConnection();
   }
 
-  std::this_thread::sleep_for(std::chrono::seconds{5});
+  std::this_thread::sleep_for(std::chrono::seconds{ 5 });
 
   // Set the robot initial state
   std::vector<std::string> joint_names;
@@ -270,7 +267,7 @@ bool PuzzlePieceExample::run()
   if (rviz_ && plotter_ != nullptr && plotter_->isConnected())
   {
     RCLCPP_INFO(node_->get_logger(), "Sending trajectory for visualization");
-    //plotter_->waitForInput();
+    // plotter_->waitForInput();
     const auto& ci = response.results->as<CompositeInstruction>();
     tesseract_common::JointTrajectory trajectory = toJointTrajectory(ci);
     auto state_solver = env_->getStateSolver();

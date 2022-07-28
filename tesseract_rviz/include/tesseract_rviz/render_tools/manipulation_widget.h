@@ -29,7 +29,7 @@
 #include <tesseract_common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <rviz_common/display.hpp>
-#include <rviz_common//panel_dock_widget.hpp>
+#include <rviz_common  //panel_dock_widget.hpp>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #ifndef Q_MOC_RUN

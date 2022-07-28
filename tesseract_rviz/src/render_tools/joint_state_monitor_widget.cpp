@@ -11,23 +11,25 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 namespace tesseract_rviz
 {
-JointStateMonitorWidget::JointStateMonitorWidget(rviz_common::properties::Property* widget, rviz_common::Display* display)
+JointStateMonitorWidget::JointStateMonitorWidget(rviz_common::properties::Property* widget,
+                                                 rviz_common::Display* display)
   : widget_(widget), display_(display), visualization_(nullptr), env_(nullptr), update_required_(false)
 {
   main_property_ = new rviz_common::properties::Property(
       "Joint State Monitor", "", "Monitor a joint state topic and update the visualization", widget_, nullptr, this);
 
   joint_state_topic_property_ = new rviz_common::properties::RosTopicProperty("Topic",
-                                                           "joint_states",
-                                                           "sensor_msgs::JointState",
-                                                           "The topic on which the sensor_msgs::JointState messages "
-                                                           "are received",
-                                                           main_property_,
-                                                           SLOT(changedJointStateTopic()),
-                                                           this);
+                                                                              "joint_states",
+                                                                              "sensor_msgs::JointState",
+                                                                              "The topic on which the "
+                                                                              "sensor_msgs::JointState messages "
+                                                                              "are received",
+                                                                              main_property_,
+                                                                              SLOT(changedJointStateTopic()),
+                                                                              this);
 }
 
-JointStateMonitorWidget::~JointStateMonitorWidget() { }
+JointStateMonitorWidget::~JointStateMonitorWidget() {}
 
 void JointStateMonitorWidget::onInitialize(VisualizationWidget::Ptr visualization,
                                            tesseract_environment::Environment::Ptr env,
@@ -48,12 +50,9 @@ void JointStateMonitorWidget::changedJointStateTopic()
   {
     joint_state_subscriber_.reset();
     joint_state_subscriber_ = node_->create_subscription<sensor_msgs::msg::JointState>(
-        joint_state_topic_property_->getStdString(), 10,
-        [this](sensor_msgs::msg::JointState::ConstSharedPtr msg)
-        {
+        joint_state_topic_property_->getStdString(), 10, [this](sensor_msgs::msg::JointState::ConstSharedPtr msg) {
           newJointStateCallback(msg);
-        }
-    );
+        });
   }
   else
   {

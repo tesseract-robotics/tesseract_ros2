@@ -58,7 +58,8 @@ JointWidget::JointWidget(VisualizationWidget* env, const tesseract_scene_graph::
   , axes_(nullptr)
   , axis_(nullptr)
 {
-  joint_property_ = new rviz_common::properties::Property(name_.c_str(), true, "", nullptr, SLOT(updateChildVisibility()), this);
+  joint_property_ =
+      new rviz_common::properties::Property(name_.c_str(), true, "", nullptr, SLOT(updateChildVisibility()), this);
   joint_property_->setIcon(rviz_common::loadPixmap("package://rviz/icons/classes/RobotJoint.png"));
 
   details_ = new rviz_common::properties::Property("Details", QVariant(), "", nullptr);
@@ -67,16 +68,18 @@ JointWidget::JointWidget(VisualizationWidget* env, const tesseract_scene_graph::
       "Show Axes", false, "Enable/disable showing the axes of this joint.", joint_property_, SLOT(updateAxes()), this);
 
   position_property_ = new rviz_common::properties::VectorProperty("Position",
-                                                Ogre::Vector3::ZERO,
-                                                "Position of this joint, in the current Fixed Frame.  (Not editable)",
-                                                joint_property_);
+                                                                   Ogre::Vector3::ZERO,
+                                                                   "Position of this joint, in the current Fixed "
+                                                                   "Frame.  (Not editable)",
+                                                                   joint_property_);
   position_property_->setReadOnly(true);
 
   orientation_property_ = new rviz_common::properties::QuaternionProperty("Orientation",
-                                                       Ogre::Quaternion::IDENTITY,
-                                                       "Orientation of this joint, in the current Fixed Frame.  (Not "
-                                                       "editable)",
-                                                       joint_property_);
+                                                                          Ogre::Quaternion::IDENTITY,
+                                                                          "Orientation of this joint, in the current "
+                                                                          "Fixed Frame.  (Not "
+                                                                          "editable)",
+                                                                          joint_property_);
   orientation_property_->setReadOnly(true);
 
   std::string type;
@@ -104,33 +107,33 @@ JointWidget::JointWidget(VisualizationWidget* env, const tesseract_scene_graph::
     // continuous joints have lower limit and upper limits of zero,
     // which means this isn't very useful but show it anyhow.
     lower_limit_property_ = new rviz_common::properties::FloatProperty("Lower Limit",
-                                                    static_cast<float>(joint.limits->lower),
-                                                    "Lower limit of this joint.  (Not editable)",
-                                                    joint_property_);
+                                                                       static_cast<float>(joint.limits->lower),
+                                                                       "Lower limit of this joint.  (Not editable)",
+                                                                       joint_property_);
     lower_limit_property_->setReadOnly(true);
 
     upper_limit_property_ = new rviz_common::properties::FloatProperty("Upper Limit",
-                                                    static_cast<float>(joint.limits->upper),
-                                                    "Upper limit of this joint.  (Not editable)",
-                                                    joint_property_);
+                                                                       static_cast<float>(joint.limits->upper),
+                                                                       "Upper limit of this joint.  (Not editable)",
+                                                                       joint_property_);
     upper_limit_property_->setReadOnly(true);
   }
 
   if ((type == "continuous") || (type == "revolute") || (type == "prismatic") || (type == "planar"))
   {
     show_axis_property_ = new rviz_common::properties::Property("Show Joint Axis",
-                                             false,
-                                             "Enable/disable showing the axis of this joint.",
-                                             joint_property_,
-                                             SLOT(updateAxis()),
-                                             this);
+                                                                false,
+                                                                "Enable/disable showing the axis of this joint.",
+                                                                joint_property_,
+                                                                SLOT(updateAxis()),
+                                                                this);
 
     axis_property_ = new rviz_common::properties::VectorProperty("Joint Axis",
-                                              Ogre::Vector3(static_cast<float>(joint.axis(0)),
-                                                            static_cast<float>(joint.axis(1)),
-                                                            static_cast<float>(joint.axis(2))),
-                                              "Axis of this joint.  (Not editable)",
-                                              joint_property_);
+                                                                 Ogre::Vector3(static_cast<float>(joint.axis(0)),
+                                                                               static_cast<float>(joint.axis(1)),
+                                                                               static_cast<float>(joint.axis(2))),
+                                                                 "Axis of this joint.  (Not editable)",
+                                                                 joint_property_);
     axis_property_->setReadOnly(true);
   }
 
@@ -367,7 +370,8 @@ void JointWidget::updateAxis()
   {
     if (!axis_)
     {
-      axis_ = std::make_unique<rviz_rendering::Arrow>(env_->getSceneManager(), env_->getOtherNode(), 0.15f, 0.05f, 0.05f, 0.08f);
+      axis_ = std::make_unique<rviz_rendering::Arrow>(
+          env_->getSceneManager(), env_->getOtherNode(), 0.15f, 0.05f, 0.05f, 0.08f);
       axis_->getSceneNode()->setVisible(getEnabled());
 
       axis_->setPosition(position_property_->getVector());

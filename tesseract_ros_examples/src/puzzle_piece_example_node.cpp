@@ -59,12 +59,7 @@ int main(int argc, char** argv)
   if (!env->init(urdf_xml_string, srdf_xml_string, locator))
     exit(1);
 
-  std::thread spinner{
-      [node]()
-      {
-        rclcpp::spin(node);
-      }
-    };
+  std::thread spinner{ [node]() { rclcpp::spin(node); } };
 
   // Create monitor
   auto monitor = std::make_shared<tesseract_monitoring::ROSEnvironmentMonitor>(node, env, EXAMPLE_MONITOR_NAMESPACE);

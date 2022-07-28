@@ -153,9 +153,9 @@ Ogre::Entity* createEntityForMeshData(Ogre::SceneManager& scene,
 }
 
 std::shared_ptr<rviz_rendering::PointCloud> createPointCloud(std::vector<rviz_rendering::PointCloud::Point>&& points,
-                                                   tesseract_gui::EntityContainer& entity_container,
-                                                   float size,
-                                                   tesseract_geometry::Octree::SubType subtype)
+                                                             tesseract_gui::EntityContainer& entity_container,
+                                                             float size,
+                                                             tesseract_geometry::Octree::SubType subtype)
 {
   auto entity = entity_container.addUntrackedEntity(tesseract_gui::EntityContainer::RESOURCE_NS);
   auto cloud = std::make_shared<rviz_rendering::PointCloud>();
@@ -502,11 +502,16 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
         catch (Ogre::InvalidParametersException& e)
         {
           RCLCPP_ERROR(rclcpp::get_logger("tesseract_environment_plugin"),
-              "Could not convert mesh resource '%s'. It might be an empty mesh: %s", model_name.c_str(), e.what());
+                       "Could not convert mesh resource '%s'. It might be an empty mesh: %s",
+                       model_name.c_str(),
+                       e.what());
         }
         catch (Ogre::Exception& e)
         {
-          RCLCPP_ERROR(rclcpp::get_logger("tesseract_environment_plugin"), "Could not load model '%s': %s", model_name.c_str(), e.what());
+          RCLCPP_ERROR(rclcpp::get_logger("tesseract_environment_plugin"),
+                       "Could not load model '%s': %s",
+                       model_name.c_str(),
+                       e.what());
         }
       }
       else
@@ -537,11 +542,16 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
         catch (Ogre::InvalidParametersException& e)
         {
           RCLCPP_ERROR(rclcpp::get_logger("tesseract_environment_plugin"),
-              "Could not convert mesh resource '%s'. It might be an empty mesh: %s", model_name.c_str(), e.what());
+                       "Could not convert mesh resource '%s'. It might be an empty mesh: %s",
+                       model_name.c_str(),
+                       e.what());
         }
         catch (Ogre::Exception& e)
         {
-          RCLCPP_ERROR(rclcpp::get_logger("tesseract_environment_plugin"), "Could not load model '%s': %s", model_name.c_str(), e.what());
+          RCLCPP_ERROR(rclcpp::get_logger("tesseract_environment_plugin"),
+                       "Could not load model '%s': %s",
+                       model_name.c_str(),
+                       e.what());
         }
       }
       else
@@ -684,7 +694,9 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
       return offset_node;
     }
     default:
-      RCLCPP_WARN(rclcpp::get_logger("tesseract_environment_plugin"), "Unsupported geometry type for element: %d", geometry.getType());
+      RCLCPP_WARN(rclcpp::get_logger("tesseract_environment_plugin"),
+                  "Unsupported geometry type for element: %d",
+                  geometry.getType());
       break;
   }
 
@@ -798,7 +810,10 @@ Ogre::MaterialPtr loadLinkMaterial(Ogre::SceneManager& scene,
         }
         catch (Ogre::Exception& e)
         {
-          RCLCPP_ERROR(rclcpp::get_logger("tesseract_environment_plugin"), "Could not load texture [%s]: %s", filename.c_str(), e.what());
+          RCLCPP_ERROR(rclcpp::get_logger("tesseract_environment_plugin"),
+                       "Could not load texture [%s]: %s",
+                       filename.c_str(),
+                       e.what());
         }
       }
     }
@@ -858,7 +873,11 @@ Ogre::MaterialPtr loadMaterial(const tesseract_scene_graph::Material::ConstPtr& 
   return mat;
 }
 
-void setOctomapColor(double z_pos, double min_z, double max_z, double color_factor, rviz_rendering::PointCloud::Point* point)
+void setOctomapColor(double z_pos,
+                     double min_z,
+                     double max_z,
+                     double color_factor,
+                     rviz_rendering::PointCloud::Point* point)
 {
   int i;
   float m, n, f;

@@ -11,7 +11,7 @@ class Config;
 namespace properties
 {
 class Property;
-} // namespace properties
+}  // namespace properties
 }  // namespace rviz_common
 
 namespace tesseract_gui

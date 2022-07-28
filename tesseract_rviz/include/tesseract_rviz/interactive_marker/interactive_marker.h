@@ -170,7 +170,9 @@ Q_SIGNALS:
                     const Eigen::Isometry3d& transform,
                     const Eigen::Vector3d& mouse_point,
                     bool mouse_point_valid);
-  void statusUpdate(rviz_common::properties::StatusProperty::Level level, const std::string& name, const std::string& text);
+  void statusUpdate(rviz_common::properties::StatusProperty::Level level,
+                    const std::string& name,
+                    const std::string& text);
 
 protected Q_SLOTS:
   void handleMenuSelect(int menu_item_id);

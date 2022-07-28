@@ -29,7 +29,9 @@ const std::string DEFAULT_MODIFY_ENVIRONMENT_SERVICE = "modify_tesseract_rviz";
  */
 void declareDescriptionParameters(rclcpp::Node::SharedPtr, const std::string& desc_param);
 
-EnvironmentWidget::EnvironmentWidget(rviz_common::properties::Property* widget, rviz_common::Display* display, const std::string& widget_ns)
+EnvironmentWidget::EnvironmentWidget(rviz_common::properties::Property* widget,
+                                     rviz_common::Display* display,
+                                     const std::string& widget_ns)
   : widget_(widget)
   , display_(display)
   , visualization_(nullptr)
@@ -49,7 +51,8 @@ EnvironmentWidget::EnvironmentWidget(rviz_common::properties::Property* widget, 
     widget_ns_ = widget_ns;
   }
 
-  main_property_ = new rviz_common::properties::Property("Environment", "", "Tesseract Environment", widget_, nullptr, this);
+  main_property_ =
+      new rviz_common::properties::Property("Environment", "", "Tesseract Environment", widget_, nullptr, this);
 
   display_mode_property_ = new rviz_common::properties::EnumProperty("Display Mode",
                                                                      "URDF",
@@ -62,64 +65,69 @@ EnvironmentWidget::EnvironmentWidget(rviz_common::properties::Property* widget, 
   display_mode_property_->addOptionStd("Monitor", 1);
 
   environment_namespace_property_ = new rviz_common::properties::StringProperty("Interface Namespace",
-                                                             QString::fromUtf8(widget_ns_.c_str()),
-                                                             "The namespace used for the service interface associated "
-                                                             "with this rviz plugin environment monitor",
-                                                             main_property_);
+                                                                                QString::fromUtf8(widget_ns_.c_str()),
+                                                                                "The namespace used for the service "
+                                                                                "interface associated "
+                                                                                "with this rviz plugin environment "
+                                                                                "monitor",
+                                                                                main_property_);
   environment_namespace_property_->setReadOnly(true);
 
   display_mode_string_property_ = new rviz_common::properties::StringProperty("Monitor Namespace",
                                                                               "tesseract_environment",
-                                                                              "This will monitor this namespace for changes",
+                                                                              "This will monitor this namespace for "
+                                                                              "changes",
                                                                               main_property_,
                                                                               SLOT(changedDisplayModeString()),
                                                                               this);
 
   root_link_name_property_ = new rviz_common::properties::StringProperty("Root Link",
-                                                      "",
-                                                      "Shows the name of the root link for the urdf",
-                                                      main_property_,
-                                                      SLOT(changedRootLinkName()),
-                                                      this);
+                                                                         "",
+                                                                         "Shows the name of the root link for the urdf",
+                                                                         main_property_,
+                                                                         SLOT(changedRootLinkName()),
+                                                                         this);
   root_link_name_property_->setReadOnly(true);
 
   alpha_property_ = new rviz_common::properties::FloatProperty("Alpha",
-                                            1.0f,
-                                            "Specifies the alpha for the links with geometry",
-                                            main_property_,
-                                            SLOT(changedURDFSceneAlpha()),
-                                            this);
+                                                               1.0f,
+                                                               "Specifies the alpha for the links with geometry",
+                                                               main_property_,
+                                                               SLOT(changedURDFSceneAlpha()),
+                                                               this);
   alpha_property_->setMin(0.0);
   alpha_property_->setMax(1.0);
 
   urdf_description_property_ = new rviz_common::properties::StringProperty("URDF Description",
-                                                        "robot_description",
-                                                        "The name of the ROS parameter where the URDF for the robot is "
-                                                        "loaded",
-                                                        main_property_,
-                                                        SLOT(changedURDFDescription()),
-                                                        this);
+                                                                           "robot_description",
+                                                                           "The name of the ROS parameter where the "
+                                                                           "URDF for the robot is "
+                                                                           "loaded",
+                                                                           main_property_,
+                                                                           SLOT(changedURDFDescription()),
+                                                                           this);
 
   enable_link_highlight_ = new rviz_common::properties::BoolProperty("Show Highlights",
-                                                  true,
-                                                  "Specifies whether link highlighting is enabled",
-                                                  main_property_,
-                                                  SLOT(changedEnableLinkHighlight()),
-                                                  this);
+                                                                     true,
+                                                                     "Specifies whether link highlighting is enabled",
+                                                                     main_property_,
+                                                                     SLOT(changedEnableLinkHighlight()),
+                                                                     this);
   enable_visual_visible_ = new rviz_common::properties::BoolProperty("Show Visual",
-                                                  true,
-                                                  "Whether to display the visual representation of the environment.",
-                                                  main_property_,
-                                                  SLOT(changedEnableVisualVisible()),
-                                                  this);
+                                                                     true,
+                                                                     "Whether to display the visual representation of "
+                                                                     "the environment.",
+                                                                     main_property_,
+                                                                     SLOT(changedEnableVisualVisible()),
+                                                                     this);
 
   enable_collision_visible_ = new rviz_common::properties::BoolProperty("Show Collision",
-                                                     false,
-                                                     "Whether to display the collision "
-                                                     "representation of the environment.",
-                                                     main_property_,
-                                                     SLOT(changedEnableCollisionVisible()),
-                                                     this);
+                                                                        false,
+                                                                        "Whether to display the collision "
+                                                                        "representation of the environment.",
+                                                                        main_property_,
+                                                                        SLOT(changedEnableCollisionVisible()),
+                                                                        this);
 
   show_all_links_ = new rviz_common::properties::BoolProperty(
       "Show All Links", true, "Toggle all links visibility on or off.", main_property_, SLOT(changedAllLinks()), this);
@@ -141,23 +149,25 @@ void EnvironmentWidget::onInitialize(VisualizationWidget::Ptr visualization,
   if (!visualization_->isInitialized())
     visualization_->initialize(true, true, true, true);
 
-/*
-  using std::placeholders::_1;
-  using std::placeholders::_2;
-  using std::placeholders::_3;
+  /*
+    using std::placeholders::_1;
+    using std::placeholders::_2;
+    using std::placeholders::_3;
 
-  widget_ns_ = environment_namespace_property_->getStdString();
-  modify_environment_server_ = node_->create_service<tesseract_msgs::srv::ModifyEnvironment>(
-      widget_ns_ + DEFAULT_MODIFY_ENVIRONMENT_SERVICE, std::bind(&EnvironmentWidget::modifyEnvironmentCallback, this, _1, _2, _3));
+    widget_ns_ = environment_namespace_property_->getStdString();
+    modify_environment_server_ = node_->create_service<tesseract_msgs::srv::ModifyEnvironment>(
+        widget_ns_ + DEFAULT_MODIFY_ENVIRONMENT_SERVICE, std::bind(&EnvironmentWidget::modifyEnvironmentCallback, this,
+    _1, _2, _3));
 
-  get_environment_changes_server_ = node_->create_service<tesseract_msgs::srv::GetEnvironmentChanges>(
-      widget_ns_ + DEFAULT_GET_ENVIRONMENT_CHANGES_SERVICE, std::bind(&EnvironmentWidget::getEnvironmentChangesCallback, this, _1, _2, _3));
-*/
+    get_environment_changes_server_ = node_->create_service<tesseract_msgs::srv::GetEnvironmentChanges>(
+        widget_ns_ + DEFAULT_GET_ENVIRONMENT_CHANGES_SERVICE,
+    std::bind(&EnvironmentWidget::getEnvironmentChangesCallback, this, _1, _2, _3));
+  */
   changedEnableVisualVisible();
   changedEnableCollisionVisible();
   changedDisplayMode();
 
-  if (display_mode_property_->getOptionInt() == 0) // URDF from parameter
+  if (display_mode_property_->getOptionInt() == 0)  // URDF from parameter
   {
     declareDescriptionParameters(node_, urdf_description_property_->getString().toStdString());
   }
@@ -278,7 +288,7 @@ void EnvironmentWidget::changedEnableCollisionVisible()
   visualization_->setCollisionVisible(enable_collision_visible_->getBool());
 }
 
-//static bool operator!=(const std_msgs::msg::ColorRGBA& a, const std_msgs::msg::ColorRGBA& b)
+// static bool operator!=(const std_msgs::msg::ColorRGBA& a, const std_msgs::msg::ColorRGBA& b)
 //{
 //  return a.r != b.r || a.g != b.g || a.b != b.b || a.a != b.a;
 //}
@@ -317,10 +327,12 @@ void EnvironmentWidget::changedDisplayModeString()
 
   widget_ns_ = environment_namespace_property_->getStdString();
   modify_environment_server_ = node_->create_service<tesseract_msgs::srv::ModifyEnvironment>(
-      widget_ns_ + DEFAULT_MODIFY_ENVIRONMENT_SERVICE, std::bind(&EnvironmentWidget::modifyEnvironmentCallback, this, _1, _2, _3));
+      widget_ns_ + DEFAULT_MODIFY_ENVIRONMENT_SERVICE, std::bind(&EnvironmentWidget::modifyEnvironmentCallback, this,
+  _1, _2, _3));
 
   get_environment_changes_server_ = node_->create_service<tesseract_msgs::srv::GetEnvironmentChanges>(
-      widget_ns_ + DEFAULT_GET_ENVIRONMENT_CHANGES_SERVICE, std::bind(&EnvironmentWidget::getEnvironmentChangesCallback, this, _1, _2, _3));
+      widget_ns_ + DEFAULT_GET_ENVIRONMENT_CHANGES_SERVICE, std::bind(&EnvironmentWidget::getEnvironmentChangesCallback,
+  this, _1, _2, _3));
   */
 
   if (display_->isEnabled())
@@ -580,7 +592,8 @@ void EnvironmentWidget::getEnvironmentChangesCallback(
 }
 */
 
-// void EnvironmentStateDisplay::setLinkColor(const tesseract_msgs::msg::EnvironmentState::_object_colors_type& link_colors)
+// void EnvironmentStateDisplay::setLinkColor(const tesseract_msgs::msg::EnvironmentState::_object_colors_type&
+// link_colors)
 //{
 //  assert(false);
 //  for (tesseract_msgs::EnvironmentState::_object_colors_type::const_iterator it = link_colors.begin();
@@ -641,13 +654,15 @@ void EnvironmentWidget::loadEnvironment()
     {
       load_tesseract_ = true;
       RCLCPP_ERROR(node_->get_logger().get_child("EnvironmentState"), "URDF parameter empty!");
-      //setStatus(rviz_common::properties::properties::StatusProperty::Error, "EnvironmentState", "No URDF model loaded");
+      // setStatus(rviz_common::properties::properties::StatusProperty::Error, "EnvironmentState", "No URDF model
+      // loaded");
     }
     else if (srdf_xml_string.empty())
     {
       load_tesseract_ = true;
       RCLCPP_ERROR(node_->get_logger().get_child("EnvironmentState"), "SRDF parameter empty!");
-      //setStatus(rviz_common::properties::properties::StatusProperty::Error, "EnvironmentState", "No SRDF model loaded");
+      // setStatus(rviz_common::properties::properties::StatusProperty::Error, "EnvironmentState", "No SRDF model
+      // loaded");
     }
     else
     {
@@ -659,12 +674,13 @@ void EnvironmentWidget::loadEnvironment()
 
         monitor_ = std::make_unique<tesseract_monitoring::ROSEnvironmentMonitor>(node_, env_, widget_ns_);
         revision_ = env_->getRevision();
-        //setStatus(rviz_common::properties::StatusProperty::Ok, "Tesseract", "Tesseract Environment Loaded Successfully");
+        // setStatus(rviz_common::properties::StatusProperty::Ok, "Tesseract", "Tesseract Environment Loaded
+        // Successfully");
       }
       else
       {
         load_tesseract_ = true;
-        //setStatus(rviz_common::properties::StatusProperty::Error, "Tesseract", "URDF file failed to parse");
+        // setStatus(rviz_common::properties::StatusProperty::Error, "Tesseract", "URDF file failed to parse");
       }
     }
   }
@@ -709,13 +725,13 @@ void EnvironmentWidget::loadEnvironment()
  */
 void declareDescriptionParameters(rclcpp::Node::SharedPtr node, const std::string& desc_param)
 {
-  if (! node->has_parameter(desc_param))
+  if (!node->has_parameter(desc_param))
   {
     node->declare_parameter(desc_param, "");
   }
 
   std::string srdf_param = desc_param + "_semantic";
-  if (! node->has_parameter(srdf_param))
+  if (!node->has_parameter(srdf_param))
   {
     node->declare_parameter(srdf_param, "");
   }

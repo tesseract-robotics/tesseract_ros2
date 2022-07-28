@@ -42,10 +42,7 @@ public:
   explicit ROSTopicComboBox(QWidget* parent = nullptr);
   ~ROSTopicComboBox();
 
-  void setMessageType(const QString & message_type)
-  {
-    message_type_ = message_type;
-  }
+  void setMessageType(const QString& message_type) { message_type_ = message_type; }
 
   void showPopup() override;
 

@@ -114,10 +114,10 @@ void ROSPlotting::plotTrajectory(const tesseract_common::JointTrajectory& traj,
   // Set the initial state
   for (std::size_t i = 0; i < traj[0].joint_names.size(); ++i)
   {
-      tesseract_msgs::msg::StringDoublePair pair;
-      pair.first = traj[0].joint_names[i];
-      pair.second = traj[0].position[static_cast<Eigen::Index>(i)];
-      msg.initial_state.push_back(pair);
+    tesseract_msgs::msg::StringDoublePair pair;
+    pair.first = traj[0].joint_names[i];
+    pair.second = traj[0].position[static_cast<Eigen::Index>(i)];
+    msg.initial_state.push_back(pair);
   }
 
   // Set the joint trajectory message

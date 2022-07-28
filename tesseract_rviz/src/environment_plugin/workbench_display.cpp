@@ -12,7 +12,7 @@
 #include <tesseract_qt/common/theme_utils.h>
 #include <tesseract_qt/common/icon_utils.h>
 
-#include <rviz_common//panel_dock_widget.hpp>
+#include <rviz_common  //panel_dock_widget.hpp>
 #include <rviz_common/display_context.hpp>
 #include <rviz_common/window_manager_interface.hpp>
 #include <rviz_common/properties/property.hpp>
@@ -56,8 +56,8 @@ int WorkbenchDisplayPrivate::workbench_display_counter = -1;  // NOLINT
 
 WorkbenchDisplay::WorkbenchDisplay() : data_(std::make_unique<WorkbenchDisplayPrivate>())
 {
-  auto* monitor_property =
-      new rviz_common::properties::Property("Environment Properties", "", "Tesseract environment properties", this, nullptr, this);
+  auto* monitor_property = new rviz_common::properties::Property(
+      "Environment Properties", "", "Tesseract environment properties", this, nullptr, this);
   auto* joint_trajectory_property = new rviz_common::properties::Property(
       "Joint Trajectory Properties", "", "Tesseract joint trajectory properties", this, nullptr, this);
 

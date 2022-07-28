@@ -35,7 +35,9 @@ public:
   using Ptr = std::shared_ptr<EnvironmentWidget>;
   using ConstPtr = std::shared_ptr<const EnvironmentWidget>;
 
-  EnvironmentWidget(rviz_common::properties::Property* widget, rviz_common::Display* display, const std::string& widget_ns = std::string());
+  EnvironmentWidget(rviz_common::properties::Property* widget,
+                    rviz_common::Display* display,
+                    const std::string& widget_ns = std::string());
 
   virtual ~EnvironmentWidget();
 
@@ -91,12 +93,12 @@ protected:
   //  void unsetLinkColor(Robot* robot, const std::string& link_name);
 
   /** @brief Callback for modifying the environment via service request */
-  //void modifyEnvironmentCallback(
+  // void modifyEnvironmentCallback(
   //  tesseract_msgs::srv::ModifyEnvironment::Request::SharedPtr req,
   //  tesseract_msgs::srv::ModifyEnvironment::Response::SharedPtr res);
 
   /** @brief Callback for get the environment changes via service request */
-  //void getEnvironmentChangesCallback(
+  // void getEnvironmentChangesCallback(
   //  tesseract_msgs::srv::GetEnvironmentChanges::Request::SharedPtr req,
   //  tesseract_msgs::srv::GetEnvironmentChanges::Response::SharedPtr res);
 

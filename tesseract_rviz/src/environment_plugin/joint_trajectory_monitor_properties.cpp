@@ -10,7 +10,7 @@
 
 #include <rviz_common/display.hpp>
 #include <rviz_common/properties/ros_topic_property.hpp>
-#include <rviz_common//panel_dock_widget.hpp>
+#include <rviz_common  //panel_dock_widget.hpp>
 
 //#include <ros/subscriber.h>
 #include <rclcpp/rclcpp.hpp>
@@ -20,8 +20,7 @@ namespace tesseract_rviz
 {
 class JointTrajectoryMonitorPropertiesPrivate
 {
-  public:
-
+public:
   std::shared_ptr<rclcpp::Node> node;
   rviz_common::Display* parent;
   rviz_common::properties::Property* main_property;
@@ -40,7 +39,8 @@ class JointTrajectoryMonitorPropertiesPrivate
   void tesseractJointTrajectoryCallback(const tesseract_msgs::msg::Trajectory::SharedPtr msg);
 };
 
-JointTrajectoryMonitorProperties::JointTrajectoryMonitorProperties(rviz_common::Display* parent, rviz_common::properties::Property* main_property)
+JointTrajectoryMonitorProperties::JointTrajectoryMonitorProperties(rviz_common::Display* parent,
+                                                                   rviz_common::properties::Property* main_property)
   : data_(std::make_unique<JointTrajectoryMonitorPropertiesPrivate>())
 {
   data_->parent = parent;
@@ -50,40 +50,42 @@ JointTrajectoryMonitorProperties::JointTrajectoryMonitorProperties(rviz_common::
     data_->main_property = data_->parent;
 
   data_->legacy_main = new rviz_common::properties::BoolProperty("Legacy Joint Trajectory",
-                                              true,
-                                              "This will monitor this topic for trajectory_msgs::JointTrajectory "
-                                              "messages.",
-                                              data_->main_property,
-                                              SLOT(onLegacyJointTrajectoryChanged()),
-                                              this);
+                                                                 true,
+                                                                 "This will monitor this topic for "
+                                                                 "trajectory_msgs::JointTrajectory "
+                                                                 "messages.",
+                                                                 data_->main_property,
+                                                                 SLOT(onLegacyJointTrajectoryChanged()),
+                                                                 this);
   data_->legacy_main->setDisableChildrenIfFalse(true);
 
-  data_->legacy_joint_trajectory_topic_property =
-      new rviz_common::properties::RosTopicProperty("topic",
-                                 "/joint_trajectory",
-                                 rosidl_generator_traits::data_type<trajectory_msgs::msg::JointTrajectory>(),
-                                 "This will monitor this topic for trajectory_msgs::JointTrajectory messages.",
-                                 data_->legacy_main,
-                                 SLOT(onLegacyJointTrajectoryTopicChanged()),
-                                 this);
+  data_->legacy_joint_trajectory_topic_property = new rviz_common::properties::RosTopicProperty(
+      "topic",
+      "/joint_trajectory",
+      rosidl_generator_traits::data_type<trajectory_msgs::msg::JointTrajectory>(),
+      "This will monitor this topic for trajectory_msgs::JointTrajectory messages.",
+      data_->legacy_main,
+      SLOT(onLegacyJointTrajectoryTopicChanged()),
+      this);
 
   data_->tesseract_main = new rviz_common::properties::BoolProperty("Tesseract Joint Trajectory",
-                                                 true,
-                                                 "This will monitor this topic for trajectory_msgs::JointTrajectory "
-                                                 "messages.",
-                                                 data_->main_property,
-                                                 SLOT(onTesseractJointTrajectoryChanged()),
-                                                 this);
+                                                                    true,
+                                                                    "This will monitor this topic for "
+                                                                    "trajectory_msgs::JointTrajectory "
+                                                                    "messages.",
+                                                                    data_->main_property,
+                                                                    SLOT(onTesseractJointTrajectoryChanged()),
+                                                                    this);
   data_->tesseract_main->setDisableChildrenIfFalse(true);
 
-  data_->tesseract_joint_trajectory_topic_property =
-      new rviz_common::properties::RosTopicProperty("Joint Trajectory Topic",
-                                 "/tesseract_trajectory",
-                                 rosidl_generator_traits::data_type<tesseract_msgs::msg::Trajectory>(),
-                                 "This will monitor this topic for tesseract_msgs::Trajectory messages.",
-                                 data_->tesseract_main,
-                                 SLOT(onTesseractJointTrajectoryTopicChanged()),
-                                 this);
+  data_->tesseract_joint_trajectory_topic_property = new rviz_common::properties::RosTopicProperty(
+      "Joint Trajectory Topic",
+      "/tesseract_trajectory",
+      rosidl_generator_traits::data_type<tesseract_msgs::msg::Trajectory>(),
+      "This will monitor this topic for tesseract_msgs::Trajectory messages.",
+      data_->tesseract_main,
+      SLOT(onTesseractJointTrajectoryTopicChanged()),
+      this);
 }
 
 JointTrajectoryMonitorProperties::~JointTrajectoryMonitorProperties() = default;
@@ -115,20 +117,20 @@ void JointTrajectoryMonitorProperties::save(rviz_common::Config config) const
 
 void JointTrajectoryMonitorProperties::onLegacyJointTrajectoryTopicConnect()
 {
-  data_->legacy_joint_trajectory_sub =
-      data_->node->create_subscription<trajectory_msgs::msg::JointTrajectory>(
-                          data_->legacy_joint_trajectory_topic_property->getStdString(),
-                          20,
-                          std::bind(&JointTrajectoryMonitorPropertiesPrivate::legacyJointTrajectoryCallback, *data_, std::placeholders::_1));
+  data_->legacy_joint_trajectory_sub = data_->node->create_subscription<trajectory_msgs::msg::JointTrajectory>(
+      data_->legacy_joint_trajectory_topic_property->getStdString(),
+      20,
+      std::bind(
+          &JointTrajectoryMonitorPropertiesPrivate::legacyJointTrajectoryCallback, *data_, std::placeholders::_1));
 }
 
 void JointTrajectoryMonitorProperties::onTesseractJointTrajectoryTopicConnect()
 {
-  data_->tesseract_joint_trajectory_sub =
-      data_->node->create_subscription<tesseract_msgs::msg::Trajectory>(
-                          data_->tesseract_joint_trajectory_topic_property->getStdString(),
-                          20,
-                          std::bind(&JointTrajectoryMonitorPropertiesPrivate::tesseractJointTrajectoryCallback, *data_, std::placeholders::_1));
+  data_->tesseract_joint_trajectory_sub = data_->node->create_subscription<tesseract_msgs::msg::Trajectory>(
+      data_->tesseract_joint_trajectory_topic_property->getStdString(),
+      20,
+      std::bind(
+          &JointTrajectoryMonitorPropertiesPrivate::tesseractJointTrajectoryCallback, *data_, std::placeholders::_1));
 }
 
 void JointTrajectoryMonitorProperties::onLegacyJointTrajectoryTopicDisconnect()
@@ -229,7 +231,8 @@ void JointTrajectoryMonitorPropertiesPrivate::tesseractJointTrajectoryCallback(
   }
   catch (...)
   {
-    parent->setStatus(rviz_common::properties::StatusProperty::Error, "Tesseract", "Failed to process trajectory message!");
+    parent->setStatus(
+        rviz_common::properties::StatusProperty::Error, "Tesseract", "Failed to process trajectory message!");
   }
 }
 

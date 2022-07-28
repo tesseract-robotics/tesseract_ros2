@@ -59,7 +59,7 @@ namespace rviz_rendering
 {
 class Shape;
 class MovableText;
-}
+}  // namespace rviz_rendering
 
 namespace rviz_common::properties
 {
@@ -105,12 +105,11 @@ private Q_SLOTS:
 public:
   void incomingDisplayTrajectory(const tesseract_msgs::msg::Trajectory::ConstSharedPtr msg);
 
-
 protected:
   rviz_common::properties::Property* widget_;
   rviz_common::Display* display_;
   rviz_common::DisplayContext* context_;
- 
+
   rclcpp::Node::SharedPtr node_;
   VisualizeTrajectoryWidget::Ptr visualize_trajectory_widget_;
 

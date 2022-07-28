@@ -65,7 +65,8 @@ namespace tesseract_rviz
 {
 const double SLIDER_RESOLUTION = 0.001;
 
-TrajectoryMonitorWidget::TrajectoryMonitorWidget(rviz_common::properties::Property* widget, rviz_common::Display* display)
+TrajectoryMonitorWidget::TrajectoryMonitorWidget(rviz_common::properties::Property* widget,
+                                                 rviz_common::Display* display)
   : widget_(widget)
   , display_(display)
   , visualize_trajectory_widget_(std::make_shared<VisualizeTrajectoryWidget>(widget, display))  // should widget be
@@ -75,13 +76,14 @@ TrajectoryMonitorWidget::TrajectoryMonitorWidget(rviz_common::properties::Proper
       "Trajectory Monitor", "", "Monitor a joint state topic and update the visualization", widget_, nullptr, this);
 
   trajectory_topic_property_ = new rviz_common::properties::RosTopicProperty("Topic",
-                                                          "/tesseract/display_tesseract_trajectory",
-                                                          "tesseract_msgs::msg::Trajectory",
-                                                          "The topic on which the tesseract_msgs::msg::Trajectory messages "
-                                                          "are received",
-                                                          main_property_,
-                                                          SLOT(changedTrajectoryTopic()),
-                                                          this);
+                                                                             "/tesseract/display_tesseract_trajectory",
+                                                                             "tesseract_msgs::msg::Trajectory",
+                                                                             "The topic on which the "
+                                                                             "tesseract_msgs::msg::Trajectory messages "
+                                                                             "are received",
+                                                                             main_property_,
+                                                                             SLOT(changedTrajectoryTopic()),
+                                                                             this);
 }
 
 TrajectoryMonitorWidget::~TrajectoryMonitorWidget() {}
@@ -114,11 +116,13 @@ void TrajectoryMonitorWidget::onNameChange(const QString& name) { visualize_traj
 
 void TrajectoryMonitorWidget::changedTrajectoryTopic()
 {
-  if(trajectory_topic_property_ && trajectory_topic_property_->getStdString() != "")
+  if (trajectory_topic_property_ && trajectory_topic_property_->getStdString() != "")
   {
     trajectory_topic_sub_.reset();
     trajectory_topic_sub_ = node_->create_subscription<tesseract_msgs::msg::Trajectory>(
-        trajectory_topic_property_->getStdString(), 5, std::bind(&TrajectoryMonitorWidget::incomingDisplayTrajectory, this, std::placeholders::_1));
+        trajectory_topic_property_->getStdString(),
+        5,
+        std::bind(&TrajectoryMonitorWidget::incomingDisplayTrajectory, this, std::placeholders::_1));
   }
   else
     CONSOLE_BRIDGE_logWarn("Tesseract trajectory topic is invalid");

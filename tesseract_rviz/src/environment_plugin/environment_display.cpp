@@ -7,7 +7,7 @@
 
 #include <OgreSceneNode.h>
 
-#include <rviz_common//panel_dock_widget.hpp>
+#include <rviz_common  //panel_dock_widget.hpp>
 #include <rviz_common/properties/property.hpp>
 
 #include <QApplication>
@@ -43,8 +43,8 @@ int EnvironmentDisplayPrivate::environment_display_counter = -1;
 
 EnvironmentDisplay::EnvironmentDisplay() : data_(std::make_unique<EnvironmentDisplayPrivate>())
 {
-  auto monitor_property =
-      new rviz_common::properties::Property("Environment Properties", "", "Tesseract environment properties", this, nullptr, this);
+  auto monitor_property = new rviz_common::properties::Property(
+      "Environment Properties", "", "Tesseract environment properties", this, nullptr, this);
 
   data_->monitor_properties =
       std::make_unique<EnvironmentMonitorProperties>(this, data_->environment_display_ns, monitor_property);

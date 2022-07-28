@@ -72,16 +72,16 @@ class Any;
 class RibbonTrail;
 }  // namespace Ogre
 
-
 namespace rviz_common
 {
 class DisplayContext;
 }
 
-namespace rviz_rendering {
+namespace rviz_rendering
+{
 class Shape;
 class Axes;
-}
+}  // namespace rviz_rendering
 
 namespace rviz_common::properties
 {
@@ -92,7 +92,6 @@ class QuaternionProperty;
 class VectorProperty;
 class StringProperty;
 }  // namespace rviz_common::properties
-
 
 namespace octomap
 {
@@ -261,7 +260,11 @@ private:
   void createSelection();
   Ogre::MaterialPtr getMaterialForLink(const tesseract_scene_graph::Link& link, const std::string& material_name = "");
 
-  void setOctomapColor(double z_pos, double min_z, double max_z, double color_factor, rviz_rendering::PointCloud::Point* point);
+  void setOctomapColor(double z_pos,
+                       double min_z,
+                       double max_z,
+                       double color_factor,
+                       rviz_rendering::PointCloud::Point* point);
 
   void clone(Ogre::SceneNode* scene_node,
              Ogre::SceneNode* cloned_scene_node,
@@ -336,22 +339,23 @@ private:
                                                                 ///< they
                                                                 /// exist)
 
-  std::vector<rviz_rendering::PointCloud*> visual_start_octrees_;  ///< The object representing the visual of this link (if they
-                                                         ///< exist)
-  std::vector<rviz_rendering::PointCloud*> collision_start_octrees_;  ///< The object representing the visual of this link (if
-                                                            ///< they
-                                                            /// exist)
+  std::vector<rviz_rendering::PointCloud*> visual_start_octrees_;  ///< The object representing the visual of this link
+                                                                   ///< (if they exist)
+  std::vector<rviz_rendering::PointCloud*> collision_start_octrees_;  ///< The object representing the visual of this
+                                                                      ///< link (if they
+                                                                      /// exist)
 
-  std::vector<rviz_rendering::PointCloud*> visual_trajectory_octrees_;  ///< The object representing the visual of this link (if
-                                                              ///< they exist)
-  std::vector<rviz_rendering::PointCloud*> collision_trajectory_octrees_;  ///< The object representing the visual of this link
-                                                                 ///< (if they
-                                                                 /// exist)
+  std::vector<rviz_rendering::PointCloud*> visual_trajectory_octrees_;  ///< The object representing the visual of this
+                                                                        ///< link (if they exist)
+  std::vector<rviz_rendering::PointCloud*> collision_trajectory_octrees_;  ///< The object representing the visual of
+                                                                           ///< this link (if they
+                                                                           /// exist)
 
-  std::vector<rviz_rendering::PointCloud*> visual_end_octrees_;     ///< The object representing the visual of this link (if they
-                                                          ///< exist)
-  std::vector<rviz_rendering::PointCloud*> collision_end_octrees_;  ///< The object representing the visual of this link (if they
-                                                          /// exist)
+  std::vector<rviz_rendering::PointCloud*> visual_end_octrees_;  ///< The object representing the visual of this link
+                                                                 ///< (if they exist)
+  std::vector<rviz_rendering::PointCloud*> collision_end_octrees_;  ///< The object representing the visual of this link
+                                                                    ///< (if they
+                                                                    /// exist)
 
   Ogre::SceneNode* visual_current_node_;     ///< The scene node the visual meshes are attached to
   Ogre::SceneNode* collision_current_node_;  ///< The scene node the collision meshes are attached to

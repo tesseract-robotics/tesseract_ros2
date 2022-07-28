@@ -101,18 +101,19 @@ VisualizationWidget::VisualizationWidget(Ogre::SceneNode* root_node,
   expand_tree_ = new rviz_common::properties::BoolProperty(
       "Expand Tree", false, "Expand or collapse link tree", link_tree_, SLOT(changedExpandTree()), this);
   expand_link_details_ = new rviz_common::properties::BoolProperty("Expand Link Details",
-                                                false,
-                                                "Expand link details (sub properties) to see all info for all links.",
-                                                link_tree_,
-                                                SLOT(changedExpandLinkDetails()),
-                                                this);
+                                                                   false,
+                                                                   "Expand link details (sub properties) to see all "
+                                                                   "info for all links.",
+                                                                   link_tree_,
+                                                                   SLOT(changedExpandLinkDetails()),
+                                                                   this);
   expand_joint_details_ = new rviz_common::properties::BoolProperty("Expand Joint Details",
-                                                 false,
-                                                 "Expand joint details (sub properties) "
-                                                 "to see all info for all joints.",
-                                                 link_tree_,
-                                                 SLOT(changedExpandJointDetails()),
-                                                 this);
+                                                                    false,
+                                                                    "Expand joint details (sub properties) "
+                                                                    "to see all info for all joints.",
+                                                                    link_tree_,
+                                                                    SLOT(changedExpandJointDetails()),
+                                                                    this);
   enable_all_links_ = new rviz_common::properties::BoolProperty(
       "All Links Enabled", true, "Turn all links on or off.", link_tree_, SLOT(changedEnableAllLinks()), this);
 }
@@ -668,7 +669,8 @@ void VisualizationWidget::removeAllowedCollision(const std::string& link_name)
   auto it = links_.find(link_name);
   if (it == links_.end())
   {
-    CONSOLE_BRIDGE_logWarn("Tried to remove all allowed collision for Link (%s) that does not exist", link_name.c_str());
+    CONSOLE_BRIDGE_logWarn("Tried to remove all allowed collision for Link (%s) that does not exist",
+                           link_name.c_str());
     return;
   }
 

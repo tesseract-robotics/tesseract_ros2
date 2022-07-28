@@ -60,7 +60,8 @@ namespace tesseract_rviz
 {
 const double SLIDER_RESOLUTION = 0.001;
 
-VisualizeTrajectoryWidget::VisualizeTrajectoryWidget(rviz_common::properties::Property* widget, rviz_common::Display* display)
+VisualizeTrajectoryWidget::VisualizeTrajectoryWidget(rviz_common::properties::Property* widget,
+                                                     rviz_common::Display* display)
   : widget_(widget)
   , display_(display)
   , visualization_(nullptr)
@@ -71,7 +72,8 @@ VisualizeTrajectoryWidget::VisualizeTrajectoryWidget(rviz_common::properties::Pr
   , trajectory_slider_panel_(nullptr)
   , trajectory_slider_dock_panel_(nullptr)
 {
-  main_property_ = new rviz_common::properties::Property("Trajectory Visualization", "", "Displays a trajectory", widget_, nullptr, this);
+  main_property_ = new rviz_common::properties::Property(
+      "Trajectory Visualization", "", "Displays a trajectory", widget_, nullptr, this);
 
   display_mode_property_ = new rviz_common::properties::EnumProperty(
       "Display Mode", "Loop", "How to display the trajectoy.", main_property_, SLOT(changedDisplayMode()), this);
@@ -80,27 +82,28 @@ VisualizeTrajectoryWidget::VisualizeTrajectoryWidget(rviz_common::properties::Pr
   display_mode_property_->addOptionStd("Trail", 2);
 
   time_scale_property_ = new rviz_common::properties::FloatProperty("Time Scale",
-                                                 1,
-                                                 "A time scale factor applied during play back of trajectory",
-                                                 main_property_,
-                                                 SLOT(changedTimeScale()),
-                                                 this);
+                                                                    1,
+                                                                    "A time scale factor applied during play back of "
+                                                                    "trajectory",
+                                                                    main_property_,
+                                                                    SLOT(changedTimeScale()),
+                                                                    this);
   time_scale_property_->setMin(1e-8f);
 
   trail_step_size_property_ = new rviz_common::properties::IntProperty("Trail Step Size",
-                                                    1,
-                                                    "Specifies the step size of the samples "
-                                                    "shown in the trajectory trail.",
-                                                    main_property_,
-                                                    SLOT(changedTrailStepSize()),
-                                                    this);
+                                                                       1,
+                                                                       "Specifies the step size of the samples "
+                                                                       "shown in the trajectory trail.",
+                                                                       main_property_,
+                                                                       SLOT(changedTrailStepSize()),
+                                                                       this);
   trail_step_size_property_->setMin(1);
 
   interrupt_display_property_ = new rviz_common::properties::BoolProperty("Interrupt Display",
-                                                       false,
-                                                       "Immediately show newly planned trajectory, "
-                                                       "interrupting the currently displayed one.",
-                                                       main_property_);
+                                                                          false,
+                                                                          "Immediately show newly planned trajectory, "
+                                                                          "interrupting the currently displayed one.",
+                                                                          main_property_);
 }
 
 VisualizeTrajectoryWidget::~VisualizeTrajectoryWidget()

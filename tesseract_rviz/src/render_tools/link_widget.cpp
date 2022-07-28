@@ -93,7 +93,8 @@ public:
   EnvLinkSelectionHandler(EnvLinkSelectionHandler&&) = default;
   EnvLinkSelectionHandler& operator=(EnvLinkSelectionHandler&&) = default;
 
-  void createProperties(const rviz_common::interaction::Picked& /*obj*/, rviz_common::properties::Property* parent_property) override;
+  void createProperties(const rviz_common::interaction::Picked& /*obj*/,
+                        rviz_common::properties::Property* parent_property) override;
   void updateProperties() override;
 
   void preRenderPass(uint32_t /*pass*/) override;
@@ -111,16 +112,18 @@ EnvLinkSelectionHandler::EnvLinkSelectionHandler(LinkWidget* link, rviz_common::
 }
 
 EnvLinkSelectionHandler::~EnvLinkSelectionHandler() = default;
-void EnvLinkSelectionHandler::createProperties(const rviz_common::interaction::Picked& /*obj*/, rviz_common::properties::Property* parent_property)
+void EnvLinkSelectionHandler::createProperties(const rviz_common::interaction::Picked& /*obj*/,
+                                               rviz_common::properties::Property* parent_property)
 {
-  rviz_common::properties::Property* group =
-      new rviz_common::properties::Property("Link " + QString::fromStdString(link_->getName()), QVariant(), "", parent_property);
+  rviz_common::properties::Property* group = new rviz_common::properties::Property(
+      "Link " + QString::fromStdString(link_->getName()), QVariant(), "", parent_property);
   properties_.push_back(group);
 
   position_property_ = new rviz_common::properties::VectorProperty("Position", Ogre::Vector3::ZERO, "", group);
   position_property_->setReadOnly(true);
 
-  orientation_property_ = new rviz_common::properties::QuaternionProperty("Orientation", Ogre::Quaternion::IDENTITY, "", group);
+  orientation_property_ =
+      new rviz_common::properties::QuaternionProperty("Orientation", Ogre::Quaternion::IDENTITY, "", group);
   orientation_property_->setReadOnly(true);
 
   group->expand();
@@ -197,7 +200,8 @@ LinkWidget::LinkWidget(VisualizationWidget* env, const tesseract_scene_graph::Li
   , is_selectable_(true)
   , using_color_(false)
 {
-  link_property_ = new rviz_common::properties::Property(link.getName().c_str(), true, "", nullptr, SLOT(updateVisibility()), this);
+  link_property_ =
+      new rviz_common::properties::Property(link.getName().c_str(), true, "", nullptr, SLOT(updateVisibility()), this);
   link_property_->setIcon(rviz_common::loadPixmap("package://rviz/icons/classes/RobotLink.png"));
 
   details_ = new rviz_common::properties::Property("Details", QVariant(), "", nullptr);
@@ -206,34 +210,37 @@ LinkWidget::LinkWidget(VisualizationWidget* env, const tesseract_scene_graph::Li
       "Alpha", 1, "Amount of transparency to apply to this link.", link_property_, SLOT(updateAlpha()), this);
 
   trail_property_ = new rviz_common::properties::Property("Show Trail",
-                                       false,
-                                       "Enable/disable a 2 meter \"ribbon\" which follows this link.",
-                                       link_property_,
-                                       SLOT(updateTrail()),
-                                       this);
+                                                          false,
+                                                          "Enable/disable a 2 meter \"ribbon\" which follows this "
+                                                          "link.",
+                                                          link_property_,
+                                                          SLOT(updateTrail()),
+                                                          this);
 
   axes_property_ = new rviz_common::properties::Property(
       "Show Axes", false, "Enable/disable showing the axes of this link.", link_property_, SLOT(updateAxes()), this);
 
   position_property_ = new rviz_common::properties::VectorProperty("Position",
-                                                Ogre::Vector3::ZERO,
-                                                "Position of this link, in the current Fixed Frame.  (Not editable)",
-                                                link_property_);
+                                                                   Ogre::Vector3::ZERO,
+                                                                   "Position of this link, in the current Fixed Frame. "
+                                                                   " (Not editable)",
+                                                                   link_property_);
   position_property_->setReadOnly(true);
 
   orientation_property_ = new rviz_common::properties::QuaternionProperty("Orientation",
-                                                       Ogre::Quaternion::IDENTITY,
-                                                       "Orientation of this link, in the current Fixed Frame.  (Not "
-                                                       "editable)",
-                                                       link_property_);
+                                                                          Ogre::Quaternion::IDENTITY,
+                                                                          "Orientation of this link, in the current "
+                                                                          "Fixed Frame.  (Not "
+                                                                          "editable)",
+                                                                          link_property_);
   orientation_property_->setReadOnly(true);
 
   collision_enabled_property_ = new rviz_common::properties::StringProperty(
       "Collision", "enabled", "Indicate if link is considered during collision checking.", link_property_);
   collision_enabled_property_->setReadOnly(true);
 
-  allowed_collision_matrix_property_ =
-      new rviz_common::properties::Property("ACM", "", "Links allowed to be in collision with", collision_enabled_property_);
+  allowed_collision_matrix_property_ = new rviz_common::properties::Property(
+      "ACM", "", "Links allowed to be in collision with", collision_enabled_property_);
 
   allowed_collision_matrix_property_->setReadOnly(true);
 
@@ -454,16 +461,14 @@ LinkWidget::~LinkWidget()
   }
   collision_end_octrees_.clear();
 
-  for (auto* node : {
-        visual_current_node_,
-        collision_current_node_,
-        visual_start_node_,
-        collision_start_node_,
-        visual_trajectory_node_,
-        collision_trajectory_node_,
-        visual_end_node_,
-        collision_end_node_
-      })
+  for (auto* node : { visual_current_node_,
+                      collision_current_node_,
+                      visual_start_node_,
+                      collision_start_node_,
+                      visual_trajectory_node_,
+                      collision_trajectory_node_,
+                      visual_end_node_,
+                      collision_end_node_ })
   {
     if (node)
     {
@@ -675,8 +680,8 @@ Ogre::MaterialPtr LinkWidget::getMaterialForLink(const tesseract_scene_graph::Li
     return Ogre::MaterialManager::getSingleton().getByName("RVIZ/ShadedRed");
   }
 
-  Ogre::MaterialPtr mat = Ogre::MaterialManager::getSingleton().create(material_name_generator.generate(),
-      Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
+  Ogre::MaterialPtr mat = Ogre::MaterialManager::getSingleton().create(
+      material_name_generator.generate(), Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
   mat->getTechnique(0)->setLightingEnabled(true);
 
   tesseract_scene_graph::Visual::Ptr visual = nullptr;
@@ -959,10 +964,10 @@ bool LinkWidget::createEntityForGeometryElement(const tesseract_scene_graph::Lin
         catch (Ogre::InvalidParametersException& e)
         {
           CONSOLE_BRIDGE_logError("Could not convert mesh resource '%s' for link '%s'. It might "
-                    "be an empty mesh: %s",
-                    model_name.c_str(),
-                    link.getName().c_str(),
-                    e.what());
+                                  "be an empty mesh: %s",
+                                  model_name.c_str(),
+                                  link.getName().c_str(),
+                                  e.what());
         }
         catch (Ogre::Exception& e)
         {
@@ -997,10 +1002,10 @@ bool LinkWidget::createEntityForGeometryElement(const tesseract_scene_graph::Lin
         catch (Ogre::InvalidParametersException& e)
         {
           CONSOLE_BRIDGE_logError("Could not convert mesh resource '%s' for link '%s'. It might "
-                    "be an empty mesh: %s",
-                    model_name.c_str(),
-                    link.getName().c_str(),
-                    e.what());
+                                  "be an empty mesh: %s",
+                                  model_name.c_str(),
+                                  link.getName().c_str(),
+                                  e.what());
         }
         catch (Ogre::Exception& e)
         {

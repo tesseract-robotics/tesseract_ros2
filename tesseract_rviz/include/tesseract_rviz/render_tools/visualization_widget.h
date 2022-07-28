@@ -67,7 +67,7 @@ namespace rviz_common
 class Object;
 class Axes;
 class DisplayContext;
-} //namespace rviz_common
+}  // namespace rviz_common
 
 namespace rviz_common::properties
 {
@@ -455,8 +455,8 @@ protected:
   rviz_common::properties::BoolProperty* expand_link_details_;
   rviz_common::properties::BoolProperty* expand_joint_details_;
   rviz_common::properties::BoolProperty* enable_all_links_;
-  //  rviz_common::properties::PropertyTreeWidget* property_widget_; TODO: Need to add this capability see view_panel.cpp in rviz as
-  //  example
+  //  rviz_common::properties::PropertyTreeWidget* property_widget_; TODO: Need to add this capability see
+  //  view_panel.cpp in rviz as example
 
   std::map<LinkTreeStyle, std::string> style_name_map_;
 

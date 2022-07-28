@@ -91,7 +91,9 @@ public:
    * @param env The environment
    * @param monitor_namespace A name identifying this monitor, must be unique
    */
-  ROSEnvironmentMonitor(rclcpp::Node::SharedPtr node, tesseract_environment::Environment::Ptr env, std::string monitor_namespace);
+  ROSEnvironmentMonitor(rclcpp::Node::SharedPtr node,
+                        tesseract_environment::Environment::Ptr env,
+                        std::string monitor_namespace);
 
   ~ROSEnvironmentMonitor() override;
   ROSEnvironmentMonitor(const ROSEnvironmentMonitor&) = delete;
@@ -145,10 +147,9 @@ protected:
    */
   bool initialize();
 
-  rclcpp::Time last_update_time_;                    /// Last time the state was updated
-  rclcpp::Time last_robot_motion_time_;              /// Last time the robot has moved
-  bool enforce_next_state_update_;    /// flag to enforce immediate state update in onStateUpdate()
-
+  rclcpp::Time last_update_time_;        /// Last time the state was updated
+  rclcpp::Time last_robot_motion_time_;  /// Last time the robot has moved
+  bool enforce_next_state_update_;       /// flag to enforce immediate state update in onStateUpdate()
 
   rclcpp::Node::SharedPtr node_;
   rclcpp::Node::SharedPtr internal_node_;
@@ -164,7 +165,8 @@ protected:
   rclcpp::Subscription<tesseract_msgs::msg::EnvironmentState>::SharedPtr monitored_environment_subscriber_;
   rclcpp::Client<tesseract_msgs::srv::GetEnvironmentChanges>::SharedPtr get_monitored_environment_changes_client_;
   rclcpp::Client<tesseract_msgs::srv::ModifyEnvironment>::SharedPtr modify_monitored_environment_client_;
-  rclcpp::Client<tesseract_msgs::srv::GetEnvironmentInformation>::SharedPtr get_monitored_environment_information_client_;
+  rclcpp::Client<tesseract_msgs::srv::GetEnvironmentInformation>::SharedPtr
+      get_monitored_environment_information_client_;
 
   // host a service for modifying the environment
   rclcpp::Service<tesseract_msgs::srv::ModifyEnvironment>::SharedPtr modify_environment_server_;
@@ -201,24 +203,20 @@ private:
   void newEnvironmentStateCallback(const tesseract_msgs::msg::EnvironmentState::SharedPtr env);
 
   /** @brief Callback for modifying the environment via service request */
-  void modifyEnvironmentCallback(
-          tesseract_msgs::srv::ModifyEnvironment::Request::SharedPtr req,
-          tesseract_msgs::srv::ModifyEnvironment::Response::SharedPtr res);
+  void modifyEnvironmentCallback(tesseract_msgs::srv::ModifyEnvironment::Request::SharedPtr req,
+                                 tesseract_msgs::srv::ModifyEnvironment::Response::SharedPtr res);
 
   /** @brief Callback for get the environment changes via service request */
-  void getEnvironmentChangesCallback(
-          tesseract_msgs::srv::GetEnvironmentChanges::Request::SharedPtr req,
-          tesseract_msgs::srv::GetEnvironmentChanges::Response::SharedPtr res);
+  void getEnvironmentChangesCallback(tesseract_msgs::srv::GetEnvironmentChanges::Request::SharedPtr req,
+                                     tesseract_msgs::srv::GetEnvironmentChanges::Response::SharedPtr res);
 
   /** @brief Callback for get the environment information via service request */
-  void getEnvironmentInformationCallback(
-          tesseract_msgs::srv::GetEnvironmentInformation::Request::SharedPtr req,
-          tesseract_msgs::srv::GetEnvironmentInformation::Response::SharedPtr res);
+  void getEnvironmentInformationCallback(tesseract_msgs::srv::GetEnvironmentInformation::Request::SharedPtr req,
+                                         tesseract_msgs::srv::GetEnvironmentInformation::Response::SharedPtr res);
 
   /** @brief Callback to save the scene graph to a DOT via a service request */
-  void saveSceneGraphCallback(
-          tesseract_msgs::srv::SaveSceneGraph::Request::SharedPtr req,
-          tesseract_msgs::srv::SaveSceneGraph::Response::SharedPtr res);
+  void saveSceneGraphCallback(tesseract_msgs::srv::SaveSceneGraph::Request::SharedPtr req,
+                              tesseract_msgs::srv::SaveSceneGraph::Response::SharedPtr res);
 
   // Called when new service request is called to modify the environment.
   bool applyEnvironmentCommandsMessage(const std::string& id,
@@ -245,7 +243,7 @@ private:
   // Only access this from callback functions (and constructor)
   rclcpp::Time last_robot_state_update_wall_time_;
 
-  std::atomic<bool> publish_{false};
+  std::atomic<bool> publish_{ false };
 };
 
 }  // namespace tesseract_monitoring

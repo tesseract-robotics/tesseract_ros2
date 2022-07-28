@@ -65,9 +65,10 @@ namespace rviz_rendering
 class Shape;
 class Arrow;
 class Axes;
-}
+}  // namespace rviz_rendering
 
-namespace rviz_common {
+namespace rviz_common
+{
 class DisplayContext;
 }
 

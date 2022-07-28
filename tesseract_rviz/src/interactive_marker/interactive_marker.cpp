@@ -373,8 +373,8 @@ void InteractiveMarker::populateMenu(QMenu* /*menu*/, std::vector<uint32_t>& ids
   for (unsigned int id : ids)
   {
     auto node_it = menu_entries_.find(id);
-//    ROS_ASSERT_MSG(
-//        node_it != menu_entries_.end(), "interactive marker menu entry %u not found during populateMenu().", id);
+    //    ROS_ASSERT_MSG(
+    //        node_it != menu_entries_.end(), "interactive marker menu entry %u not found during populateMenu().", id);
     MenuNode node = (*node_it).second;
 
     //    if ( node.child_ids.empty() )
@@ -674,8 +674,7 @@ bool InteractiveMarker::handle3DCursorEvent(rviz_common::ViewportMouseEvent& eve
       Ogre::Vector3 three_d_point = cursor_pos;
       bool valid_point = true;
       Ogre::Vector2 mouse_pos = rviz_rendering::project3DPointToViewportXY(
-        rviz_rendering::RenderWindowOgreAdapter::getOgreViewport(event.panel->getRenderWindow()),
-        cursor_pos);
+          rviz_rendering::RenderWindowOgreAdapter::getOgreViewport(event.panel->getRenderWindow()), cursor_pos);
       QCursor::setPos(event.panel->mapToGlobal(QPoint(static_cast<int>(mouse_pos.x), static_cast<int>(mouse_pos.y))));
       showMenu(event, control_name, three_d_point, valid_point);
       return true;

@@ -696,10 +696,8 @@ void EnvironmentWidget::loadEnvironment()
     else
       revision_ = 0;
 
-
     if (monitor_ != nullptr)
       monitor_->startMonitoringEnvironment(display_mode_string_property_->getStdString());
-
   }
 
   if (load_tesseract_ == false && env_->isInitialized())

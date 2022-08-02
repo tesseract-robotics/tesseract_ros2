@@ -351,8 +351,8 @@ private:
                                                                            ///< this link (if they
                                                                            /// exist)
 
-  std::vector<rviz_rendering::PointCloud*> visual_end_octrees_;  ///< The object representing the visual of this link
-                                                                 ///< (if they exist)
+  std::vector<rviz_rendering::PointCloud*> visual_end_octrees_;     ///< The object representing the visual of this link
+                                                                    ///< (if they exist)
   std::vector<rviz_rendering::PointCloud*> collision_end_octrees_;  ///< The object representing the visual of this link
                                                                     ///< (if they
                                                                     /// exist)

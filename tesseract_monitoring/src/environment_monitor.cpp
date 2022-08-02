@@ -55,11 +55,9 @@ ROSEnvironmentMonitor::ROSEnvironmentMonitor(rclcpp::Node::SharedPtr node,
   , node_(node)
   , robot_description_(std::move(robot_description))
   , internal_node_(std::make_shared<rclcpp::Node>(std::string(node->get_name()) + "_ROSEnvironmentMonitor_internal"))
-  , internal_node_spinner_{ std::thread{} }
   , cb_group_(internal_node_->create_callback_group(rclcpp::CallbackGroupType::Reentrant))
 {
-  if (internal_node_spinner_.joinable())
-    internal_node_spinner_.join();
+
   // Initial environment data
   if (!node_->has_parameter(robot_description_))
   {
@@ -100,12 +98,13 @@ ROSEnvironmentMonitor::ROSEnvironmentMonitor(rclcpp::Node::SharedPtr node,
   : EnvironmentMonitor(std::move(env), std::move(monitor_namespace))
   , node_(node)
   , internal_node_(std::make_shared<rclcpp::Node>(std::string(node->get_name()) + "_ROSEnvironmentMonitor_internal"))
-  , internal_node_spinner_{ std::thread{} }
   , cb_group_(internal_node_->create_callback_group(rclcpp::CallbackGroupType::Reentrant))
 {
-  if (internal_node_spinner_.joinable())
-    internal_node_spinner_.join();
 
+  if (!initialize())
+  {
+    RCLCPP_WARN(node_->get_logger(), "ENV passed to ros env monitor did not initialize");
+  }
   internal_node_spinner_ = std::thread{ [this]() {
     rclcpp::executors::MultiThreadedExecutor executor;
     executor.add_node(internal_node_);
@@ -162,12 +161,13 @@ void ROSEnvironmentMonitor::shutdown()
   get_environment_information_server_.reset();
   save_scene_graph_server_.reset();
   if (internal_node_spinner_.joinable())
-    internal_node_spinner_.join();
+      internal_node_spinner_.join();
 }
 
 bool ROSEnvironmentMonitor::initialize()
 {
   enforce_next_state_update_ = false;
+  rclcpp::Logger logger = node_->get_logger().get_child(monitor_namespace_ + "_monitor");
 
   if (monitor_namespace_.empty())
   {
@@ -177,7 +177,7 @@ bool ROSEnvironmentMonitor::initialize()
   if (!env_->isInitialized())
   {
     RCLCPP_WARN(node_->get_logger(),
-                "Failed to initialize environment monitor, the tesseract is uninitialized, intialize()");
+                "Failed to initialize environment monitor, the tesseract is uninitialized");
     return false;
   }
 

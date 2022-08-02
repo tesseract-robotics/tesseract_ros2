@@ -10,7 +10,7 @@
 
 #include <rviz_common/display.hpp>
 #include <rviz_common/properties/ros_topic_property.hpp>
-#include <rviz_common  //panel_dock_widget.hpp>
+#include <rviz_common/panel_dock_widget.hpp>
 
 //#include <ros/subscriber.h>
 #include <rclcpp/rclcpp.hpp>

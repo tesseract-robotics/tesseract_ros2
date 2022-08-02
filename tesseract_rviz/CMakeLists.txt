@@ -8,7 +8,7 @@ find_package(pluginlib REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rviz_common REQUIRED)
 find_package(rviz_rendering REQUIRED)
-find_package(rviz_ogre_vendor REQUIRED)
+#find_package(rviz_ogre_vendor REQUIRED)
 find_package(tesseract_msgs REQUIRED)
 find_package(tesseract_monitoring REQUIRED)
 find_package(tesseract_rosutils REQUIRED)
@@ -68,8 +68,8 @@ add_library(${PROJECT_NAME}_markers SHARED
   )
 
 target_link_libraries(${PROJECT_NAME}_markers PUBLIC
-  rviz_ogre_vendor::OgreMain
-  rviz_ogre_vendor::OgreOverlay
+#  rviz_ogre_vendor::OgreMain
+#  rviz_ogre_vendor::OgreOverlay
   rviz_common::rviz_common
   rviz_rendering::rviz_rendering
   Qt5::Widgets
@@ -96,8 +96,8 @@ add_library(${PROJECT_NAME}_interactive_marker SHARED
 )
 target_link_libraries(${PROJECT_NAME}_interactive_marker PUBLIC
   ${PROJECT_NAME}_markers
-  rviz_ogre_vendor::OgreMain
-  rviz_ogre_vendor::OgreOverlay
+#  rviz_ogre_vendor::OgreMain
+#  rviz_ogre_vendor::OgreOverlay
   rviz_common::rviz_common
   rviz_rendering::rviz_rendering
   Qt5::Widgets
@@ -160,8 +160,8 @@ target_link_libraries(${PROJECT_NAME}_render_tools PUBLIC
   tesseract::tesseract_environment
   tesseract::tesseract_motion_planners_core
   tesseract::tesseract_visualization
-  rviz_ogre_vendor::OgreMain
-  rviz_ogre_vendor::OgreOverlay
+#  rviz_ogre_vendor::OgreMain
+#  rviz_ogre_vendor::OgreOverlay
   Qt5::Widgets
   rviz_common::rviz_common
   rviz_rendering::rviz_rendering
@@ -400,11 +400,16 @@ install(DIRECTORY ogre_media DESTINATION share/${PROJECT_NAME})
 # Mark plugin XML files for installation
 install(FILES tesseract_rviz_state_plugin_description.xml
   tesseract_rviz_trajectory_plugin_description.xml
+  tesseract_rviz_workbench_plugin_description.xml
+  tesseract_rviz_environment_plugin_description.xml
+#  tesseract_rviz_
 # tesseract_rviz_manipulation_plugin_description.xml
   DESTINATION share/${PROJECT_NAME}
 )
 pluginlib_export_plugin_description_file(rviz_common tesseract_rviz_state_plugin_description.xml)
 pluginlib_export_plugin_description_file(rviz_common tesseract_rviz_trajectory_plugin_description.xml)
+pluginlib_export_plugin_description_file(rviz_common tesseract_rviz_workbench_plugin_description.xml)
+pluginlib_export_plugin_description_file(rviz_common tesseract_rviz_environment_plugin_description.xml)
 # pluginlib_export_plugin_description_file(rviz_common tesseract_rviz_manipulation_plugin_description.xml)
 
 ament_export_dependencies(
@@ -414,7 +419,7 @@ ament_export_dependencies(
     rclcpp
     rviz_common
     rviz_rendering
-    rviz_ogre_vendor
+#    rviz_ogre_vendor
     tesseract
     tesseract_msgs
     tesseract_rosutils

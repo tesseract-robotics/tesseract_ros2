@@ -646,6 +646,7 @@ void EnvironmentWidget::loadEnvironment()
   {
     // Initial setup
     std::string urdf_xml_string, srdf_xml_string;
+    std::string robot_description = urdf_description_property_->getString().toStdString();
     node_->get_parameter(urdf_description_property_->getString().toStdString(), urdf_xml_string);
     node_->get_parameter(urdf_description_property_->getString().toStdString() + "_semantic", srdf_xml_string);
 
@@ -672,7 +673,7 @@ void EnvironmentWidget::loadEnvironment()
         if (monitor_ != nullptr)
           monitor_->shutdown();
 
-        monitor_ = std::make_unique<tesseract_monitoring::ROSEnvironmentMonitor>(node_, env_, widget_ns_);
+        monitor_ = std::make_unique<tesseract_monitoring::ROSEnvironmentMonitor>(node_, robot_description, widget_ns_);
         revision_ = env_->getRevision();
         // setStatus(rviz_common::properties::StatusProperty::Ok, "Tesseract", "Tesseract Environment Loaded
         // Successfully");
@@ -695,10 +696,10 @@ void EnvironmentWidget::loadEnvironment()
     else
       revision_ = 0;
 
-    /*
+
     if (monitor_ != nullptr)
       monitor_->startMonitoringEnvironment(display_mode_string_property_->getStdString());
-    */
+
   }
 
   if (load_tesseract_ == false && env_->isInitialized())

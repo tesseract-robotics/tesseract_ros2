@@ -189,6 +189,8 @@ protected:
   /// List of callbacks to trigger when updates are received
   std::vector<std::function<void()> > update_callbacks_;
 
+  rclcpp::callback_group::CallbackGroup::SharedPtr cb_group_;
+
 private:
   // publish environment update diffs (runs in its own thread)
   void environmentPublishingThread();

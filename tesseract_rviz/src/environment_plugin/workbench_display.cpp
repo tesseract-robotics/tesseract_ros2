@@ -12,7 +12,7 @@
 #include <tesseract_qt/common/theme_utils.h>
 #include <tesseract_qt/common/icon_utils.h>
 
-#include <rviz_common  //panel_dock_widget.hpp>
+#include <rviz_common/panel_dock_widget.hpp>
 #include <rviz_common/display_context.hpp>
 #include <rviz_common/window_manager_interface.hpp>
 #include <rviz_common/properties/property.hpp>

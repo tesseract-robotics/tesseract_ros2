@@ -12,7 +12,7 @@
 #include <rviz_common/properties/ros_topic_property.hpp>
 #include <rviz_common/properties/string_property.hpp>
 #include <rviz_common/properties/enum_property.hpp>
-#include <rviz_common  //panel_dock_widget.hpp>
+#include <rviz_common/panel_dock_widget.hpp>
 
 #include <unordered_map>
 

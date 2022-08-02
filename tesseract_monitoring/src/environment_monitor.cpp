@@ -55,21 +55,24 @@ ROSEnvironmentMonitor::ROSEnvironmentMonitor(rclcpp::Node::SharedPtr node,
   , node_(node)
   , robot_description_(std::move(robot_description))
   , internal_node_(std::make_shared<rclcpp::Node>(std::string(node->get_name()) + "_ROSEnvironmentMonitor_internal"))
-  , internal_node_spinner_{}
+  , internal_node_spinner_{std::thread{}}
+  , cb_group_(internal_node_->create_callback_group(rclcpp::CallbackGroupType::Reentrant))
 {
+  if (internal_node_spinner_.joinable())
+    internal_node_spinner_.join();
   // Initial environment data
-  if (!node_->has_parameter(robot_description))
+  if (!node_->has_parameter(robot_description_))
   {
-    throw std::runtime_error("Failed to find parameter: '" + robot_description + "'");
+    throw std::runtime_error("Failed to find parameter: '" + robot_description_ + "'");
   }
 
-  if (!node_->has_parameter(robot_description + "_semantic"))
+  if (!node_->has_parameter(robot_description_ + "_semantic"))
   {
-    throw std::runtime_error("Failed to find parameter: '" + robot_description + "_semantic'");
+    throw std::runtime_error("Failed to find parameter: '" + robot_description_ + "_semantic'");
   }
 
-  std::string urdf_xml = node_->get_parameter(robot_description).as_string();
-  std::string srdf_xml = node_->get_parameter(robot_description + "_semantic").as_string();
+  std::string urdf_xml = node_->get_parameter(robot_description_).as_string();
+  std::string srdf_xml = node_->get_parameter(robot_description_ + "_semantic").as_string();
 
   env_ = std::make_shared<tesseract_environment::Environment>();
   auto locator = std::make_shared<tesseract_rosutils::ROSResourceLocator>();
@@ -82,6 +85,13 @@ ROSEnvironmentMonitor::ROSEnvironmentMonitor(rclcpp::Node::SharedPtr node,
   {
     throw std::runtime_error("EnvironmentMonitor failed to initialize from URDF and SRDF");
   }
+
+  internal_node_spinner_ = std::thread{ [this]() {
+    rclcpp::executors::MultiThreadedExecutor executor;
+    executor.add_node(internal_node_);
+    executor.spin();
+  } };
+  internal_node_spinner_.detach();
 }
 
 ROSEnvironmentMonitor::ROSEnvironmentMonitor(rclcpp::Node::SharedPtr node,
@@ -90,12 +100,18 @@ ROSEnvironmentMonitor::ROSEnvironmentMonitor(rclcpp::Node::SharedPtr node,
   : EnvironmentMonitor(std::move(env), std::move(monitor_namespace))
   , node_(node)
   , internal_node_(std::make_shared<rclcpp::Node>(std::string(node->get_name()) + "_ROSEnvironmentMonitor_internal"))
-  , internal_node_spinner_{}
+  , internal_node_spinner_{std::thread{}}
+  , cb_group_(internal_node_->create_callback_group(rclcpp::CallbackGroupType::Reentrant))
 {
-  if (!initialize())
-  {
-    throw std::runtime_error("EnvironmentMonitor failed to initialize from tesseract env");
-  }
+  if (internal_node_spinner_.joinable())
+    internal_node_spinner_.join();
+
+  internal_node_spinner_ = std::thread{ [this]() {
+    rclcpp::executors::MultiThreadedExecutor executor;
+    executor.add_node(internal_node_);
+    executor.spin();
+  } };
+  internal_node_spinner_.detach();
 }
 
 ROSEnvironmentMonitor::~ROSEnvironmentMonitor()
@@ -145,7 +161,8 @@ void ROSEnvironmentMonitor::shutdown()
   get_environment_changes_server_.reset();
   get_environment_information_server_.reset();
   save_scene_graph_server_.reset();
-  internal_node_spinner_.join();
+  if (internal_node_spinner_.joinable())
+    internal_node_spinner_.join();
 }
 
 bool ROSEnvironmentMonitor::initialize()
@@ -159,7 +176,8 @@ bool ROSEnvironmentMonitor::initialize()
 
   if (!env_->isInitialized())
   {
-    throw std::runtime_error("Failed to initalize environment monitor, the tesseract is uninitialized");
+    RCLCPP_WARN(node_->get_logger(), "Failed to initialize environment monitor, the tesseract is uninitialized, intialize()");
+    return false;
   }
 
   publish_environment_frequency_ = 30.0;
@@ -183,23 +201,27 @@ bool ROSEnvironmentMonitor::initialize()
 
   // Create new service
   std::string modify_environment_service = R"(/)" + monitor_namespace_ + DEFAULT_MODIFY_ENVIRONMENT_SERVICE;
-  modify_environment_server_ = node_->create_service<tesseract_msgs::srv::ModifyEnvironment>(
-      modify_environment_service, std::bind(&ROSEnvironmentMonitor::modifyEnvironmentCallback, this, _ph1, _ph2));
+  modify_environment_server_ = internal_node_->create_service<tesseract_msgs::srv::ModifyEnvironment>(
+      modify_environment_service, std::bind(&ROSEnvironmentMonitor::modifyEnvironmentCallback, this, _ph1, _ph2),
+              rmw_qos_profile_services_default, cb_group_);
 
   std::string get_environment_changes_service = R"(/)" + monitor_namespace_ + DEFAULT_GET_ENVIRONMENT_CHANGES_SERVICE;
-  get_environment_changes_server_ = node_->create_service<tesseract_msgs::srv::GetEnvironmentChanges>(
+  get_environment_changes_server_ = internal_node_->create_service<tesseract_msgs::srv::GetEnvironmentChanges>(
       get_environment_changes_service,
-      std::bind(&ROSEnvironmentMonitor::getEnvironmentChangesCallback, this, _ph1, _ph2));
+      std::bind(&ROSEnvironmentMonitor::getEnvironmentChangesCallback, this, _ph1, _ph2),
+              rmw_qos_profile_services_default, cb_group_);
 
   std::string get_environment_information_service =
       R"(/)" + monitor_namespace_ + DEFAULT_GET_ENVIRONMENT_INFORMATION_SERVICE;
-  get_environment_information_server_ = node_->create_service<tesseract_msgs::srv::GetEnvironmentInformation>(
+  get_environment_information_server_ = internal_node_->create_service<tesseract_msgs::srv::GetEnvironmentInformation>(
       get_environment_information_service,
-      std::bind(&ROSEnvironmentMonitor::getEnvironmentInformationCallback, this, _ph1, _ph2));
+      std::bind(&ROSEnvironmentMonitor::getEnvironmentInformationCallback, this, _ph1, _ph2),
+              rmw_qos_profile_services_default, cb_group_);
 
   std::string save_scene_graph_service = R"(/)" + monitor_namespace_ + DEFAULT_SAVE_SCENE_GRAPH_SERVICE;
-  save_scene_graph_server_ = node_->create_service<tesseract_msgs::srv::SaveSceneGraph>(
-      save_scene_graph_service, std::bind(&ROSEnvironmentMonitor::saveSceneGraphCallback, this, _ph1, _ph2));
+  save_scene_graph_server_ = internal_node_->create_service<tesseract_msgs::srv::SaveSceneGraph>(
+      save_scene_graph_service, std::bind(&ROSEnvironmentMonitor::saveSceneGraphCallback, this, _ph1, _ph2),
+              rmw_qos_profile_services_default, cb_group_);
 
   return true;
 }
@@ -287,7 +309,6 @@ void ROSEnvironmentMonitor::stopMonitoringEnvironment()
   get_monitored_environment_information_client_.reset();
   monitored_environment_subscriber_.reset();
   RCLCPP_INFO(internal_node_->get_logger().get_child(monitor_namespace_), "Stopped monitoring environment.");
-  internal_node_spinner_.join();
 }
 
 const CurrentStateMonitor& ROSEnvironmentMonitor::getStateMonitor() const { return *current_state_monitor_; }
@@ -307,16 +328,13 @@ void ROSEnvironmentMonitor::startMonitoringEnvironment(const std::string& monito
 
   stopMonitoringEnvironment();
 
-  rclcpp::callback_group::CallbackGroup::SharedPtr cb_group =
-      internal_node_->create_callback_group(rclcpp::CallbackGroupType::Reentrant);
-
   get_monitored_environment_changes_client_ = internal_node_->create_client<tesseract_msgs::srv::GetEnvironmentChanges>(
-      monitored_environment_changes_service, rmw_qos_profile_services_default, cb_group);
+      monitored_environment_changes_service, rmw_qos_profile_services_default, cb_group_);
   modify_monitored_environment_client_ = internal_node_->create_client<tesseract_msgs::srv::ModifyEnvironment>(
-      monitored_environment_modify_service, rmw_qos_profile_services_default, cb_group);
+      monitored_environment_modify_service, rmw_qos_profile_services_default, cb_group_);
   get_monitored_environment_information_client_ =
       internal_node_->create_client<tesseract_msgs::srv::GetEnvironmentInformation>(
-          monitored_environment_information_service, rmw_qos_profile_services_default, cb_group);
+          monitored_environment_information_service, rmw_qos_profile_services_default, cb_group_);
 
   monitored_environment_subscriber_ = internal_node_->create_subscription<tesseract_msgs::msg::EnvironmentState>(
       monitored_environment_topic,
@@ -326,12 +344,6 @@ void ROSEnvironmentMonitor::startMonitoringEnvironment(const std::string& monito
   RCLCPP_INFO(internal_node_->get_logger().get_child(monitor_namespace_),
               "Monitoring external environment on '%s'",
               monitored_environment_topic.c_str());
-
-  internal_node_spinner_ = std::thread{ [this]() {
-    rclcpp::executors::MultiThreadedExecutor executor;
-    executor.add_node(internal_node_);
-    executor.spin();
-  } };
 }
 
 double ROSEnvironmentMonitor::getStateUpdateFrequency() const

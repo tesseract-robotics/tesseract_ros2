@@ -7,7 +7,7 @@
 
 #include <OgreSceneNode.h>
 
-#include <rviz_common  //panel_dock_widget.hpp>
+#include <rviz_common/panel_dock_widget.hpp>
 #include <rviz_common/properties/property.hpp>
 
 #include <QApplication>

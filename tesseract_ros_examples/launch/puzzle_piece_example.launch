@@ -26,7 +26,7 @@
     <node pkg="tf" type="static_transform_publisher" name="virtual_joint_broadcaster_0" args="0 0 0 0 0 0 world base_link 100" />
     -->
 
-    <node pkg="tesseract_ros_examples" exec="tesseract_ros_examples_puzzle_piece_example_node" output="screen">
+    <node pkg="tesseract_ros_examples" exec="tesseract_ros_examples_puzzle_piece_example_node" output="log">
       <param name="plotting" type="bool" value="$(var plotting)"/>
       <param name="rviz" type="bool" value="$(var rviz)"/>
       <param name="robot_description" value="$(var robot_description)" type="str"/>
@@ -41,8 +41,8 @@
     <node pkg="rviz2" exec="rviz2"
 
       output="screen">
-      <!--<param name="robot_description" value="$(var robot_description)" type="str"/>
-      <param name="robot_description_semantic" value="$(var robot_description_semantic)" type="str"/>-->
+      <param name="robot_description" value="$(var robot_description)" type="str"/>
+      <param name="robot_description_semantic" value="$(var robot_description_semantic)" type="str"/>
     </node>
   <!--
   </group>

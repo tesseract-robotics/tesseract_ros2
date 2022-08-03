@@ -43,7 +43,7 @@
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <rviz_common/display.hpp>
 #ifndef Q_MOC_RUN
-#include <ros/ros.h>
+#include <rclcpp/rclcpp.hpp>
 #include <tesseract_environment/environment.h>
 #endif
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
@@ -54,7 +54,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 namespace tesseract_rviz
 {
-class PlanningResponseArchiveDisplay : public rviz::Display
+class PlanningResponseArchiveDisplay : public rviz_common::Display
 {
   Q_OBJECT
 

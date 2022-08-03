@@ -1,3 +1,8 @@
+#include <tesseract_common/macros.h>
+TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
+#include <tesseract_rosutils/utils.h>
+TESSERACT_COMMON_IGNORE_WARNINGS_POP
+
 #include <tesseract_rviz/environment_plugin/workbench_display.h>
 #include <tesseract_rviz/environment_plugin/ros_environment_widget.h>
 #include <tesseract_rviz/environment_plugin/ros_manipulation_widget.h>
@@ -17,6 +22,7 @@
 #include <rviz_common/window_manager_interface.hpp>
 #include <rviz_common/properties/property.hpp>
 
+#include <OgreSceneManager.h>
 #include <OgreSceneNode.h>
 
 #include <QApplication>
@@ -59,7 +65,7 @@ WorkbenchDisplay::WorkbenchDisplay() : data_(std::make_unique<WorkbenchDisplayPr
   auto* monitor_property = new rviz_common::properties::Property(
       "Environment Properties", "", "Tesseract environment properties", this, nullptr, this);
   auto* joint_trajectory_property = new rviz_common::properties::Property(
-      "Joint Trajectory Properties", "", "Tesseract joint trajectory properties", this, nullptr, this);
+      "Joint Trajectory Properties", "", "Tesseract joint trajectory properties", this, nullptr, this);  
 
   data_->monitor_properties =
       std::make_unique<EnvironmentMonitorProperties>(this, data_->workbench_display_ns, monitor_property);
@@ -96,8 +102,9 @@ void WorkbenchDisplay::onInitialize()
   disconnect(
       getAssociatedWidgetPanel(), SIGNAL(visibilityChanged(bool)), this, SLOT(associatedPanelVisibilityChange(bool)));
 
-  data_->monitor_properties->onInitialize(data_->environment_widget);
-  data_->joint_trajectory_properties->onInitialize(data_->joint_trajectory_widget);
+  auto rviz_node = context_->getRosNodeAbstraction().lock()->get_raw_node();
+  data_->monitor_properties->onInitialize(data_->environment_widget, rviz_node);
+  data_->joint_trajectory_properties->onInitialize(data_->joint_trajectory_widget, rviz_node);
 
   data_->theme_tool = SetThemeTool::instance();
   if (!data_->theme_tool->isInitialized())

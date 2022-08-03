@@ -14,6 +14,7 @@
 
 #include <set>
 #include <QLayout>
+#include <OgreSceneNode.h>
 
 namespace tesseract_rviz
 {
@@ -21,9 +22,9 @@ struct ROSManipulationWidgetPrivate
 {
   ROSManipulationWidgetPrivate()
     : entity_managers(
-          { std::make_shared<tesseract_gui::EntityManager>(), std::make_shared<tesseract_gui::EntityManager>() }){};
+         { std::make_shared<tesseract_gui::EntityManager>(), std::make_shared<tesseract_gui::EntityManager>() }){};
 
-  rviz::DisplayContext* context;
+  rviz_common::DisplayContext* context;
   Ogre::SceneNode* scene_node;
 
   std::array<tesseract_gui::EntityManager::Ptr, 2> entity_managers;
@@ -56,7 +57,7 @@ struct ROSManipulationWidgetPrivate
   double joint_interactive_marker_scale{ 0.5 };
 };
 
-ROSManipulationWidget::ROSManipulationWidget(rviz::DisplayContext* context, Ogre::SceneNode* scene_node)
+ROSManipulationWidget::ROSManipulationWidget(rviz_common::DisplayContext* context, Ogre::SceneNode* scene_node)
   : data_(std::make_unique<ROSManipulationWidgetPrivate>())
 {
   layout()->setSizeConstraint(QLayout::SetNoConstraint);

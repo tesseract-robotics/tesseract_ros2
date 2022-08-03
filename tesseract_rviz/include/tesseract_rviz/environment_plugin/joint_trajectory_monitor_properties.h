@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <QObject>
+#include <rclcpp/rclcpp.hpp>
 
 namespace rviz_common
 {
@@ -37,7 +38,8 @@ public:
                                    rviz_common::properties::Property* main_property = nullptr);
   ~JointTrajectoryMonitorProperties() override;
 
-  void onInitialize(tesseract_gui::JointTrajectoryWidget* widget);
+  void onInitialize(tesseract_gui::JointTrajectoryWidget* widget,
+                    std::shared_ptr<rclcpp::Node> rviz_node);
 
   void load(const rviz_common::Config& config);
   void save(rviz_common::Config config) const;

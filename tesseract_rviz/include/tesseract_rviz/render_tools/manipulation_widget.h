@@ -29,15 +29,15 @@
 #include <tesseract_common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <rviz_common/display.hpp>
-#include <rviz_common  //panel_dock_widget.hpp>
+#include <rviz_common/panel_dock_widget.hpp>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #ifndef Q_MOC_RUN
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
-#include <ros/ros.h>
-#include <tesseract_msgs/Trajectory.h>
+#include <rclcpp/rclcpp.hpp>
+#include <tesseract_msgs/msg/trajectory.hpp>
 #include <tesseract_environment/environment.h>
-#include <sensor_msgs/JointState.h>
+#include <sensor_msgs/msg/joint_state.hpp>
 #include <boost/thread/mutex.hpp>
 #include <tesseract_kinematics/core/inverse_kinematics.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
@@ -139,7 +139,7 @@ protected:
   rviz_common::DisplayContext* context_;
   VisualizationWidget::SharedPtr visualization_;
   tesseract::Tesseract::Ptr tesseract_;
-  ros::NodeHandle nh_;
+  rclcpp::Node::SharedPtr node_;
   ManipulatorState state_;
   InteractiveMarker::SharedPtr interactive_marker_;
   std::map<std::string, InteractiveMarker::SharedPtr> joint_interactive_markers_;
@@ -151,7 +151,7 @@ protected:
   tesseract_environment::EnvState::Ptr env_state_;
   Eigen::Isometry3d tcp_;
 
-  ros::Publisher joint_state_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr joint_state_pub_;
   QStringList available_manipulators_;
   QStringList available_tcp_links_;
 

@@ -8,6 +8,7 @@
 #include <OgreSceneNode.h>
 
 #include <rviz_common/panel_dock_widget.hpp>
+#include <rviz_common/display_context.hpp>
 #include <rviz_common/properties/property.hpp>
 
 #include <QApplication>
@@ -72,7 +73,8 @@ void EnvironmentDisplay::onInitialize()
   disconnect(
       getAssociatedWidgetPanel(), SIGNAL(visibilityChanged(bool)), this, SLOT(associatedPanelVisibilityChange(bool)));
 
-  data_->monitor_properties->onInitialize(data_->widget);
+  auto rviz_node = context_->getRosNodeAbstraction().lock()->get_raw_node();
+  data_->monitor_properties->onInitialize(data_->widget, rviz_node);
 
   data_->theme_tool = SetThemeTool::instance();
   if (!data_->theme_tool->isInitialized())

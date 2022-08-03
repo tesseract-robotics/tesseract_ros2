@@ -69,10 +69,8 @@ public:
 
   InteractiveMarker(const std::string& name,
                     const std::string& description,
-                    const std::string& reference_frame,
                     Ogre::SceneNode* scene_node,
                     rviz_common::DisplayContext* context,
-                    const bool reference_frame_locked,
                     const float scale = 1);
   virtual ~InteractiveMarker();
 
@@ -98,13 +96,14 @@ public:
 
   void startDragging();
   void stopDragging();
+  bool isDragging() const;
 
   const Ogre::Vector3& getPosition() const { return position_; }
   const Ogre::Quaternion& getOrientation() const { return orientation_; }
 
   void setSize(float scale);
   float getSize() const { return scale_; }
-  const std::string& getReferenceFrame() { return reference_frame_; }
+
   const std::string& getName() { return name_; }
 
   /**
@@ -182,9 +181,6 @@ protected:
 
   void reset();
 
-  // set the pose of the parent frame, relative to the fixed frame
-  void updateReferencePose();
-
   QString makeMenuString(const std::string& entry);
 
   // Recursively append menu and submenu entries to menu, based on a
@@ -203,10 +199,6 @@ protected:
 
   bool visible_;
   rviz_common::DisplayContext* context_;
-
-  // pose of parent coordinate frame
-  std::string reference_frame_;
-  bool reference_frame_locked_;
 
   // node representing reference frame in tf, like /map, /base_link, /head, etc.
   Ogre::SceneNode* reference_node_;
@@ -261,7 +253,7 @@ protected:
   std::string topic_ns_;
   std::string client_id_;
 
-  boost::recursive_mutex mutex_;
+  mutable boost::recursive_mutex mutex_;
 
   std::shared_ptr<boost::thread> sys_thread_;
 

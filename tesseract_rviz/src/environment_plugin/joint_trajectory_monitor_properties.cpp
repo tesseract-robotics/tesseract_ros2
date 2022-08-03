@@ -12,25 +12,27 @@
 #include <rviz_common/properties/ros_topic_property.hpp>
 #include <rviz_common/panel_dock_widget.hpp>
 
-//#include <ros/subscriber.h>
-#include <rclcpp/rclcpp.hpp>
 #include <unordered_map>
+#include <thread>
 
 namespace tesseract_rviz
 {
 class JointTrajectoryMonitorPropertiesPrivate
 {
 public:
+
+  std::shared_ptr<rclcpp::Node> rviz_node;
   std::shared_ptr<rclcpp::Node> node;
+  std::shared_ptr<std::thread> internal_node_spinner;
   rviz_common::Display* parent;
   rviz_common::properties::Property* main_property;
   tesseract_gui::JointTrajectoryWidget* widget;
 
   rviz_common::properties::BoolProperty* legacy_main;
-  rviz_common::properties::RosTopicProperty* legacy_joint_trajectory_topic_property;
+  rviz_common::properties::StringProperty* legacy_joint_trajectory_topic_property;
 
   rviz_common::properties::BoolProperty* tesseract_main;
-  rviz_common::properties::RosTopicProperty* tesseract_joint_trajectory_topic_property;
+  rviz_common::properties::StringProperty* tesseract_joint_trajectory_topic_property;
 
   rclcpp::Subscription<trajectory_msgs::msg::JointTrajectory>::SharedPtr legacy_joint_trajectory_sub;
   rclcpp::Subscription<tesseract_msgs::msg::Trajectory>::SharedPtr tesseract_joint_trajectory_sub;
@@ -59,10 +61,9 @@ JointTrajectoryMonitorProperties::JointTrajectoryMonitorProperties(rviz_common::
                                                                  this);
   data_->legacy_main->setDisableChildrenIfFalse(true);
 
-  data_->legacy_joint_trajectory_topic_property = new rviz_common::properties::RosTopicProperty(
+  data_->legacy_joint_trajectory_topic_property = new rviz_common::properties::StringProperty(
       "topic",
       "/joint_trajectory",
-      rosidl_generator_traits::data_type<trajectory_msgs::msg::JointTrajectory>(),
       "This will monitor this topic for trajectory_msgs::JointTrajectory messages.",
       data_->legacy_main,
       SLOT(onLegacyJointTrajectoryTopicChanged()),
@@ -78,20 +79,33 @@ JointTrajectoryMonitorProperties::JointTrajectoryMonitorProperties(rviz_common::
                                                                     this);
   data_->tesseract_main->setDisableChildrenIfFalse(true);
 
-  data_->tesseract_joint_trajectory_topic_property = new rviz_common::properties::RosTopicProperty(
+  data_->tesseract_joint_trajectory_topic_property = new rviz_common::properties::StringProperty(
       "Joint Trajectory Topic",
       "/tesseract_trajectory",
-      rosidl_generator_traits::data_type<tesseract_msgs::msg::Trajectory>(),
       "This will monitor this topic for tesseract_msgs::Trajectory messages.",
       data_->tesseract_main,
       SLOT(onTesseractJointTrajectoryTopicChanged()),
       this);
 }
 
-JointTrajectoryMonitorProperties::~JointTrajectoryMonitorProperties() = default;
-
-void JointTrajectoryMonitorProperties::onInitialize(tesseract_gui::JointTrajectoryWidget* widget)
+JointTrajectoryMonitorProperties::~JointTrajectoryMonitorProperties()
 {
+    if (data_->internal_node_spinner->joinable())
+        data_->internal_node_spinner->join();
+}
+
+void JointTrajectoryMonitorProperties::onInitialize(tesseract_gui::JointTrajectoryWidget* widget,
+                                                    std::shared_ptr<rclcpp::Node> rviz_node)
+{
+  data_->rviz_node = rviz_node;
+
+  data_->node = std::make_shared<rclcpp::Node>(std::string(data_->rviz_node->get_name()) + "TesseractWorkbench_JointTrajectory_Node");
+  data_->internal_node_spinner = std::make_shared<std::thread>(std::thread{ [this]() {
+        rclcpp::executors::MultiThreadedExecutor executor;
+        executor.add_node(data_->node);
+        executor.spin();
+    } });
+  data_->internal_node_spinner->detach();
   data_->widget = widget;
   onLegacyJointTrajectoryTopicConnect();
   onTesseractJointTrajectoryTopicConnect();

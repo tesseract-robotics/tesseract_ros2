@@ -5,4 +5,4 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_rviz/environment_plugin/workbench_display.h>
 
-CLASS_LOADER_REGISTER_CLASS(tesseract_rviz::WorkbenchDisplay, rviz::Display)
+CLASS_LOADER_REGISTER_CLASS(tesseract_rviz::WorkbenchDisplay, rviz_common::Display)

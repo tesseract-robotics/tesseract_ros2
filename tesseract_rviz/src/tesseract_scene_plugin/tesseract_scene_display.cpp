@@ -121,7 +121,7 @@ TesseractSceneDisplay::TesseractSceneDisplay(bool listen_to_planning_scene, bool
   scene_alpha_property_->setMin(0.0);
   scene_alpha_property_->setMax(1.0);
 
-  scene_color_property_ = new rviz::ColorProperty("Scene Color",
+  scene_color_property_ = new rviz_common::properties::ColorProperty("Scene Color",
                                                   QColor(50, 230, 50),
                                                   "The color for the planning scene obstacles (if a color is not "
                                                   "defined)",
@@ -192,7 +192,7 @@ TesseractSceneDisplay::TesseractSceneDisplay(bool listen_to_planning_scene, bool
     robot_alpha_property_->setMin(0.0);
     robot_alpha_property_->setMax(1.0);
 
-    attached_body_color_property_ = new rviz::ColorProperty("Attached Body Color",
+    attached_body_color_property_ = new rviz_common::properties::ColorProperty("Attached Body Color",
                                                             QColor(150, 50, 150),
                                                             "The color for the attached bodies",
                                                             robot_category_,
@@ -370,10 +370,10 @@ void TesseractSceneDisplay::renderPlanningScene()
   if (tesseract_scene_render_ && tesseract_scene_needs_render_)
   {
     QColor color = scene_color_property_->getColor();
-    rviz::Color env_color(color.redF(), color.greenF(), color.blueF());
+    rviz_common::properties::Color env_color(color.redF(), color.greenF(), color.blueF());
     if (attached_body_color_property_)
       color = attached_body_color_property_->getColor();
-    rviz::Color attached_color(color.redF(), color.greenF(), color.blueF());
+    rviz_common::properties::Color attached_color(color.redF(), color.greenF(), color.blueF());
 
     try
     {

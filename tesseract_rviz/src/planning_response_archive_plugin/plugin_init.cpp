@@ -41,4 +41,4 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_rviz/planning_response_archive_plugin/planning_response_archive_display.h>
 
-CLASS_LOADER_REGISTER_CLASS(tesseract_rviz::PlanningResponseArchiveDisplay, rviz::Display)
+CLASS_LOADER_REGISTER_CLASS(tesseract_rviz::PlanningResponseArchiveDisplay, rviz_common::Display)

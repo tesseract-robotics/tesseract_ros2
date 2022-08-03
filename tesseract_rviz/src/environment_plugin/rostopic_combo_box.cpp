@@ -48,23 +48,19 @@ void ROSTopicComboBox::fillTopicList()
   QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
   clear();
 
-  //  std::string std_message_type = message_type_.toStdString();
+//    std::string std_message_type = message_type_.toStdString();
+//    std::map<std::string, std::vector<std::string>> published_topics =
+//      rviz_ros_node_.lock()->get_topic_names_and_types();
 
-  //  ros::master::V_TopicInfo topics;
-  //  ros::master::getTopics(topics);
+//    for (const auto & topic : published_topics) {
+//      // Only add topics whose type matches.
+//      for (const auto & type : topic.second) {
+//        if (type == std_message_type) {
+//          addItem(QString::fromStdString(topic.first));
+//        }
+//      }
+//    }
 
-  //  // Loop through all published topics
-  //  ros::master::V_TopicInfo::iterator it;
-  //  for (it = topics.begin(); it != topics.end(); ++it)
-  //  {
-  //    const ros::master::TopicInfo& topic = *it;
-
-  //    // Only add topics whose type matches.
-  //    if (topic.datatype == std_message_type)
-  //    {
-  //      addItem(QString::fromStdString(topic.name));
-  //    }
-  //  }
   QApplication::restoreOverrideCursor();
 }
 }  // namespace tesseract_rviz

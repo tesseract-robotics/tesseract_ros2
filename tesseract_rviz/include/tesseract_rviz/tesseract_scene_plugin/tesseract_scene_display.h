@@ -204,8 +204,8 @@ protected:
   rviz_common::properties::RosTopicProperty* planning_scene_topic_property_;
   rviz_common::properties::FloatProperty* robot_alpha_property_;
   rviz_common::properties::FloatProperty* scene_alpha_property_;
-  rviz::ColorProperty* scene_color_property_;
-  rviz::ColorProperty* attached_body_color_property_;
+  rviz_common::properties::ColorProperty* scene_color_property_;
+  rviz_common::properties::ColorProperty* attached_body_color_property_;
   rviz_common::properties::FloatProperty* scene_display_time_property_;
   rviz_common::properties::EnumProperty* octree_render_property_;
   rviz_common::properties::EnumProperty* octree_coloring_property_;

@@ -78,7 +78,7 @@ ManipulationWidget::ManipulationWidget(rviz_common::properties::Property* widget
   joint_state_topic_property_ =
       new rviz_common::properties::RosTopicProperty("Topic",
                                                     "/tesseract/manipulation_joint_states",
-                                                    rosidl_generator_traits::data_type<sensor_msgs::JointState>(),
+                                                    rosidl_generator_traits::data_type<sensor_msgs::msg::JointState>(),
                                                     "The topic on which the sensor_msgs::JointState messages "
                                                     "are published",
                                                     main_property_,
@@ -142,11 +142,11 @@ ManipulationWidget::~ManipulationWidget()
 
 void ManipulationWidget::onInitialize(Ogre::SceneNode* root_node,
                                       rviz_common::DisplayContext* context,
-                                      VisualizationWidget::SharedPtr visualization,
-                                      tesseract::Tesseract::Ptr tesseract,
-                                      ros::NodeHandle update_nh,
+                                      VisualizationWidget::Ptr visualization,
+                                      tesseract_environment::Environment::Ptr env,
+                                      rclcpp::Node::SharedPtr update_node,
                                       ManipulatorState state,
-                                      QString joint_state_topic)
+                                      const QString& joint_state_topic)
 {
   // Save pointers for later use
   visualization_ = std::move(visualization);

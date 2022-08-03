@@ -2,6 +2,7 @@
 #define TESSERACT_RVIZ_ENVIRONMENT_MONITOR_PROPERTIES_H
 
 #include <memory>
+#include <rclcpp/rclcpp.hpp>
 #include <QObject>
 
 namespace rviz_common
@@ -33,7 +34,8 @@ public:
                                rviz_common::properties::Property* main_property = nullptr);
   ~EnvironmentMonitorProperties() override;
 
-  void onInitialize(ROSEnvironmentWidget* widget);
+  void onInitialize(ROSEnvironmentWidget* widget,
+                    std::shared_ptr<rclcpp::Node> rviz_node);
 
   /**
    * @brief Return the config based on the settings of the object

@@ -191,8 +191,6 @@ protected:
 
   rclcpp::callback_group::CallbackGroup::SharedPtr cb_group_;
 
-//  rclcpp::executors::MultiThreadedExecutor executor_;
-
 private:
   // publish environment update diffs (runs in its own thread)
   void environmentPublishingThread();

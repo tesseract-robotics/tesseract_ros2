@@ -22,7 +22,7 @@ struct ROSManipulationWidgetPrivate
 {
   ROSManipulationWidgetPrivate()
     : entity_managers(
-         { std::make_shared<tesseract_gui::EntityManager>(), std::make_shared<tesseract_gui::EntityManager>() }){};
+          { std::make_shared<tesseract_gui::EntityManager>(), std::make_shared<tesseract_gui::EntityManager>() }){};
 
   rviz_common::DisplayContext* context;
   Ogre::SceneNode* scene_node;

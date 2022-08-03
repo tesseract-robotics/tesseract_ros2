@@ -122,12 +122,13 @@ TesseractSceneDisplay::TesseractSceneDisplay(bool listen_to_planning_scene, bool
   scene_alpha_property_->setMax(1.0);
 
   scene_color_property_ = new rviz_common::properties::ColorProperty("Scene Color",
-                                                  QColor(50, 230, 50),
-                                                  "The color for the planning scene obstacles (if a color is not "
-                                                  "defined)",
-                                                  scene_category_,
-                                                  SLOT(changedSceneColor()),
-                                                  this);
+                                                                     QColor(50, 230, 50),
+                                                                     "The color for the planning scene obstacles (if a "
+                                                                     "color is not "
+                                                                     "defined)",
+                                                                     scene_category_,
+                                                                     SLOT(changedSceneColor()),
+                                                                     this);
 
   octree_render_property_ = new rviz_common::properties::EnumProperty("Voxel Rendering",
                                                                       "Occupied Voxels",
@@ -193,11 +194,11 @@ TesseractSceneDisplay::TesseractSceneDisplay(bool listen_to_planning_scene, bool
     robot_alpha_property_->setMax(1.0);
 
     attached_body_color_property_ = new rviz_common::properties::ColorProperty("Attached Body Color",
-                                                            QColor(150, 50, 150),
-                                                            "The color for the attached bodies",
-                                                            robot_category_,
-                                                            SLOT(changedAttachedBodyColor()),
-                                                            this);
+                                                                               QColor(150, 50, 150),
+                                                                               "The color for the attached bodies",
+                                                                               robot_category_,
+                                                                               SLOT(changedAttachedBodyColor()),
+                                                                               this);
   }
   else
   {

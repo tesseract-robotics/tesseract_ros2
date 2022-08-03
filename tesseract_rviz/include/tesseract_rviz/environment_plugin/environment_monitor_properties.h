@@ -34,8 +34,7 @@ public:
                                rviz_common::properties::Property* main_property = nullptr);
   ~EnvironmentMonitorProperties() override;
 
-  void onInitialize(ROSEnvironmentWidget* widget,
-                    std::shared_ptr<rclcpp::Node> rviz_node);
+  void onInitialize(ROSEnvironmentWidget* widget, std::shared_ptr<rclcpp::Node> rviz_node);
 
   /**
    * @brief Return the config based on the settings of the object

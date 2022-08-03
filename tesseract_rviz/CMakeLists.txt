@@ -2,13 +2,13 @@ cmake_minimum_required(VERSION 3.9)
 project(tesseract_rviz VERSION 0.1.0)
 
 
-find_package(ament_cmake REQUIRED)
-find_package(interactive_markers REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(rviz_common REQUIRED)
-find_package(rviz_rendering REQUIRED)
 #find_package(rviz_ogre_vendor REQUIRED)
+find_package(rviz_common REQUIRED)
+#find_package(rviz_rendering REQUIRED)
+find_package(interactive_markers REQUIRED)
+find_package(ament_cmake REQUIRED)
 find_package(tesseract_msgs REQUIRED)
 find_package(tesseract_monitoring REQUIRED)
 find_package(tesseract_rosutils REQUIRED)
@@ -65,6 +65,15 @@ add_library(${PROJECT_NAME}_markers SHARED
   src/markers/cylinder_marker.cpp
   src/markers/triangle_list_marker.cpp
   src/markers/text_view_facing_marker.cpp
+  include/tesseract_rviz/markers/marker_base.h
+  include/tesseract_rviz/markers/marker_selection_handler.h
+  include/tesseract_rviz/markers/utils.h
+  include/tesseract_rviz/markers/arrow_marker.h
+  include/tesseract_rviz/markers/sphere_marker.h
+  include/tesseract_rviz/markers/cube_marker.h
+  include/tesseract_rviz/markers/cylinder_marker.h
+  include/tesseract_rviz/markers/triangle_list_marker.h
+  include/tesseract_rviz/markers/text_view_facing_marker.h
   )
 
 target_link_libraries(${PROJECT_NAME}_markers PUBLIC
@@ -92,7 +101,10 @@ add_library(${PROJECT_NAME}_interactive_marker SHARED
   src/interactive_marker/integer_action.cpp
   src/interactive_marker/interactive_marker.cpp
   src/interactive_marker/interactive_marker_control.cpp
-  ${${PROJECT_NAME}_interactive_marker_cpp_MOCS}
+  include/tesseract_rviz/interactive_marker/integer_action.h
+  include/tesseract_rviz/interactive_marker/interactive_marker.h
+  include/tesseract_rviz/interactive_marker/interactive_marker_control.h
+#  ${${PROJECT_NAME}_interactive_marker_cpp_MOCS}
 )
 target_link_libraries(${PROJECT_NAME}_interactive_marker PUBLIC
   ${PROJECT_NAME}_markers
@@ -127,7 +139,7 @@ set(render_tools_qobjects
   include/tesseract_rviz/render_tools/trajectory_monitor_widget.h
 # include/tesseract_rviz/render_tools/manipulation_widget.h
   include/tesseract_rviz/interactive_marker/integer_action.h
-# include/tesseract_rviz/interactive_marker/interactive_marker.h
+ include/tesseract_rviz/interactive_marker/interactive_marker.h
   include/tesseract_rviz/property/button_property.h
 )
 
@@ -142,11 +154,11 @@ add_library(${PROJECT_NAME}_render_tools SHARED
   src/render_tools/trajectory_monitor_widget.cpp
 # src/render_tools/manipulation_widget.cpp
   src/interactive_marker/integer_action.cpp
-# src/interactive_marker/interactive_marker.cpp
-# src/interactive_marker/interactive_marker_control.cpp
+ src/interactive_marker/interactive_marker.cpp
+ src/interactive_marker/interactive_marker_control.cpp
   src/markers/marker_base.cpp
   src/markers/marker_selection_handler.cpp
-# src/markers/utils.cpp
+ src/markers/utils.cpp
   src/markers/arrow_marker.cpp
   src/markers/sphere_marker.cpp
   src/markers/cube_marker.cpp
@@ -240,20 +252,13 @@ target_include_directories(${PROJECT_NAME}_trajectory_plugin PRIVATE
 ### Manipulation Display
 #qt_wrap_cpp(${PROJECT_NAME}_manipulation_plugin_core_cpp_MOCS include/tesseract_rviz/tesseract_manipulation_plugin/tesseract_manipulation_display.h)
 
-#add_library(${PROJECT_NAME}_manipulation_plugin_core SHARED src/tesseract_manipulation_plugin/tesseract_manipulation_display.cpp ${${PROJECT_NAME}_manipulation_plugin_core_cpp_MOCS})
-#ament_add_dependencies(${PROJECT_NAME}_manipulation_plugin_core PUBLIC
-#    ${PROJECT_NAME}_render_tools
-#    tesseract::tesseract_common
-#    ${OGRE_LIBRARIES}
-#    ${QT_LIBRARIES}
-#    ${Boost_LIBRARIES}
-#    ${EIGEN3_INCLUDE_DIRS})
-#target_compile_options(${PROJECT_NAME}_manipulation_plugin_core PRIVATE -Wall -Wextra -Wsuggest-override -Wconversion -Wsign-conversion)
-#if(CXX_FEATURE_FOUND EQUAL "-1")
-#    target_compile_options(${PROJECT_NAME}_manipulation_plugin_core PUBLIC -std=c++11)
-#else()
-#    target_compile_features(${PROJECT_NAME}_manipulation_plugin_core PUBLIC cxx_std_11)
-#endif()
+#add_library(${PROJECT_NAME}_manipulation_plugin_core SHARED
+#  src/tesseract_manipulation_plugin/tesseract_manipulation_display.cpp
+#  include/tesseract_rviz/tesseract_manipulation_plugin/tesseract_manipulation_display.h)
+#target_link_libraries(${PROJECT_NAME}_manipulation_plugin_core PUBLIC
+#    ${PROJECT_NAME}_render_tools)
+#target_compile_options(${PROJECT_NAME}_manipulation_plugin_core PRIVATE ${TESSERACT_COMPILE_OPTIONS})
+#target_cxx_version(${PROJECT_NAME}_manipulation_plugin_core PUBLIC VERSION 17)
 #target_include_directories(${PROJECT_NAME}_manipulation_plugin_core PUBLIC
 #    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
 #    "$<INSTALL_INTERFACE:include>")
@@ -265,16 +270,10 @@ target_include_directories(${PROJECT_NAME}_trajectory_plugin PRIVATE
 #    ${OGRE_INCLUDE_DIRS})
 
 #add_library(${PROJECT_NAME}_manipulation_plugin SHARED src/tesseract_manipulation_plugin/plugin_init.cpp)
-#ament_add_dependencies(${PROJECT_NAME}_manipulation_plugin PRIVATE
-#    ${PROJECT_NAME}_manipulation_plugin_core
-#    tesseract::tesseract_common
-#    ${Boost_LIBRARIES})
-#target_compile_options(${PROJECT_NAME}_manipulation_plugin PRIVATE -Wall -Wextra -Wsuggest-override -Wconversion -Wsign-conversion)
-#if(CXX_FEATURE_FOUND EQUAL "-1")
-#    target_compile_options(${PROJECT_NAME}_manipulation_plugin PUBLIC -std=c++11)
-#else()
-#    target_compile_features(${PROJECT_NAME}_manipulation_plugin PUBLIC cxx_std_11)
-#endif()
+#target_link_libraries(${PROJECT_NAME}_manipulation_plugin PRIVATE
+#    ${PROJECT_NAME}_manipulation_plugin_core)
+#target_compile_options(${PROJECT_NAME}_manipulation_plugin PRIVATE ${TESSERACT_COMPILE_OPTIONS})
+#target_cxx_version(${PROJECT_NAME}_manipulation_plugin_core PUBLIC VERSION 17)
 #target_include_directories(${PROJECT_NAME}_manipulation_plugin PRIVATE
 #    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
 #    "$<INSTALL_INTERFACE:include>")
@@ -292,7 +291,7 @@ find_package(tesseract_qt REQUIRED)
 # Environment Panel
 add_library(${PROJECT_NAME}_environment_plugin_core SHARED
   src/environment_plugin/ros_environment_widget.cpp
-#  src/environment_plugin/ros_manipulation_widget.cpp
+  src/environment_plugin/ros_manipulation_widget.cpp
   src/environment_plugin/rostopic_combo_box.cpp
   src/environment_plugin/environment_display.cpp
   src/environment_plugin/environment_monitor_properties.cpp
@@ -301,7 +300,7 @@ add_library(${PROJECT_NAME}_environment_plugin_core SHARED
   src/environment_plugin/conversions.cpp
   src/environment_plugin/set_theme_tool.cpp
   include/tesseract_rviz/environment_plugin/ros_environment_widget.h
-#  include/tesseract_rviz/environment_plugin/ros_manipulation_widget.h
+  include/tesseract_rviz/environment_plugin/ros_manipulation_widget.h
   include/tesseract_rviz/environment_plugin/rostopic_combo_box.h
   include/tesseract_rviz/environment_plugin/environment_display.h
   include/tesseract_rviz/environment_plugin/environment_monitor_properties.h
@@ -337,6 +336,18 @@ target_cxx_version(${PROJECT_NAME}_environment_plugin PUBLIC VERSION 17)
 target_include_directories(${PROJECT_NAME}_environment_plugin PRIVATE
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
     "$<INSTALL_INTERFACE:include>")
+
+add_library(${PROJECT_NAME}_workbench_plugin SHARED src/environment_plugin/workbench_plugin_init.cpp)
+target_link_libraries(${PROJECT_NAME}_workbench_plugin PRIVATE
+  ${PROJECT_NAME}_environment_plugin_core
+  ${Boost_LIBRARIES})
+target_compile_options(${PROJECT_NAME}_workbench_plugin PUBLIC ${TESSERACT_COMPILE_OPTIONS})
+target_cxx_version(${PROJECT_NAME}_workbench_plugin PUBLIC VERSION 17)
+target_include_directories(${PROJECT_NAME}_workbench_plugin PRIVATE
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+    "$<INSTALL_INTERFACE:include>")
+target_include_directories(${PROJECT_NAME}_workbench_plugin SYSTEM PRIVATE
+    ${Boost_INCLUDE_DIRS})
 
 
 add_executable(${PROJECT_NAME}_test src/test.cpp)
@@ -377,6 +388,7 @@ install(TARGETS
 #    ${PROJECT_NAME}_manipulation_plugin
     ${PROJECT_NAME}_environment_plugin_core
     ${PROJECT_NAME}_environment_plugin
+    ${PROJECT_NAME}_workbench_plugin
     EXPORT ${PACKAGE_NAME}-targets
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
@@ -410,7 +422,7 @@ pluginlib_export_plugin_description_file(rviz_common tesseract_rviz_state_plugin
 pluginlib_export_plugin_description_file(rviz_common tesseract_rviz_trajectory_plugin_description.xml)
 pluginlib_export_plugin_description_file(rviz_common tesseract_rviz_workbench_plugin_description.xml)
 pluginlib_export_plugin_description_file(rviz_common tesseract_rviz_environment_plugin_description.xml)
-# pluginlib_export_plugin_description_file(rviz_common tesseract_rviz_manipulation_plugin_description.xml)
+pluginlib_export_plugin_description_file(rviz_common tesseract_rviz_manipulation_plugin_description.xml)
 
 ament_export_dependencies(
     ament_cmake
@@ -418,7 +430,7 @@ ament_export_dependencies(
     pluginlib
     rclcpp
     rviz_common
-    rviz_rendering
+#    rviz_rendering
 #    rviz_ogre_vendor
     tesseract
     tesseract_msgs

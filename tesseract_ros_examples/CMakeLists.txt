@@ -10,7 +10,7 @@ set(ament_pkg_deps
   ament_index_cpp
   tesseract_monitoring
   tesseract_rosutils
-  tesseract_planning_server
+#  tesseract_planning_server
   # octomap_ros
   # pcl_conversions
 )

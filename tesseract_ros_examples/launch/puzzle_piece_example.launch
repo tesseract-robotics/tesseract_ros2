@@ -2,7 +2,7 @@
 <launch>
   <!-- By default we do not overwrite the URDF. Change the following to true to change the default behavior -->
   <!-- The name of the parameter under which the URDF is loaded -->
-  <arg name="plotting" default="false"/>
+  <arg name="plotting" default="true"/>
   <arg name="rviz" default="true"/>
   <arg name="testing" default="false"/>
 
@@ -26,7 +26,7 @@
     <node pkg="tf" type="static_transform_publisher" name="virtual_joint_broadcaster_0" args="0 0 0 0 0 0 world base_link 100" />
     -->
 
-    <node pkg="tesseract_ros_examples" exec="tesseract_ros_examples_puzzle_piece_example_node" output="log">
+    <node pkg="tesseract_ros_examples" exec="tesseract_ros_examples_puzzle_piece_example_node" output="screen">
       <param name="plotting" type="bool" value="$(var plotting)"/>
       <param name="rviz" type="bool" value="$(var rviz)"/>
       <param name="robot_description" value="$(var robot_description)" type="str"/>

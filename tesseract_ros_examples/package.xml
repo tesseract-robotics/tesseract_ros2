@@ -23,7 +23,6 @@
   <depend>tesseract_environment</depend>
   <depend>tesseract_scene_graph</depend>
   <depend>tesseract_rosutils</depend>
-  <depend>tesseract_planning_server</depend>
   <depend>tesseract_common</depend>
   <depend>tesseract_examples</depend>
   <depend>trajopt_sqp</depend>

@@ -1,5 +1,5 @@
 <library path="libtesseract_rviz_workbench_plugin">
-  <class name="tesseract_rviz/TesseractWorkbench" type="tesseract_rviz::WorkbenchDisplay" base_class_type="rviz::Display">
+  <class name="tesseract_rviz/TesseractWorkbench" type="tesseract_rviz::WorkbenchDisplay" base_class_type="rviz_common::Display">
     <description>
       Add Tesseract workbench display for visualizing environment, contacts, trajectories, and motion planning
     </description>

@@ -35,3 +35,7 @@ repositories:
     type: git
     url: https://github.com/tesseract-robotics/tesseract_qt.git
     version: 0.1.2
+  Qt-Advanced-Docking-System:
+    type: git
+    url: https://github.com/Levi-Armstrong/Qt-Advanced-Docking-System.git
+    verions: ros

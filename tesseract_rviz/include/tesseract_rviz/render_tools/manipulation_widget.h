@@ -55,7 +55,7 @@ class EnumProperty;
 class FloatProperty;
 class BoolProperty;
 class StringProperty;
-}  // namespace rviz
+}  // namespace rviz_common::properties
 
 namespace Ogre
 {

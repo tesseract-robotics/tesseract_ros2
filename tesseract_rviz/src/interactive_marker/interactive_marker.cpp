@@ -90,14 +90,14 @@ InteractiveMarker::InteractiveMarker(const std::string& name,
   //  has_menu_ = message.menu_entries.size() > 0;
 
   description_control_ = std::make_shared<InteractiveMarkerControl>(name_,
-                                                                      description_,
-                                                                      context_,
-                                                                      reference_node_,
-                                                                      this,
-                                                                      InteractiveMode::NONE,
-                                                                      OrientationMode::VIEW_FACING,
-                                                                      true,
-                                                                      Ogre::Quaternion());
+                                                                    description_,
+                                                                    context_,
+                                                                    reference_node_,
+                                                                    this,
+                                                                    InteractiveMode::NONE,
+                                                                    OrientationMode::VIEW_FACING,
+                                                                    true,
+                                                                    Ogre::Quaternion());
   makeTitle(*description_control_, description_);
 
   // create menu
@@ -163,14 +163,14 @@ InteractiveMarkerControl::Ptr InteractiveMarker::createInteractiveControl(const 
   {
     // Else make new control
     auto control = std::make_shared<InteractiveMarkerControl>(name,
-                                                                description,
-                                                                context_,
-                                                                reference_node_,
-                                                                this,
-                                                                interactive_mode,
-                                                                orientation_mode,
-                                                                always_visible,
-                                                                orientation);
+                                                              description,
+                                                              context_,
+                                                              reference_node_,
+                                                              this,
+                                                              interactive_mode,
+                                                              orientation_mode,
+                                                              always_visible,
+                                                              orientation);
     controls_[name] = control;
     return control;
   }

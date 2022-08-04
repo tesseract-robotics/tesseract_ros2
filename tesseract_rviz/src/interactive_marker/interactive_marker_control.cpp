@@ -228,7 +228,7 @@ Ogre::SceneNode* InteractiveMarkerControl::getMarkerSceneNode() { return markers
 
 void InteractiveMarkerControl::addMarker(const MarkerBase::Ptr& marker)
 {
-//  auto obj_ptr = std::static_pointer_cast<rviz_common::InteractiveObject>(shared_from_this());
+  //  auto obj_ptr = std::static_pointer_cast<rviz_common::InteractiveObject>(shared_from_this());
   marker->setInteractiveObject(shared_from_this());
 
   addHighlightPass(marker->getMaterials());
@@ -1127,7 +1127,7 @@ void InteractiveMarkerControl::handleMouseEvent(rviz_common::ViewportMouseEvent&
   // * check if this is just a receive/lost focus event
   // * try to hand over the mouse event to the parent interactive marker
   // * otherwise, execute mouse move handling
-  RCLCPP_INFO(rclcpp::get_logger("test hme"),"handleMouseEvent" );
+  RCLCPP_INFO(rclcpp::get_logger("test hme"), "handleMouseEvent");
 
   // handle receive/lose focus
   if (event.type == QEvent::FocusIn)

@@ -78,12 +78,13 @@ ManipulationWidget::ManipulationWidget(rviz_common::properties::Property* widget
   main_property_->setCaptions("Reset");
 
   joint_state_topic_property_ = new rviz_common::properties::StringProperty("Topic",
-                                                           "/tesseract/manipulation_joint_states",
-                                                           "The topic on which the sensor_msgs::JointState messages "
-                                                           "are published",
-                                                           main_property_,
-                                                           SLOT(changedJointStateTopic()),
-                                                           this);
+                                                                            "/tesseract/manipulation_joint_states",
+                                                                            "The topic on which the "
+                                                                            "sensor_msgs::JointState messages "
+                                                                            "are published",
+                                                                            main_property_,
+                                                                            SLOT(changedJointStateTopic()),
+                                                                            this);
 
   manipulator_property_ = new rviz_common::properties::EnumProperty(
       "Manipulator", "", "The manipulator to move around.", main_property_, SLOT(changedManipulator()), this);
@@ -96,38 +97,42 @@ ManipulationWidget::ManipulationWidget(rviz_common::properties::Property* widget
   tcp_offset_property_ = new rviz_common::properties::EnumProperty(
       "TCP Offset", "", "The tool center point offset", main_property_, SLOT(changedTCPOffset()), this);
 
-  cartesian_manipulation_property_ = new rviz_common::properties::BoolProperty("Cartesian Manipulation",
-                                                            true,
-                                                            "Tool for cartesian manipulation of kinematics objects",
-                                                            main_property_,
-                                                            SLOT(changedCartesianManipulationEnabled()),
-                                                            this);
+  cartesian_manipulation_property_ =
+      new rviz_common::properties::BoolProperty("Cartesian Manipulation",
+                                                true,
+                                                "Tool for cartesian manipulation of kinematics objects",
+                                                main_property_,
+                                                SLOT(changedCartesianManipulationEnabled()),
+                                                this);
 
   cartesian_marker_scale_property_ = new rviz_common::properties::FloatProperty("Marker Scale",
-                                                             0.5,
-                                                             "Change the scale of the cartesian interactive marker",
-                                                             cartesian_manipulation_property_,
-                                                             SLOT(changedCartesianMarkerScale()),
-                                                             this);
+                                                                                0.5,
+                                                                                "Change the scale of the cartesian "
+                                                                                "interactive marker",
+                                                                                cartesian_manipulation_property_,
+                                                                                SLOT(changedCartesianMarkerScale()),
+                                                                                this);
   cartesian_marker_scale_property_->setMin(0.001f);
 
   joint_manipulation_property_ = new rviz_common::properties::BoolProperty("Joint Manipulation",
-                                                        true,
-                                                        "Tool for joint manipulation of kinematics objects",
-                                                        main_property_,
-                                                        SLOT(changedJointManipulationEnabled()),
-                                                        this);
+                                                                           true,
+                                                                           "Tool for joint manipulation of kinematics "
+                                                                           "objects",
+                                                                           main_property_,
+                                                                           SLOT(changedJointManipulationEnabled()),
+                                                                           this);
 
   joint_marker_scale_property_ = new rviz_common::properties::FloatProperty("Marker Scale",
-                                                         0.5,
-                                                         "Change the scale of the joint interactive markers",
-                                                         joint_manipulation_property_,
-                                                         SLOT(changedJointMarkerScale()),
-                                                         this);
+                                                                            0.5,
+                                                                            "Change the scale of the joint interactive "
+                                                                            "markers",
+                                                                            joint_manipulation_property_,
+                                                                            SLOT(changedJointMarkerScale()),
+                                                                            this);
   joint_marker_scale_property_->setMin(0.001f);
 
-  joint_values_property_ =
-      new rviz_common::properties::Property("Joint Values", "", "Shows current joint values", main_property_, nullptr, this);
+  joint_values_property_ = new rviz_common::properties::Property(
+      "Joint Values", "", "Shows current joint values", main_property_, nullptr, this);
 
   joint_config_property_ = new rviz_common::properties::StringProperty(
       "Joint Config", "Unknown", "Shows current joint configuration", main_property_, nullptr, this);
@@ -137,14 +142,14 @@ ManipulationWidget::ManipulationWidget(rviz_common::properties::Property* widget
   joint_config_tip_link_property_ = new rviz_common::properties::EnumProperty(
       "Robot Tip Link", "", "This is the tip link of the industrial robot", joint_config_property_, nullptr, this);
 
-  joint3_sign_property_ =
-      new rviz_common::properties::EnumProperty("Joint 3 Sign Correction", "+1", "", joint_config_property_, nullptr, this);
+  joint3_sign_property_ = new rviz_common::properties::EnumProperty(
+      "Joint 3 Sign Correction", "+1", "", joint_config_property_, nullptr, this);
   joint3_sign_property_->addOptionStd("+1", 1);
   joint3_sign_property_->addOptionStd("-1", -1);
   joint3_sign_property_->setShouldBeSaved(true);
 
-  joint5_sign_property_ =
-      new rviz_common::properties::EnumProperty("Joint 5 Sign Correction", "+1", "", joint_config_property_, nullptr, this);
+  joint5_sign_property_ = new rviz_common::properties::EnumProperty(
+      "Joint 5 Sign Correction", "+1", "", joint_config_property_, nullptr, this);
   joint5_sign_property_->addOptionStd("+1", 1);
   joint5_sign_property_->addOptionStd("-1", -1);
   joint5_sign_property_->setShouldBeSaved(true);
@@ -200,7 +205,6 @@ void ManipulationWidget::onInitialize(Ogre::SceneNode* root_node,
   changedJointStateTopic();
   changedManipulator();
   Q_EMIT availableManipulatorsChanged(available_manipulators_);
-
 }
 
 void ManipulationWidget::onEnable()
@@ -302,12 +306,13 @@ bool ManipulationWidget::changeManipulator(const QString& manipulator)
       QString joint_description =
           QString("Limits: [%1, %2]").arg(QString("%1").arg(limits(i, 0)), QString("%1").arg(limits(i, 1)));
 
-      rviz_common::properties::FloatProperty* joint_value_property = new rviz_common::properties::FloatProperty(QString::fromStdString(j),
-                                                                          static_cast<float>(joints_[j]),
-                                                                          joint_description,
-                                                                          nullptr,
-                                                                          SLOT(userInputJointValuesChanged()),
-                                                                          this);
+      rviz_common::properties::FloatProperty* joint_value_property =
+          new rviz_common::properties::FloatProperty(QString::fromStdString(j),
+                                                     static_cast<float>(joints_[j]),
+                                                     joint_description,
+                                                     nullptr,
+                                                     SLOT(userInputJointValuesChanged()),
+                                                     this);
 
       joint_value_property->setMin(static_cast<float>(limits(i, 0)));
       joint_value_property->setMax(static_cast<float>(limits(i, 1)));
@@ -658,7 +663,8 @@ void ManipulationWidget::changedJointStateTopic()
   joint_state_pub_.reset();
   if (!joint_state_topic_property_->getStdString().empty())
   {
-    joint_state_pub_ = node_->create_publisher<sensor_msgs::msg::JointState>(joint_state_topic_property_->getStdString(), rclcpp::QoS(5));
+    joint_state_pub_ = node_->create_publisher<sensor_msgs::msg::JointState>(
+        joint_state_topic_property_->getStdString(), rclcpp::QoS(5));
   }
 }
 

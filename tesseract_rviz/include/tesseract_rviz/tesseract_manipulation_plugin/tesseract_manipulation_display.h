@@ -52,7 +52,7 @@ public:
 
   void update(float wall_dt, float ros_dt) override;
   void reset() override;
-//  void setName(const QString& name) override;
+  //  void setName(const QString& name) override;
 
 protected:
   // overrides from Display

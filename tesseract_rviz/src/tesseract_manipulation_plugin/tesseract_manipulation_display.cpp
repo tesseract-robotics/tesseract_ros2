@@ -96,7 +96,7 @@ void TesseractManipulationDisplay::update(float wall_dt, float ros_dt)
   manipulation_->onUpdate(wall_dt);
 }
 
-//void TesseractManipulationDisplay::setName(const QString& name)
+// void TesseractManipulationDisplay::setName(const QString& name)
 //{
 //  BoolProperty::setName(name);
 //  manipulation_->onNameChange(name);

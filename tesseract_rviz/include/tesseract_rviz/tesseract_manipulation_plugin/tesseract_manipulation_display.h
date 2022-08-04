@@ -30,8 +30,8 @@
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <rviz_common/display.hpp>
 #ifndef Q_MOC_RUN
-#include <ros/ros.h>
-#include <tesseract/tesseract.h>
+#include <rclcpp/rclcpp.hpp>
+#include <tesseract_environment/environment.h>
 #endif
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
@@ -52,7 +52,7 @@ public:
 
   void update(float wall_dt, float ros_dt) override;
   void reset() override;
-  void setName(const QString& name) override;
+//  void setName(const QString& name) override;
 
 protected:
   // overrides from Display
@@ -60,15 +60,14 @@ protected:
   void onEnable() override;
   void onDisable() override;
 
-  // ROS Node Handle
-  ros::NodeHandle nh_;
+  rclcpp::Node::SharedPtr node_ = nullptr;
 
-  tesseract::Tesseract::Ptr tesseract_;
-  VisualizationWidget::SharedPtr visualization_;
-  EnvironmentWidget::SharedPtr environment_monitor_;
-  ManipulationWidget::SharedPtr manipulation_;
+  tesseract_environment::Environment::Ptr env_;
+  VisualizationWidget::Ptr visualization_;
+  EnvironmentWidget::Ptr environment_monitor_;
+  ManipulationWidget::Ptr manipulation_;
 };
 
 }  // namespace tesseract_rviz
 
-#endif  // TESSERACT_RVIZ_TESSERACT_MANIPULATION_DISPLAY_H
+#endif

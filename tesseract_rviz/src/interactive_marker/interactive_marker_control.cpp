@@ -149,7 +149,7 @@ InteractiveMarkerControl::InteractiveMarkerControl(std::string name,
       cursor_ = rviz_common::getDefaultCursor();
       break;
     case InteractiveMode::MENU:
-      cursor_ = rviz_common::makeIconCursor("package://rviz/icons/menu.svg");
+      cursor_ = rviz_common::makeIconCursor("package://rviz_common/icons/menu.svg");
       status_msg_ += "<b>Left-Click:</b> Show menu.";
       break;
     case InteractiveMode::BUTTON:
@@ -157,31 +157,31 @@ InteractiveMarkerControl::InteractiveMarkerControl(std::string name,
       status_msg_ += "<b>Left-Click:</b> Activate. ";
       break;
     case InteractiveMode::MOVE_AXIS:
-      cursor_ = rviz_common::makeIconCursor("package://rviz/icons/move1d.svg");
+      cursor_ = rviz_common::makeIconCursor("package://rviz_common/icons/move1d.svg");
       status_msg_ += "<b>Left-Click:</b> Move. ";
       break;
     case InteractiveMode::MOVE_PLANE:
-      cursor_ = rviz_common::makeIconCursor("package://rviz/icons/move2d.svg");
+      cursor_ = rviz_common::makeIconCursor("package://rviz_common/icons/move2d.svg");
       status_msg_ += "<b>Left-Click:</b> Move. ";
       break;
     case InteractiveMode::ROTATE_AXIS:
-      cursor_ = rviz_common::makeIconCursor("package://rviz/icons/rotate.svg");
+      cursor_ = rviz_common::makeIconCursor("package://rviz_common/icons/rotate.svg");
       status_msg_ += "<b>Left-Click:</b> Rotate. ";
       break;
     case InteractiveMode::MOVE_ROTATE:
-      cursor_ = rviz_common::makeIconCursor("package://rviz/icons/moverotate.svg");
+      cursor_ = rviz_common::makeIconCursor("package://rviz_common/icons/moverotate.svg");
       status_msg_ += "<b>Left-Click:</b> Move / Rotate. ";
       break;
     case InteractiveMode::MOVE_3D:
-      cursor_ = rviz_common::makeIconCursor("package://rviz/icons/move2d.svg");
+      cursor_ = rviz_common::makeIconCursor("package://rviz_common/icons/move2d.svg");
       status_msg_ += "<b>Left-Click:</b> Move X/Y. <b>Shift + Left-Click / Left-Click + Wheel:</b> Move Z. ";
       break;
     case InteractiveMode::ROTATE_3D:
-      cursor_ = rviz_common::makeIconCursor("package://rviz/icons/rotate.svg");
+      cursor_ = rviz_common::makeIconCursor("package://rviz_common/icons/rotate.svg");
       status_msg_ += "<b>Left-Click:</b> Rotate around X/Y. <b>Shift-Left-Click:</b> Rotate around Z. ";
       break;
     case InteractiveMode::MOVE_ROTATE_3D:
-      cursor_ = rviz_common::makeIconCursor("package://rviz/icons/moverotate.svg");
+      cursor_ = rviz_common::makeIconCursor("package://rviz_common/icons/moverotate.svg");
       status_msg_ += "<b>Left-Click:</b> Move X/Y. <b>Shift + Left-Click / Left-Click + Wheel:</b> Move Z. <b>Ctrl + "
                      "Left-Click:</b> Rotate around X/Y. <b>Ctrl + Shift + Left-Click:</b> Rotate around Z. ";
       break;
@@ -201,8 +201,7 @@ InteractiveMarkerControl::InteractiveMarkerControl(std::string name,
     markers_node_->setOrientation(parent_->getOrientation());
   }
 
-  // ROS2: getInteractionEnabled no longer exists
-  //   enableInteraction(context_->getSelectionManager()->getInteractionEnabled());
+  enableInteraction(context_->getHandlerManager()->getInteractionEnabled());
 }
 
 InteractiveMarkerControl::~InteractiveMarkerControl()
@@ -229,8 +228,8 @@ Ogre::SceneNode* InteractiveMarkerControl::getMarkerSceneNode() { return markers
 
 void InteractiveMarkerControl::addMarker(const MarkerBase::Ptr& marker)
 {
-  auto obj_ptr = std::static_pointer_cast<rviz_common::InteractiveObject>(shared_from_this());
-  marker->setInteractiveObject(obj_ptr);
+//  auto obj_ptr = std::static_pointer_cast<rviz_common::InteractiveObject>(shared_from_this());
+  marker->setInteractiveObject(shared_from_this());
 
   addHighlightPass(marker->getMaterials());
 
@@ -1128,6 +1127,7 @@ void InteractiveMarkerControl::handleMouseEvent(rviz_common::ViewportMouseEvent&
   // * check if this is just a receive/lost focus event
   // * try to hand over the mouse event to the parent interactive marker
   // * otherwise, execute mouse move handling
+  RCLCPP_INFO(rclcpp::get_logger("test hme"),"handleMouseEvent" );
 
   // handle receive/lose focus
   if (event.type == QEvent::FocusIn)

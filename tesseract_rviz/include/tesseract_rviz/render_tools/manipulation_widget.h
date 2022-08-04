@@ -55,7 +55,7 @@ class EnumProperty;
 class FloatProperty;
 class BoolProperty;
 class StringProperty;
-}  // namespace rviz_common::properties
+}  // namespace rviz
 
 namespace Ogre
 {
@@ -101,6 +101,7 @@ Q_SIGNALS:
   void availableManipulatorsChanged(QStringList manipulators);
   void availableTCPFramesChanged(QStringList tcp_frames);
   void availableTCPOffsetsChanged(tesseract_common::TransformMap tcp_offsets);
+  void availableWorkingFramesChanged(QStringList working_frames);
 
 public
   Q_SLOT : void enableCartesianManipulation(bool enabled);
@@ -109,11 +110,13 @@ public
   bool changeManipulator(const QString& manipulator);
   bool changeTCPFrame(const QString& tcp_frame);
   bool changeTCPOffset(const QString& tcp_offset);
+  bool changeWorkingFrame(const QString& working_frame);
 
 private Q_SLOTS:
   void changedManipulator();
   void changedTCPFrame();
   void changedTCPOffset();
+  void changedWorkingFrame();
   void changedJointStateTopic();
   void changedCartesianMarkerScale();
   void changedCartesianManipulationEnabled();
@@ -137,23 +140,25 @@ protected:
   rviz_common::properties::Property* widget_;
   rviz_common::Display* display_;
   rviz_common::DisplayContext* context_;
-  VisualizationWidget::SharedPtr visualization_;
-  tesseract::Tesseract::Ptr tesseract_;
+  VisualizationWidget::Ptr visualization_;
+  tesseract_environment::Environment::Ptr env_;
   rclcpp::Node::SharedPtr node_;
   ManipulatorState state_;
-  InteractiveMarker::SharedPtr interactive_marker_;
-  std::map<std::string, InteractiveMarker::SharedPtr> joint_interactive_markers_;
-  std::vector<std::string> manipulators_;
-  tesseract_kinematics::InverseKinematics::SharedPtr inv_kin_;
+  InteractiveMarker::Ptr interactive_marker_;
+  std::map<std::string, InteractiveMarker::Ptr> joint_interactive_markers_;
+  std::set<std::string> manipulators_;
+  tesseract_kinematics::KinematicGroup::UPtr manip_;
   Eigen::VectorXd inv_seed_;
   int env_revision_;
   std::unordered_map<std::string, double> joints_;
-  tesseract_environment::EnvState::Ptr env_state_;
-  Eigen::Isometry3d tcp_;
+  tesseract_scene_graph::SceneState env_state_;
+  Eigen::Isometry3d tcp_offset_;
 
   rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr joint_state_pub_;
   QStringList available_manipulators_;
-  QStringList available_tcp_links_;
+  QStringList available_tcp_frames_;
+  QStringList available_working_frames_;
+  tesseract_common::TransformMap available_tcp_offsets_;
 
   //  TrajectoryPanel* trajectory_slider_panel_;
   //  rviz::PanelDockWidget* trajectory_slider_dock_panel_;
@@ -162,13 +167,26 @@ protected:
   bool enabled_;
   ButtonProperty* main_property_;
   rviz_common::properties::EnumProperty* manipulator_property_;
-  rviz_common::properties::RosTopicProperty* joint_state_topic_property_;
+  rviz_common::properties::StringProperty* joint_state_topic_property_;
   rviz_common::properties::BoolProperty* cartesian_manipulation_property_;
   rviz_common::properties::BoolProperty* joint_manipulation_property_;
   rviz_common::properties::FloatProperty* cartesian_marker_scale_property_;
   rviz_common::properties::FloatProperty* joint_marker_scale_property_;
-  rviz_common::properties::EnumProperty* tcp_property_;
+  rviz_common::properties::EnumProperty* tcp_frame_property_;
+  rviz_common::properties::EnumProperty* tcp_offset_property_;
+  rviz_common::properties::EnumProperty* working_frame_property_;
   rviz_common::properties::Property* joint_values_property_;
+  rviz_common::properties::StringProperty* joint_config_property_;
+  rviz_common::properties::EnumProperty* joint_config_base_link_property_;
+  rviz_common::properties::EnumProperty* joint_config_tip_link_property_;
+  rviz_common::properties::EnumProperty* joint3_sign_property_;
+  rviz_common::properties::EnumProperty* joint5_sign_property_;
+
+  void updateJointConfig();
+  void updateEnvironmentVisualization();
+  void updateCartesianMarkerVisualization();
+  void udpateJointMarkerVisualization();
+  void publishJointStates();
 };
 }  // namespace tesseract_rviz
 

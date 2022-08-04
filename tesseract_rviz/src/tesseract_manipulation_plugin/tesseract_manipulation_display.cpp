@@ -25,7 +25,7 @@
  */
 #include <tesseract_common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
-#include <ros/package.h>
+#include <rviz_common/display_context.hpp>
 #include <tesseract_rosutils/utils.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
@@ -42,6 +42,7 @@ TesseractManipulationDisplay::TesseractManipulationDisplay()
 }
 
 TesseractManipulationDisplay::~TesseractManipulationDisplay() = default;
+
 void TesseractManipulationDisplay::onInitialize()
 {
   Display::onInitialize();
@@ -50,12 +51,14 @@ void TesseractManipulationDisplay::onInitialize()
   visualization_->setCurrentStateVisible(false);
   visualization_->setStartStateVisible(true);
 
-  environment_monitor_->onInitialize(visualization_, env_, context_, nh_, true);
+  node_ = context_->getRosNodeAbstraction().lock()->get_raw_node();
+
+  environment_monitor_->onInitialize(visualization_, env_, context_, node_, true);
   manipulation_->onInitialize(scene_node_,
                               context_,
                               visualization_,
                               env_,
-                              nh_,
+                              node_,
                               ManipulationWidget::ManipulatorState::START,
                               "/tesseract/manipulation_start_state");
 
@@ -93,10 +96,10 @@ void TesseractManipulationDisplay::update(float wall_dt, float ros_dt)
   manipulation_->onUpdate(wall_dt);
 }
 
-void TesseractManipulationDisplay::setName(const QString& name)
-{
-  BoolProperty::setName(name);
-  manipulation_->onNameChange(name);
-}
+//void TesseractManipulationDisplay::setName(const QString& name)
+//{
+//  BoolProperty::setName(name);
+//  manipulation_->onNameChange(name);
+//}
 
 }  // namespace tesseract_rviz

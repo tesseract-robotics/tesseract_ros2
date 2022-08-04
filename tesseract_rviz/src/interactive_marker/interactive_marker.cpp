@@ -89,7 +89,7 @@ InteractiveMarker::InteractiveMarker(const std::string& name,
 
   //  has_menu_ = message.menu_entries.size() > 0;
 
-  description_control_ = boost::make_shared<InteractiveMarkerControl>(name_,
+  description_control_ = std::make_shared<InteractiveMarkerControl>(name_,
                                                                       description_,
                                                                       context_,
                                                                       reference_node_,
@@ -162,7 +162,7 @@ InteractiveMarkerControl::Ptr InteractiveMarker::createInteractiveControl(const 
   else
   {
     // Else make new control
-    auto control = boost::make_shared<InteractiveMarkerControl>(name,
+    auto control = std::make_shared<InteractiveMarkerControl>(name,
                                                                 description,
                                                                 context_,
                                                                 reference_node_,

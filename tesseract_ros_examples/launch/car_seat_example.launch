@@ -39,7 +39,7 @@
 
     <!-- Launch visualization -->
     <node pkg="rviz2" exec="rviz2"
-
+      args="-d $(find-pkg-share tesseract_ros_examples)/config/examples.rviz"
       output="screen">
       <param name="robot_description" value="$(var robot_description)" type="str"/>
       <param name="robot_description_semantic" value="$(var robot_description_semantic)" type="str"/>

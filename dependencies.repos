@@ -38,4 +38,4 @@ repositories:
   Qt-Advanced-Docking-System:
     type: git
     url: https://github.com/Levi-Armstrong/Qt-Advanced-Docking-System.git
-    verions: ros
+    version: ros

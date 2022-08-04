@@ -26,3 +26,11 @@
     local-name: ifopt
     uri: https://github.com/ethz-adrl/ifopt.git
     version: master
+- git:
+    local-name: tesseract_qt
+    uri: https://github.com/tesseract-robotics/tesseract_qt.git
+    version: master
+- git:
+    local-name: Qt-Advanced-Docking-System
+    uri: https://github.com/Levi-Armstrong/Qt-Advanced-Docking-System.git
+    version: ros

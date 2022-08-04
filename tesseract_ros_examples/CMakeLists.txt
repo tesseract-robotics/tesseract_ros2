@@ -47,6 +47,7 @@ macro(add_example test_name test_file)
 endmacro()
 
 add_example(${PROJECT_NAME}_puzzle_piece_example_node src/puzzle_piece_example_node.cpp)
+add_example(${PROJECT_NAME}_car_seat_example_node src/car_seat_example_node.cpp)
 
 # add_library(basic_cartesian_example src/basic_cartesian_example.cpp# )
 # target_link_libraries(basic_cartesian_example PUBLIC
@@ -367,13 +368,13 @@ install(DIRECTORY include/${PROJECT_NAME}
 install(
   TARGETS
     # basic_cartesian_example_node
-    # car_seat_example_node
     # freespace_hybrid_example_node
     # freespace_ompl_example_node
     # glass_upright_example_node
     # online_planning_example_node
     # pick_and_place_example_node
     ${PROJECT_NAME}_puzzle_piece_example_node
+    ${PROJECT_NAME}_car_seat_example_node
     # puzzle_piece_auxillary_axes_example_node
     # scene_graph_example_node
   RUNTIME DESTINATION lib/${PROJECT_NAME}

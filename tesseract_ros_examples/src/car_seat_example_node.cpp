@@ -24,23 +24,56 @@
  * limitations under the License.
  */
 
-#include <tesseract_ros_examples/car_seat_example.h>
+#include <thread>
+#include <tesseract_examples/car_seat_example.h>
+#include <tesseract_monitoring/environment_monitor.h>
+#include <tesseract_rosutils/plotting.h>
 
-using namespace tesseract_ros_examples;
+using namespace tesseract_examples;
+using namespace tesseract_rosutils;
+
+/** @brief Default ROS parameter for robot description */
+const std::string ROBOT_DESCRIPTION_PARAM = "robot_description";
+
+/** @brief Default ROS parameter for robot description */
+const std::string ROBOT_SEMANTIC_PARAM = "robot_description_semantic";
+
+/** @brief RViz Example Namespace */
+const std::string EXAMPLE_MONITOR_NAMESPACE = "tesseract_ros_examples";
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "car_seat_example_node");
-  ros::NodeHandle pnh("~");
-  ros::NodeHandle nh;
+  rclcpp::init(argc, argv);
 
-  bool plotting = true;
-  bool rviz = true;
+  auto node = std::make_shared<rclcpp::Node>("puzzle_piece_example_node");
 
-  // Get ROS Parameters
-  pnh.param("plotting", plotting, plotting);
-  pnh.param("rviz", rviz, rviz);
+  bool plotting = node->declare_parameter("plotting", true);
+  bool rviz = node->declare_parameter("rviz", true);
 
-  CarSeatExample example(nh, plotting, rviz);
+  // Initial setup
+  std::string urdf_xml_string = node->declare_parameter(ROBOT_DESCRIPTION_PARAM, "");
+  std::string srdf_xml_string = node->declare_parameter(ROBOT_SEMANTIC_PARAM, "");
+
+  auto env = std::make_shared<tesseract_environment::Environment>();
+  auto locator = std::make_shared<tesseract_rosutils::ROSResourceLocator>();
+  if (!env->init(urdf_xml_string, srdf_xml_string, locator))
+    exit(1);
+
+  std::thread spinner{ [node]() { rclcpp::spin(node); } };
+
+  // Create monitor
+  auto monitor = std::make_shared<tesseract_monitoring::ROSEnvironmentMonitor>(node, env, EXAMPLE_MONITOR_NAMESPACE);
+  if (rviz)
+    monitor->startPublishingEnvironment();
+
+  ROSPlottingPtr plotter;
+  if (plotting)
+    plotter = std::make_shared<ROSPlotting>(env->getSceneGraph()->getRoot());
+
+  CarSeatExample example(env, plotter);
+  std::this_thread::sleep_for(std::chrono::duration<double>(5.0));
+
   example.run();
+
+  spinner.join();
 }

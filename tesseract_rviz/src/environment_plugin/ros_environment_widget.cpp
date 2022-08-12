@@ -425,7 +425,7 @@ void ROSEnvironmentWidget::onRender(float dt)
       data_->contact_results_changed.clear();
       data_->render_contact_results_dirty = false;
     }
-    data_->render_dirty = false;
+//    data_->render_dirty = false;
   }
 }
 

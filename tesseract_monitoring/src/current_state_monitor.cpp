@@ -352,7 +352,7 @@ void CurrentStateMonitor::jointStateCallback(sensor_msgs::msg::JointState::Const
     if (update)
       env_state_ = env_->getState(env_state_.joints);
 
-    if (publish_tf_)
+    if (publish_tf_ && env_->isInitialized())
     {
       std::string base_link = env_->getRootLinkName();
       std::vector<geometry_msgs::msg::TransformStamped> transforms;

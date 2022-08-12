@@ -167,6 +167,9 @@ bool ROSEnvironmentMonitor::initialize()
   enforce_next_state_update_ = false;
   rclcpp::Logger logger = node_->get_logger().get_child(monitor_namespace_ + "_monitor");
 
+  last_update_time_ = last_robot_motion_time_ = node_->now();
+  last_robot_state_update_wall_time_ = node_->now();
+
   if (monitor_namespace_.empty())
   {
     throw std::runtime_error("The monitor namespace cannot be empty");
@@ -179,9 +182,6 @@ bool ROSEnvironmentMonitor::initialize()
   }
 
   publish_environment_frequency_ = 30.0;
-
-  last_update_time_ = last_robot_motion_time_ = node_->now();
-  last_robot_state_update_wall_time_ = node_->now();
   dt_state_update_ = rclcpp::Duration::from_seconds(0.01);
 
   state_update_pending_ = false;

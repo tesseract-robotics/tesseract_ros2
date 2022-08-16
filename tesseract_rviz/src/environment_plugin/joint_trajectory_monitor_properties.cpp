@@ -242,8 +242,8 @@ void JointTrajectoryMonitorPropertiesPrivate::tesseractJointTrajectoryCallback(
     {
       tesseract_common::JointTrajectory joint_trajectory = tesseract_rosutils::fromMsg(joint_trajectory_msg);
       trajectory_set.appendJointTrajectory(joint_trajectory);
-      widget->addJointTrajectorySet(trajectory_set);
     }
+    widget->addJointTrajectorySet(trajectory_set);
   }
   catch (...)
   {

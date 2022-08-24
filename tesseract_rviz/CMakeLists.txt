@@ -24,8 +24,7 @@ find_package(ros_industrial_cmake_boilerplate REQUIRED)
 find_package(console_bridge REQUIRED)
 
 # Ogre
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(OGRE OGRE)
+find_package(OGRE REQUIRED)
 link_directories(${OGRE_LIBRARY_DIRS} )
 
 find_package(Qt5 REQUIRED COMPONENTS Core Widgets)

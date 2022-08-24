@@ -343,7 +343,7 @@ Ogre::SceneNode* loadLinkWireBox(Ogre::SceneManager& scene,
   wire_box->setCastShadows(false);
   wire_box->estimateVertexCount(12);
   std::string mat_name = "RVIZ/Green";
-  wire_box->begin(mat_name, Ogre::RenderOperation::OT_LINE_LIST);
+  wire_box->begin(mat_name, Ogre::RenderOperation::OT_LINE_LIST, "rviz_rendering");
 
   Ogre::Vector3 max = aabb.getMaximum();
   Ogre::Vector3 min = aabb.getMinimum();
@@ -744,7 +744,7 @@ Ogre::MaterialPtr loadLinkMaterial(Ogre::SceneManager& scene,
 {
   if (link.visual.empty() || !link.visual[0]->material)
   {
-    return Ogre::MaterialManager::getSingleton().getByName("RVIZ/ShadedRed");
+    return Ogre::MaterialManager::getSingleton().getByName("RVIZ/ShadedRed", "rviz_rendering");
   }
 
   Ogre::MaterialPtr mat = Ogre::MaterialManager::getSingleton().create(

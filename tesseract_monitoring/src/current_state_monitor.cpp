@@ -103,10 +103,14 @@ void CurrentStateMonitor::startStateMonitor(const std::string& joint_states_topi
     }
     else
     {
+      auto subscriber_options = rclcpp::SubscriptionOptions();
+      subscriber_options.qos_overriding_options = rclcpp::QosOverridingOptions::with_default_policies();
+
       joint_state_subscriber_ = node_->create_subscription<sensor_msgs::msg::JointState>(
           joint_states_topic,
-          rclcpp::QoS(25),
-          std::bind(&CurrentStateMonitor::jointStateCallback, this, std::placeholders::_1));
+          rclcpp::SensorDataQoS(),
+          std::bind(&CurrentStateMonitor::jointStateCallback, this, std::placeholders::_1),
+          subscriber_options);
     }
     state_monitor_started_ = true;
     monitor_start_time_ = node_->now();

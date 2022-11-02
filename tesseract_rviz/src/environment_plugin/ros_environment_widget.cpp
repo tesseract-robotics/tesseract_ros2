@@ -187,6 +187,7 @@ void ROSEnvironmentWidget::onRender(float dt)
       auto lock = environment().lockRead();
       auto revision = environment().getRevision();
       auto state_timestamp = environment().getCurrentStateTimestamp();
+
       if (data_->render_dirty || revision > data_->render_revision)
       {
         if (revision > data_->render_revision)
@@ -235,6 +236,18 @@ void ROSEnvironmentWidget::onRender(float dt)
                 break;
               }
               case tesseract_environment::CommandType::REMOVE_LINK:
+              {
+                auto cmd = std::static_pointer_cast<const tesseract_environment::RemoveLinkCommand>(command);
+                auto entity_container = data_->entity_manager->getEntityContainer(cmd->getLinkName());
+                auto entity = entity_container->getTrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS,
+                                                                 cmd->getLinkName());
+                if (entity_container->hasTrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS, cmd->getLinkName()))
+                {
+                  Ogre::SceneNode* sn = data_->scene_manager->getSceneNode(entity.unique_name);
+                  sn->setVisible(false, true);
+                }
+                data_->scene_manager->destroyEntity(entity.unique_name);
+              }
               case tesseract_environment::CommandType::REMOVE_JOINT:
               {
                 links_removed = true;

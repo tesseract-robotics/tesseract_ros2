@@ -27,7 +27,7 @@ find_package(tesseract_collision REQUIRED)
 find_package(tesseract_visualization REQUIRED)
 find_package(tesseract_common REQUIRED)
 find_package(tesseract_motion_planners REQUIRED)
-find_package(tesseract_process_managers REQUIRED)
+find_package(tesseract_task_composer REQUIRED)
 find_package(tesseract_command_language REQUIRED)
 find_package(tesseract_support REQUIRED)
 find_package(yaml-cpp REQUIRED)
@@ -47,7 +47,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     tesseract::tesseract_visualization
     tesseract::tesseract_common
     tesseract::tesseract_motion_planners_core
-    tesseract::tesseract_process_managers
+    tesseract::tesseract_task_composer
     tesseract::tesseract_command_language
     tesseract::tesseract_support
     tf2::tf2
@@ -93,7 +93,7 @@ ament_export_dependencies(
   tesseract_visualization
   tesseract_common
   tesseract_motion_planners
-  tesseract_process_managers
+  tesseract_task_composer
   tesseract_command_language
   tesseract_support
   tf2

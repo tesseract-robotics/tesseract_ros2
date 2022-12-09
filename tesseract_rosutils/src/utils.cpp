@@ -29,8 +29,9 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <rclcpp/rclcpp.hpp>
 #include <ament_index_cpp/get_package_share_directory.hpp>
 #include <octomap_msgs/conversions.h>
-//#include <ros/console.h>
 #include <tesseract_msgs/msg/string_limits_pair.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <boost/lexical_cast.hpp>
 #include <tf2_eigen/tf2_eigen.h>
 
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
@@ -1299,23 +1300,22 @@ bool toMsg(tesseract_msgs::msg::EnvironmentCommand& command_msg, const tesseract
       command_msg.change_link_visibility_value = cmd.getEnabled();
       return true;
     }
-    case tesseract_environment::CommandType::ADD_ALLOWED_COLLISION:
+    case tesseract_environment::CommandType::MODIFY_ALLOWED_COLLISIONS:
     {
-      command_msg.command = tesseract_msgs::msg::EnvironmentCommand::ADD_ALLOWED_COLLISION;
-      const auto& cmd = static_cast<const tesseract_environment::AddAllowedCollisionCommand&>(command);
-      command_msg.add_allowed_collision.link_1 = cmd.getLinkName1();
-      command_msg.add_allowed_collision.link_2 = cmd.getLinkName2();
-      command_msg.add_allowed_collision.reason = cmd.getReason();
+      command_msg.command = tesseract_msgs::msg::EnvironmentCommand::MODIFY_ALLOWED_COLLISIONS;
+      const auto& cmd = static_cast<const tesseract_environment::ModifyAllowedCollisionsCommand&>(command);
+      command_msg.modify_allowed_collisions_type = static_cast<uint8_t>(cmd.getModifyType());
+      toMsg(command_msg.modify_allowed_collisions, cmd.getAllowedCollisionMatrix());
       return true;
     }
-    case tesseract_environment::CommandType::REMOVE_ALLOWED_COLLISION:
-    {
-      command_msg.command = tesseract_msgs::msg::EnvironmentCommand::REMOVE_ALLOWED_COLLISION;
-      const auto& cmd = static_cast<const tesseract_environment::RemoveAllowedCollisionCommand&>(command);
-      command_msg.remove_allowed_collision.link_1 = cmd.getLinkName1();
-      command_msg.remove_allowed_collision.link_2 = cmd.getLinkName2();
-      return true;
-    }
+//    case tesseract_environment::CommandType::REMOVE_ALLOWED_COLLISION:
+//    {
+//      command_msg.command = tesseract_msgs::msg::EnvironmentCommand::REMOVE_ALLOWED_COLLISION;
+//      const auto& cmd = static_cast<const tesseract_environment::RemoveAllowedCollisionCommand&>(command);
+//      command_msg.remove_allowed_collision.link_1 = cmd.getLinkName1();
+//      command_msg.remove_allowed_collision.link_2 = cmd.getLinkName2();
+//      return true;
+//    }
     case tesseract_environment::CommandType::REMOVE_ALLOWED_COLLISION_LINK:
     {
       command_msg.command = tesseract_msgs::msg::EnvironmentCommand::REMOVE_ALLOWED_COLLISION_LINK;
@@ -1503,17 +1503,14 @@ tesseract_environment::Command::Ptr fromMsg(const tesseract_msgs::msg::Environme
       return std::make_shared<tesseract_environment::ChangeLinkCollisionEnabledCommand>(
           command_msg.change_link_visibility_name, command_msg.change_link_visibility_value);
     }
-    case tesseract_msgs::msg::EnvironmentCommand::ADD_ALLOWED_COLLISION:
+    case tesseract_msgs::msg::EnvironmentCommand::MODIFY_ALLOWED_COLLISIONS:
     {
-      return std::make_shared<tesseract_environment::AddAllowedCollisionCommand>(
-          command_msg.add_allowed_collision.link_1,
-          command_msg.add_allowed_collision.link_2,
-          command_msg.add_allowed_collision.reason);
-    }
-    case tesseract_msgs::msg::EnvironmentCommand::REMOVE_ALLOWED_COLLISION:
-    {
-      return std::make_shared<tesseract_environment::RemoveAllowedCollisionCommand>(
-          command_msg.remove_allowed_collision.link_1, command_msg.remove_allowed_collision.link_2);
+      tesseract_common::AllowedCollisionMatrix acm;
+      for (const auto& entry : command_msg.modify_allowed_collisions)
+        acm.addAllowedCollision(entry.link_1, entry.link_2, entry.reason);
+      return std::make_shared<tesseract_environment::ModifyAllowedCollisionsCommand>(
+            acm,
+            static_cast<tesseract_environment::ModifyAllowedCollisionsType>(command_msg.modify_allowed_collisions_type));
     }
     case tesseract_msgs::msg::EnvironmentCommand::REMOVE_ALLOWED_COLLISION_LINK:
     {
@@ -2223,42 +2220,45 @@ tesseract_environment::Environment::UPtr fromMsg(const tesseract_msgs::msg::Envi
   return env;
 }
 
-bool toMsg(tesseract_msgs::msg::TaskInfo& task_info_msg, tesseract_planning::TaskInfo::ConstPtr task_info)
+bool toMsg(tesseract_msgs::msg::TaskComposerNodeInfo& node_info_msg, tesseract_planning::TaskComposerNodeInfo node_info)
 {
   using namespace tesseract_planning;
-  task_info_msg.return_value = task_info->return_value;
-  task_info_msg.unique_id = task_info->unique_id;
-  task_info_msg.task_name = task_info->task_name;
-  task_info_msg.message = task_info->message;
-  task_info_msg.instructions_input =
-      tesseract_common::Serialization::toArchiveStringXML<Instruction>(task_info->instructions_input);
-  task_info_msg.instructions_output =
-      tesseract_common::Serialization::toArchiveStringXML<Instruction>(task_info->instructions_output);
-  task_info_msg.results_input =
-      tesseract_common::Serialization::toArchiveStringXML<Instruction>(task_info->results_input);
-  task_info_msg.results_output =
-      tesseract_common::Serialization::toArchiveStringXML<Instruction>(task_info->results_output);
-  return toMsg(task_info_msg.environment, task_info->environment);
+  node_info_msg.name = node_info.name;
+  node_info_msg.uuid = boost::uuids::to_string(node_info.uuid);
+  node_info_msg.inbound_edges.reserve(node_info.inbound_edges.size());
+  for (const auto& edge : node_info.inbound_edges)
+    node_info_msg.inbound_edges.push_back(boost::uuids::to_string(edge));
+  node_info_msg.outbound_edges.reserve(node_info.outbound_edges.size());
+  for (const auto& edge : node_info.outbound_edges)
+    node_info_msg.outbound_edges.push_back(boost::uuids::to_string(edge));
+  node_info_msg.input_keys = node_info.input_keys;
+  node_info_msg.output_keys = node_info.output_keys;
+  node_info_msg.return_value = node_info.return_value;
+  node_info_msg.message = node_info.message;
+  node_info_msg.elapsed_time = node_info.elapsed_time;
+
+  return true;
 }
 
-tesseract_planning::TaskInfo::Ptr fromMsg(const tesseract_msgs::msg::TaskInfo& task_info_msg)
+tesseract_planning::TaskComposerNodeInfo::Ptr fromMsg(const tesseract_msgs::msg::TaskComposerNodeInfo& node_info_msg)
 {
   using namespace tesseract_planning;
-  auto task_info = std::make_shared<tesseract_planning::TaskInfo>(task_info_msg.unique_id);
-  task_info->return_value = task_info_msg.return_value;
-  task_info->task_name = task_info_msg.task_name;
-  task_info->message = task_info_msg.message;
-  task_info->instructions_input =
-      tesseract_common::Serialization::fromArchiveStringXML<Instruction>(task_info_msg.instructions_input);
-  task_info->instructions_output =
-      tesseract_common::Serialization::fromArchiveStringXML<Instruction>(task_info_msg.instructions_output);
-  task_info->results_input =
-      tesseract_common::Serialization::fromArchiveStringXML<Instruction>(task_info_msg.results_input);
-  task_info->results_output =
-      tesseract_common::Serialization::fromArchiveStringXML<Instruction>(task_info_msg.results_output);
-  task_info->environment = fromMsg(task_info_msg.environment);
+  auto node_info = std::make_unique<tesseract_planning::TaskComposerNodeInfo>();
+  node_info->name = node_info_msg.name;
+  node_info->uuid = boost::lexical_cast<boost::uuids::uuid>(node_info_msg.uuid);
+  node_info->inbound_edges.reserve(node_info_msg.inbound_edges.size());
+  for (const auto& edge : node_info_msg.inbound_edges)
+    node_info->inbound_edges.push_back(boost::lexical_cast<boost::uuids::uuid>(edge));
+  node_info->outbound_edges.reserve(node_info_msg.outbound_edges.size());
+  for (const auto& edge : node_info_msg.outbound_edges)
+    node_info->outbound_edges.push_back(boost::lexical_cast<boost::uuids::uuid>(edge));
+  node_info->input_keys = node_info_msg.input_keys;
+  node_info->output_keys = node_info_msg.output_keys;
+  node_info->return_value = node_info_msg.return_value;
+  node_info->message = node_info_msg.message;
+  node_info->elapsed_time = node_info_msg.elapsed_time;
 
-  return task_info;
+  return node_info;
 }
 
 trajectory_msgs::msg::JointTrajectory toMsg(const tesseract_common::JointTrajectory& joint_trajectory,

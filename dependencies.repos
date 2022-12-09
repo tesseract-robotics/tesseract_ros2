@@ -2,7 +2,7 @@ repositories:
   descartes_light:
     type: git
     url: https://github.com/swri-robotics/descartes_light.git
-    version: 0.3.0
+    version: fbb74eb
   fcl:
     type: git
     url: https://github.com/flexible-collision-library/fcl.git
@@ -22,19 +22,19 @@ repositories:
   tesseract:
     type: git
     url: https://github.com/tesseract-robotics/tesseract.git
-    version: 0.9.10
+    version: 0.14.0
   tesseract_planning:
     type: git
     url: https://github.com/tesseract-robotics/tesseract_planning.git
-    version: 0.11.0
+    version: 0.14.0
   trajopt:
     type: git
     url: https://github.com/tesseract-robotics/trajopt.git
-    version: 0.2.5
+    version: 0.3.1
   tesseract_qt:
     type: git
     url: https://github.com/tesseract-robotics/tesseract_qt.git
-    version: 0.1.2
+    version: 0c47b534b26157d9dfd5358a01afe24c978c5ed9
   Qt-Advanced-Docking-System:
     type: git
     url: https://github.com/Levi-Armstrong/Qt-Advanced-Docking-System.git

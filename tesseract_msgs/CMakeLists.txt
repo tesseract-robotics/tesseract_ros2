@@ -90,7 +90,7 @@ set(message_files
   "msg/StringLimitsPair.msg"
   "msg/StringPair.msg"
   "msg/StringPluginInfoPair.msg"
-  "msg/TaskInfo.msg"
+  "msg/TaskComposerNodeInfo.msg"
   "msg/Trajectory.msg"
   "msg/TransformMap.msg"
   "msg/VisualGeometry.msg"

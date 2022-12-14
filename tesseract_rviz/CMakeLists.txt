@@ -252,18 +252,11 @@ install(DIRECTORY include/
 install(DIRECTORY ogre_media DESTINATION share/${PROJECT_NAME})
 
 # Mark plugin XML files for installation
-install(FILES #tesseract_rviz_state_plugin_description.xml
-#  tesseract_rviz_trajectory_plugin_description.xml
-#  tesseract_rviz_planning_response_archive_plugin_description.xml
-#  tesseract_rviz_manipulation_plugin_description.xml
+install(FILES
   tesseract_rviz_environment_plugin_description.xml
   tesseract_rviz_workbench_plugin_description.xml
   DESTINATION share/${PROJECT_NAME}
 )
-#pluginlib_export_plugin_description_file(rviz_common tesseract_rviz_state_plugin_description.xml)
-#pluginlib_export_plugin_description_file(rviz_common tesseract_rviz_trajectory_plugin_description.xml)
-#pluginlib_export_plugin_description_file(rviz_common tesseract_rviz_planning_response_archive_plugin_description.xml)
-#pluginlib_export_plugin_description_file(rviz_common tesseract_rviz_manipulation_plugin_description.xml)
 pluginlib_export_plugin_description_file(rviz_common tesseract_rviz_environment_plugin_description.xml)
 pluginlib_export_plugin_description_file(rviz_common tesseract_rviz_workbench_plugin_description.xml)
 

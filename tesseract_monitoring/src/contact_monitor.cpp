@@ -150,7 +150,7 @@ void ContactMonitor::computeCollisionReportThread()
     }
 
     tesseract_collision::ContactResultVector contacts_vector;
-    tesseract_collision::flattenResults(std::move(contacts), contacts_vector);
+    tesseract_collision::flattenMoveResults(std::move(contacts), contacts_vector);
     contacts_msg.contacts.reserve(contacts_vector.size());
     for (std::size_t i = 0; i < contacts_vector.size(); ++i)
     {
@@ -226,7 +226,7 @@ bool ContactMonitor::callbackComputeContactResultVector(tesseract_msgs::ComputeC
   }
 
   tesseract_collision::ContactResultVector contacts_vector;
-  tesseract_collision::flattenResults(std::move(contact_results), contacts_vector);
+  tesseract_collision::flattenMoveResults(std::move(contact_results), contacts_vector);
   response.collision_result.contacts.reserve(contacts_vector.size());
   for (const auto& contact : contacts_vector)
   {

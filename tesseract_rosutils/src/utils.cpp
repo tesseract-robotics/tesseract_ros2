@@ -321,6 +321,15 @@ bool toMsg(tesseract_msgs::msg::Geometry& geometry_msgs, const tesseract_geometr
       geometry_msgs.cylinder_dimensions[1] = cylinder.getLength();
       break;
     }
+    case tesseract_geometry::GeometryType::CAPSULE:
+    {
+      const auto& capsule = static_cast<const tesseract_geometry::Capsule&>(geometry);
+
+      geometry_msgs.type = tesseract_msgs::msg::Geometry::CAPSULE;
+      geometry_msgs.capsule_dimensions[0] = capsule.getRadius();
+      geometry_msgs.capsule_dimensions[1] = capsule.getLength();
+      break;
+    }
     case tesseract_geometry::GeometryType::CONE:
     {
       const auto& cone = static_cast<const tesseract_geometry::Cone&>(geometry);
@@ -1308,14 +1317,6 @@ bool toMsg(tesseract_msgs::msg::EnvironmentCommand& command_msg, const tesseract
       toMsg(command_msg.modify_allowed_collisions, cmd.getAllowedCollisionMatrix());
       return true;
     }
-//    case tesseract_environment::CommandType::REMOVE_ALLOWED_COLLISION:
-//    {
-//      command_msg.command = tesseract_msgs::msg::EnvironmentCommand::REMOVE_ALLOWED_COLLISION;
-//      const auto& cmd = static_cast<const tesseract_environment::RemoveAllowedCollisionCommand&>(command);
-//      command_msg.remove_allowed_collision.link_1 = cmd.getLinkName1();
-//      command_msg.remove_allowed_collision.link_2 = cmd.getLinkName2();
-//      return true;
-//    }
     case tesseract_environment::CommandType::REMOVE_ALLOWED_COLLISION_LINK:
     {
       command_msg.command = tesseract_msgs::msg::EnvironmentCommand::REMOVE_ALLOWED_COLLISION_LINK;
@@ -1509,8 +1510,8 @@ tesseract_environment::Command::Ptr fromMsg(const tesseract_msgs::msg::Environme
       for (const auto& entry : command_msg.modify_allowed_collisions)
         acm.addAllowedCollision(entry.link_1, entry.link_2, entry.reason);
       return std::make_shared<tesseract_environment::ModifyAllowedCollisionsCommand>(
-            acm,
-            static_cast<tesseract_environment::ModifyAllowedCollisionsType>(command_msg.modify_allowed_collisions_type));
+          acm,
+          static_cast<tesseract_environment::ModifyAllowedCollisionsType>(command_msg.modify_allowed_collisions_type));
     }
     case tesseract_msgs::msg::EnvironmentCommand::REMOVE_ALLOWED_COLLISION_LINK:
     {
@@ -2156,6 +2157,28 @@ bool fromMsg(std::unordered_map<std::string, double>& joint_state, const sensor_
 
   for (std::size_t i = 0; i < joint_state_msg.name.size(); ++i)
     joint_state[joint_state_msg.name.at(i)] = joint_state_msg.position.at(i);
+
+  return true;
+}
+
+bool toMsg(std::vector<tesseract_msgs::msg::StringDoublePair>& joint_state_map_msg,
+           const std::unordered_map<std::string, double>& joint_state)
+{
+  for (const auto& s : joint_state)
+  {
+    tesseract_msgs::msg::StringDoublePair js;
+    js.first = s.first;
+    js.second = s.second;
+    joint_state_map_msg.push_back(js);
+  }
+  return true;
+}
+
+bool fromMsg(std::unordered_map<std::string, double>& joint_state,
+             const std::vector<tesseract_msgs::msg::StringDoublePair>& joint_state_map_msg)
+{
+  for (const auto& s : joint_state_map_msg)
+    joint_state[s.first] = s.second;
 
   return true;
 }

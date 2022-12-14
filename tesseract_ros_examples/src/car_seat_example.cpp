@@ -263,8 +263,8 @@ bool CarSeatExample::run()
   if (rviz_)
     plotter->waitForConnection();
 
-  if (rviz_ && plotter != nullptr && plotter->isConnected())
-    plotter->waitForInput();
+  //  if (rviz_ && plotter != nullptr && plotter->isConnected())
+  //    plotter->waitForInput();
 
   // Get predefined positions
   saved_positions_ = getPredefinedPosition();
@@ -341,7 +341,7 @@ bool CarSeatExample::run()
       auto state_solver = env_->getStateSolver();
       plotter->plotMarker(ToolpathMarker(toolpath));
       plotter->plotTrajectory(trajectory, *state_solver);
-      plotter->waitForInput();
+      //      plotter->waitForInput();
     }
   }
 
@@ -414,7 +414,7 @@ bool CarSeatExample::run()
       auto state_solver = env_->getStateSolver();
       plotter->plotMarker(ToolpathMarker(toolpath));
       plotter->plotTrajectory(trajectory, *state_solver);
-      plotter->waitForInput();
+      //      plotter->waitForInput();
     }
   }
 

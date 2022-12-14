@@ -1,4 +1,4 @@
-#include <tesseract_rviz/environment_plugin/conversions.h>
+#include <tesseract_rviz/conversions.h>
 
 #include <OgreEntity.h>
 #include <OgreManualObject.h>
@@ -34,6 +34,23 @@
 namespace tesseract_rviz
 {
 static Ogre::NameGenerator material_name_generator("tesseract::material::");
+
+void toEigen(Eigen::Isometry3d& transform, const Ogre::Vector3& position, const Ogre::Quaternion& orientation)
+{
+  transform.linear() = Eigen::Quaterniond(orientation.w, orientation.x, orientation.y, orientation.z).matrix();
+  transform.translation() = Eigen::Vector3d(position.x, position.y, position.z);
+}
+
+void toOgre(Ogre::Vector3& position, Ogre::Quaternion& orientation, const Eigen::Isometry3d& transform)
+{
+  Eigen::Vector3f robot_visual_position = transform.translation().cast<float>();
+  Eigen::Quaternionf robot_visual_orientation(transform.rotation().cast<float>());
+  position = Ogre::Vector3(robot_visual_position.x(), robot_visual_position.y(), robot_visual_position.z());
+  orientation = Ogre::Quaternion(robot_visual_orientation.w(),
+                                 robot_visual_orientation.x(),
+                                 robot_visual_orientation.y(),
+                                 robot_visual_orientation.z());
+}
 
 bool isMeshWithColor(const std::string& file_path)
 {
@@ -226,8 +243,9 @@ Ogre::SceneNode* loadLink(Ogre::SceneManager& scene,
 
   if (!link.visual.empty() || !link.collision.empty())
   {
-    Ogre::AxisAlignedBox aabb = getAABB(*scene_node);
-    scene_node->addChild(loadLinkWireBox(scene, entity_container, link, aabb));
+    Ogre::AxisAlignedBox aabb = getAABB(*scene_node, false);
+    if (aabb.isFinite())
+      scene_node->addChild(loadLinkWireBox(scene, entity_container, link, aabb));
   }
 
   scene_node->addChild(loadLinkAxis(scene, entity_container, link));
@@ -923,7 +941,10 @@ void setOctomapColor(double z_pos,
   }
 }
 
-void getAABBRecursive(Ogre::AxisAlignedBox& aabb, Ogre::SceneNode& scene_node, Ogre::Matrix4 parent_pose)
+void getAABBRecursive(Ogre::AxisAlignedBox& aabb,
+                      Ogre::SceneNode& scene_node,
+                      Ogre::Matrix4 parent_pose,
+                      bool visible_only)
 {
   scene_node._updateBounds();
   scene_node._update(false, true);
@@ -937,7 +958,7 @@ void getAABBRecursive(Ogre::AxisAlignedBox& aabb, Ogre::SceneNode& scene_node, O
   {
     Ogre::MovableObject* obj = scene_node.getAttachedObject(i);
 
-    if (obj->isVisible())
+    if (!visible_only || obj->isVisible())
     {
       Ogre::AxisAlignedBox box = obj->getBoundingBox();
 
@@ -960,22 +981,25 @@ void getAABBRecursive(Ogre::AxisAlignedBox& aabb, Ogre::SceneNode& scene_node, O
   for (unsigned short i = 0; i < num_children; ++i)
   {
     auto* child = dynamic_cast<Ogre::SceneNode*>(scene_node.getChild(i));
-    getAABBRecursive(aabb, *child, transform);
+    getAABBRecursive(aabb, *child, transform, visible_only);
   }
 }
 
-Ogre::AxisAlignedBox getAABB(Ogre::SceneNode& scene_node)
+Ogre::AxisAlignedBox getAABB(Ogre::SceneNode& scene_node, bool visible_only)
 {
   Ogre::AxisAlignedBox aabb;
-  getAABBRecursive(aabb, scene_node, Ogre::Matrix4::IDENTITY);
+  getAABBRecursive(aabb, scene_node, Ogre::Matrix4::IDENTITY, visible_only);
 
-  Ogre::Vector3 scale(1.15, 1.15, 1.15);
-  Ogre::Vector3 center = aabb.getCenter();
-  Ogre::Vector3 max = aabb.getMaximum();
-  Ogre::Vector3 min = aabb.getMinimum();
+  if (aabb.isFinite())
+  {
+    Ogre::Vector3 scale(1.15, 1.15, 1.15);
+    Ogre::Vector3 center = aabb.getCenter();
+    Ogre::Vector3 max = aabb.getMaximum();
+    Ogre::Vector3 min = aabb.getMinimum();
 
-  aabb.setMaximum(center + (scale * (max - center)));
-  aabb.setMinimum(center + (scale * (min - center)));
+    aabb.setMaximum(center + (scale * (max - center)));
+    aabb.setMinimum(center + (scale * (min - center)));
+  }
 
   return aabb;
 }

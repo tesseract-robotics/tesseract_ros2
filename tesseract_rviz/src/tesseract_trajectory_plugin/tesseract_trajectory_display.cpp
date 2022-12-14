@@ -42,7 +42,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <tesseract_rosutils/utils.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
-#include <tesseract_rviz/tesseract_trajectory_plugin/tesseract_trajectory_display.h>
+//#include <tesseract_rviz/tesseract_trajectory_plugin/tesseract_trajectory_display.h>
 #include <rviz_common/display_context.hpp>
 
 namespace tesseract_rviz

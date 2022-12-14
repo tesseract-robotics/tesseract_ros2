@@ -1,5 +1,4 @@
-#include <tesseract_rviz/environment_plugin/ros_environment_widget.h>
-#include <tesseract_rviz/environment_plugin/conversions.h>
+#include <tesseract_rviz/ros_environment_widget.h>
 #include <tesseract_rviz/conversions.h>
 
 #include <tesseract_rviz/markers/marker_base.h>
@@ -239,8 +238,8 @@ void ROSEnvironmentWidget::onRender(float dt)
               {
                 auto cmd = std::static_pointer_cast<const tesseract_environment::RemoveLinkCommand>(command);
                 auto entity_container = data_->entity_manager->getEntityContainer(cmd->getLinkName());
-                auto entity = entity_container->getTrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS,
-                                                                 cmd->getLinkName());
+                auto entity =
+                    entity_container->getTrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS, cmd->getLinkName());
                 if (entity_container->hasTrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS, cmd->getLinkName()))
                 {
                   Ogre::SceneNode* sn = data_->scene_manager->getSceneNode(entity.unique_name);
@@ -263,8 +262,7 @@ void ROSEnvironmentWidget::onRender(float dt)
                 break;
               }
               case tesseract_environment::CommandType::CHANGE_LINK_COLLISION_ENABLED:
-              case tesseract_environment::CommandType::ADD_ALLOWED_COLLISION:
-              case tesseract_environment::CommandType::REMOVE_ALLOWED_COLLISION:
+              case tesseract_environment::CommandType::MODIFY_ALLOWED_COLLISIONS:
               case tesseract_environment::CommandType::REMOVE_ALLOWED_COLLISION_LINK:
               case tesseract_environment::CommandType::CHANGE_JOINT_POSITION_LIMITS:
               case tesseract_environment::CommandType::CHANGE_JOINT_VELOCITY_LIMITS:

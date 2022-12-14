@@ -420,6 +420,24 @@ bool toMsg(sensor_msgs::msg::JointState& joint_state_msg, const std::unordered_m
 bool fromMsg(std::unordered_map<std::string, double>& joint_state, const sensor_msgs::msg::JointState& joint_state_msg);
 
 /**
+ * @brief This will populate a joint states map message
+ * @param joint_state_msg The joint states map message
+ * @param joint_state The joint state map
+ * @return True if successful, otherwise false
+ */
+bool toMsg(std::vector<tesseract_msgs::msg::StringDoublePair>& joint_state_map_msg,
+           const std::unordered_map<std::string, double>& joint_state);
+
+/**
+ * @brief This will populate a joint states from message
+ * @param joint_state The joint state map
+ * @param joint_state_map_msg The joint states map message
+ * @return True if successful, otherwise false
+ */
+bool fromMsg(std::unordered_map<std::string, double>& joint_state,
+             const std::vector<tesseract_msgs::msg::StringDoublePair>& joint_state_map_msg);
+
+/**
  * @brief Converts a Environment object to a Tesseract msg
  * @param tesseract_msg Resulting Message
  * @param env Input Environment object
@@ -454,7 +472,8 @@ tesseract_environment::Environment::UPtr fromMsg(const tesseract_msgs::msg::Envi
  * @param task_info TaskInfo object
  * @return True if successful, otherwise false
  */
-bool toMsg(tesseract_msgs::msg::TaskComposerNodeInfo& task_info_msg, tesseract_planning::TaskComposerNodeInfo::ConstPtr task_info);
+bool toMsg(tesseract_msgs::msg::TaskComposerNodeInfo& task_info_msg,
+           tesseract_planning::TaskComposerNodeInfo::ConstPtr task_info);
 
 /**
  * @brief Converts a TaskInfo msg to a TaskInfo object

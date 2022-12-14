@@ -89,7 +89,7 @@ std::shared_ptr<rviz_rendering::PointCloud> createPointCloud(std::vector<rviz_re
                                                              float size,
                                                              tesseract_geometry::Octree::SubType subtype);
 
-Ogre::AxisAlignedBox getAABB(Ogre::SceneNode& scene_node);
+Ogre::AxisAlignedBox getAABB(Ogre::SceneNode& scene_node, bool visible_only = true);
 
 }  // namespace tesseract_rviz
 

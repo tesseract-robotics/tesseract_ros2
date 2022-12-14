@@ -1,6 +1,4 @@
-#include <tesseract_rviz/environment_plugin/ros_manipulation_widget.h>
-#include <tesseract_rviz/environment_plugin/conversions.h>
-#include <tesseract_rviz/environment_plugin/conversions.h>
+#include <tesseract_rviz/ros_manipulation_widget.h>
 #include <tesseract_rviz/conversions.h>
 #include <tesseract_rviz/markers/utils.h>
 #include <tesseract_rviz/interactive_marker/interactive_marker.h>
@@ -113,7 +111,7 @@ ROSManipulationWidget::~ROSManipulationWidget()
 {
   if (data_->root_interactive_node)
     data_->context->getSceneManager()->destroySceneNode(data_->root_interactive_node->getName());
-};
+}
 
 void ROSManipulationWidget::clear()
 {

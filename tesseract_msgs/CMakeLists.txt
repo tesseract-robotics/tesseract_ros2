@@ -81,7 +81,6 @@ set(message_files
   "msg/PlanningRequest.msg"
   "msg/PlanningRequestArchive.msg"
   "msg/PlanningResponse.msg"
-  "msg/PlanningResponseArchive.msg"
   "msg/PluginInfo.msg"
   "msg/PluginInfoContainer.msg"
   "msg/ProfileMap.msg"

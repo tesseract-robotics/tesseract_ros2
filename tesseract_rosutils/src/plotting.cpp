@@ -283,10 +283,10 @@ static void waitForInputAsync(std::string message)
 
 void ROSPlotting::waitForInput(std::string message)
 {
-  std::chrono::microseconds timeout(1);
-  std::future<void> future = std::async(std::launch::async, [=]() { waitForInputAsync(message); });
-  while (future.wait_for(timeout) != std::future_status::ready)
-    rclcpp::spin_some(node_);
+  //  std::chrono::microseconds timeout(1);
+  //  std::future<void> future = std::async(std::launch::async, [=]() { waitForInputAsync(message); });
+  //  while (future.wait_for(timeout) != std::future_status::ready)
+  //    rclcpp::spin_some(node_);
 }
 
 const std::string& ROSPlotting::getRootLink() const { return root_link_; }

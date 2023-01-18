@@ -1,4 +1,4 @@
-name: Focal-Build
+name: Jammy-Build
 
 on:
   push:
@@ -11,20 +11,20 @@ on:
 
 jobs:
   industrial_ci:
-    name: Foxy
-    runs-on: ubuntu-20.04
+    name: Humble
+    runs-on: ubuntu-22.04
     env:
-      CI_NAME: Focal-Build
+      CI_NAME: Jammy-Build
       OS_NAME: ubuntu
-      OS_CODE_NAME: focal
-      ROS_DISTRO: foxy
+      OS_CODE_NAME: jammy
+      ROS_DISTRO: humble
       ROS_REPO: main
       UPSTREAM_WORKSPACE: 'dependencies.repos'
       ROSDEP_SKIP_KEYS: "catkin ros_industrial_cmake_boilerplate taskflow orocos_kdl tesseract_process_managers Qt5"
-      DOCKER_IMAGE: "ros:foxy"
+      DOCKER_IMAGE: "ros:humble"
       PARALLEL_TESTS: false
       NOT_TEST_BUILD: true
-      CCACHE_DIR: "/home/runner/work/tesseract_ros2/tesseract_ros2/Focal-Build/.ccache"
+      CCACHE_DIR: "/home/runner/work/tesseract_ros2/tesseract_ros2/Jammy-Build/.ccache"
       UPSTREAM_CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=Release"
       TARGET_CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=Debug"
     steps:

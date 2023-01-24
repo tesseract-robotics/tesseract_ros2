@@ -5,16 +5,17 @@ find_package(ros_industrial_cmake_boilerplate REQUIRED)
 extract_package_metadata(pkg)
 project(${pkg_extracted_name} VERSION ${pkg_extracted_version} LANGUAGES C CXX)
 
-set(CMAKE_CXX_STANDARD 14)
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
   add_compile_options(
+    -std=c++14
     -Wall
     -Wextra
     -Winconsistent-missing-override
     -Wconversion
     -Wsign-conversion)
-elseif(NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+else()
   add_compile_options(
+    -std=c++14
     -Wall
     -Wextra
     -Wsuggest-override
@@ -30,10 +31,8 @@ set(interface_pkg_deps
   std_msgs
   sensor_msgs
   geometry_msgs
-  shape_msgs
   octomap_msgs
   trajectory_msgs
-  actionlib_msgs
 )
 
 foreach(pkg ${interface_pkg_deps})
@@ -79,7 +78,6 @@ set(message_files
   "msg/OctreeSubType.msg"
   "msg/PlannerProfileRemapping.msg"
   "msg/PlanningRequest.msg"
-  "msg/PlanningRequestArchive.msg"
   "msg/PlanningResponse.msg"
   "msg/PluginInfo.msg"
   "msg/PluginInfoContainer.msg"

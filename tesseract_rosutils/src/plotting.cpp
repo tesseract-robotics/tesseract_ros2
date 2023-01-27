@@ -27,11 +27,9 @@
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <future>
 #include <thread>
-// #include <ros/console.h>
 #include <Eigen/Geometry>
 #include <rclcpp/rclcpp.hpp>
 #include <geometry_msgs/msg/pose_array.hpp>
-#include <chrono>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_rosutils/plotting.h>
@@ -72,23 +70,23 @@ bool ROSPlotting::isConnected() const { return true; }
 
 void ROSPlotting::waitForConnection(long seconds) const
 {
-  const auto start_time = std::chrono::steady_clock::now();
-  const auto wall_timeout = std::chrono::seconds(seconds);
-  rclcpp::WallRate loop_rate{ std::chrono::milliseconds(20) };
+  const auto start_time = rclcpp::Clock{RCL_STEADY_TIME}.now();
+  const auto wall_timeout = rclcpp::Duration::from_seconds(seconds);
 
   while (rclcpp::ok())
   {
     if (isConnected())
       return;
 
-    if (wall_timeout >= std::chrono::seconds(0))
+    if (wall_timeout >= rclcpp::Duration::from_seconds(0))
     {
-      const auto current_time = std::chrono::steady_clock::now();
+      const auto current_time = rclcpp::Clock{RCL_STEADY_TIME}.now();
       if ((current_time - start_time) >= wall_timeout)
         return;
     }
 
-    loop_rate.sleep();
+    rclcpp::Clock{RCL_STEADY_TIME}.sleep_for(rclcpp::Duration::from_seconds(0.02));
+    rclcpp::spin_some(node_);
   }
 
   return;
@@ -101,6 +99,7 @@ void ROSPlotting::plotEnvironmentState(const tesseract_scene_graph::SceneState& 
 void ROSPlotting::plotTrajectory(const tesseract_msgs::msg::Trajectory& traj, std::string /*ns*/)
 {
   trajectory_pub_->publish(traj);
+  rclcpp::spin_some(node_);
 }
 
 void ROSPlotting::plotTrajectory(const tesseract_common::JointTrajectory& traj,
@@ -210,10 +209,13 @@ void ROSPlotting::plotMarker(const tesseract_visualization::Marker& marker, std:
         visualization_msgs::msg::MarkerArray msg =
             getContactResultsMarkerArrayMsg(marker_counter_, root_link_, topic_namespace_, node_->now(), m);
         collisions_pub_->publish(msg);
+        rclcpp::spin_some(node_);
       }
       break;
     }
   }
+
+  rclcpp::spin_some(node_);
 }
 
 void ROSPlotting::plotMarkers(const std::vector<tesseract_visualization::Marker::Ptr>& /*markers*/, std::string /*ns*/)
@@ -273,6 +275,7 @@ void ROSPlotting::clear(std::string ns)
   collisions_pub_->publish(msg);
   arrows_pub_->publish(msg);
   axes_pub_->publish(msg);
+  rclcpp::spin_some(node_);
 }
 
 static void waitForInputAsync(std::string message)
@@ -283,10 +286,10 @@ static void waitForInputAsync(std::string message)
 
 void ROSPlotting::waitForInput(std::string message)
 {
-  //  std::chrono::microseconds timeout(1);
-  //  std::future<void> future = std::async(std::launch::async, [=]() { waitForInputAsync(message); });
-  //  while (future.wait_for(timeout) != std::future_status::ready)
-  //    rclcpp::spin_some(node_);
+  // std::chrono::microseconds timeout(1);
+  // std::future<void> future = std::async(std::launch::async, [=]() { waitForInputAsync(message); });
+  // while (future.wait_for(timeout) != std::future_status::ready)
+  //   rclcpp::spin_some(node_);
 }
 
 const std::string& ROSPlotting::getRootLink() const { return root_link_; }

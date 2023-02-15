@@ -50,12 +50,12 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 namespace tesseract_rosutils
 {
-static const char LOGGER_ID[] = "tesseract_rosutils_plotting";
+static const char NODE_ID[] = "tesseract_rosutils_plotting";
 
 ROSPlotting::ROSPlotting(std::string root_link, std::string topic_namespace)
   : root_link_(root_link), topic_namespace_(topic_namespace)
 {
-  node_ = rclcpp::Node::make_shared(LOGGER_ID);
+  node_ = std::make_shared<rclcpp::Node>(NODE_ID);
   trajectory_pub_ =
       node_->create_publisher<tesseract_msgs::msg::Trajectory>(topic_namespace + "/display_tesseract_trajectory", 1);
   collisions_pub_ =
@@ -280,7 +280,7 @@ void ROSPlotting::clear(std::string ns)
 
 static void waitForInputAsync(std::string message)
 {
-  RCLCPP_ERROR(rclcpp::get_logger(LOGGER_ID), "%s", message.c_str());
+  RCLCPP_ERROR(rclcpp::get_logger(NODE_ID), "%s", message.c_str());
   std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 }
 

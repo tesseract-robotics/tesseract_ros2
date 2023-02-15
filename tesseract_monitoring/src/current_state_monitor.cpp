@@ -38,7 +38,7 @@
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <limits>
 #include <geometry_msgs/msg/transform_stamped.hpp>
-#include <tf2_eigen/tf2_eigen.h>
+#include <tf2_eigen/tf2_eigen.hpp>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_monitoring/current_state_monitor.h>
@@ -57,6 +57,8 @@ CurrentStateMonitor::CurrentStateMonitor(const tesseract_environment::Environmen
   , tf_broadcaster_(node_)
 {
 }
+
+const tesseract_environment::Environment& CurrentStateMonitor::getEnvironment() const { return *env_; }
 
 CurrentStateMonitor::~CurrentStateMonitor() { stopStateMonitor(); }
 
@@ -124,7 +126,8 @@ void CurrentStateMonitor::stopStateMonitor()
 {
   if (state_monitor_started_)
   {
-    RCLCPP_DEBUG(node_->get_logger(), "No longer listening o joint states");
+    joint_state_subscriber_.reset();
+    RCLCPP_DEBUG(node_->get_logger(), "No longer listening to joint states");
     state_monitor_started_ = false;
   }
 }
@@ -257,7 +260,7 @@ bool CurrentStateMonitor::haveCompleteState(const rclcpp::Duration& age, std::ve
 
 bool CurrentStateMonitor::waitForCurrentState(rclcpp::Time t, double wait_time) const
 {
-  rclcpp::Time start = node_->now();
+  rclcpp::Time start = rclcpp::Clock{RCL_STEADY_TIME}.now();
   rclcpp::Duration elapsed(0, 0);
   rclcpp::Duration timeout = rclcpp::Duration::from_seconds(wait_time);
 
@@ -276,12 +279,10 @@ bool CurrentStateMonitor::waitForCompleteState(double wait_time) const
 {
   double slept_time = 0.0;
   double sleep_step_s = std::min(0.05, wait_time / 10.0);
-  // rclcpp::Duration sleep_step = rclcpp::Duration::from_seconds(sleep_step_s);
-  auto sleep_duration =
-      std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>{ sleep_step_s });
+  
   while (!haveCompleteState() && slept_time < wait_time)
   {
-    rclcpp::sleep_for(sleep_duration);
+    rclcpp::Clock{RCL_STEADY_TIME}.sleep_for(rclcpp::Duration::from_seconds(sleep_step_s));
     slept_time += sleep_step_s;
   }
   return haveCompleteState();
@@ -315,8 +316,11 @@ bool CurrentStateMonitor::waitForCompleteState(const std::string& manip, double 
   return ok;
 }
 
-void CurrentStateMonitor::jointStateCallback(sensor_msgs::msg::JointState::ConstSharedPtr joint_state)
+void CurrentStateMonitor::jointStateCallback(const sensor_msgs::msg::JointState::ConstSharedPtr& joint_state)
 {
+  if (!env_->isInitialized())
+    return;
+
   if (joint_state->name.size() != joint_state->position.size())
   {
     RCLCPP_ERROR_THROTTLE(node_->get_logger(),
@@ -331,6 +335,7 @@ void CurrentStateMonitor::jointStateCallback(sensor_msgs::msg::JointState::Const
 
   {
     std::scoped_lock slock(state_update_lock_);
+    auto lock = env_->lockRead();
     // read the received values, and update their time stamps
     current_state_time_ = rclcpp::Time(joint_state->header.stamp);
     if (last_environment_revision_ != env_->getRevision())
@@ -356,7 +361,7 @@ void CurrentStateMonitor::jointStateCallback(sensor_msgs::msg::JointState::Const
     if (update)
       env_state_ = env_->getState(env_state_.joints);
 
-    if (publish_tf_ && env_->isInitialized())
+    if (publish_tf_)
     {
       std::string base_link = env_->getRootLinkName();
       std::vector<geometry_msgs::msg::TransformStamped> transforms;
@@ -379,7 +384,7 @@ void CurrentStateMonitor::jointStateCallback(sensor_msgs::msg::JointState::Const
   // callbacks, if needed
   if (update)
     for (auto& update_callback : update_callbacks_)
-      update_callback(*joint_state);
+      update_callback(joint_state);
 
   // notify waitForCurrentState() *after* potential update callbacks
   state_update_condition_.notify_all();

@@ -5,25 +5,10 @@ find_package(ros_industrial_cmake_boilerplate REQUIRED)
 extract_package_metadata(pkg)
 project(${pkg_extracted_name} VERSION ${pkg_extracted_version} LANGUAGES CXX)
 
-# find_package(orocos_kdl REQUIRED)
-# find_package(Eigen3 REQUIRED)
-
-find_package(ament_cmake REQUIRED)
-find_package(rclcpp REQUIRED)
+# ROS
 find_package(pluginlib REQUIRED)
-find_package(tesseract_msgs REQUIRED)
-
-# find_package(visualization_msgs REQUIRED)
-# find_package(tf2_ros REQUIRED)
-# find_package(tf2_eigen REQUIRED)
-
-find_package(tesseract_common REQUIRED)
-find_package(tesseract_environment REQUIRED)
+# tesseract_ros2
 find_package(tesseract_rosutils REQUIRED)
-
-#generate_dynamic_reconfigure_options(
-#cfg/EnvironmentMonitorDynamicReconfigure.cfg
-#)
 
 # Load variable for clang tidy args, compiler options and cxx version
 tesseract_variables()
@@ -34,7 +19,7 @@ add_library(${PROJECT_NAME}_environment SHARED
   src/current_state_monitor.cpp
 )
 target_link_libraries(${PROJECT_NAME}_environment PUBLIC
-  rclcpp::rclcpp
+  pluginlib::pluginlib
   tesseract_rosutils::tesseract_rosutils
 )
 target_compile_options(${PROJECT_NAME}_environment PRIVATE ${TESSERACT_COMPILE_OPTIONS})
@@ -43,19 +28,15 @@ target_cxx_version(${PROJECT_NAME}_environment PUBLIC VERSION 17)
 target_include_directories(${PROJECT_NAME}_environment PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
-ament_target_dependencies(${PROJECT_NAME}_environment PUBLIC
-  tesseract_msgs
-  pluginlib
-)
 
-# add_executable(${PROJECT_NAME}_environment_node src/environment_monitor_node.cpp)
-# target_link_libraries(${PROJECT_NAME}_environment_node PRIVATE ${PROJECT_NAME}_environment ${catkin_LIBRARIES})
-# target_compile_options(${PROJECT_NAME}_environment_node PRIVATE ${TESSERACT_COMPILE_OPTIONS})
-# target_clang_tidy(${PROJECT_NAME}_environment_node ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS} ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
-# target_cxx_version(${PROJECT_NAME}_environment_node PRIVATE VERSION 17)
-# target_include_directories(${PROJECT_NAME}_environment_node PUBLIC
-#   " $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-#   "$<INSTALL_INTERFACE:include>")
+add_executable(${PROJECT_NAME}_environment_node src/environment_monitor_node.cpp)
+target_link_libraries(${PROJECT_NAME}_environment_node PRIVATE ${PROJECT_NAME}_environment ${catkin_LIBRARIES})
+target_compile_options(${PROJECT_NAME}_environment_node PRIVATE ${TESSERACT_COMPILE_OPTIONS})
+target_clang_tidy(${PROJECT_NAME}_environment_node ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS} ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
+target_cxx_version(${PROJECT_NAME}_environment_node PRIVATE VERSION 17)
+target_include_directories(${PROJECT_NAME}_environment_node PUBLIC
+  " $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+  "$<INSTALL_INTERFACE:include>")
 
 # add_library(${PROJECT_NAME}_contacts src/contact_monitor.cpp)
 # target_link_libraries(${PROJECT_NAME}_contacts PRIVATE tesseract::tesseract_environment ${PROJECT_NAME}_environment ${catkin_LIBRARIES})
@@ -78,7 +59,6 @@ ament_target_dependencies(${PROJECT_NAME}_environment PUBLIC
 
 add_library(${PROJECT_NAME}_environment_interface SHARED src/environment_monitor_interface.cpp)
 target_link_libraries(${PROJECT_NAME}_environment_interface PUBLIC
-  tesseract::tesseract_environment
   tesseract_rosutils::tesseract_rosutils
 )
 target_compile_options(${PROJECT_NAME}_environment_interface PRIVATE ${TESSERACT_COMPILE_OPTIONS})
@@ -87,9 +67,6 @@ target_cxx_version(${PROJECT_NAME}_environment_interface PUBLIC VERSION 17)
 target_include_directories(${PROJECT_NAME}_environment_interface PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
-ament_target_dependencies(${PROJECT_NAME}_environment_interface PUBLIC
-  tesseract_msgs
-)
 
 # add_executable(demo_scene demos/demo_scene.cpp)
 # target_link_libraries(demo_scene PRIVATE ${PROJECT_NAME}_environment ${catkin_LIBRARIES})
@@ -110,13 +87,14 @@ install(
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
+  INCLUDES DESTINATION include
 )
 
 # Mark executables for installation
 install(
   TARGETS
-  # ${PROJECT_NAME}_contacts_node
-  # ${PROJECT_NAME}_environment_node
+   # ${PROJECT_NAME}_contacts_node
+    ${PROJECT_NAME}_environment_node
   # demo_scene
   RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
@@ -126,17 +104,8 @@ install(DIRECTORY launch DESTINATION share/${PROJECT_NAME})
 
 ament_export_targets(${PROJECT_NAME}-targets HAS_LIBRARY_TARGET)
 ament_export_dependencies(
-  rclcpp
   pluginlib
-  tesseract_msgs
   tesseract_rosutils
-  # tf2_ros
-  # tf2_eigen
-  # visualization_msgs
-  # Eigen3
-  # orocos_kdl
-  tesseract_common
-  tesseract_environment
 )
 
 ament_package()

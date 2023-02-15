@@ -153,7 +153,8 @@ protected:
 
   rclcpp::Node::SharedPtr node_;
   rclcpp::Node::SharedPtr internal_node_;
-  std::thread internal_node_spinner_;
+  rclcpp::executors::MultiThreadedExecutor::SharedPtr internal_node_executor_;
+  std::shared_ptr<std::thread> internal_node_spinner_;
   std::string robot_description_;
 
   // variables for planning scene publishing
@@ -169,16 +170,16 @@ protected:
       get_monitored_environment_information_client_;
 
   // host a service for modifying the environment
-  rclcpp::Service<tesseract_msgs::srv::ModifyEnvironment>::SharedPtr modify_environment_server_;
+  rclcpp::Service<tesseract_msgs::srv::ModifyEnvironment>::SharedPtr modify_environment_service_;
 
   // host a service for getting the environment changes
-  rclcpp::Service<tesseract_msgs::srv::GetEnvironmentChanges>::SharedPtr get_environment_changes_server_;
+  rclcpp::Service<tesseract_msgs::srv::GetEnvironmentChanges>::SharedPtr get_environment_changes_service_;
 
   // host a service for getting the environment information
-  rclcpp::Service<tesseract_msgs::srv::GetEnvironmentInformation>::SharedPtr get_environment_information_server_;
+  rclcpp::Service<tesseract_msgs::srv::GetEnvironmentInformation>::SharedPtr get_environment_information_service_;
 
   // host a service for saving the scene graph to a DOT file
-  rclcpp::Service<tesseract_msgs::srv::SaveSceneGraph>::SharedPtr save_scene_graph_server_;
+  rclcpp::Service<tesseract_msgs::srv::SaveSceneGraph>::SharedPtr save_scene_graph_service_;
 
   // include a current state monitor
   CurrentStateMonitor::UPtr current_state_monitor_;
@@ -196,28 +197,28 @@ private:
   void environmentPublishingThread();
 
   // called by current_state_monitor_ when robot state (as monitored on joint state topic) changes
-  void onJointStateUpdate(const sensor_msgs::msg::JointState& joint_state);
+  void onJointStateUpdate(const sensor_msgs::msg::JointState::ConstSharedPtr joint_state);
 
-  // called by state_update_timer_ when a state update it pending
+  // called by state_update_timer_ when a state update is pending
   void updateJointStateTimerCallback();
 
   // Callback for a new state msg
-  void newEnvironmentStateCallback(const tesseract_msgs::msg::EnvironmentState::SharedPtr env);
+  void newEnvironmentStateCallback(const tesseract_msgs::msg::EnvironmentState::ConstSharedPtr env);
 
   /** @brief Callback for modifying the environment via service request */
-  void modifyEnvironmentCallback(tesseract_msgs::srv::ModifyEnvironment::Request::SharedPtr req,
+  bool modifyEnvironmentCallback(tesseract_msgs::srv::ModifyEnvironment::Request::SharedPtr req,
                                  tesseract_msgs::srv::ModifyEnvironment::Response::SharedPtr res);
 
   /** @brief Callback for get the environment changes via service request */
-  void getEnvironmentChangesCallback(tesseract_msgs::srv::GetEnvironmentChanges::Request::SharedPtr req,
+  bool getEnvironmentChangesCallback(tesseract_msgs::srv::GetEnvironmentChanges::Request::SharedPtr req,
                                      tesseract_msgs::srv::GetEnvironmentChanges::Response::SharedPtr res);
 
   /** @brief Callback for get the environment information via service request */
-  void getEnvironmentInformationCallback(tesseract_msgs::srv::GetEnvironmentInformation::Request::SharedPtr req,
+  bool getEnvironmentInformationCallback(tesseract_msgs::srv::GetEnvironmentInformation::Request::SharedPtr req,
                                          tesseract_msgs::srv::GetEnvironmentInformation::Response::SharedPtr res);
 
   /** @brief Callback to save the scene graph to a DOT via a service request */
-  void saveSceneGraphCallback(tesseract_msgs::srv::SaveSceneGraph::Request::SharedPtr req,
+  bool saveSceneGraphCallback(tesseract_msgs::srv::SaveSceneGraph::Request::SharedPtr req,
                               tesseract_msgs::srv::SaveSceneGraph::Response::SharedPtr res);
 
   // Called when new service request is called to modify the environment.
@@ -246,6 +247,8 @@ private:
   rclcpp::Time last_robot_state_update_wall_time_;
 
   std::atomic<bool> publish_{ false };
+
+  rclcpp::Logger logger_;
 };
 
 }  // namespace tesseract_monitoring

@@ -22,22 +22,23 @@ class JointTrajectoryMonitorPropertiesPrivate
 public:
   std::shared_ptr<rclcpp::Node> rviz_node;
   std::shared_ptr<rclcpp::Node> node;
+  rclcpp::executors::MultiThreadedExecutor::SharedPtr internal_node_executor;
   std::shared_ptr<std::thread> internal_node_spinner;
   rviz_common::Display* parent;
   rviz_common::properties::Property* main_property;
   tesseract_gui::JointTrajectoryWidget* widget;
 
   rviz_common::properties::BoolProperty* legacy_main;
-  rviz_common::properties::StringProperty* legacy_joint_trajectory_topic_property;
+  rviz_common::properties::RosTopicProperty* legacy_joint_trajectory_topic_property;
 
   rviz_common::properties::BoolProperty* tesseract_main;
-  rviz_common::properties::StringProperty* tesseract_joint_trajectory_topic_property;
+  rviz_common::properties::RosTopicProperty* tesseract_joint_trajectory_topic_property;
 
   rclcpp::Subscription<trajectory_msgs::msg::JointTrajectory>::SharedPtr legacy_joint_trajectory_sub;
   rclcpp::Subscription<tesseract_msgs::msg::Trajectory>::SharedPtr tesseract_joint_trajectory_sub;
 
-  void legacyJointTrajectoryCallback(const trajectory_msgs::msg::JointTrajectory::SharedPtr msg);
-  void tesseractJointTrajectoryCallback(const tesseract_msgs::msg::Trajectory::SharedPtr msg);
+  void legacyJointTrajectoryCallback(const trajectory_msgs::msg::JointTrajectory::ConstSharedPtr msg);
+  void tesseractJointTrajectoryCallback(const tesseract_msgs::msg::Trajectory::ConstSharedPtr msg);
 };
 
 JointTrajectoryMonitorProperties::JointTrajectoryMonitorProperties(rviz_common::Display* parent,
@@ -53,7 +54,7 @@ JointTrajectoryMonitorProperties::JointTrajectoryMonitorProperties(rviz_common::
   data_->legacy_main = new rviz_common::properties::BoolProperty("Legacy Joint Trajectory",
                                                                  true,
                                                                  "This will monitor this topic for "
-                                                                 "trajectory_msgs::JointTrajectory "
+                                                                 "trajectory_msgs::msg::JointTrajectory "
                                                                  "messages.",
                                                                  data_->main_property,
                                                                  SLOT(onLegacyJointTrajectoryChanged()),
@@ -61,10 +62,10 @@ JointTrajectoryMonitorProperties::JointTrajectoryMonitorProperties(rviz_common::
   data_->legacy_main->setDisableChildrenIfFalse(true);
 
   data_->legacy_joint_trajectory_topic_property =
-      new rviz_common::properties::StringProperty("topic",
+      new rviz_common::properties::RosTopicProperty("topic",
                                                   "/joint_trajectory",
-                                                  "This will monitor this topic for trajectory_msgs::JointTrajectory "
-                                                  "messages.",
+                                                  rosidl_generator_traits::data_type<trajectory_msgs::msg::JointTrajectory>(),
+                                                  "This will monitor this topic for trajectory_msgs::msg::JointTrajectory messages.",
                                                   data_->legacy_main,
                                                   SLOT(onLegacyJointTrajectoryTopicChanged()),
                                                   this);
@@ -72,7 +73,7 @@ JointTrajectoryMonitorProperties::JointTrajectoryMonitorProperties(rviz_common::
   data_->tesseract_main = new rviz_common::properties::BoolProperty("Tesseract Joint Trajectory",
                                                                     true,
                                                                     "This will monitor this topic for "
-                                                                    "trajectory_msgs::JointTrajectory "
+                                                                    "trajectory_msgs::msg::JointTrajectory "
                                                                     "messages.",
                                                                     data_->main_property,
                                                                     SLOT(onTesseractJointTrajectoryChanged()),
@@ -80,9 +81,10 @@ JointTrajectoryMonitorProperties::JointTrajectoryMonitorProperties(rviz_common::
   data_->tesseract_main->setDisableChildrenIfFalse(true);
 
   data_->tesseract_joint_trajectory_topic_property =
-      new rviz_common::properties::StringProperty("Joint Trajectory Topic",
+      new rviz_common::properties::RosTopicProperty("Joint Trajectory Topic",
                                                   "/tesseract_trajectory",
-                                                  "This will monitor this topic for tesseract_msgs::Trajectory "
+                                                  rosidl_generator_traits::data_type<tesseract_msgs::msg::Trajectory>(),
+                                                  "This will monitor this topic for tesseract_msgs::msg::Trajectory "
                                                   "messages.",
                                                   data_->tesseract_main,
                                                   SLOT(onTesseractJointTrajectoryTopicChanged()),
@@ -91,23 +93,26 @@ JointTrajectoryMonitorProperties::JointTrajectoryMonitorProperties(rviz_common::
 
 JointTrajectoryMonitorProperties::~JointTrajectoryMonitorProperties()
 {
+  data_->internal_node_executor->cancel();
   if (data_->internal_node_spinner->joinable())
     data_->internal_node_spinner->join();
 }
 
-void JointTrajectoryMonitorProperties::onInitialize(tesseract_gui::JointTrajectoryWidget* widget,
-                                                    std::shared_ptr<rclcpp::Node> rviz_node)
+void JointTrajectoryMonitorProperties::onInitialize(tesseract_gui::JointTrajectoryWidget* widget, rviz_common::DisplayContext* context)
 {
-  data_->rviz_node = rviz_node;
+  auto ros_node_abstraction = context->getRosNodeAbstraction().lock();
+  data_->rviz_node = ros_node_abstraction->get_raw_node();
+  data_->node = std::make_shared<rclcpp::Node>(data_->parent->getNameStd() + "_JointTrajectory_Node", data_->rviz_node->get_fully_qualified_name());
+   
+  data_->legacy_joint_trajectory_topic_property->initialize(ros_node_abstraction);
+  data_->tesseract_joint_trajectory_topic_property->initialize(ros_node_abstraction);
 
-  data_->node = std::make_shared<rclcpp::Node>(std::string(data_->rviz_node->get_name()) + "TesseractWorkbench_"
-                                                                                           "JointTrajectory_Node");
+  data_->internal_node_executor = std::make_shared<rclcpp::executors::MultiThreadedExecutor>();
   data_->internal_node_spinner = std::make_shared<std::thread>(std::thread{ [this]() {
-    rclcpp::executors::MultiThreadedExecutor executor;
-    executor.add_node(data_->node);
-    executor.spin();
+    data_->internal_node_executor->add_node(data_->node);
+    data_->internal_node_executor->spin();
   } });
-  data_->internal_node_spinner->detach();
+  
   data_->widget = widget;
   onLegacyJointTrajectoryTopicConnect();
   onTesseractJointTrajectoryTopicConnect();
@@ -188,7 +193,7 @@ void JointTrajectoryMonitorProperties::onTesseractJointTrajectoryChanged()
 }
 
 void JointTrajectoryMonitorPropertiesPrivate::legacyJointTrajectoryCallback(
-    const trajectory_msgs::msg::JointTrajectory::SharedPtr msg)
+    const trajectory_msgs::msg::JointTrajectory::ConstSharedPtr msg)
 {
   if (msg->joint_names.empty())
     return;
@@ -207,7 +212,7 @@ void JointTrajectoryMonitorPropertiesPrivate::legacyJointTrajectoryCallback(
 }
 
 void JointTrajectoryMonitorPropertiesPrivate::tesseractJointTrajectoryCallback(
-    const tesseract_msgs::msg::Trajectory::SharedPtr msg)
+    const tesseract_msgs::msg::Trajectory::ConstSharedPtr msg)
 {
   try
   {
@@ -242,8 +247,8 @@ void JointTrajectoryMonitorPropertiesPrivate::tesseractJointTrajectoryCallback(
     {
       tesseract_common::JointTrajectory joint_trajectory = tesseract_rosutils::fromMsg(joint_trajectory_msg);
       trajectory_set.appendJointTrajectory(joint_trajectory);
+      widget->addJointTrajectorySet(trajectory_set);
     }
-    widget->addJointTrajectorySet(trajectory_set);
   }
   catch (...)
   {

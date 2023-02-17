@@ -1,8 +1,3 @@
-#include <tesseract_common/macros.h>
-TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
-#include <tesseract_rosutils/utils.h>
-TESSERACT_COMMON_IGNORE_WARNINGS_POP
-
 #include <tesseract_rviz/workbench_display.h>
 #include <tesseract_rviz/ros_environment_widget.h>
 #include <tesseract_rviz/ros_manipulation_widget.h>
@@ -22,7 +17,6 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <rviz_common/window_manager_interface.hpp>
 #include <rviz_common/properties/property.hpp>
 
-#include <OgreSceneManager.h>
 #include <OgreSceneNode.h>
 
 #include <QApplication>
@@ -102,9 +96,8 @@ void WorkbenchDisplay::onInitialize()
   disconnect(
       getAssociatedWidgetPanel(), SIGNAL(visibilityChanged(bool)), this, SLOT(associatedPanelVisibilityChange(bool)));
 
-  auto rviz_node = context_->getRosNodeAbstraction().lock()->get_raw_node();
-  data_->monitor_properties->onInitialize(data_->environment_widget, rviz_node);
-  data_->joint_trajectory_properties->onInitialize(data_->joint_trajectory_widget, rviz_node);
+  data_->monitor_properties->onInitialize(data_->environment_widget, context_);
+  data_->joint_trajectory_properties->onInitialize(data_->joint_trajectory_widget, context_);
 
   data_->theme_tool = SetThemeTool::instance();
   if (!data_->theme_tool->isInitialized())

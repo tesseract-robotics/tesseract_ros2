@@ -73,8 +73,7 @@ void EnvironmentDisplay::onInitialize()
   disconnect(
       getAssociatedWidgetPanel(), SIGNAL(visibilityChanged(bool)), this, SLOT(associatedPanelVisibilityChange(bool)));
 
-  auto rviz_node = context_->getRosNodeAbstraction().lock()->get_raw_node();
-  data_->monitor_properties->onInitialize(data_->widget, rviz_node);
+  data_->monitor_properties->onInitialize(data_->widget, context_);
 
   data_->theme_tool = SetThemeTool::instance();
   if (!data_->theme_tool->isInitialized())

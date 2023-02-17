@@ -2,8 +2,9 @@
 #define TESSERACT_RVIZ_ENVIRONMENT_MONITOR_PROPERTIES_H
 
 #include <memory>
-#include <rclcpp/rclcpp.hpp>
 #include <QObject>
+#include <rclcpp/rclcpp.hpp>
+#include <rviz_common/display_context.hpp>
 
 namespace rviz_common
 {
@@ -23,7 +24,7 @@ class EnvironmentWidgetConfig;
 namespace tesseract_rviz
 {
 class ROSEnvironmentWidget;
-class EnvironmentMonitorPropertiesPrivate;
+struct EnvironmentMonitorPropertiesPrivate;
 
 class EnvironmentMonitorProperties : public QObject
 {
@@ -34,7 +35,7 @@ public:
                                rviz_common::properties::Property* main_property = nullptr);
   ~EnvironmentMonitorProperties() override;
 
-  void onInitialize(ROSEnvironmentWidget* widget, std::shared_ptr<rclcpp::Node> rviz_node);
+  void onInitialize(ROSEnvironmentWidget* widget, rviz_common::DisplayContext* context);
 
   /**
    * @brief Return the config based on the settings of the object

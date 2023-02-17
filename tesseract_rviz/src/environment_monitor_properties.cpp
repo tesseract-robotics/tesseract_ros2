@@ -5,6 +5,7 @@
 
 #include <tesseract_monitoring/environment_monitor.h>
 
+#include <rclcpp/logging.hpp>
 #include <tesseract_msgs/msg/environment_state.hpp>
 #include <sensor_msgs/msg/joint_state.hpp>
 
@@ -22,6 +23,7 @@ struct EnvironmentMonitorPropertiesPrivate
 {
   std::shared_ptr<rclcpp::Node> rviz_node;
   std::shared_ptr<rclcpp::Node> node;
+  rclcpp::executors::MultiThreadedExecutor::SharedPtr internal_node_executor;
   std::shared_ptr<std::thread> internal_node_spinner;
   rviz_common::Display* parent;
   rviz_common::properties::Property* main_property;
@@ -32,8 +34,8 @@ struct EnvironmentMonitorPropertiesPrivate
 
   rviz_common::properties::EnumProperty* display_mode_property;
   rviz_common::properties::StringProperty* urdf_description_string_property;
-  rviz_common::properties::StringProperty* environment_topic_property;
-  rviz_common::properties::StringProperty* joint_state_topic_property;
+  rviz_common::properties::RosTopicProperty* environment_topic_property;
+  rviz_common::properties::RosTopicProperty* joint_state_topic_property;
 };
 
 EnvironmentMonitorProperties::EnvironmentMonitorProperties(rviz_common::Display* parent,
@@ -68,42 +70,45 @@ EnvironmentMonitorProperties::EnvironmentMonitorProperties(rviz_common::Display*
                                                   SLOT(onURDFDescriptionChanged()),
                                                   this);
 
-  data_->environment_topic_property = new rviz_common::properties::StringProperty("Monitor Topic",
-                                                                                  "/tesseract_environment",
-                                                                                  "This will monitor this topic for "
-                                                                                  "environment changes.",
-                                                                                  data_->main_property,
-                                                                                  SLOT(onEnvironmentTopicChanged()),
-                                                                                  this);
+  data_->environment_topic_property =
+      new rviz_common::properties::RosTopicProperty("Monitor Topic",
+                                                    "/tesseract_environment",
+                                                    rosidl_generator_traits::data_type<tesseract_msgs::msg::EnvironmentState>(),
+                                                    "This will monitor this topic for environment changes.",
+                                                    data_->main_property,
+                                                    SLOT(onEnvironmentTopicChanged()),
+                                                    this);
 
-  data_->joint_state_topic_property = new rviz_common::properties::StringProperty("Joint State Topic",
-                                                                                  "/joint_states",
-                                                                                  "This will monitor this topic for "
-                                                                                  "joint state changes.",
-                                                                                  data_->main_property,
-                                                                                  SLOT(onJointStateTopicChanged()),
-                                                                                  this);
+  data_->joint_state_topic_property = 
+      new rviz_common::properties::RosTopicProperty("Joint State Topic",
+                                                    "/joint_states",
+                                                    rosidl_generator_traits::data_type<sensor_msgs::msg::JointState>(),
+                                                    "This will monitor this topic for joint state changes.",
+                                                    data_->main_property,
+                                                    SLOT(onJointStateTopicChanged()),
+                                                    this);
 }
 
-// EnvironmentMonitorProperties::~EnvironmentMonitorProperties() = default;
 EnvironmentMonitorProperties::~EnvironmentMonitorProperties()
 {
+  data_->internal_node_executor->cancel();
   if (data_->internal_node_spinner->joinable())
     data_->internal_node_spinner->join();
 }
 
-void EnvironmentMonitorProperties::onInitialize(ROSEnvironmentWidget* widget, std::shared_ptr<rclcpp::Node> rviz_node)
+void EnvironmentMonitorProperties::onInitialize(ROSEnvironmentWidget* widget, rviz_common::DisplayContext* context)
 {
-  data_->rviz_node = rviz_node;
+  auto ros_node_abstraction = context->getRosNodeAbstraction().lock();
+  data_->rviz_node = ros_node_abstraction->get_raw_node();
+  data_->node = std::make_shared<rclcpp::Node>(data_->parent->getNameStd() + "_EnvMonitor_Node", data_->rviz_node->get_fully_qualified_name());
+  data_->environment_topic_property->initialize(ros_node_abstraction);
+  data_->joint_state_topic_property->initialize(ros_node_abstraction);
 
-  data_->node = std::make_shared<rclcpp::Node>(std::string(data_->rviz_node->get_name()) + "_TesseractWorkbench_"
-                                                                                           "EnvMonitor_Node");
+  data_->internal_node_executor = std::make_shared<rclcpp::executors::MultiThreadedExecutor>();
   data_->internal_node_spinner = std::make_shared<std::thread>(std::thread{ [this]() {
-    rclcpp::executors::MultiThreadedExecutor executor;
-    executor.add_node(data_->node);
-    executor.spin();
+    data_->internal_node_executor->add_node(data_->node);
+    data_->internal_node_executor->spin();
   } });
-  data_->internal_node_spinner->detach();
 
   data_->widget = widget;
   onDisplayModeChanged();
@@ -175,12 +180,12 @@ void EnvironmentMonitorProperties::onURDFDescriptionChanged()
   if (data_->widget == nullptr)
     return;
 
+  if (data_->monitor != nullptr)
+    data_->monitor->shutdown();
+
   auto it = data_->configs.find(data_->urdf_description_string_property->getStdString());
   if (it != data_->configs.end())
   {
-    if (data_->monitor != nullptr)
-      data_->monitor->shutdown();
-
     data_->monitor = std::make_unique<tesseract_monitoring::ROSEnvironmentMonitor>(
         data_->node, it->second->getEnvironment(), data_->monitor_namespace);
     if (data_->monitor != nullptr)
@@ -191,32 +196,18 @@ void EnvironmentMonitorProperties::onURDFDescriptionChanged()
   }
   else
   {
-    // TODO: Get urdf and srdf properties
-    std::string urdf_xml_string, srdf_xml_string;
-    try
-    {
-      urdf_xml_string =
-          data_->rviz_node->get_parameter(data_->urdf_description_string_property->getStdString()).as_string();
-      srdf_xml_string =
-          data_->rviz_node->get_parameter(data_->urdf_description_string_property->getStdString() + "_semantic")
-              .as_string();
-    }
-    catch (rclcpp::exceptions::ParameterNotDeclaredException& e)
-    {
-      RCLCPP_ERROR(data_->node->get_logger(),
-                   "Parameter %s was not declared when rviz was launched",
-                   data_->urdf_description_string_property->getStdString().c_str());
-      return;
-    }
+    std::string urdf_xml_string;
+    std::string srdf_xml_string;
+    if (!data_->rviz_node->get_parameter(data_->urdf_description_string_property->getStdString(), urdf_xml_string))
+      urdf_xml_string = data_->rviz_node->declare_parameter(data_->urdf_description_string_property->getStdString(), "");
+    if (!data_->rviz_node->get_parameter(data_->urdf_description_string_property->getStdString() + "_semantic", srdf_xml_string))
+      srdf_xml_string = data_->rviz_node->declare_parameter(data_->urdf_description_string_property->getStdString() + "_semantic", "");
 
     auto env = std::make_shared<tesseract_environment::Environment>();
     auto locator = std::make_shared<tesseract_rosutils::ROSResourceLocator>();
     if (env->init(urdf_xml_string, srdf_xml_string, locator))
     {
-      if (data_->monitor != nullptr)
-        data_->monitor->shutdown();
-
-      data_->monitor =
+      data_->monitor = 
           std::make_unique<tesseract_monitoring::ROSEnvironmentMonitor>(data_->node, env, data_->monitor_namespace);
       if (data_->monitor != nullptr)
       {
@@ -237,14 +228,13 @@ void EnvironmentMonitorProperties::onURDFDescriptionChanged()
 
 void EnvironmentMonitorProperties::onEnvironmentTopicChanged()
 {
-  RCLCPP_ERROR(data_->node->get_logger(), "onEnvTopicChange");
   if (data_->widget == nullptr)
     return;
 
   if (data_->monitor != nullptr)
     data_->monitor->shutdown();
 
-  auto it = data_->configs.find(data_->environment_topic_property->getStdString());
+  auto it = data_->configs.find(data_->environment_topic_property->getTopicStd());
   if (it != data_->configs.end())
   {
     data_->monitor = std::make_unique<tesseract_monitoring::ROSEnvironmentMonitor>(
@@ -257,29 +247,39 @@ void EnvironmentMonitorProperties::onEnvironmentTopicChanged()
   }
   else
   {
+    std::string urdf_xml_string;
+    std::string srdf_xml_string;
+    if (!data_->rviz_node->get_parameter(data_->urdf_description_string_property->getStdString(), urdf_xml_string))
+      urdf_xml_string = data_->rviz_node->declare_parameter(data_->urdf_description_string_property->getStdString(), "");
+    if (!data_->rviz_node->get_parameter(data_->urdf_description_string_property->getStdString() + "_semantic", srdf_xml_string))
+      srdf_xml_string = data_->rviz_node->declare_parameter(data_->urdf_description_string_property->getStdString() + "_semantic", "");
+
     auto env = std::make_shared<tesseract_environment::Environment>();
-    data_->monitor =
+    auto locator = std::make_shared<tesseract_rosutils::ROSResourceLocator>();
+    if (env->init(urdf_xml_string, srdf_xml_string, locator))
+    {
+      data_->monitor = 
         std::make_unique<tesseract_monitoring::ROSEnvironmentMonitor>(data_->node, env, data_->monitor_namespace);
 
-    if (data_->monitor != nullptr)
+      if (data_->monitor != nullptr)
+      {
+        auto config = std::make_shared<tesseract_gui::EnvironmentWidgetConfig>();
+        config->setEnvironment(env);
+        data_->widget->setConfiguration(config);
+
+        std::string ns = getEnvNamespaceFromTopic(data_->environment_topic_property->getStdString());
+        if (!ns.empty())
+          data_->monitor->startMonitoringEnvironment(ns);
+        else
+          data_->parent->setStatus(rviz_common::properties::StatusProperty::Error, "Tesseract", "Invalid environment monitor topic!");
+
+        onJointStateTopicChanged();
+        data_->configs[data_->environment_topic_property->getStdString()] = config;
+      }
+    }
+    else
     {
-      auto config = std::make_shared<tesseract_gui::EnvironmentWidgetConfig>();
-      config->setEnvironment(env);
-      data_->widget->setConfiguration(config);
-
-      std::string ns = getEnvNamespaceFromTopic(data_->environment_topic_property->getStdString());
-      if (!ns.empty())
-      {
-        data_->monitor->startMonitoringEnvironment(ns);
-      }
-      else
-      {
-        data_->parent->setStatus(
-            rviz_common::properties::StatusProperty::Error, "Tesseract", "Invalid environment monitor topic!");
-      }
-
-      onJointStateTopicChanged();
-      data_->configs[data_->environment_topic_property->getStdString()] = config;
+      data_->parent->setStatus(rviz_common::properties::StatusProperty::Error, "Tesseract", "URDF file failed to parse");
     }
   }
 }
@@ -287,7 +287,7 @@ void EnvironmentMonitorProperties::onEnvironmentTopicChanged()
 void EnvironmentMonitorProperties::onJointStateTopicChanged()
 {
   if (data_->monitor != nullptr)
-    data_->monitor->startStateMonitor(data_->joint_state_topic_property->getStdString(), false);
+    data_->monitor->startStateMonitor(data_->joint_state_topic_property->getTopicStd(), false);
 }
 
 }  // namespace tesseract_rviz

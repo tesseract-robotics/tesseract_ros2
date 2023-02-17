@@ -1,3 +1,28 @@
+/**
+ * @file conversions.cpp
+ * @brief Common conversion used
+ *
+ * @author Levi Armstrong
+ * @date Dec 18, 2017
+ * @version TODO
+ * @bug No known bugs
+ *
+ * @copyright Copyright (c) 2017, Southwest Research Institute
+ *
+ * @par License
+ * Software License Agreement (Apache License)
+ * @par
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * @par
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 #include <tesseract_rviz/conversions.h>
 
 #include <OgreEntity.h>
@@ -24,7 +49,6 @@
 #include "rviz_common/load_resource.hpp"
 #include <rviz_rendering/mesh_loader.hpp>
 #include <rviz_rendering/objects/axes.hpp>
-//#include <rviz_rendering/objects/mesh_shape.hpp>
 #include <rviz_rendering/objects/object.hpp>
 #include <rviz_rendering/objects/shape.hpp>
 #include <rviz_rendering/objects/point_cloud.hpp>
@@ -326,7 +350,7 @@ Ogre::SceneNode* loadLinkAxis(Ogre::SceneManager& scene,
 
   /** @todo Does this need to be manually deleted */
   auto axis = std::make_shared<rviz_rendering::Axes>(&scene, scene_node);
-  axis->setScale(Ogre::Vector3(0.1, 0.1, 0.1));
+  axis->setScale(Ogre::Vector3(0.1f, 0.1f, 0.1f));
   entity_container.addUnmanagedObject(tesseract_gui::EntityContainer::VISUAL_NS, axis);
 
   scene_node->setVisible(false, true);
@@ -340,7 +364,7 @@ Ogre::SceneNode* loadLinkWireBox(Ogre::SceneManager& scene,
 {
   Ogre::MaterialPtr mat = Ogre::MaterialManager::getSingleton().getByName(
       "tesseract::highlight::material", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
-  if (mat.isNull())
+  if (!mat)
   {
     mat = Ogre::MaterialManager::getSingleton().create("tesseract::highlight::material",
                                                        Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
@@ -992,7 +1016,7 @@ Ogre::AxisAlignedBox getAABB(Ogre::SceneNode& scene_node, bool visible_only)
 
   if (aabb.isFinite())
   {
-    Ogre::Vector3 scale(1.15, 1.15, 1.15);
+    Ogre::Vector3 scale(1.15f, 1.15f, 1.15f);
     Ogre::Vector3 center = aabb.getCenter();
     Ogre::Vector3 max = aabb.getMaximum();
     Ogre::Vector3 min = aabb.getMinimum();

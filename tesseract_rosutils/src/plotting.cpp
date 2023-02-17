@@ -64,6 +64,19 @@ ROSPlotting::ROSPlotting(std::string root_link, std::string topic_namespace)
   axes_pub_ = node_->create_publisher<visualization_msgs::msg::MarkerArray>(topic_namespace + "/display_axes", 1);
   tool_path_pub_ =
       node_->create_publisher<visualization_msgs::msg::MarkerArray>(topic_namespace + "/display_tool_path", 1);
+
+  internal_node_executor_ = std::make_shared<rclcpp::executors::MultiThreadedExecutor>();
+  internal_node_spinner_ = std::make_shared<std::thread>(std::thread{ [this]() {
+    internal_node_executor_->add_node(node_);
+    internal_node_executor_->spin();
+  } });
+}
+
+ROSPlotting::~ROSPlotting()
+{
+  internal_node_executor_->cancel();
+  if (internal_node_spinner_->joinable())
+    internal_node_spinner_->join();
 }
 
 bool ROSPlotting::isConnected() const { return true; }
@@ -86,7 +99,6 @@ void ROSPlotting::waitForConnection(long seconds) const
     }
 
     rclcpp::Clock{RCL_STEADY_TIME}.sleep_for(rclcpp::Duration::from_seconds(0.02));
-    rclcpp::spin_some(node_);
   }
 
   return;
@@ -99,7 +111,6 @@ void ROSPlotting::plotEnvironmentState(const tesseract_scene_graph::SceneState& 
 void ROSPlotting::plotTrajectory(const tesseract_msgs::msg::Trajectory& traj, std::string /*ns*/)
 {
   trajectory_pub_->publish(traj);
-  rclcpp::spin_some(node_);
 }
 
 void ROSPlotting::plotTrajectory(const tesseract_common::JointTrajectory& traj,
@@ -209,13 +220,10 @@ void ROSPlotting::plotMarker(const tesseract_visualization::Marker& marker, std:
         visualization_msgs::msg::MarkerArray msg =
             getContactResultsMarkerArrayMsg(marker_counter_, root_link_, topic_namespace_, node_->now(), m);
         collisions_pub_->publish(msg);
-        rclcpp::spin_some(node_);
       }
       break;
     }
   }
-
-  rclcpp::spin_some(node_);
 }
 
 void ROSPlotting::plotMarkers(const std::vector<tesseract_visualization::Marker::Ptr>& /*markers*/, std::string /*ns*/)
@@ -275,7 +283,6 @@ void ROSPlotting::clear(std::string ns)
   collisions_pub_->publish(msg);
   arrows_pub_->publish(msg);
   axes_pub_->publish(msg);
-  rclcpp::spin_some(node_);
 }
 
 static void waitForInputAsync(std::string message)
@@ -289,7 +296,7 @@ void ROSPlotting::waitForInput(std::string message)
   // std::chrono::microseconds timeout(1);
   // std::future<void> future = std::async(std::launch::async, [=]() { waitForInputAsync(message); });
   // while (future.wait_for(timeout) != std::future_status::ready)
-  //   rclcpp::spin_some(node_);
+  //   rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.1)));
 }
 
 const std::string& ROSPlotting::getRootLink() const { return root_link_; }

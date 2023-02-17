@@ -47,6 +47,7 @@ int main(int argc, char** argv)
 
   auto node = std::make_shared<rclcpp::Node>("puzzle_piece_example_node");
 
+  // Get ROS Parameters
   bool plotting = node->declare_parameter("plotting", true);
   bool rviz = node->declare_parameter("rviz", true);
 
@@ -71,6 +72,8 @@ int main(int argc, char** argv)
     plotter = std::make_shared<ROSPlotting>(env->getSceneGraph()->getRoot());
 
   PuzzlePieceExample example(env, plotter);
+  rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(5.0)));
+  
   example.run();
 
   spinner.join();

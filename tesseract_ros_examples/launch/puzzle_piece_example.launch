@@ -2,55 +2,34 @@
 <launch>
   <!-- By default we do not overwrite the URDF. Change the following to true to change the default behavior -->
   <!-- The name of the parameter under which the URDF is loaded -->
+  <arg name="robot_description" default="robot_description"/>
   <arg name="plotting" default="true"/>
   <arg name="rviz" default="true"/>
   <arg name="testing" default="false"/>
 
   <!-- Load universal robot description format (URDF) -->
-  <let name="robot_description"
-       value="$(command 'xacro $(find-pkg-share tesseract_support)/urdf/puzzle_piece_workcell.xacro')" />
+  <let name="robot_description_file" value="$(command 'xacro $(find-pkg-share tesseract_support)/urdf/puzzle_piece_workcell.xacro')" />
 
   <!-- The semantic description that corresponds to the URDF -->
-  <let name="robot_description_semantic"
-       value="$(command 'cat $(find-pkg-share tesseract_support)/urdf/puzzle_piece_workcell.srdf')" />
+  <let name="robot_description_semantic_file" value="$(command 'cat $(find-pkg-share tesseract_support)/urdf/puzzle_piece_workcell.srdf')" />
 
-  <!--<node pkg="robot_state_publisher" exec="robot_state_publisher" name="robot_state_publisher">
-      <param name="robot_description" value="$(var robot_description)" />
-  </node>-->
-  <node pkg="tf2_ros" exec="static_transform_publisher" args="0 0 0 0 0 0 world base_link" />
-  <!--
-  <group unless="$(arg testing)">
-  -->
+  <group unless="$(var testing)">
     <!-- If needed, broadcast static tf for robot root -->
-    <!--
-    <node pkg="tf" type="static_transform_publisher" name="virtual_joint_broadcaster_0" args="0 0 0 0 0 0 world base_link 100" />
-    -->
+    <node pkg="tf2_ros" exec="static_transform_publisher" args="0 0 0 0 0 0 world base_link" />
 
     <node pkg="tesseract_ros_examples" exec="tesseract_ros_examples_puzzle_piece_example_node" output="screen">
       <param name="plotting" type="bool" value="$(var plotting)"/>
       <param name="rviz" type="bool" value="$(var rviz)"/>
-      <param name="robot_description" value="$(var robot_description)" type="str"/>
-      <param name="robot_description_semantic" value="$(var robot_description_semantic)" type="str"/>
-      <!--
-      <param from="$(find-pkg-share tesseract_ros_examples)/config/joint_limits.yaml"/>
-      <param from="$(find-pkg-share tesseract_ros_examples)/config/kinematics.yaml"/>
-      -->
+      <param name="$(var robot_description)" value="$(var robot_description_file)" type="str"/>
+      <param name="$(var robot_description)_semantic" value="$(var robot_description_semantic_file)" type="str"/>
     </node>
 
     <!-- Launch visualization -->
     <node pkg="rviz2" exec="rviz2"
-      args="-d $(find-pkg-share tesseract_ros_examples)/config/examples.rviz"
-      output="screen">
-      <param name="robot_description" value="$(var robot_description)" type="str"/>
-      <param name="robot_description_semantic" value="$(var robot_description_semantic)" type="str"/>
+        args="-d $(find-pkg-share tesseract_ros_examples)/config/examples.rviz" output="screen">
+      <param name="$(var robot_description)" value="$(var robot_description_file)" type="str"/>
+      <param name="$(var robot_description)_semantic" value="$(var robot_description_semantic_file)" type="str"/>
     </node>
-  <!--
   </group>
-  -->
-
-  <!-- Robot control -->
-  <!--<node pkg="joint_state_publisher_gui" exec="joint_state_publisher_gui">
-    <param name="robot_description" value="$(var robot_description)"/>
-  </node>-->
 
 </launch>

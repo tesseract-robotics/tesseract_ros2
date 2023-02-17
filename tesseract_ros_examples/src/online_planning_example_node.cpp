@@ -29,31 +29,87 @@
  * limitations under the License.
  */
 
-#include <tesseract_ros_examples/online_planning_example.h>
+#include <thread>
+#include <tesseract_examples/online_planning_example.h>
+#include <tesseract_monitoring/environment_monitor.h>
+#include <tesseract_rosutils/plotting.h>
+#include <std_srvs/srv/set_bool.hpp>
 
-using namespace tesseract_ros_examples;
+using namespace tesseract_examples;
+using namespace tesseract_rosutils;
+
+/** @brief Default ROS parameter for robot description */
+const std::string ROBOT_DESCRIPTION_PARAM = "robot_description";
+
+/** @brief Default ROS parameter for robot description */
+const std::string ROBOT_SEMANTIC_PARAM = "robot_description_semantic";
+
+/** @brief RViz Example Namespace */
+const std::string EXAMPLE_MONITOR_NAMESPACE = "tesseract_ros_examples";
+
+/** @brief Dynamic object joint states topic */
+const std::string DYNAMIC_OBJECT_JOINT_STATE = "/joint_states";
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "online_planning_example_node");
-  ros::NodeHandle pnh("~");
-  ros::NodeHandle nh;
+  rclcpp::init(argc, argv);
 
-  bool plotting{ true };
-  bool rviz{ true };
-  int steps{ 12 };
-  double box_size{ 0.01 };
-  bool update_start_state{ false };
-  bool use_continuous{ false };
+  auto node = std::make_shared<rclcpp::Node>("online_planning_example_node");
 
   // Get ROS Parameters
-  pnh.param("plotting", plotting, plotting);
-  pnh.param("rviz", rviz, rviz);
-  pnh.param<int>("steps", steps, steps);
-  pnh.param<double>("box_size", box_size, box_size);
-  pnh.param<bool>("update_start_state", update_start_state, update_start_state);
-  pnh.param<bool>("use_continuous", use_continuous, use_continuous);
+  bool plotting = node->declare_parameter("plotting", true);
+  bool rviz = node->declare_parameter("rviz", true);
 
-  OnlinePlanningExample example(nh, plotting, rviz, steps, box_size, update_start_state, use_continuous);
+  long steps = node->declare_parameter("steps", 12);
+  double box_size = node->declare_parameter("box_size", 0.01);
+  bool update_start_state = node->declare_parameter("update_start_state", false);
+  bool use_continuous = node->declare_parameter("use_continuous", false);
+  
+  // Initial setup
+  std::string urdf_xml_string = node->declare_parameter(ROBOT_DESCRIPTION_PARAM, "");
+  std::string srdf_xml_string = node->declare_parameter(ROBOT_SEMANTIC_PARAM, "");
+
+  auto env = std::make_shared<tesseract_environment::Environment>();
+  auto locator = std::make_shared<tesseract_rosutils::ROSResourceLocator>();
+  if (!env->init(urdf_xml_string, srdf_xml_string, locator))
+    exit(1);
+
+  std::thread spinner{ [node]() { rclcpp::spin(node); } };
+
+  // Create monitor
+  auto monitor = std::make_shared<tesseract_monitoring::ROSEnvironmentMonitor>(node, env, EXAMPLE_MONITOR_NAMESPACE);
+  if (rviz)
+    monitor->startPublishingEnvironment();
+
+  ROSPlottingPtr plotter;
+  if (plotting)
+    plotter = std::make_shared<ROSPlotting>(env->getSceneGraph()->getRoot());
+
+  OnlinePlanningExample example(env, plotter, steps, box_size, update_start_state, use_continuous);
+  
+  auto fn1 = [&example](std_srvs::srv::SetBool::Request::ConstSharedPtr req, std_srvs::srv::SetBool::Response::SharedPtr res) {
+    example.toggleRealtime(req->data);
+    res->success = true;
+    return true;
+  };
+
+  auto fn2 = [&example](const sensor_msgs::msg::JointState::ConstSharedPtr joint_state) {
+    example.updateState(joint_state->name, joint_state->position);
+  };
+
+  // Set up ROS interfaces
+  auto joint_state_subscriber_ = node->create_subscription<sensor_msgs::msg::JointState>(
+          DYNAMIC_OBJECT_JOINT_STATE,
+          rclcpp::QoS(25),
+          fn2);
+
+  auto toggle_realtime_service = node->create_service<std_srvs::srv::SetBool>(
+      "toggle_realtime",
+      fn1);
+
+  rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(5.0)));
+  
   example.run();
+
+  spinner.join();
 }

@@ -30,9 +30,6 @@
 #define TESSERACT_RVIZ_INTERACTIVE_MARKER_INTERACTIVE_MARKER_CONTROL_H
 
 #ifndef Q_MOC_RUN
-#include <boost/shared_ptr.hpp>
-#include <boost/enable_shared_from_this.hpp>
-
 #include <OgreRay.h>
 #include <OgreVector3.h>
 #include <OgreQuaternion.h>
@@ -103,7 +100,7 @@ public:
   using ConstPtr = std::shared_ptr<const InteractiveMarkerControl>;
 
   InteractiveMarkerControl(std::string name,
-                           std::string description,
+                           const std::string& description,
                            rviz_common::DisplayContext* context,
                            Ogre::SceneNode* reference_node,
                            InteractiveMarker* parent,
@@ -418,7 +415,7 @@ protected:
 
   std::string name_;
 
-  std::vector<boost::shared_ptr<MarkerBase>> markers_;
+  std::vector<std::shared_ptr<MarkerBase>> markers_;
 
   InteractiveMarker* parent_;
 

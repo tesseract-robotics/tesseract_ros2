@@ -42,8 +42,8 @@ namespace tesseract_rviz
 class CubeMarker : public MarkerBase
 {
 public:
-  using Ptr = boost::shared_ptr<CubeMarker>;
-  using ConstPtr = boost::shared_ptr<const CubeMarker>;
+  using Ptr = std::shared_ptr<CubeMarker>;
+  using ConstPtr = std::shared_ptr<const CubeMarker>;
 
   CubeMarker(const std::string& ns,
              const int id,

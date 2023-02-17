@@ -38,13 +38,11 @@
 #include <rviz_common/display_context.hpp>
 #include <rviz_rendering/objects/shape.hpp>
 
-#include <boost/make_shared.hpp>
-
 namespace tesseract_rviz
 {
 void makeSphere(InteractiveMarkerControl& control, float radius)
 {
-  SphereMarker::Ptr marker = boost::make_shared<SphereMarker>(
+  SphereMarker::Ptr marker = std::make_shared<SphereMarker>(
       control.getName(), 0, control.getMarkerSceneManager(), control.getMarkerSceneNode(), radius);
   marker->setScale(Ogre::Vector3(control.getSize(), control.getSize(), control.getSize()));
   marker->setColor(Ogre::ColourValue(1.0f, 1.0f, 0.0f, 0.5f));
@@ -75,7 +73,7 @@ void makeArrow(InteractiveMarkerControl& control, float pos)
   point2.y = 0;
   point2.z = 0;
 
-  ArrowMarker::Ptr marker = boost::make_shared<ArrowMarker>(
+  ArrowMarker::Ptr marker = std::make_shared<ArrowMarker>(
       control.getName(), 0, point1, point2, control.getMarkerSceneManager(), control.getMarkerSceneNode());
   marker->setColor(default_color);
   marker->setOrientation(control.getControlOrientation());
@@ -88,7 +86,7 @@ void makeArrow(InteractiveMarkerControl& control, float pos)
 void makeTitle(InteractiveMarkerControl& control, const std::string& text)
 {
   Ogre::ColourValue default_color(1, 1, 1, 1);
-  TextViewFacingMarker::Ptr marker = boost::make_shared<TextViewFacingMarker>(
+  TextViewFacingMarker::Ptr marker = std::make_shared<TextViewFacingMarker>(
       control.getName(), 0, text, control.getMarkerSceneManager(), control.getMarkerSceneNode());
   marker->setColor(default_color);
   float scale = control.getSize();
@@ -227,7 +225,7 @@ void makeDisc(InteractiveMarkerControl& control, float width)
       break;
   }
 
-  TriangleListMarker::Ptr marker = boost::make_shared<TriangleListMarker>(control.getName(),
+  TriangleListMarker::Ptr marker = std::make_shared<TriangleListMarker>(control.getName(),
                                                                           0,
                                                                           control.getMarkerSceneManager(),
                                                                           control.getMarkerSceneNode(),

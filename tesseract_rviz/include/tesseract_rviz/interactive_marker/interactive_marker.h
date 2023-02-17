@@ -30,7 +30,6 @@
 #define TESSERACT_RVIZ_INTERACTIVE_MARKER_INTERACTIVE_MARKER_H
 
 #ifndef Q_MOC_RUN
-#include <boost/shared_ptr.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/recursive_mutex.hpp>
 #include <boost/thread/thread.hpp>
@@ -64,14 +63,14 @@ class InteractiveMarker : public QObject
 {
   Q_OBJECT
 public:
-  using Ptr = boost::shared_ptr<InteractiveMarker>;
-  using ConstPtr = boost::shared_ptr<const InteractiveMarker>;
+  using Ptr = std::shared_ptr<InteractiveMarker>;
+  using ConstPtr = std::shared_ptr<const InteractiveMarker>;
 
-  InteractiveMarker(const std::string& name,
-                    const std::string& description,
+  InteractiveMarker(std::string name,
+                    std::string description,
                     Ogre::SceneNode* scene_node,
                     rviz_common::DisplayContext* context,
-                    const float scale = 1);
+                    float scale = 1);
   virtual ~InteractiveMarker();
 
   InteractiveMarkerControl::Ptr createInteractiveControl(const std::string& name,
@@ -104,7 +103,7 @@ public:
   void setSize(float scale);
   float getSize() const { return scale_; }
 
-  const std::string& getName() { return name_; }
+  const std::string& getName() const { return name_; }
 
   /**
    * @brief Set visibility

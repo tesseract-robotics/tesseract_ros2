@@ -6,6 +6,7 @@ extract_package_metadata(pkg)
 project(${pkg_extracted_name} VERSION ${pkg_extracted_version} LANGUAGES CXX)
 
 # ROS
+find_package(resource_retriever REQUIRED)
 find_package(rviz_common REQUIRED)
 find_package(rviz_default_plugins REQUIRED)
 find_package(rviz_ogre_vendor REQUIRED)
@@ -115,6 +116,7 @@ add_library(${PROJECT_NAME} SHARED
   src/set_theme_tool.cpp
   ${${PROJECT_NAME}_cpp_MOCS})
 target_link_libraries(${PROJECT_NAME} PUBLIC
+  resource_retriever::resource_retriever
   rviz_ogre_vendor::OgreMain
   rviz_ogre_vendor::OgreOverlay
   rviz_common::rviz_common

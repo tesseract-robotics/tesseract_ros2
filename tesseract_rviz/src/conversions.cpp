@@ -39,7 +39,7 @@
 #include <OgreNameGenerator.h>
 #include <OgreVector3.h>
 
-#include <resource_retriever/retriever.h>
+#include <resource_retriever/retriever.hpp>
 #include <octomap/octomap.h>
 #include <octomap_msgs/msg/octomap.hpp>
 #include <rclcpp/rclcpp.hpp>

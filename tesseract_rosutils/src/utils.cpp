@@ -32,8 +32,11 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <tesseract_msgs/msg/string_limits_pair.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/lexical_cast.hpp>
-#include <tf2_eigen/tf2_eigen.hpp>
-
+#if __has_include(<tf2_eigen/tf2_eigen.hpp>)
+#  include <tf2_eigen/tf2_eigen.hpp>
+#else
+#  include <tf2_eigen/tf2_eigen.h>
+#endif
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_common/serialization.h>

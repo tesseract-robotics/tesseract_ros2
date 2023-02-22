@@ -98,7 +98,7 @@ void ROSPlotting::waitForConnection(long seconds) const
         return;
     }
 
-    rclcpp::Clock{RCL_STEADY_TIME}.sleep_for(rclcpp::Duration::from_seconds(0.02));
+    rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.02)));
   }
 
   return;

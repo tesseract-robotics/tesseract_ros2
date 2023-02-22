@@ -24,7 +24,7 @@ target_link_libraries(${PROJECT_NAME}_environment PUBLIC
 )
 target_compile_options(${PROJECT_NAME}_environment PRIVATE ${TESSERACT_COMPILE_OPTIONS})
 target_clang_tidy(${PROJECT_NAME}_environment ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS} ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
-target_cxx_version(${PROJECT_NAME}_environment PUBLIC VERSION 17)
+target_cxx_version(${PROJECT_NAME}_environment PUBLIC VERSION ${TESSERACT_CXX_VERSION})
 target_include_directories(${PROJECT_NAME}_environment PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
@@ -33,7 +33,7 @@ add_executable(${PROJECT_NAME}_environment_node src/environment_monitor_node.cpp
 target_link_libraries(${PROJECT_NAME}_environment_node PRIVATE ${PROJECT_NAME}_environment ${catkin_LIBRARIES})
 target_compile_options(${PROJECT_NAME}_environment_node PRIVATE ${TESSERACT_COMPILE_OPTIONS})
 target_clang_tidy(${PROJECT_NAME}_environment_node ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS} ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
-target_cxx_version(${PROJECT_NAME}_environment_node PRIVATE VERSION 17)
+target_cxx_version(${PROJECT_NAME}_environment_node PRIVATE VERSION ${TESSERACT_CXX_VERSION})
 target_include_directories(${PROJECT_NAME}_environment_node PUBLIC
   " $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
@@ -42,7 +42,7 @@ target_include_directories(${PROJECT_NAME}_environment_node PUBLIC
 # target_link_libraries(${PROJECT_NAME}_contacts PRIVATE tesseract::tesseract_environment ${PROJECT_NAME}_environment ${catkin_LIBRARIES})
 # target_compile_options(${PROJECT_NAME}_contacts PRIVATE ${TESSERACT_COMPILE_OPTIONS})
 # target_clang_tidy(${PROJECT_NAME}_contacts ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS} ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
-# target_cxx_version(${PROJECT_NAME}_contacts PUBLIC VERSION 17)
+# target_cxx_version(${PROJECT_NAME}_contacts PUBLIC VERSION ${TESSERACT_CXX_VERSION})
 # target_include_directories(${PROJECT_NAME}_contacts PRIVATE
 #   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
 #   "$<INSTALL_INTERFACE:include>")
@@ -52,7 +52,7 @@ target_include_directories(${PROJECT_NAME}_environment_node PUBLIC
 # target_link_libraries(${PROJECT_NAME}_contacts_node PRIVATE tesseract::tesseract_environment ${PROJECT_NAME}_contacts ${catkin_LIBRARIES})
 # target_compile_options(${PROJECT_NAME}_contacts_node PRIVATE ${TESSERACT_COMPILE_OPTIONS})
 # target_clang_tidy(${PROJECT_NAME}_contacts_node ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS} ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
-# target_cxx_version(${PROJECT_NAME}_contacts_node PRIVATE VERSION 17)
+# target_cxx_version(${PROJECT_NAME}_contacts_node PRIVATE VERSION ${TESSERACT_CXX_VERSION})
 # target_include_directories(${PROJECT_NAME}_contacts_node PRIVATE
 #   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
 #   "$<INSTALL_INTERFACE:include>")
@@ -63,7 +63,7 @@ target_link_libraries(${PROJECT_NAME}_environment_interface PUBLIC
 )
 target_compile_options(${PROJECT_NAME}_environment_interface PRIVATE ${TESSERACT_COMPILE_OPTIONS})
 target_clang_tidy(${PROJECT_NAME}_environment_interface ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS} ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
-target_cxx_version(${PROJECT_NAME}_environment_interface PUBLIC VERSION 17)
+target_cxx_version(${PROJECT_NAME}_environment_interface PUBLIC VERSION ${TESSERACT_CXX_VERSION})
 target_include_directories(${PROJECT_NAME}_environment_interface PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
@@ -72,7 +72,7 @@ target_include_directories(${PROJECT_NAME}_environment_interface PUBLIC
 # target_link_libraries(demo_scene PRIVATE ${PROJECT_NAME}_environment ${catkin_LIBRARIES})
 # target_compile_options(demo_scene PRIVATE ${TESSERACT_COMPILE_OPTIONS})
 # target_clang_tidy(demo_scene ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS} ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
-# target_cxx_version(demo_scene PRIVATE VERSION 17)
+# target_cxx_version(demo_scene PRIVATE VERSION ${TESSERACT_CXX_VERSION})
 # target_include_directories(demo_scene PUBLIC
 #   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
 #   "$<INSTALL_INTERFACE:include>")

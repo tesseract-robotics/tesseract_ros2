@@ -87,7 +87,7 @@ int main(int argc, char** argv)
 
   OnlinePlanningExample example(env, plotter, steps, box_size, update_start_state, use_continuous);
   
-  auto fn1 = [&example](std_srvs::srv::SetBool::Request::ConstSharedPtr req, std_srvs::srv::SetBool::Response::SharedPtr res) {
+  auto fn1 = [&example](std_srvs::srv::SetBool::Request::SharedPtr req, std_srvs::srv::SetBool::Response::SharedPtr res) {
     example.toggleRealtime(req->data);
     res->success = true;
     return true;

@@ -182,7 +182,7 @@ public:
   void enableCopyDynamics(bool enabled) { copy_dynamics_ = enabled; }
 
 private:
-  void jointStateCallback(const sensor_msgs::msg::JointState::ConstSharedPtr& joint_state);
+  void jointStateCallback(const sensor_msgs::msg::JointState::ConstSharedPtr joint_state);
   bool isPassiveOrMimicDOF(const std::string& dof) const;
 
   rclcpp::Node::SharedPtr node_;

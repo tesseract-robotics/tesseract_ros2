@@ -20,18 +20,18 @@ tesseract_variables()
 
 add_library(${PROJECT_NAME} SHARED src/plotting.cpp src/conversions.cpp src/utils.cpp)
 target_link_libraries(${PROJECT_NAME} PUBLIC
-  rclcpp::rclcpp
-  tf2_eigen::tf2_eigen
-  tesseract::tesseract_task_composer
+    rclcpp::rclcpp
+    tesseract::tesseract_task_composer
 )
 ament_target_dependencies(${PROJECT_NAME} PUBLIC
+  tf2_eigen
   trajectory_msgs
   visualization_msgs
   tesseract_msgs
 )
 target_compile_options(${PROJECT_NAME} PRIVATE ${TESSERACT_COMPILE_OPTIONS})
 target_clang_tidy(${PROJECT_NAME} ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS} ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
-target_cxx_version(${PROJECT_NAME} PUBLIC VERSION 17)
+target_cxx_version(${PROJECT_NAME} PUBLIC VERSION ${TESSERACT_CXX_VERSION})
 target_include_directories(${PROJECT_NAME} PUBLIC
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
     "$<INSTALL_INTERFACE:include>")
@@ -75,7 +75,7 @@ if(BUILD_TESTING)
   )
   target_compile_options(${PROJECT_NAME}_unit PRIVATE ${TESSERACT_COMPILE_OPTIONS})
   target_clang_tidy(${PROJECT_NAME}_unit ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS} ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
-  target_cxx_version(${PROJECT_NAME}_unit PUBLIC VERSION 17)
+  target_cxx_version(${PROJECT_NAME}_unit PUBLIC VERSION ${TESSERACT_CXX_VERSION})
   target_include_directories(${PROJECT_NAME}_unit PRIVATE
       "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
       "$<INSTALL_INTERFACE:include>")

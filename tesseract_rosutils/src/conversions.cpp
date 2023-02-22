@@ -25,11 +25,15 @@
  */
 #include <tesseract_common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
-#include <tf2_eigen/tf2_eigen.hpp>
 #include <iostream>
 #include <fstream>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string.hpp>
+#if __has_include(<tf2_eigen/tf2_eigen.hpp>)
+#  include <tf2_eigen/tf2_eigen.hpp>
+#else
+#  include <tf2_eigen/tf2_eigen.h>
+#endif
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_rosutils/conversions.h>

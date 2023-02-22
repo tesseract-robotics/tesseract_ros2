@@ -38,7 +38,11 @@
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <limits>
 #include <geometry_msgs/msg/transform_stamped.hpp>
-#include <tf2_eigen/tf2_eigen.hpp>
+#if __has_include(<tf2_eigen/tf2_eigen.hpp>)
+#  include <tf2_eigen/tf2_eigen.hpp>
+#else
+#  include <tf2_eigen/tf2_eigen.h>
+#endif
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_monitoring/current_state_monitor.h>
@@ -105,14 +109,10 @@ void CurrentStateMonitor::startStateMonitor(const std::string& joint_states_topi
     }
     else
     {
-      auto subscriber_options = rclcpp::SubscriptionOptions();
-      subscriber_options.qos_overriding_options = rclcpp::QosOverridingOptions::with_default_policies();
-
       joint_state_subscriber_ = node_->create_subscription<sensor_msgs::msg::JointState>(
           joint_states_topic,
           rclcpp::SensorDataQoS(),
-          std::bind(&CurrentStateMonitor::jointStateCallback, this, std::placeholders::_1),
-          subscriber_options);
+          std::bind(&CurrentStateMonitor::jointStateCallback, this, std::placeholders::_1));
     }
     state_monitor_started_ = true;
     monitor_start_time_ = node_->now();
@@ -282,7 +282,7 @@ bool CurrentStateMonitor::waitForCompleteState(double wait_time) const
   
   while (!haveCompleteState() && slept_time < wait_time)
   {
-    rclcpp::Clock{RCL_STEADY_TIME}.sleep_for(rclcpp::Duration::from_seconds(sleep_step_s));
+    rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(sleep_step_s)));
     slept_time += sleep_step_s;
   }
   return haveCompleteState();
@@ -316,7 +316,7 @@ bool CurrentStateMonitor::waitForCompleteState(const std::string& manip, double 
   return ok;
 }
 
-void CurrentStateMonitor::jointStateCallback(const sensor_msgs::msg::JointState::ConstSharedPtr& joint_state)
+void CurrentStateMonitor::jointStateCallback(const sensor_msgs::msg::JointState::ConstSharedPtr joint_state)
 {
   if (!env_->isInitialized())
     return;

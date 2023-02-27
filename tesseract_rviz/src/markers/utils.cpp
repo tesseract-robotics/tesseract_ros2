@@ -226,12 +226,12 @@ void makeDisc(InteractiveMarkerControl& control, float width)
   }
 
   TriangleListMarker::Ptr marker = std::make_shared<TriangleListMarker>(control.getName(),
-                                                                          0,
-                                                                          control.getMarkerSceneManager(),
-                                                                          control.getMarkerSceneNode(),
-                                                                          default_color,
-                                                                          points,
-                                                                          colors);
+                                                                        0,
+                                                                        control.getMarkerSceneManager(),
+                                                                        control.getMarkerSceneNode(),
+                                                                        default_color,
+                                                                        points,
+                                                                        colors);
   marker->setOrientation(control.getControlOrientation());
   float scale = control.getSize();
   marker->setScale(Ogre::Vector3(scale, scale, scale));

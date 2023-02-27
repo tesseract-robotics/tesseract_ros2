@@ -158,18 +158,18 @@ InteractiveMarkerControl::Ptr InteractiveMarker::createInteractiveControl(const 
     return search_iter->second;
   }
 
-    // Else make new control
-    auto control = std::make_shared<InteractiveMarkerControl>(name,
-                                                              description,
-                                                              context_,
-                                                              reference_node_,
-                                                              this,
-                                                              interactive_mode,
-                                                              orientation_mode,
-                                                              always_visible,
-                                                              orientation);
-    controls_[name] = control;
-    return control;
+  // Else make new control
+  auto control = std::make_shared<InteractiveMarkerControl>(name,
+                                                            description,
+                                                            context_,
+                                                            reference_node_,
+                                                            this,
+                                                            interactive_mode,
+                                                            orientation_mode,
+                                                            always_visible,
+                                                            orientation);
+  controls_[name] = control;
+  return control;
 }
 
 // Recursively append menu and submenu entries to menu, based on a

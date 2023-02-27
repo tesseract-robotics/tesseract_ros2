@@ -87,7 +87,8 @@ public:
    */
   std::vector<std::string> applyCommand(const tesseract_environment::Command& command) const override final;
   std::vector<std::string> applyCommands(const tesseract_environment::Commands& commands) const override final;
-  std::vector<std::string> applyCommands(const std::vector<tesseract_environment::Command>& commands) const override final;
+  std::vector<std::string>
+  applyCommands(const std::vector<tesseract_environment::Command>& commands) const override final;
 
   /**
    * @brief Apply provided command to only the provided namespace. The namespace does not have to be one that is
@@ -127,11 +128,13 @@ public:
    * @brief Set environment state for all monitor namespaces
    * @return A vector of failed namespace, if empty all namespace were updated successfully.
    */
-  std::vector<std::string> setEnvironmentState(const std::unordered_map<std::string, double>& joints) const override final;
+  std::vector<std::string>
+  setEnvironmentState(const std::unordered_map<std::string, double>& joints) const override final;
   std::vector<std::string> setEnvironmentState(const std::vector<std::string>& joint_names,
                                                const std::vector<double>& joint_values) const override final;
-  std::vector<std::string> setEnvironmentState(const std::vector<std::string>& joint_names,
-                           const Eigen::Ref<const Eigen::VectorXd>& joint_values) const override final;
+  std::vector<std::string>
+  setEnvironmentState(const std::vector<std::string>& joint_names,
+                      const Eigen::Ref<const Eigen::VectorXd>& joint_values) const override final;
 
   /**
    * @brief Pull information from the environment in the provided namespace and create a Environment Object

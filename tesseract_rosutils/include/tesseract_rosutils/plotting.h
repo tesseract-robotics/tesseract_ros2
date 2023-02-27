@@ -47,7 +47,7 @@ class ROSPlotting : public tesseract_visualization::Visualization
 {
 public:
   ROSPlotting(std::string root_link = "world", std::string topic_namespace = "tesseract");
-  
+
   ~ROSPlotting();
 
   bool isConnected() const override;
@@ -118,7 +118,7 @@ private:
   rclcpp::Node::SharedPtr node_;
   rclcpp::executors::MultiThreadedExecutor::SharedPtr internal_node_executor_;
   std::shared_ptr<std::thread> internal_node_spinner_;
-  rclcpp::Publisher<tesseract_msgs::msg::SceneGraph>::SharedPtr scene_pub_;      /**< Scene publisher */
+  rclcpp::Publisher<tesseract_msgs::msg::SceneGraph>::SharedPtr scene_pub_;           /**< Scene publisher */
   rclcpp::Publisher<tesseract_msgs::msg::Trajectory>::SharedPtr trajectory_pub_;      /**< Trajectory publisher */
   rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr collisions_pub_; /**< Collision Data publisher */
   rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr arrows_pub_; /**< Used for publishing arrow markers

@@ -292,7 +292,7 @@ void InteractiveMarkerControl::update()
 {
   if (mouse_dragging_)
   {
-     handleMouseMovement(*dragging_in_place_event_);
+    handleMouseMovement(*dragging_in_place_event_);
   }
 }
 
@@ -1195,7 +1195,7 @@ void InteractiveMarkerControl::handleMouseEvent(rviz_common::ViewportMouseEvent&
         // orientation_mode_ = OrientationMode::VIEW_FACING;
         beginMouseMovement(event, false);
       }
-      else if (event.left() && 
+      else if (event.left() &&
                ((modifiers_at_drag_begin_ ^ event.modifiers) & (Qt::ShiftModifier | Qt::ControlModifier)))
       {
         // modifier buttons changed.  Restart the drag.

@@ -188,7 +188,8 @@ void ContactMonitor::callbackModifyTesseractEnv(tesseract_msgs::ModifyEnvironmen
   if (request.append)
     revision = env_->getRevision();
 
-  if (!env_ || request.id != env_->getName() || revision != env_->getRevision()) {
+  if (!env_ || request.id != env_->getName() || revision != env_->getRevision())
+  {
     response.succes = false;
     return;
   }

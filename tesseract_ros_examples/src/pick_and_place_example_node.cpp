@@ -73,7 +73,7 @@ int main(int argc, char** argv)
 
   PickAndPlaceExample example(env, plotter);
   rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(5.0)));
-  
+
   example.run();
 
   spinner.join();

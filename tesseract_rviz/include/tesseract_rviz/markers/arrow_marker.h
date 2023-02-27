@@ -47,7 +47,7 @@ class DisplayContext;
 namespace rviz_rendering
 {
 class Arrow;
-} // namespace rviz_rendering
+}  // namespace rviz_rendering
 
 namespace tesseract_rviz
 {

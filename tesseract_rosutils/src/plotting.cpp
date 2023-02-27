@@ -83,7 +83,7 @@ bool ROSPlotting::isConnected() const { return true; }
 
 void ROSPlotting::waitForConnection(long seconds) const
 {
-  const auto start_time = rclcpp::Clock{RCL_STEADY_TIME}.now();
+  const auto start_time = rclcpp::Clock{ RCL_STEADY_TIME }.now();
   const auto wall_timeout = rclcpp::Duration::from_seconds(seconds);
 
   while (rclcpp::ok())
@@ -93,7 +93,7 @@ void ROSPlotting::waitForConnection(long seconds) const
 
     if (wall_timeout >= rclcpp::Duration::from_seconds(0))
     {
-      const auto current_time = rclcpp::Clock{RCL_STEADY_TIME}.now();
+      const auto current_time = rclcpp::Clock{ RCL_STEADY_TIME }.now();
       if ((current_time - start_time) >= wall_timeout)
         return;
     }

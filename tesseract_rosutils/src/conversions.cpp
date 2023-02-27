@@ -30,9 +30,9 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string.hpp>
 #if __has_include(<tf2_eigen/tf2_eigen.hpp>)
-#  include <tf2_eigen/tf2_eigen.hpp>
+#include <tf2_eigen/tf2_eigen.hpp>
 #else
-#  include <tf2_eigen/tf2_eigen.h>
+#include <tf2_eigen/tf2_eigen.h>
 #endif
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 

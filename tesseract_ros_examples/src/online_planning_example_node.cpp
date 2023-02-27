@@ -64,7 +64,7 @@ int main(int argc, char** argv)
   double box_size = node->declare_parameter("box_size", 0.01);
   bool update_start_state = node->declare_parameter("update_start_state", false);
   bool use_continuous = node->declare_parameter("use_continuous", false);
-  
+
   // Initial setup
   std::string urdf_xml_string = node->declare_parameter(ROBOT_DESCRIPTION_PARAM, "");
   std::string srdf_xml_string = node->declare_parameter(ROBOT_SEMANTIC_PARAM, "");
@@ -86,8 +86,9 @@ int main(int argc, char** argv)
     plotter = std::make_shared<ROSPlotting>(env->getSceneGraph()->getRoot());
 
   OnlinePlanningExample example(env, plotter, steps, box_size, update_start_state, use_continuous);
-  
-  auto fn1 = [&example](std_srvs::srv::SetBool::Request::SharedPtr req, std_srvs::srv::SetBool::Response::SharedPtr res) {
+
+  auto fn1 = [&example](std_srvs::srv::SetBool::Request::SharedPtr req,
+                        std_srvs::srv::SetBool::Response::SharedPtr res) {
     example.toggleRealtime(req->data);
     res->success = true;
     return true;
@@ -98,17 +99,13 @@ int main(int argc, char** argv)
   };
 
   // Set up ROS interfaces
-  auto joint_state_subscriber_ = node->create_subscription<sensor_msgs::msg::JointState>(
-          DYNAMIC_OBJECT_JOINT_STATE,
-          rclcpp::QoS(25),
-          fn2);
+  auto joint_state_subscriber_ =
+      node->create_subscription<sensor_msgs::msg::JointState>(DYNAMIC_OBJECT_JOINT_STATE, rclcpp::QoS(25), fn2);
 
-  auto toggle_realtime_service = node->create_service<std_srvs::srv::SetBool>(
-      "toggle_realtime",
-      fn1);
+  auto toggle_realtime_service = node->create_service<std_srvs::srv::SetBool>("toggle_realtime", fn1);
 
   rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(5.0)));
-  
+
   example.run();
 
   spinner.join();

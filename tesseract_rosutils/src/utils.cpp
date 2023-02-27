@@ -33,9 +33,9 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/lexical_cast.hpp>
 #if __has_include(<tf2_eigen/tf2_eigen.hpp>)
-#  include <tf2_eigen/tf2_eigen.hpp>
+#include <tf2_eigen/tf2_eigen.hpp>
 #else
-#  include <tf2_eigen/tf2_eigen.h>
+#include <tf2_eigen/tf2_eigen.h>
 #endif
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
@@ -80,7 +80,7 @@ std::shared_ptr<tesseract_common::Resource> ROSResourceLocator::locateResource(c
 
   if (!tesseract_common::fs::path(mod_url).is_complete())
     return nullptr;
-    
+
   return std::make_shared<tesseract_common::SimpleLocatedResource>(
       url, mod_url, std::make_shared<ROSResourceLocator>(*this));
 }
@@ -2106,7 +2106,7 @@ bool fromMsg(tesseract_common::TransformMap& transform_map, const tesseract_msgs
 
 bool toMsg(sensor_msgs::msg::JointState& joint_state_msg, const std::unordered_map<std::string, double>& joint_state)
 {
-  joint_state_msg.header.stamp = rclcpp::Clock{RCL_ROS_TIME}.now();
+  joint_state_msg.header.stamp = rclcpp::Clock{ RCL_ROS_TIME }.now();
   joint_state_msg.name.reserve(joint_state.size());
   joint_state_msg.position.reserve(joint_state.size());
   for (const auto& pair : joint_state)

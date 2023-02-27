@@ -40,9 +40,9 @@
 #include <OgreVector3.h>
 
 #if __has_include(<resource_retriever/retriever.hpp>)
-#  include <resource_retriever/retriever.hpp>
+#include <resource_retriever/retriever.hpp>
 #else
-#  include <resource_retriever/retriever.h>
+#include <resource_retriever/retriever.h>
 #endif
 #include <octomap/octomap.h>
 #include <octomap_msgs/msg/octomap.hpp>

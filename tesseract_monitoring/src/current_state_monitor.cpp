@@ -39,9 +39,9 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <limits>
 #include <geometry_msgs/msg/transform_stamped.hpp>
 #if __has_include(<tf2_eigen/tf2_eigen.hpp>)
-#  include <tf2_eigen/tf2_eigen.hpp>
+#include <tf2_eigen/tf2_eigen.hpp>
 #else
-#  include <tf2_eigen/tf2_eigen.h>
+#include <tf2_eigen/tf2_eigen.h>
 #endif
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
@@ -260,7 +260,7 @@ bool CurrentStateMonitor::haveCompleteState(const rclcpp::Duration& age, std::ve
 
 bool CurrentStateMonitor::waitForCurrentState(rclcpp::Time t, double wait_time) const
 {
-  rclcpp::Time start = rclcpp::Clock{RCL_STEADY_TIME}.now();
+  rclcpp::Time start = rclcpp::Clock{ RCL_STEADY_TIME }.now();
   rclcpp::Duration elapsed(0, 0);
   rclcpp::Duration timeout = rclcpp::Duration::from_seconds(wait_time);
 
@@ -279,10 +279,11 @@ bool CurrentStateMonitor::waitForCompleteState(double wait_time) const
 {
   double slept_time = 0.0;
   double sleep_step_s = std::min(0.05, wait_time / 10.0);
-  
+
   while (!haveCompleteState() && slept_time < wait_time)
   {
-    rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(sleep_step_s)));
+    rclcpp::sleep_for(
+        std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(sleep_step_s)));
     slept_time += sleep_step_s;
   }
   return haveCompleteState();

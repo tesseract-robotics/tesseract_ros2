@@ -1,7 +1,6 @@
 #include <tesseract_common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
-#include <ros/ros.h>
-#include <ros/console.h>
+#include <rclcpp/rclcpp.hpp>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_environment/environment.h>
@@ -13,31 +12,23 @@ const std::string ROBOT_DESCRIPTION_PARAM = "robot_description"; /**< Default RO
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "tesseract_environment_monitor");
-  ros::NodeHandle pnh("~");
-  std::string robot_description;
-  std::string discrete_plugin;
-  std::string continuous_plugin;
-  std::string joint_state_topic;
-  std::string monitor_namespace;
-  std::string monitored_namespace;
-  bool publish_environment{ false };
+  rclcpp::init(argc, argv);
+  auto node = std::make_shared<rclcpp::Node>("tesseract_environment_monitor");
 
-  if (!pnh.getParam("monitor_namespace", monitor_namespace))
+  std::string monitor_namespace = node->declare_parameter("monitor_namespace", "");
+
+  if (monitor_namespace == "")
   {
-    ROS_ERROR("Missing required parameter monitor_namespace!");
+    RCLCPP_ERROR(node->get_logger(), "Missing required parameter monitor_namespace!");
     return 1;
   }
 
-  pnh.param<std::string>("monitored_namespace", monitored_namespace, "");
-  pnh.param<std::string>("robot_description", robot_description, ROBOT_DESCRIPTION_PARAM);
-  pnh.param<std::string>("discrete_plugin", discrete_plugin, "");
-  pnh.param<std::string>("continuous_plugin", continuous_plugin, "");
-  pnh.param<std::string>("joint_state_topic", joint_state_topic, "");
-  pnh.param<bool>("publish_environment", publish_environment, publish_environment);
+  std::string monitored_namespace = node->declare_parameter("monitored_namespace", "");
+  std::string robot_description = node->declare_parameter("robot_description", ROBOT_DESCRIPTION_PARAM);
+  std::string joint_state_topic = node->declare_parameter("joint_state_topic", "");
+  bool publish_environment = node->declare_parameter("publish_environment", false);
 
-  tesseract_monitoring::EnvironmentMonitor monitor(
-      robot_description, monitor_namespace, discrete_plugin, continuous_plugin);
+  tesseract_monitoring::ROSEnvironmentMonitor monitor(node, robot_description, monitor_namespace);
 
   if (publish_environment)
     monitor.startPublishingEnvironment();
@@ -50,10 +41,7 @@ int main(int argc, char** argv)
   else
     monitor.startStateMonitor(joint_state_topic);
 
-  ros::AsyncSpinner spinner(4);
-  spinner.start();
-
-  ros::waitForShutdown();
+  rclcpp::spin(node);
 
   return 0;
 }

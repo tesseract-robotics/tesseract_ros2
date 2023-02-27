@@ -32,7 +32,7 @@
 #include <string>
 #endif
 
-namespace rviz
+namespace rviz_rendering
 {
 class Shape;
 }
@@ -42,12 +42,12 @@ namespace tesseract_rviz
 class CubeMarker : public MarkerBase
 {
 public:
-  using Ptr = boost::shared_ptr<CubeMarker>;
-  using ConstPtr = boost::shared_ptr<const CubeMarker>;
+  using Ptr = std::shared_ptr<CubeMarker>;
+  using ConstPtr = std::shared_ptr<const CubeMarker>;
 
   CubeMarker(const std::string& ns,
              const int id,
-             rviz::DisplayContext* context,
+             Ogre::SceneManager* scene_manager,
              Ogre::SceneNode* parent_node,
              float size = 1);
   ~CubeMarker() override;
@@ -62,8 +62,10 @@ public:
 
   std::set<Ogre::MaterialPtr> getMaterials() override;
 
+  void createMarkerSelectionHandler(rviz_common::DisplayContext* context) override;
+
 protected:
-  rviz::Shape* shape_;
+  rviz_rendering::Shape* shape_;
   Ogre::Vector3 scale_;
   float size_;
 };

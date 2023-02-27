@@ -27,20 +27,16 @@
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <future>
 #include <thread>
-// #include <ros/console.h>
 #include <Eigen/Geometry>
 #include <rclcpp/rclcpp.hpp>
 #include <geometry_msgs/msg/pose_array.hpp>
-#include <chrono>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_rosutils/plotting.h>
 #include <tesseract_rosutils/utils.h>
 #include <tesseract_rosutils/conversions.h>
 
-#include <tesseract_command_language/utils/flatten_utils.h>
-#include <tesseract_command_language/utils/filter_functions.h>
-#include <tesseract_command_language/command_language.h>
+#include <tesseract_command_language/composite_instruction.h>
 
 #include <tesseract_motion_planners/core/utils.h>
 
@@ -54,12 +50,12 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 namespace tesseract_rosutils
 {
-static const char LOGGER_ID[] = "tesseract_rosutils_plotting";
+static const char NODE_ID[] = "tesseract_rosutils_plotting";
 
 ROSPlotting::ROSPlotting(std::string root_link, std::string topic_namespace)
   : root_link_(root_link), topic_namespace_(topic_namespace)
 {
-  node_ = rclcpp::Node::make_shared(LOGGER_ID);
+  node_ = std::make_shared<rclcpp::Node>(NODE_ID);
   trajectory_pub_ =
       node_->create_publisher<tesseract_msgs::msg::Trajectory>(topic_namespace + "/display_tesseract_trajectory", 1);
   collisions_pub_ =
@@ -68,29 +64,41 @@ ROSPlotting::ROSPlotting(std::string root_link, std::string topic_namespace)
   axes_pub_ = node_->create_publisher<visualization_msgs::msg::MarkerArray>(topic_namespace + "/display_axes", 1);
   tool_path_pub_ =
       node_->create_publisher<visualization_msgs::msg::MarkerArray>(topic_namespace + "/display_tool_path", 1);
+
+  internal_node_executor_ = std::make_shared<rclcpp::executors::MultiThreadedExecutor>();
+  internal_node_spinner_ = std::make_shared<std::thread>(std::thread{ [this]() {
+    internal_node_executor_->add_node(node_);
+    internal_node_executor_->spin();
+  } });
+}
+
+ROSPlotting::~ROSPlotting()
+{
+  internal_node_executor_->cancel();
+  if (internal_node_spinner_->joinable())
+    internal_node_spinner_->join();
 }
 
 bool ROSPlotting::isConnected() const { return true; }
 
 void ROSPlotting::waitForConnection(long seconds) const
 {
-  const auto start_time = std::chrono::steady_clock::now();
-  const auto wall_timeout = std::chrono::seconds(seconds);
-  rclcpp::WallRate loop_rate{ std::chrono::milliseconds(20) };
+  const auto start_time = rclcpp::Clock{ RCL_STEADY_TIME }.now();
+  const auto wall_timeout = rclcpp::Duration::from_seconds(seconds);
 
   while (rclcpp::ok())
   {
     if (isConnected())
       return;
 
-    if (wall_timeout >= std::chrono::seconds(0))
+    if (wall_timeout >= rclcpp::Duration::from_seconds(0))
     {
-      const auto current_time = std::chrono::steady_clock::now();
+      const auto current_time = rclcpp::Clock{ RCL_STEADY_TIME }.now();
       if ((current_time - start_time) >= wall_timeout)
         return;
     }
 
-    loop_rate.sleep();
+    rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.02)));
   }
 
   return;
@@ -111,14 +119,25 @@ void ROSPlotting::plotTrajectory(const tesseract_common::JointTrajectory& traj,
 {
   tesseract_msgs::msg::Trajectory msg;
 
+  // Set the initial state
+  for (std::size_t i = 0; i < traj[0].joint_names.size(); ++i)
+  {
+    tesseract_msgs::msg::StringDoublePair pair;
+    pair.first = traj[0].joint_names[i];
+    pair.second = traj[0].position[static_cast<Eigen::Index>(i)];
+    msg.initial_state.push_back(pair);
+  }
+
   // Set the joint trajectory message
-  toMsg(msg.joint_trajectory, traj);
+  tesseract_msgs::msg::JointTrajectory traj_msg;
+  toMsg(traj_msg, traj);
+  msg.joint_trajectories.push_back(traj_msg);
 
   plotTrajectory(msg);
 }
 
 void ROSPlotting::plotTrajectory(const tesseract_environment::Environment& env,
-                                 const tesseract_planning::Instruction& instruction,
+                                 const tesseract_planning::InstructionPoly& instruction,
                                  std::string /*ns*/)
 {
   tesseract_msgs::msg::Trajectory msg;
@@ -126,13 +145,25 @@ void ROSPlotting::plotTrajectory(const tesseract_environment::Environment& env,
   // Set tesseract state information
   toMsg(msg.environment, env);
 
+  // Set the initial state
+  tesseract_scene_graph::SceneState initial_state = env.getState();
+  for (const auto& pair : initial_state.joints)
+  {
+    tesseract_msgs::msg::StringDoublePair pair_msg;
+    pair_msg.first = pair.first;
+    pair_msg.second = pair.second;
+    msg.initial_state.push_back(pair_msg);
+  }
+
   // Convert to joint trajectory
-  assert(tesseract_planning::isCompositeInstruction(instruction));
+  assert(instruction.isCompositeInstruction());
   const auto& ci = instruction.as<tesseract_planning::CompositeInstruction>();
   tesseract_common::JointTrajectory traj = tesseract_planning::toJointTrajectory(ci);
 
   // Set the joint trajectory message
-  toMsg(msg.joint_trajectory, traj);
+  tesseract_msgs::msg::JointTrajectory traj_msg;
+  toMsg(traj_msg, traj);
+  msg.joint_trajectories.push_back(traj_msg);
 
   plotTrajectory(msg);
 }
@@ -201,7 +232,7 @@ void ROSPlotting::plotMarkers(const std::vector<tesseract_visualization::Marker:
 }
 
 void ROSPlotting::plotToolpath(const tesseract_environment::Environment& env,
-                               const tesseract_planning::Instruction& instruction,
+                               const tesseract_planning::InstructionPoly& instruction,
                                std::string ns)
 {
   tesseract_common::Toolpath toolpath = toToolpath(instruction, env);
@@ -256,16 +287,16 @@ void ROSPlotting::clear(std::string ns)
 
 static void waitForInputAsync(std::string message)
 {
-  RCLCPP_ERROR(rclcpp::get_logger(LOGGER_ID), "%s", message.c_str());
+  RCLCPP_ERROR(rclcpp::get_logger(NODE_ID), "%s", message.c_str());
   std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 }
 
 void ROSPlotting::waitForInput(std::string message)
 {
-  std::chrono::microseconds timeout(1);
-  std::future<void> future = std::async(std::launch::async, [=]() { waitForInputAsync(message); });
-  while (future.wait_for(timeout) != std::future_status::ready)
-    rclcpp::spin_some(node_);
+  // std::chrono::microseconds timeout(1);
+  // std::future<void> future = std::async(std::launch::async, [=]() { waitForInputAsync(message); });
+  // while (future.wait_for(timeout) != std::future_status::ready)
+  //   rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.1)));
 }
 
 const std::string& ROSPlotting::getRootLink() const { return root_link_; }

@@ -1,0 +1,7 @@
+<library path="tesseract_rviz_environment_plugin">
+  <class name="tesseract_rviz/TesseractEnvironment" type="tesseract_rviz::EnvironmentDisplay" base_class_type="rviz_common::Display">
+    <description>
+      Add environment display for visualizing tesseract environment
+    </description>
+  </class>
+</library>

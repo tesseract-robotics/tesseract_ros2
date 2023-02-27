@@ -29,23 +29,17 @@
 #ifndef TESSERACT_RVIZ_MARKERS_MARKER_BASE_H
 #define TESSERACT_RVIZ_MARKERS_MARKER_BASE_H
 
-#include "rviz/selection/forwards.h"
-#include "rviz/interactive_object.h"
-
-#ifndef Q_MOC_RUN
-#include <ros/time.h>
-#include <boost/shared_ptr.hpp>
-#endif
+#include "rviz_common/interaction/forwards.hpp"
+#include "rviz_common/interactive_object.hpp"
 
 namespace Ogre
 {
 class SceneNode;
-class Vector3;
 class Quaternion;
 class Entity;
 }  // namespace Ogre
 
-namespace rviz
+namespace rviz_common
 {
 class DisplayContext;
 }
@@ -58,10 +52,10 @@ typedef std::pair<std::string, int32_t> MarkerID;
 class MarkerBase
 {
 public:
-  using Ptr = boost::shared_ptr<MarkerBase>;
-  using ConstPtr = boost::shared_ptr<const MarkerBase>;
+  using Ptr = std::shared_ptr<MarkerBase>;
+  using ConstPtr = std::shared_ptr<const MarkerBase>;
 
-  MarkerBase(std::string ns, const int id, rviz::DisplayContext* context, Ogre::SceneNode* parent_node);
+  MarkerBase(std::string ns, const int id, Ogre::SceneManager* scene_manager, Ogre::SceneNode* parent_node);
   virtual ~MarkerBase();
 
   MarkerID getID() { return MarkerID(ns_, id_); }
@@ -74,7 +68,7 @@ public:
   }
 
   /** @brief Associate an InteractiveObject with this MarkerBase. */
-  void setInteractiveObject(rviz::InteractiveObjectWPtr object);
+  void setInteractiveObject(rviz_common::InteractiveObjectWPtr object);
 
   virtual void setPosition(const Ogre::Vector3& position);
   virtual void setOrientation(const Ogre::Quaternion& orientation);
@@ -88,6 +82,8 @@ public:
 
   virtual std::set<Ogre::MaterialPtr> getMaterials() { return std::set<Ogre::MaterialPtr>(); }
 
+  virtual void createMarkerSelectionHandler(rviz_common::DisplayContext* context) = 0;
+
 protected:
   void extractMaterials(Ogre::Entity* entity, std::set<Ogre::MaterialPtr>& materials);
 
@@ -95,11 +91,11 @@ protected:
 
   int id_;
 
-  rviz::DisplayContext* context_;
+  Ogre::SceneManager* scene_manager_;
 
   Ogre::SceneNode* scene_node_;
 
-  boost::shared_ptr<MarkerSelectionHandler> handler_;
+  std::shared_ptr<MarkerSelectionHandler> handler_;
 };
 
 }  // namespace tesseract_rviz

@@ -7,11 +7,12 @@ on:
   pull_request:
   schedule:
     - cron: '0 5 * * 6'
+  workflow_dispatch:
 
 jobs:
   industrial_ci:
     name: Foxy
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     env:
       CI_NAME: Focal-Build
       OS_NAME: ubuntu
@@ -21,10 +22,9 @@ jobs:
       UPSTREAM_WORKSPACE: 'dependencies.repos'
       ROSDEP_SKIP_KEYS: "catkin taskflow"
       DOCKER_IMAGE: "ros:foxy"
-      AFTER_INSTALL_UPSTREAM_DEPENDENCIES: "sh .ci-install-taskflow.sh"
       PARALLEL_TESTS: false
       NOT_TEST_BUILD: true
-      CCACHE_DIR: "/home/runner/work/tesseract_ros/tesseract_ros/Focal-Build/.ccache"
+      CCACHE_DIR: "/home/runner/work/tesseract_ros2/tesseract_ros2/Focal-Build/.ccache"
       UPSTREAM_CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=Release"
       TARGET_CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=Debug"
     steps:

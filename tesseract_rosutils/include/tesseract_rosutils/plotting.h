@@ -38,7 +38,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <tesseract_visualization/markers/arrow_marker.h>
 #include <tesseract_visualization/markers/axis_marker.h>
 #include <tesseract_visualization/markers/contact_results_marker.h>
-#include <tesseract_command_language/core/instruction.h>
+#include <tesseract_command_language/poly/instruction_poly.h>
 
 namespace tesseract_rosutils
 {
@@ -47,6 +47,8 @@ class ROSPlotting : public tesseract_visualization::Visualization
 {
 public:
   ROSPlotting(std::string root_link = "world", std::string topic_namespace = "tesseract");
+
+  ~ROSPlotting();
 
   bool isConnected() const override;
 
@@ -63,11 +65,11 @@ public:
   void plotTrajectory(const tesseract_msgs::msg::Trajectory& traj, std::string ns = "");
 
   void plotTrajectory(const tesseract_environment::Environment& env,
-                      const tesseract_planning::Instruction& instruction,
+                      const tesseract_planning::InstructionPoly& instruction,
                       std::string ns = "");
 
   void plotToolpath(const tesseract_environment::Environment& env,
-                    const tesseract_planning::Instruction& instruction,
+                    const tesseract_planning::InstructionPoly& instruction,
                     std::string ns);
 
   void plotMarker(const tesseract_visualization::Marker& marker, std::string ns = "") override;
@@ -114,7 +116,9 @@ private:
   std::string topic_namespace_; /**< Namespace used when publishing markers */
   int marker_counter_;          /**< Counter when plotting */
   rclcpp::Node::SharedPtr node_;
-  // rclcpp::Publisher<tesseract_msgs::msg::SceneGraph>::SharedPtr scene_pub_;      /**< Scene publisher, unused */
+  rclcpp::executors::MultiThreadedExecutor::SharedPtr internal_node_executor_;
+  std::shared_ptr<std::thread> internal_node_spinner_;
+  rclcpp::Publisher<tesseract_msgs::msg::SceneGraph>::SharedPtr scene_pub_;           /**< Scene publisher */
   rclcpp::Publisher<tesseract_msgs::msg::Trajectory>::SharedPtr trajectory_pub_;      /**< Trajectory publisher */
   rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr collisions_pub_; /**< Collision Data publisher */
   rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr arrows_pub_; /**< Used for publishing arrow markers

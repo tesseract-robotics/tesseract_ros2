@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <launch>
+    <arg name="robot_description" default="robot_description"/>
     <arg name="steps_per_phase" default="10"/>
     <arg name="plotting" default="true" />
     <arg name="file_write_cb" default="false" />
@@ -8,29 +9,34 @@
     <arg name="box_y" default="0.4"/>
     <arg name="rviz" default="true"/>
     <arg name="testing" default="false"/>
-
+    
     <!-- Load Robot Model    -->
-    <param name="robot_description"  command="$(find xacro)/xacro --inorder $(find tesseract_ros_examples)/urdf/pick_and_place_plan.xacro"/>
-
+    <let name="robot_description_file" value="$(command 'xacro $(find-pkg-share tesseract_support)/urdf/pick_and_place_plan.xacro')" />
+    
     <!-- Load Robot Semantic -->
-    <param name="robot_description_semantic" textfile="$(find tesseract_ros_examples)/config/pick_and_place_plan.srdf" />
-
-    <!-- Set simulated box parameters -->
-    <param name="box_side" value="$(arg box_side)"/>
-    <param name="box_x" value="$(arg box_x)"/>
-    <param name="box_y" value="$(arg box_y)"/>
-    <group unless="$(arg testing)">
+    <let name="robot_description_semantic_file" value="$(command 'cat $(find-pkg-share tesseract_support)/urdf/pick_and_place_plan.srdf')" />
+    
+    <group unless="$(var testing)">
       <!-- Launch planner node -->
-      <node name="tesseract_ros_examples_pick_and_place_example_node" pkg="tesseract_ros_examples" type="tesseract_ros_examples_pick_and_place_example_node" output="screen">
-          <param name="steps_per_phase" value="$(arg steps_per_phase)"/>
-          <param name="plotting" value="$(arg plotting)"/>
-          <param name="file_write_cb" value="$(arg file_write_cb)" />
-          <param name="rviz" type="bool" value="$(arg rviz)"/>
+      <node pkg="tesseract_ros_examples" exec="tesseract_ros_examples_pick_and_place_example_node" output="screen">
+        <!-- Set simulated box parameters -->
+        <param name="box_side" value="$(var box_side)"/>
+        <param name="box_x" value="$(var box_x)"/>
+        <param name="box_y" value="$(var box_y)"/>
+        <param name="steps_per_phase" value="$(var steps_per_phase)"/>
+        <param name="plotting" type="bool" value="$(var plotting)"/>
+        <param name="file_write_cb" value="$(var file_write_cb)" />
+        <param name="rviz" type="bool" value="$(var rviz)"/>
+        <param name="$(var robot_description)" value="$(var robot_description_file)" type="str"/>
+      <param name="$(var robot_description)_semantic" value="$(var robot_description_semantic_file)" type="str"/>
       </node>
-
+    
       <!-- Launch visualization -->
-      <node if="$(arg rviz)" pkg="rviz" type="rviz" name="tesseract_ros_examples_pick_and_place_example_rviz"
-          args="-d $(find tesseract_ros_examples)/config/examples.rviz" />
+      <node pkg="rviz2" exec="rviz2" 
+          args="-d $(find-pkg-share tesseract_ros_examples)/config/examples.rviz" output="screen">
+        <param name="$(var robot_description)" value="$(var robot_description_file)" type="str"/>
+        <param name="$(var robot_description)_semantic" value="$(var robot_description_semantic_file)" type="str"/>
+      </node>
     </group>
-
+    
 </launch>

@@ -39,27 +39,39 @@ namespace Ogre
 class SceneNode;
 }
 
-namespace rviz
+namespace rviz_common
+{
+class DisplayContext;
+}  // namespace rviz_common
+
+namespace rviz_rendering
 {
 class Arrow;
-class DisplayContext;
-}  // namespace rviz
+}  // namespace rviz_rendering
 
 namespace tesseract_rviz
 {
 class ArrowMarker : public MarkerBase
 {
 public:
-  using Ptr = boost::shared_ptr<ArrowMarker>;
-  using ConstPtr = boost::shared_ptr<const ArrowMarker>;
+  using Ptr = std::shared_ptr<ArrowMarker>;
+  using ConstPtr = std::shared_ptr<const ArrowMarker>;
 
-  ArrowMarker(const std::string& ns, const int id, rviz::DisplayContext* context, Ogre::SceneNode* parent_node);
+  ArrowMarker(const std::string& ns, const int id, Ogre::SceneManager* scene_manager, Ogre::SceneNode* parent_node);
 
   ArrowMarker(const std::string& ns,
               const int id,
               Ogre::Vector3 point1,
               Ogre::Vector3 point2,
-              rviz::DisplayContext* context,
+              Ogre::SceneManager* scene_manager,
+              Ogre::SceneNode* parent_node);
+
+  ArrowMarker(const std::string& ns,
+              const int id,
+              Ogre::Vector3 location,
+              Ogre::Vector3 direction,
+              std::array<float, 4> proportions,
+              Ogre::SceneManager* scene_manager,
               Ogre::SceneNode* parent_node);
 
   ~ArrowMarker() override;
@@ -71,12 +83,15 @@ public:
 
   std::set<Ogre::MaterialPtr> getMaterials() override;
 
-protected:
-  virtual void setDefaultProportions();
+  void createMarkerSelectionHandler(rviz_common::DisplayContext* context) override;
 
-  rviz::Arrow* arrow_;
+protected:
+  virtual std::array<float, 4> getDefaultProportions();
+  void ctor(Ogre::Vector3 location, Ogre::Vector3 direction, std::array<float, 4> proportions);
+
+  rviz_rendering::Arrow* arrow_;
   Ogre::SceneNode* child_scene_node_;
-  Ogre::Vector3 location_;
+  Ogre::Vector3 location_{ Ogre::Vector3(0, 0, 0) };
 };
 
 }  // namespace tesseract_rviz

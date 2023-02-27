@@ -35,19 +35,18 @@
 #include <tesseract_rviz/interactive_marker/interactive_marker.h>
 #include <tesseract_rviz/interactive_marker/interactive_marker_control.h>
 
-#include <rviz/display_context.h>
-#include <rviz/ogre_helpers/shape.h>
-
-#include <boost/make_shared.hpp>
+#include <rviz_common/display_context.hpp>
+#include <rviz_rendering/objects/shape.hpp>
 
 namespace tesseract_rviz
 {
 void makeSphere(InteractiveMarkerControl& control, float radius)
 {
-  SphereMarker::Ptr marker = boost::make_shared<SphereMarker>(
-      control.getName(), 0, control.getDisplayContext(), control.getMarkerSceneNode(), radius);
+  SphereMarker::Ptr marker = std::make_shared<SphereMarker>(
+      control.getName(), 0, control.getMarkerSceneManager(), control.getMarkerSceneNode(), radius);
   marker->setScale(Ogre::Vector3(control.getSize(), control.getSize(), control.getSize()));
   marker->setColor(Ogre::ColourValue(1.0f, 1.0f, 0.0f, 0.5f));
+  marker->createMarkerSelectionHandler(control.getDisplayContext());
   control.addMarker(marker);
 }
 
@@ -74,23 +73,25 @@ void makeArrow(InteractiveMarkerControl& control, float pos)
   point2.y = 0;
   point2.z = 0;
 
-  ArrowMarker::Ptr marker = boost::make_shared<ArrowMarker>(
-      control.getName(), 0, point1, point2, control.getDisplayContext(), control.getMarkerSceneNode());
+  ArrowMarker::Ptr marker = std::make_shared<ArrowMarker>(
+      control.getName(), 0, point1, point2, control.getMarkerSceneManager(), control.getMarkerSceneNode());
   marker->setColor(default_color);
   marker->setOrientation(control.getControlOrientation());
   float scale1 = control.getSize();
   marker->setScale(Ogre::Vector3(scale1, scale1, scale1));
+  marker->createMarkerSelectionHandler(control.getDisplayContext());
   control.addMarker(marker);
 }
 
 void makeTitle(InteractiveMarkerControl& control, const std::string& text)
 {
   Ogre::ColourValue default_color(1, 1, 1, 1);
-  TextViewFacingMarker::Ptr marker = boost::make_shared<TextViewFacingMarker>(
-      control.getName(), 0, text, control.getDisplayContext(), control.getMarkerSceneNode());
+  TextViewFacingMarker::Ptr marker = std::make_shared<TextViewFacingMarker>(
+      control.getName(), 0, text, control.getMarkerSceneManager(), control.getMarkerSceneNode());
   marker->setColor(default_color);
   float scale = control.getSize();
   marker->setScale(Ogre::Vector3(scale, scale, scale));
+  marker->createMarkerSelectionHandler(control.getDisplayContext());
   control.addMarker(marker);
 }
 
@@ -224,11 +225,17 @@ void makeDisc(InteractiveMarkerControl& control, float width)
       break;
   }
 
-  TriangleListMarker::Ptr marker = boost::make_shared<TriangleListMarker>(
-      control.getName(), 0, control.getDisplayContext(), control.getMarkerSceneNode(), default_color, points, colors);
+  TriangleListMarker::Ptr marker = std::make_shared<TriangleListMarker>(control.getName(),
+                                                                        0,
+                                                                        control.getMarkerSceneManager(),
+                                                                        control.getMarkerSceneNode(),
+                                                                        default_color,
+                                                                        points,
+                                                                        colors);
   marker->setOrientation(control.getControlOrientation());
   float scale = control.getSize();
   marker->setScale(Ogre::Vector3(scale, scale, scale));
+  marker->createMarkerSelectionHandler(control.getDisplayContext());
   control.addMarker(marker);
 }
 

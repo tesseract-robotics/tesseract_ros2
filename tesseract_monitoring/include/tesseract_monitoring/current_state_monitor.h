@@ -39,7 +39,6 @@
 
 #include <tesseract_common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
-TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/joint_state.hpp>
 #include <mutex>
@@ -49,12 +48,13 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <unordered_map>
 #include <map>
 #include <tf2_ros/transform_broadcaster.h>
+TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_environment/environment.h>
 
 namespace tesseract_monitoring
 {
-using JointStateUpdateCallback = std::function<void(const sensor_msgs::msg::JointState& joint_state)>;
+using JointStateUpdateCallback = std::function<void(const sensor_msgs::msg::JointState::ConstSharedPtr joint_state)>;
 
 /** @class CurrentStateMonitor
     @brief Monitors the joint_states topic and tf to maintain the current state of the robot. */
@@ -63,9 +63,19 @@ class CurrentStateMonitor
 public:
   using Ptr = std::shared_ptr<CurrentStateMonitor>;
   using ConstPtr = std::shared_ptr<const CurrentStateMonitor>;
+  using UPtr = std::unique_ptr<CurrentStateMonitor>;
+  using ConstUPtr = std::unique_ptr<const CurrentStateMonitor>;
+
+  /**
+   * @brief Constructor.
+   * @param robot_model The current kinematic model to build on
+   * @param tf A pointer to the tf transformer to use
+   */
+  CurrentStateMonitor(const tesseract_environment::Environment::ConstPtr& env);
 
   /** @brief Constructor.
-   *  @param env The tesseract environment to modify
+   *  @param robot_model The current kinematic model to build on
+   *  @param tf A pointer to the tf transformer to use
    *  @param node A rclcpp::Node to access ROS info
    */
   CurrentStateMonitor(const tesseract_environment::Environment::ConstPtr& env, rclcpp::Node::SharedPtr node);
@@ -91,7 +101,8 @@ public:
   bool isActive() const;
 
   /** @brief Get the RobotModel for which we are monitoring state */
-  const tesseract_environment::Environment::ConstPtr& getEnvironment() const { return env_; }
+  const tesseract_environment::Environment& getEnvironment() const;
+
   /** @brief Get the name of the topic being monitored. Returns an empty string if the monitor is inactive. */
   std::string getMonitoredTopic() const;
 
@@ -137,7 +148,7 @@ public:
   /** @brief Wait for at most \e wait_time seconds (default 1s) for a robot state more recent than t
    *  @return true on success, false if up-to-date robot state wasn't received within \e wait_time
    */
-  bool waitForCurrentState(rclcpp::Time t, double wait_time = 1.0) const;
+  bool waitForCurrentState(rclcpp::Time t /* = node_->now() */, double wait_time = 1.0) const;
 
   /** @brief Wait for at most \e wait_time seconds until the complete robot state is known.
       @return true if the full state is known */
@@ -165,13 +176,13 @@ public:
    *  @return The stored value for the "allowed bounds error"
    */
   double getBoundsError() const { return error_; }
-  /** @brief Allow the joint_state arrrays velocity and effort to be copied into the robot state
+  /** @brief Allow the joint_state arrays velocity and effort to be copied into the robot state
    *  this is useful in some but not all applications
    */
   void enableCopyDynamics(bool enabled) { copy_dynamics_ = enabled; }
 
 private:
-  void jointStateCallback(sensor_msgs::msg::JointState::ConstSharedPtr joint_state);
+  void jointStateCallback(const sensor_msgs::msg::JointState::ConstSharedPtr joint_state);
   bool isPassiveOrMimicDOF(const std::string& dof) const;
 
   rclcpp::Node::SharedPtr node_;

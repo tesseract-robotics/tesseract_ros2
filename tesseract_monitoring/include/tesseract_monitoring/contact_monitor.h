@@ -96,10 +96,10 @@ public:
 
   void callbackJointState(boost::shared_ptr<sensor_msgs::JointState> msg);
 
-  bool callbackModifyTesseractEnv(tesseract_msgs::ModifyEnvironment::Request& request,
+  void callbackModifyTesseractEnv(tesseract_msgs::ModifyEnvironment::Request& request,
                                   tesseract_msgs::ModifyEnvironment::Response& response);
 
-  bool callbackComputeContactResultVector(tesseract_msgs::ComputeContactResultVector::Request& request,
+  void callbackComputeContactResultVector(tesseract_msgs::ComputeContactResultVector::Request& request,
                                           tesseract_msgs::ComputeContactResultVector::Response& response);
 
   void callbackTesseractEnvDiff(const tesseract_msgs::EnvironmentStatePtr& state);

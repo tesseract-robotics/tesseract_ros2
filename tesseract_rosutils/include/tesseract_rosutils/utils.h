@@ -55,25 +55,25 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <tesseract_msgs/msg/link_group.hpp>
 #include <tesseract_msgs/msg/material.hpp>
 #include <tesseract_msgs/msg/mesh.hpp>
-#include <tesseract_msgs/msg/planning_request_archive.hpp>
 #include <tesseract_msgs/msg/scene_graph.hpp>
 #include <tesseract_msgs/msg/string_double_pair.hpp>
 #include <tesseract_msgs/msg/string_pair.hpp>
 #include <tesseract_msgs/msg/environment.hpp>
 #include <tesseract_msgs/msg/environment_state.hpp>
-#include <tesseract_msgs/msg/task_info.hpp>
 #include <tesseract_msgs/msg/trajectory.hpp>
 #include <tesseract_msgs/msg/transform_map.hpp>
 #include <tesseract_msgs/msg/visual_geometry.hpp>
 #include <tesseract_msgs/msg/planner_profile_remapping.hpp>
 #include <tesseract_msgs/msg/plugin_info.hpp>
+#include <tesseract_msgs/msg/task_composer_node_info.hpp>
 #include <geometry_msgs/msg/pose.hpp>
 #include <geometry_msgs/msg/pose_array.hpp>
 #include <trajectory_msgs/msg/joint_trajectory.hpp>
 #include <rclcpp/serialization.hpp>
 #include <rclcpp/serialized_message.hpp>
+#include <rclcpp/clock.hpp>
 #include <rclcpp/time.hpp>
-
+#include <boost/serialization/access.hpp>
 #include <Eigen/Geometry>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
@@ -85,16 +85,24 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <tesseract_common/types.h>
 #include <tesseract_common/joint_state.h>
 #include <tesseract_motion_planners/core/types.h>
-#include <tesseract_process_managers/core/task_info.h>
+#include <tesseract_task_composer/task_composer_node_info.h>
 
 namespace tesseract_rosutils
 {
 std::string locateResource(const std::string& url);
 
-class ROSResourceLocator : public tesseract_common::SimpleResourceLocator
+class ROSResourceLocator : public tesseract_common::ResourceLocator
 {
 public:
-  ROSResourceLocator();
+  using Ptr = std::shared_ptr<ROSResourceLocator>;
+  using ConstPtr = std::shared_ptr<const ROSResourceLocator>;
+
+  std::shared_ptr<tesseract_common::Resource> locateResource(const std::string& url) const override final;
+
+private:
+  friend class boost::serialization::access;
+  template <class Archive>
+  void serialize(Archive& ar, const unsigned int version);  // NOLINT
 };
 
 bool isMsgEmpty(const sensor_msgs::msg::JointState& msg);
@@ -221,14 +229,14 @@ void toMsg(const tesseract_msgs::msg::EnvironmentState::SharedPtr& state_msg,
  * @param joint_names The joint names corresponding to the trajectory
  * @param traj The joint trajectory
  */
-void toMsg(std::vector<tesseract_msgs::msg::JointState>& traj_msg, const tesseract_common::JointTrajectory& traj);
+void toMsg(tesseract_msgs::msg::JointTrajectory& traj_msg, const tesseract_common::JointTrajectory& traj);
 
 /**
  * @brief Generate a JointTrajectory from message
  * @param traj_msg The trajectory message to convert
  * @param traj The joint trajectory
  */
-tesseract_common::JointTrajectory fromMsg(const std::vector<tesseract_msgs::msg::JointState>& traj_msg);
+tesseract_common::JointTrajectory fromMsg(const tesseract_msgs::msg::JointTrajectory& traj_msg);
 
 bool processMsg(tesseract_environment::Environment& env, const sensor_msgs::msg::JointState& joint_state_msg);
 
@@ -259,11 +267,11 @@ bool toMsg(geometry_msgs::msg::Pose& pose_msg, const Eigen::Isometry3d& pose);
 
 void toMsg(tesseract_msgs::msg::ContactResult& contact_result_msg,
            const tesseract_collision::ContactResult& contact_result,
-           const rclcpp::Time& stamp);
+           const rclcpp::Time& stamp = rclcpp::Clock{ RCL_ROS_TIME }.now());
 
 void toMsg(const tesseract_msgs::msg::ContactResult::SharedPtr& contact_result_msg,
            const tesseract_collision::ContactResult& contact_result,
-           const rclcpp::Time& stamp);
+           const rclcpp::Time& stamp = rclcpp::Clock{ RCL_ROS_TIME }.now());
 
 /**
  * @brief Convert kinematics plugin info to message
@@ -308,6 +316,11 @@ bool toMsg(geometry_msgs::msg::PoseArray& pose_array, const tesseract_common::Ve
  */
 tesseract_msgs::msg::ChainGroup toMsg(tesseract_srdf::ChainGroups::const_reference group);
 
+/**
+ * @brief Convert a group's joint state to message
+ * @param group Group's joint states
+ * @return Group's joint states message
+ */
 tesseract_msgs::msg::GroupsJointStates toMsg(tesseract_srdf::GroupJointStates::const_reference group);
 
 /**
@@ -396,6 +409,24 @@ bool toMsg(sensor_msgs::msg::JointState& joint_state_msg, const std::unordered_m
 bool fromMsg(std::unordered_map<std::string, double>& joint_state, const sensor_msgs::msg::JointState& joint_state_msg);
 
 /**
+ * @brief This will populate a joint states map message
+ * @param joint_state_msg The joint states map message
+ * @param joint_state The joint state map
+ * @return True if successful, otherwise false
+ */
+bool toMsg(std::vector<tesseract_msgs::msg::StringDoublePair>& joint_state_map_msg,
+           const std::unordered_map<std::string, double>& joint_state);
+
+/**
+ * @brief This will populate a joint states from message
+ * @param joint_state The joint state map
+ * @param joint_state_map_msg The joint states map message
+ * @return True if successful, otherwise false
+ */
+bool fromMsg(std::unordered_map<std::string, double>& joint_state,
+             const std::vector<tesseract_msgs::msg::StringDoublePair>& joint_state_map_msg);
+
+/**
  * @brief Converts a Environment object to a Tesseract msg
  * @param tesseract_msg Resulting Message
  * @param env Input Environment object
@@ -422,7 +453,7 @@ bool toMsg(tesseract_msgs::msg::Environment& environment_msg,
  * @param tesseract_msg Input Tesseract msg
  * @return Resulting Tesseract Object if successful, nullptr otherwise
  */
-tesseract_environment::Environment::Ptr fromMsg(const tesseract_msgs::msg::Environment& environment_msg);
+tesseract_environment::Environment::UPtr fromMsg(const tesseract_msgs::msg::Environment& environment_msg);
 
 /**
  * @brief Converts a TaskInfo object to a TaskInfo msg
@@ -430,22 +461,30 @@ tesseract_environment::Environment::Ptr fromMsg(const tesseract_msgs::msg::Envir
  * @param task_info TaskInfo object
  * @return True if successful, otherwise false
  */
-bool toMsg(tesseract_msgs::msg::TaskInfo& task_info_msg, tesseract_planning::TaskInfo::ConstPtr task_info);
+bool toMsg(tesseract_msgs::msg::TaskComposerNodeInfo& node_info_msg,
+           tesseract_planning::TaskComposerNodeInfo& node_info);
 
 /**
  * @brief Converts a TaskInfo msg to a TaskInfo object
  * @param task_info_msg Input TaskInfo msg
  * @return Resulting Tesseract Object if successful, nullptr otherwise
  */
-tesseract_planning::TaskInfo::Ptr fromMsg(const tesseract_msgs::msg::TaskInfo& task_info_msg);
+tesseract_planning::TaskComposerNodeInfo::Ptr fromMsg(const tesseract_msgs::msg::TaskComposerNodeInfo& node_info_msg);
 
 /**
- * @brief Converts a tesseract_common::JointTrajectory msg to a trajectory_msgs::JointTrajectory object
+ * @brief Converts a tesseract_common::JointTrajectory msg to a trajectory_msgs::msg::JointTrajectory object
  * @param joint_trajectory Input JointTrajectory msg
  * @return Resulting Tesseract
  */
 trajectory_msgs::msg::JointTrajectory toMsg(const tesseract_common::JointTrajectory& joint_trajectory,
                                             const tesseract_scene_graph::SceneState& initial_state);
+
+/**
+ * @brief Convert trajectory_msgs::msg::JointTrajectory to Tesseract tesseract_common::JointTrajectory
+ * @param joint_trajectory The trajectory to convert
+ * @return A tesseract joint trajectory
+ */
+tesseract_common::JointTrajectory fromMsg(const trajectory_msgs::msg::JointTrajectory& joint_trajectory_msg);
 
 template <typename MessageType>
 inline bool toFile(const std::string& filepath, const MessageType& msg)
@@ -491,5 +530,9 @@ inline MessageType fromFile(const std::string& filepath)
 }
 
 }  // namespace tesseract_rosutils
+
+#include <boost/serialization/export.hpp>
+#include <boost/serialization/tracking.hpp>
+BOOST_CLASS_EXPORT_KEY2(tesseract_rosutils::ROSResourceLocator, "ROSResourceLocator")
 
 #endif

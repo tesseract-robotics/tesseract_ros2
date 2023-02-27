@@ -27,10 +27,10 @@
 #include <tesseract_rviz/markers/marker_selection_handler.h>
 #include <tesseract_rviz/markers/utils.h>
 
-#include <rviz/display_context.h>
-#include <rviz/selection/selection_manager.h>
+#include <rviz_common/display_context.hpp>
+#include <rviz_common/interaction/selection_manager.hpp>
 
-#include <rviz/ogre_helpers/shape.h>
+#include <rviz_rendering/objects/shape.hpp>
 
 #include <OgreSceneNode.h>
 #include <OgreMatrix3.h>
@@ -39,16 +39,13 @@ namespace tesseract_rviz
 {
 CubeMarker::CubeMarker(const std::string& ns,
                        const int id,
-                       rviz::DisplayContext* context,
+                       Ogre::SceneManager* scene_manager,
                        Ogre::SceneNode* parent_node,
                        float size)
-  : MarkerBase(ns, id, context, parent_node), shape_(nullptr), scale_(Ogre::Vector3(1, 1, 1)), size_(size)
+  : MarkerBase(ns, id, scene_manager, parent_node), shape_(nullptr), scale_(Ogre::Vector3(1, 1, 1)), size_(size)
 {
-  shape_ = new rviz::Shape(rviz::Shape::Cube, context_->getSceneManager(), scene_node_);
+  shape_ = new rviz_rendering::Shape(rviz_rendering::Shape::Cube, scene_manager_, scene_node_);
   setScale(scale_);
-
-  handler_.reset(new MarkerSelectionHandler(this, MarkerID(ns_, id_), context_));
-  handler_->addTrackedObjects(shape_->getRootNode());
 }
 
 CubeMarker::~CubeMarker() { delete shape_; }
@@ -76,6 +73,12 @@ std::set<Ogre::MaterialPtr> CubeMarker::getMaterials()
   std::set<Ogre::MaterialPtr> materials;
   extractMaterials(shape_->getEntity(), materials);
   return materials;
+}
+
+void CubeMarker::createMarkerSelectionHandler(rviz_common::DisplayContext* context)
+{
+  handler_.reset(new MarkerSelectionHandler(this, getID(), context));
+  handler_->addTrackedObjects(shape_->getRootNode());
 }
 
 }  // namespace tesseract_rviz

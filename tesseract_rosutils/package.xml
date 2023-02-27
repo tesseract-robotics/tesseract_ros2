@@ -1,34 +1,26 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>tesseract_rosutils</name>
-  <version>0.1.0</version>
+  <version>0.14.0</version>
   <description>Tesseract ROS Utilities</description>
   <maintainer email="levi.armstrong@swri.org">Levi Armstrong</maintainer>
   <license>Apache 2.0</license>
   <author>Levi Armstrong</author>
 
-  <build_depend>ament_cmake</build_depend>
+  <buildtool_depend>ament_cmake</buildtool_depend>
   <build_depend>ros_industrial_cmake_boilerplate</build_depend>
 
-  <depend>eigen</depend>
-  <depend>tesseract_collision</depend>
-  <depend>tesseract_msgs</depend>
-  <depend>tesseract_scene_graph</depend>
-  <depend>tesseract_geometry</depend>
-  <depend>tesseract_visualization</depend>
-  <depend>tesseract_common</depend>
-  <depend>tesseract_motion_planners</depend>
-  <depend>tesseract_process_managers</depend>
-  <depend>tesseract_srdf</depend>
-  <depend>yaml-cpp</depend>
-
   <depend>rclcpp</depend>
-  <depend>visualization_msgs</depend>
-  <depend>geometry_msgs</depend>
   <depend>tf2_eigen</depend>
-  <depend>ament_index_cpp</depend>
+  <depend>trajectory_msgs</depend>
+  <depend>visualization_msgs</depend>
 
-  <depend>octomap</depend>
+  <depend>tesseract_task_composer</depend>
+  
+  <depend>tesseract_msgs</depend>
+  
+  <test_depend>tesseract_support</test_depend>
+  <test_depend>std_msgs</test_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

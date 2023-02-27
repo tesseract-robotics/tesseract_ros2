@@ -1,38 +1,34 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>tesseract_rviz</name>
-  <version>0.1.0</version>
-  <description>The tesseract_rviz package</description>
+  <version>0.14.0</version>
+  <description>The tesseract_rviz package for ROS 2</description>
   <maintainer email="Armstrong@todo.todo">Levi Armstrong</maintainer>
   <license>BSD</license>
   <author >Levi Armstrong</author>
 
-  <!-- TODO
-  <buildtool_depend>catkin</buildtool_depend>
-  -->
+  <depend>assimp</depend>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
   <build_depend>ros_industrial_cmake_boilerplate</build_depend>
 
-  <depend>tesseract_msgs</depend>
-  <depend>tesseract_environment</depend>
-  <depend>tesseract_rosutils</depend>
-  <depend>tesseract_common</depend>
+  <depend>resource_retriever</depend>
+  <depend>rviz_common</depend>
+  <depend>rviz_default_plugins</depend>
+  <depend>rviz_ogre_vendor</depend>
+  <depend>rviz_rendering</depend>
+
+  <depend>tesseract_qt</depend>
+
   <depend>tesseract_monitoring</depend>
-  <depend>tesseract_motion_planners</depend>
-
-  <build_depend>eigen</build_depend>
-  <build_export_depend>eigen</build_export_depend>
-  <!-- TODO
-  <depend>interactive_markers</depend>
-  <depend>message_generation</depend>
-  <depend>pluginlib</depend>
-  <depend>roscpp</depend>
-  <depend>rviz</depend>
-  -->
-
+  <depend>tesseract_rosutils</depend>
+  
+  <depend>libqt5-core</depend>
+  <depend>libqt5-widgets</depend>
+  
   <export>
-    <rviz plugin="${prefix}/tesseract_rviz_state_plugin_description.xml"/>
-    <rviz plugin="${prefix}/tesseract_rviz_trajectory_plugin_description.xml"/>
-    <rviz plugin="${prefix}/tesseract_rviz_planning_response_archive_plugin_description.xml"/>
-    <rviz plugin="${prefix}/tesseract_rviz_manipulation_plugin_description.xml"/>
+    <build_type>ament_cmake</build_type>
+    <rviz plugin="${prefix}/tesseract_rviz_environment_plugin_description.xml"/>
+    <rviz plugin="${prefix}/tesseract_rviz_workbench_plugin_description.xml"/>
   </export>
 </package>

@@ -5,21 +5,12 @@ find_package(ros_industrial_cmake_boilerplate REQUIRED)
 extract_package_metadata(pkg)
 project(${pkg_extracted_name} VERSION ${pkg_extracted_version} LANGUAGES C CXX)
 
-set(CMAKE_CXX_STANDARD 14)
-if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-  add_compile_options(
-    -Wall
-    -Wextra
-    -Winconsistent-missing-override
-    -Wconversion
-    -Wsign-conversion)
-elseif(NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-  add_compile_options(
-    -Wall
-    -Wextra
-    -Wsuggest-override
-    -Wconversion
-    -Wsign-conversion)
+# Default to C++14
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 14)
+endif()
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
 find_package(ament_cmake REQUIRED)
@@ -30,10 +21,7 @@ set(interface_pkg_deps
   std_msgs
   sensor_msgs
   geometry_msgs
-  shape_msgs
   octomap_msgs
-  trajectory_msgs
-  actionlib_msgs
 )
 
 foreach(pkg ${interface_pkg_deps})
@@ -68,6 +56,7 @@ set(message_files
   "msg/JointMimic.msg"
   "msg/JointSafety.msg"
   "msg/JointState.msg"
+  "msg/JointTrajectory.msg"
   "msg/KinematicsInformation.msg"
   "msg/KinematicsPluginInfo.msg"
   "msg/Link.msg"
@@ -78,9 +67,7 @@ set(message_files
   "msg/OctreeSubType.msg"
   "msg/PlannerProfileRemapping.msg"
   "msg/PlanningRequest.msg"
-  "msg/PlanningRequestArchive.msg"
   "msg/PlanningResponse.msg"
-  "msg/PlanningResponseArchive.msg"
   "msg/PluginInfo.msg"
   "msg/PluginInfoContainer.msg"
   "msg/ProfileMap.msg"
@@ -89,7 +76,7 @@ set(message_files
   "msg/StringLimitsPair.msg"
   "msg/StringPair.msg"
   "msg/StringPluginInfoPair.msg"
-  "msg/TaskInfo.msg"
+  "msg/TaskComposerNodeInfo.msg"
   "msg/Trajectory.msg"
   "msg/TransformMap.msg"
   "msg/VisualGeometry.msg"
@@ -114,5 +101,6 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   DEPENDENCIES ${interface_pkg_deps}
 )
 
-ament_export_dependencies(${interface_pkg_deps} rosidl_default_runtime)
+ament_export_dependencies(rosidl_default_runtime)
+
 ament_package()

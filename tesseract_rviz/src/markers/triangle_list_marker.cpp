@@ -27,12 +27,12 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "rviz/default_plugin/marker_display.h"
-#include "rviz/selection/selection_manager.h"
-#include "rviz/uniform_string_stream.h"
+#include "rviz_default_plugins/displays/marker/marker_display.hpp"
+#include "rviz_common/interaction/selection_manager.hpp"
+#include "rviz_common/uniform_string_stream.hpp"
 
-#include "rviz/display_context.h"
-#include "rviz/mesh_loader.h"
+#include "rviz_common/display_context.hpp"
+#include "rviz_rendering/mesh_loader.hpp"
 
 #include <OgreSceneNode.h>
 #include <OgreSceneManager.h>
@@ -48,21 +48,16 @@ namespace tesseract_rviz
 {
 static Ogre::NameGenerator tringle_list_generator("Tesseract_Triangle_List");
 static Ogre::NameGenerator material_name_generator("Tesseract_Triangle_List_Material");
-
-#ifdef noetic_BUILD
 const std::string GROUP_NAME = Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME;
-#else
-const std::string GROUP_NAME = "rviz";
-#endif
 
 TriangleListMarker::TriangleListMarker(const std::string& ns,
                                        const int id,
-                                       rviz::DisplayContext* context,
+                                       Ogre::SceneManager* scene_manager,
                                        Ogre::SceneNode* parent_node,
                                        const Ogre::ColourValue color,
                                        const std::vector<Ogre::Vector3>& points,
                                        const std::vector<Ogre::ColourValue>& colors)
-  : MarkerBase(ns, id, context, parent_node)
+  : MarkerBase(ns, id, scene_manager, parent_node)
   , has_vertex_colors_(false)
   , has_face_colors_(false)
   , any_vertex_has_alpha_(false)
@@ -81,7 +76,7 @@ TriangleListMarker::TriangleListMarker(const std::string& ns,
       ss << "TriMesh marker [" << getStringID() << "] has a point count which is not divisible by 3 [" << num_points
          << "]";
     }
-    ROS_DEBUG("%s", ss.str().c_str());
+    RCLCPP_DEBUG(rclcpp::get_logger("Tesseract_triangle_list_marker"), "%s", ss.str().c_str());
 
     scene_node_->setVisible(false);
     return;
@@ -91,7 +86,7 @@ TriangleListMarker::TriangleListMarker(const std::string& ns,
 
   if (!manual_object_)
   {
-    manual_object_ = context_->getSceneManager()->createManualObject(tringle_list_generator.generate());
+    manual_object_ = scene_manager_->createManualObject(tringle_list_generator.generate());
     scene_node_->attachObject(manual_object_);
 
     material_name_ = material_name_generator.generate();
@@ -99,8 +94,6 @@ TriangleListMarker::TriangleListMarker(const std::string& ns,
     material_->setReceiveShadows(false);
     material_->getTechnique(0)->setLightingEnabled(true);
     material_->setCullingMode(Ogre::CULL_NONE);
-
-    handler_.reset(new MarkerSelectionHandler(this, MarkerID(ns, id), context_));
   }
 
   manual_object_->clear();
@@ -139,15 +132,13 @@ TriangleListMarker::TriangleListMarker(const std::string& ns,
   manual_object_->end();
 
   setColor(color);
-
-  handler_->addTrackedObject(manual_object_);
 }
 
 TriangleListMarker::~TriangleListMarker()
 {
   if (manual_object_)
   {
-    context_->getSceneManager()->destroyManualObject(manual_object_);
+    scene_manager_->destroyManualObject(manual_object_);
     material_->unload();
     Ogre::MaterialManager::getSingleton().remove(material_->getName());
   }
@@ -187,6 +178,12 @@ std::set<Ogre::MaterialPtr> TriangleListMarker::getMaterials()
   std::set<Ogre::MaterialPtr> materials;
   materials.insert(material_);
   return materials;
+}
+
+void TriangleListMarker::createMarkerSelectionHandler(rviz_common::DisplayContext* context)
+{
+  handler_.reset(new MarkerSelectionHandler(this, getID(), context));
+  handler_->addTrackedObject(manual_object_);
 }
 
 }  // namespace tesseract_rviz

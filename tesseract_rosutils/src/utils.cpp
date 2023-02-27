@@ -1680,7 +1680,7 @@ tesseract_common::JointTrajectory fromMsg(const tesseract_msgs::msg::JointTrajec
     for (std::size_t i = 0; i < js_msg.acceleration.size(); ++i)
       js.acceleration(static_cast<long>(i)) = js_msg.acceleration[i];
 
-    js.time = js_msg.time_from_start.sec;
+    js.time = rclcpp::Duration(js_msg.time_from_start).seconds();
     trajectory.push_back(js);
   }
   return trajectory;

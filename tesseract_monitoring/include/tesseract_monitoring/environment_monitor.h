@@ -206,19 +206,19 @@ private:
   void newEnvironmentStateCallback(const tesseract_msgs::msg::EnvironmentState::ConstSharedPtr env);
 
   /** @brief Callback for modifying the environment via service request */
-  bool modifyEnvironmentCallback(tesseract_msgs::srv::ModifyEnvironment::Request::SharedPtr req,
+  void modifyEnvironmentCallback(tesseract_msgs::srv::ModifyEnvironment::Request::SharedPtr req,
                                  tesseract_msgs::srv::ModifyEnvironment::Response::SharedPtr res);
 
   /** @brief Callback for get the environment changes via service request */
-  bool getEnvironmentChangesCallback(tesseract_msgs::srv::GetEnvironmentChanges::Request::SharedPtr req,
+  void getEnvironmentChangesCallback(tesseract_msgs::srv::GetEnvironmentChanges::Request::SharedPtr req,
                                      tesseract_msgs::srv::GetEnvironmentChanges::Response::SharedPtr res);
 
   /** @brief Callback for get the environment information via service request */
-  bool getEnvironmentInformationCallback(tesseract_msgs::srv::GetEnvironmentInformation::Request::SharedPtr req,
+  void getEnvironmentInformationCallback(tesseract_msgs::srv::GetEnvironmentInformation::Request::SharedPtr req,
                                          tesseract_msgs::srv::GetEnvironmentInformation::Response::SharedPtr res);
 
   /** @brief Callback to save the scene graph to a DOT via a service request */
-  bool saveSceneGraphCallback(tesseract_msgs::srv::SaveSceneGraph::Request::SharedPtr req,
+  void saveSceneGraphCallback(tesseract_msgs::srv::SaveSceneGraph::Request::SharedPtr req,
                               tesseract_msgs::srv::SaveSceneGraph::Response::SharedPtr res);
 
   // Called when new service request is called to modify the environment.

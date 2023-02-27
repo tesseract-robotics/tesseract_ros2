@@ -179,7 +179,7 @@ void ContactMonitor::callbackJointState(boost::shared_ptr<sensor_msgs::JointStat
   current_joint_states_evt_.notify_all();
 }
 
-bool ContactMonitor::callbackModifyTesseractEnv(tesseract_msgs::ModifyEnvironmentRequest& request,
+void ContactMonitor::callbackModifyTesseractEnv(tesseract_msgs::ModifyEnvironmentRequest& request,
                                                 tesseract_msgs::ModifyEnvironmentResponse& response)
 {
   std::scoped_lock lock(modify_mutex_);
@@ -188,8 +188,10 @@ bool ContactMonitor::callbackModifyTesseractEnv(tesseract_msgs::ModifyEnvironmen
   if (request.append)
     revision = env_->getRevision();
 
-  if (!env_ || request.id != env_->getName() || revision != env_->getRevision())
-    return false;
+  if (!env_ || request.id != env_->getName() || revision != env_->getRevision()) {
+    response.succes = false;
+    return;
+  }
 
   response.success = tesseract_rosutils::processMsg(*env_, request.commands);
   response.revision = static_cast<unsigned long>(env_->getRevision());
@@ -203,11 +205,9 @@ bool ContactMonitor::callbackModifyTesseractEnv(tesseract_msgs::ModifyEnvironmen
   manager_->setActiveCollisionObjects(active);
   manager_->setCollisionMarginData(contact_margin_data);
   manager_->setIsContactAllowedFn(fn);
-
-  return true;
 }
 
-bool ContactMonitor::callbackComputeContactResultVector(tesseract_msgs::ComputeContactResultVectorRequest& request,
+void ContactMonitor::callbackComputeContactResultVector(tesseract_msgs::ComputeContactResultVectorRequest& request,
                                                         tesseract_msgs::ComputeContactResultVectorResponse& response)
 {
   tesseract_collision::ContactResultMap contact_results;
@@ -235,8 +235,6 @@ bool ContactMonitor::callbackComputeContactResultVector(tesseract_msgs::ComputeC
     response.collision_result.contacts.push_back(contact_msg);
   }
   response.success = true;
-
-  return true;
 }
 
 }  // namespace tesseract_monitoring

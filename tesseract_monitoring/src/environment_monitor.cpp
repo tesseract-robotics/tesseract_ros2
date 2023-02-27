@@ -561,7 +561,7 @@ bool ROSEnvironmentMonitor::applyEnvironmentCommandsMessage(
   return result;
 }
 
-bool ROSEnvironmentMonitor::saveSceneGraphCallback(tesseract_msgs::srv::SaveSceneGraph::Request::SharedPtr req,
+void ROSEnvironmentMonitor::saveSceneGraphCallback(tesseract_msgs::srv::SaveSceneGraph::Request::SharedPtr req,
                                                    tesseract_msgs::srv::SaveSceneGraph::Response::SharedPtr res)
 {
   res->success = false;
@@ -573,7 +573,7 @@ bool ROSEnvironmentMonitor::saveSceneGraphCallback(tesseract_msgs::srv::SaveScen
     res->id = env_->getName();
     res->revision = static_cast<unsigned long>(env_->getRevision());
   }
-  return true;
+  return;
 }
 
 bool ROSEnvironmentMonitor::waitForCurrentState(std::chrono::duration<double> duration)
@@ -799,7 +799,7 @@ void ROSEnvironmentMonitor::setEnvironmentPublishingFrequency(double hz)
                publish_environment_frequency_);
 }
 
-bool ROSEnvironmentMonitor::modifyEnvironmentCallback(tesseract_msgs::srv::ModifyEnvironment::Request::SharedPtr req,
+void ROSEnvironmentMonitor::modifyEnvironmentCallback(tesseract_msgs::srv::ModifyEnvironment::Request::SharedPtr req,
                                                       tesseract_msgs::srv::ModifyEnvironment::Response::SharedPtr res)
 {
   if (req->append)
@@ -808,10 +808,10 @@ bool ROSEnvironmentMonitor::modifyEnvironmentCallback(tesseract_msgs::srv::Modif
     res->success = applyEnvironmentCommandsMessage(req->id, static_cast<int>(req->revision), req->commands);
 
   res->revision = static_cast<unsigned long>(env_->getRevision());
-  return res->success;
+  return;
 }
 
-bool ROSEnvironmentMonitor::getEnvironmentChangesCallback(
+void ROSEnvironmentMonitor::getEnvironmentChangesCallback(
     tesseract_msgs::srv::GetEnvironmentChanges::Request::SharedPtr req,
     tesseract_msgs::srv::GetEnvironmentChanges::Response::SharedPtr res)
 {
@@ -820,7 +820,7 @@ bool ROSEnvironmentMonitor::getEnvironmentChangesCallback(
   if (static_cast<int>(req->revision) > env_->getRevision())
   {
     res->success = false;
-    return false;
+    return;
   }
 
   res->id = env_->getName();
@@ -828,14 +828,14 @@ bool ROSEnvironmentMonitor::getEnvironmentChangesCallback(
   if (!tesseract_rosutils::toMsg(res->commands, env_->getCommandHistory(), req->revision))
   {
     res->success = false;
-    return false;
+    return;
   }
 
   res->success = true;
-  return true;
+  return;
 }
 
-bool ROSEnvironmentMonitor::getEnvironmentInformationCallback(
+void ROSEnvironmentMonitor::getEnvironmentInformationCallback(
     tesseract_msgs::srv::GetEnvironmentInformation::Request::SharedPtr req,
     tesseract_msgs::srv::GetEnvironmentInformation::Response::SharedPtr res)
 {
@@ -844,7 +844,7 @@ bool ROSEnvironmentMonitor::getEnvironmentInformationCallback(
   if (!env_->isInitialized())
   {
     res->success = false;
-    return false;
+    return;
   }
 
   res->id = env_->getName();
@@ -855,7 +855,7 @@ bool ROSEnvironmentMonitor::getEnvironmentInformationCallback(
     if (!tesseract_rosutils::toMsg(res->command_history, env_->getCommandHistory(), 0))
     {
       res->success = false;
-      return false;
+      return;
     }
   }
 
@@ -867,7 +867,7 @@ bool ROSEnvironmentMonitor::getEnvironmentInformationCallback(
       if (!tesseract_rosutils::toMsg(msg, *link))
       {
         res->success = false;
-        return false;
+        return;
       }
       res->links.push_back(msg);
     }
@@ -881,7 +881,7 @@ bool ROSEnvironmentMonitor::getEnvironmentInformationCallback(
       if (!tesseract_rosutils::toMsg(msg, *joint))
       {
         res->success = false;
-        return false;
+        return;
       }
       res->joints.push_back(msg);
     }
@@ -947,7 +947,7 @@ bool ROSEnvironmentMonitor::getEnvironmentInformationCallback(
     if (!tesseract_rosutils::toMsg(res->allowed_collision_matrix, *env_->getAllowedCollisionMatrix()))
     {
       res->success = false;
-      return false;
+      return;
     }
   }
 
@@ -956,7 +956,7 @@ bool ROSEnvironmentMonitor::getEnvironmentInformationCallback(
     if (!tesseract_rosutils::toMsg(res->kinematics_information, env_->getKinematicsInformation()))
     {
       res->success = false;
-      return false;
+      return;
     }
   }
 
@@ -965,12 +965,12 @@ bool ROSEnvironmentMonitor::getEnvironmentInformationCallback(
     if (!tesseract_rosutils::toMsg(res->joint_states, state.joints))
     {
       res->success = false;
-      return false;
+      return;
     }
   }
 
   res->success = true;
-  return true;
+  return;
 }
 
 }  // namespace tesseract_monitoring

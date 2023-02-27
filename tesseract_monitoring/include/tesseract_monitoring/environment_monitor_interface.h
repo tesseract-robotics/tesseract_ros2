@@ -27,31 +27,30 @@
 
 #include <tesseract_common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
+#include <rclcpp/rclcpp.hpp>
 #include <vector>
+#include <tesseract_msgs/srv/get_environment_information.hpp>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
-
-#include <tesseract_msgs/msg/environment_command.h>
 #include <tesseract_environment/commands.h>
 #include <tesseract_environment/environment.h>
-#include <tesseract_rosutils/utils.h>
-#include <tesseract_monitoring/constants.h>
-
-#include <rclcpp/rclcpp.hpp>
+#include <tesseract_environment/environment_monitor_interface.h>
 
 namespace tesseract_monitoring
 {
-class EnvironmentMonitorInterface
+class ROSEnvironmentMonitorInterface : public tesseract_environment::EnvironmentMonitorInterface
 {
 public:
-  using Ptr = std::shared_ptr<EnvironmentMonitorInterface>;
-  using ConstPtr = std::shared_ptr<const EnvironmentMonitorInterface>;
+  using Ptr = std::shared_ptr<ROSEnvironmentMonitorInterface>;
+  using ConstPtr = std::shared_ptr<const ROSEnvironmentMonitorInterface>;
+  using UPtr = std::unique_ptr<ROSEnvironmentMonitorInterface>;
+  using ConstUPtr = std::unique_ptr<const ROSEnvironmentMonitorInterface>;
 
-  EnvironmentMonitorInterface(rclcpp::Node::SharedPtr node, const std::string& env_name);
-  virtual ~EnvironmentMonitorInterface() = default;
-  EnvironmentMonitorInterface(const EnvironmentMonitorInterface&) = default;
-  EnvironmentMonitorInterface& operator=(const EnvironmentMonitorInterface&) = default;
-  EnvironmentMonitorInterface(EnvironmentMonitorInterface&&) = default;
-  EnvironmentMonitorInterface& operator=(EnvironmentMonitorInterface&&) = default;
+  ROSEnvironmentMonitorInterface(rclcpp::Node::SharedPtr node, const std::string& env_name);
+  virtual ~ROSEnvironmentMonitorInterface() override = default;
+  ROSEnvironmentMonitorInterface(const ROSEnvironmentMonitorInterface&) = default;
+  ROSEnvironmentMonitorInterface& operator=(const ROSEnvironmentMonitorInterface&) = default;
+  ROSEnvironmentMonitorInterface(ROSEnvironmentMonitorInterface&&) = default;
+  ROSEnvironmentMonitorInterface& operator=(ROSEnvironmentMonitorInterface&&) = default;
 
   /**
    * @brief This will wait for all namespaces to begin publishing
@@ -73,22 +72,22 @@ public:
    * @brief Add monitor namespace to interface
    * @param monitor_namespace
    */
-  void addNamespace(std::string monitor_namespace);
+  void addNamespace(std::string monitor_namespace) override final;
 
   /**
    * @brief Remove monitor namespace from interface
    * @param monitor_namespace
    */
-  void removeNamespace(const std::string& monitor_namespace);
+  void removeNamespace(const std::string& monitor_namespace) override final;
 
   /**
    * @brief Apply provided command to all monitor namespaces
    * @param command The command to apply
    * @return A vector of failed namespace, if empty all namespace were updated successfully.
    */
-  std::vector<std::string> applyCommand(const tesseract_environment::Command& command) const;
-  std::vector<std::string> applyCommands(const tesseract_environment::Commands& commands) const;
-  std::vector<std::string> applyCommands(const std::vector<tesseract_environment::Command>& commands) const;
+  std::vector<std::string> applyCommand(const tesseract_environment::Command& command) const override final;
+  std::vector<std::string> applyCommands(const tesseract_environment::Commands& commands) const override final;
+  std::vector<std::string> applyCommands(const std::vector<tesseract_environment::Command>& commands) const override final;
 
   /**
    * @brief Apply provided command to only the provided namespace. The namespace does not have to be one that is
@@ -96,17 +95,19 @@ public:
    * @param command The command to apply
    * @return True if successful, otherwise false
    */
-  bool applyCommand(const std::string& monitor_namespace, const tesseract_environment::Command& command) const;
-  bool applyCommands(const std::string& monitor_namespace, const tesseract_environment::Commands& commands) const;
+  bool applyCommand(const std::string& monitor_namespace,
+                    const tesseract_environment::Command& command) const override final;
   bool applyCommands(const std::string& monitor_namespace,
-                     const std::vector<tesseract_environment::Command>& commands) const;
+                     const tesseract_environment::Commands& commands) const override final;
+  bool applyCommands(const std::string& monitor_namespace,
+                     const std::vector<tesseract_environment::Command>& commands) const override final;
 
   /**
    * @brief Pull current environment state from the environment in the provided namespace
    * @param monitor_namespace The namespace to extract the environment from.
    * @return Environment Shared Pointer, if nullptr it failed
    */
-  tesseract_scene_graph::SceneState getEnvironmentState(const std::string& monitor_namespace) const;
+  tesseract_scene_graph::SceneState getEnvironmentState(const std::string& monitor_namespace) const override final;
 
   /**
    * @brief Set environments state in the provided namespace
@@ -114,30 +115,30 @@ public:
    * @return True if successful, otherwise false
    */
   bool setEnvironmentState(const std::string& monitor_namespace,
-                           const std::unordered_map<std::string, double>& joints) const;
+                           const std::unordered_map<std::string, double>& joints) const override final;
   bool setEnvironmentState(const std::string& monitor_namespace,
                            const std::vector<std::string>& joint_names,
-                           const std::vector<double>& joint_values);
+                           const std::vector<double>& joint_values) const override final;
   bool setEnvironmentState(const std::string& monitor_namespace,
                            const std::vector<std::string>& joint_names,
-                           const Eigen::Ref<const Eigen::VectorXd>& joint_values);
+                           const Eigen::Ref<const Eigen::VectorXd>& joint_values) const override final;
 
   /**
    * @brief Set environment state for all monitor namespaces
    * @return A vector of failed namespace, if empty all namespace were updated successfully.
    */
-  std::vector<std::string> setEnvironmentState(const std::unordered_map<std::string, double>& joints);
+  std::vector<std::string> setEnvironmentState(const std::unordered_map<std::string, double>& joints) const override final;
   std::vector<std::string> setEnvironmentState(const std::vector<std::string>& joint_names,
-                                               const std::vector<double>& joint_values);
+                                               const std::vector<double>& joint_values) const override final;
   std::vector<std::string> setEnvironmentState(const std::vector<std::string>& joint_names,
-                                               const Eigen::Ref<const Eigen::VectorXd>& joint_values);
+                           const Eigen::Ref<const Eigen::VectorXd>& joint_values) const override final;
 
   /**
    * @brief Pull information from the environment in the provided namespace and create a Environment Object
    * @param monitor_namespace The namespace to extract the environment from.
    * @return Environment Shared Pointer, if nullptr it failed
    */
-  tesseract_environment::Environment::Ptr getEnvironment(const std::string& monitor_namespace);
+  tesseract_environment::Environment::UPtr getEnvironment(const std::string& monitor_namespace) const override final;
 
 protected:
   rclcpp::Node::SharedPtr node_;

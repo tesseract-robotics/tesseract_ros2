@@ -27,8 +27,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <boost/make_shared.hpp>
-
 #include <QMenu>
 
 #include <OgreSceneNode.h>
@@ -59,11 +57,11 @@
 
 namespace tesseract_rviz
 {
-InteractiveMarker::InteractiveMarker(const std::string& name,
-                                     const std::string& description,
+InteractiveMarker::InteractiveMarker(std::string name,
+                                     std::string description,
                                      Ogre::SceneNode* scene_node,
                                      rviz_common::DisplayContext* context,
-                                     const float scale)
+                                     float scale)
   : visible_(true)
   , context_(context)
   , reference_node_(scene_node->createChildSceneNode())
@@ -159,8 +157,7 @@ InteractiveMarkerControl::Ptr InteractiveMarker::createInteractiveControl(const 
     // Use existing control
     return search_iter->second;
   }
-  else
-  {
+
     // Else make new control
     auto control = std::make_shared<InteractiveMarkerControl>(name,
                                                               description,
@@ -173,7 +170,6 @@ InteractiveMarkerControl::Ptr InteractiveMarker::createInteractiveControl(const 
                                                               orientation);
     controls_[name] = control;
     return control;
-  }
 }
 
 // Recursively append menu and submenu entries to menu, based on a

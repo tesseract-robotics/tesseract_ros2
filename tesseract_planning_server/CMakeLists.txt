@@ -38,7 +38,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 ament_target_dependencies(${PROJECT_NAME} PUBLIC tesseract_msgs tf2_ros tf2_eigen)
 target_compile_options(${PROJECT_NAME} PRIVATE ${TESSERACT_COMPILE_OPTIONS})
 target_clang_tidy(${PROJECT_NAME} ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS} ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
-target_cxx_version(${PROJECT_NAME} PUBLIC VERSION 17)
+target_cxx_version(${PROJECT_NAME} PUBLIC VERSION ${TESSERACT_CXX_VERSION})
 target_include_directories(${PROJECT_NAME} PUBLIC
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
     "$<INSTALL_INTERFACE:include>"
@@ -50,7 +50,7 @@ target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC ${EIGEN3_INCLUDE_DIRS})
 # target_link_libraries(${PROJECT_NAME}_archive_viewer_node PRIVATE ${PROJECT_NAME} ${catkin_LIBRARIES})
 # target_compile_options(${PROJECT_NAME}_archive_viewer_node PRIVATE ${TESSERACT_COMPILE_OPTIONS})
 # target_clang_tidy(${PROJECT_NAME}_archive_viewer_node ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS} ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
-# target_cxx_version(${PROJECT_NAME}_archive_viewer_node PRIVATE VERSION 17)
+# target_cxx_version(${PROJECT_NAME}_archive_viewer_node PRIVATE VERSION ${TESSERACT_CXX_VERSION})
 # target_include_directories(${PROJECT_NAME}_archive_viewer_node PUBLIC
     # "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
     # "$<INSTALL_INTERFACE:include>")
@@ -61,7 +61,7 @@ target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC ${EIGEN3_INCLUDE_DIRS})
 # target_link_libraries(${PROJECT_NAME}_node PRIVATE ${PROJECT_NAME} ${catkin_LIBRARIES})
 # target_compile_options(${PROJECT_NAME}_node PRIVATE ${TESSERACT_COMPILE_OPTIONS})
 # target_clang_tidy(${PROJECT_NAME}_node ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS} ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
-# target_cxx_version(${PROJECT_NAME}_node PRIVATE VERSION 17)
+# target_cxx_version(${PROJECT_NAME}_node PRIVATE VERSION ${TESSERACT_CXX_VERSION})
 # target_include_directories(${PROJECT_NAME}_node PUBLIC
     # "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
     # "$<INSTALL_INTERFACE:include>")
@@ -72,7 +72,7 @@ target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC ${EIGEN3_INCLUDE_DIRS})
 # target_link_libraries(${PROJECT_NAME}_raster_example PRIVATE tesseract::tesseract_command_language tesseract::tesseract_process_managers ${catkin_LIBRARIES})
 # target_compile_options(${PROJECT_NAME}_raster_example PRIVATE ${TESSERACT_COMPILE_OPTIONS})
 # target_clang_tidy(${PROJECT_NAME}_raster_example ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS} ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
-# target_cxx_version(${PROJECT_NAME}_raster_example PRIVATE VERSION 17)
+# target_cxx_version(${PROJECT_NAME}_raster_example PRIVATE VERSION ${TESSERACT_CXX_VERSION})
 # target_include_directories(${PROJECT_NAME}_raster_example PUBLIC
     # "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
     # "$<INSTALL_INTERFACE:include>")

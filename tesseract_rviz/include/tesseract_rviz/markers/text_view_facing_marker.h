@@ -46,8 +46,8 @@ namespace tesseract_rviz
 class TextViewFacingMarker : public MarkerBase
 {
 public:
-  using Ptr = boost::shared_ptr<TextViewFacingMarker>;
-  using ConstPtr = boost::shared_ptr<const TextViewFacingMarker>;
+  using Ptr = std::shared_ptr<TextViewFacingMarker>;
+  using ConstPtr = std::shared_ptr<const TextViewFacingMarker>;
 
   TextViewFacingMarker(const std::string& ns,
                        const int id,

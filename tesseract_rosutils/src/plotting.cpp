@@ -27,11 +27,9 @@
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <future>
 #include <thread>
-// #include <ros/console.h>
 #include <Eigen/Geometry>
 #include <rclcpp/rclcpp.hpp>
 #include <geometry_msgs/msg/pose_array.hpp>
-#include <chrono>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_rosutils/plotting.h>
@@ -52,12 +50,12 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 namespace tesseract_rosutils
 {
-static const char LOGGER_ID[] = "tesseract_rosutils_plotting";
+static const char NODE_ID[] = "tesseract_rosutils_plotting";
 
 ROSPlotting::ROSPlotting(std::string root_link, std::string topic_namespace)
   : root_link_(root_link), topic_namespace_(topic_namespace)
 {
-  node_ = rclcpp::Node::make_shared(LOGGER_ID);
+  node_ = std::make_shared<rclcpp::Node>(NODE_ID);
   trajectory_pub_ =
       node_->create_publisher<tesseract_msgs::msg::Trajectory>(topic_namespace + "/display_tesseract_trajectory", 1);
   collisions_pub_ =
@@ -66,29 +64,41 @@ ROSPlotting::ROSPlotting(std::string root_link, std::string topic_namespace)
   axes_pub_ = node_->create_publisher<visualization_msgs::msg::MarkerArray>(topic_namespace + "/display_axes", 1);
   tool_path_pub_ =
       node_->create_publisher<visualization_msgs::msg::MarkerArray>(topic_namespace + "/display_tool_path", 1);
+
+  internal_node_executor_ = std::make_shared<rclcpp::executors::MultiThreadedExecutor>();
+  internal_node_spinner_ = std::make_shared<std::thread>(std::thread{ [this]() {
+    internal_node_executor_->add_node(node_);
+    internal_node_executor_->spin();
+  } });
+}
+
+ROSPlotting::~ROSPlotting()
+{
+  internal_node_executor_->cancel();
+  if (internal_node_spinner_->joinable())
+    internal_node_spinner_->join();
 }
 
 bool ROSPlotting::isConnected() const { return true; }
 
 void ROSPlotting::waitForConnection(long seconds) const
 {
-  const auto start_time = std::chrono::steady_clock::now();
-  const auto wall_timeout = std::chrono::seconds(seconds);
-  rclcpp::WallRate loop_rate{ std::chrono::milliseconds(20) };
+  const auto start_time = rclcpp::Clock{RCL_STEADY_TIME}.now();
+  const auto wall_timeout = rclcpp::Duration::from_seconds(seconds);
 
   while (rclcpp::ok())
   {
     if (isConnected())
       return;
 
-    if (wall_timeout >= std::chrono::seconds(0))
+    if (wall_timeout >= rclcpp::Duration::from_seconds(0))
     {
-      const auto current_time = std::chrono::steady_clock::now();
+      const auto current_time = rclcpp::Clock{RCL_STEADY_TIME}.now();
       if ((current_time - start_time) >= wall_timeout)
         return;
     }
 
-    loop_rate.sleep();
+    rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.02)));
   }
 
   return;
@@ -277,16 +287,16 @@ void ROSPlotting::clear(std::string ns)
 
 static void waitForInputAsync(std::string message)
 {
-  RCLCPP_ERROR(rclcpp::get_logger(LOGGER_ID), "%s", message.c_str());
+  RCLCPP_ERROR(rclcpp::get_logger(NODE_ID), "%s", message.c_str());
   std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 }
 
 void ROSPlotting::waitForInput(std::string message)
 {
-  //  std::chrono::microseconds timeout(1);
-  //  std::future<void> future = std::async(std::launch::async, [=]() { waitForInputAsync(message); });
-  //  while (future.wait_for(timeout) != std::future_status::ready)
-  //    rclcpp::spin_some(node_);
+  // std::chrono::microseconds timeout(1);
+  // std::future<void> future = std::async(std::launch::async, [=]() { waitForInputAsync(message); });
+  // while (future.wait_for(timeout) != std::future_status::ready)
+  //   rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.1)));
 }
 
 const std::string& ROSPlotting::getRootLink() const { return root_link_; }

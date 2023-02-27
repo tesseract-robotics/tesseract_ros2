@@ -32,8 +32,11 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <tesseract_msgs/msg/string_limits_pair.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/lexical_cast.hpp>
-#include <tf2_eigen/tf2_eigen.h>
-
+#if __has_include(<tf2_eigen/tf2_eigen.hpp>)
+#  include <tf2_eigen/tf2_eigen.hpp>
+#else
+#  include <tf2_eigen/tf2_eigen.h>
+#endif
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_common/serialization.h>
@@ -74,6 +77,10 @@ std::shared_ptr<tesseract_common::Resource> ROSResourceLocator::locateResource(c
       return nullptr;
     }
   }
+
+  if (!tesseract_common::fs::path(mod_url).is_complete())
+    return nullptr;
+    
   return std::make_shared<tesseract_common::SimpleLocatedResource>(
       url, mod_url, std::make_shared<ROSResourceLocator>(*this));
 }
@@ -356,6 +363,7 @@ bool toMsg(tesseract_msgs::msg::Geometry& geometry_msgs, const tesseract_geometr
 
       geometry_msgs.type = tesseract_msgs::msg::Geometry::OCTREE;
       octomap_msgs::fullMapToMsg(*(octree.getOctree()), geometry_msgs.octomap);
+      geometry_msgs.octomap_sub_type.type = static_cast<uint8_t>(octree.getSubType());
       break;
     }
     case tesseract_geometry::GeometryType::MESH:
@@ -506,6 +514,11 @@ bool fromMsg(tesseract_geometry::Geometry::Ptr& geometry, const tesseract_msgs::
   {
     geometry = std::make_shared<tesseract_geometry::Cylinder>(geometry_msg.cylinder_dimensions[0],
                                                               geometry_msg.cylinder_dimensions[1]);
+  }
+  else if (geometry_msg.type == tesseract_msgs::msg::Geometry::CAPSULE)
+  {
+    geometry = std::make_shared<tesseract_geometry::Capsule>(geometry_msg.capsule_dimensions[0],
+                                                             geometry_msg.capsule_dimensions[1]);
   }
   else if (geometry_msg.type == tesseract_msgs::msg::Geometry::CONE)
   {
@@ -1112,6 +1125,10 @@ fromMsg(const tesseract_msgs::msg::CollisionMarginOverrideType& contact_margin_o
     {
       return tesseract_common::CollisionMarginOverrideType::MODIFY_PAIR_MARGIN;
     }
+    case tesseract_msgs::msg::CollisionMarginOverrideType::MODIFY:
+    {
+      return tesseract_common::CollisionMarginOverrideType::MODIFY;
+    }
     case tesseract_msgs::msg::CollisionMarginOverrideType::REPLACE:
     {
       return tesseract_common::CollisionMarginOverrideType::REPLACE;
@@ -1146,6 +1163,11 @@ toMsg(const tesseract_common::CollisionMarginOverrideType& contact_margin_overri
     case static_cast<int>(tesseract_collision::CollisionMarginOverrideType::MODIFY_PAIR_MARGIN):
     {
       contact_margin_override_type_msg.type = tesseract_msgs::msg::CollisionMarginOverrideType::MODIFY_PAIR_MARGIN;
+      break;
+    }
+    case static_cast<int>(tesseract_collision::CollisionMarginOverrideType::MODIFY):
+    {
+      contact_margin_override_type_msg.type = tesseract_msgs::msg::CollisionMarginOverrideType::MODIFY;
       break;
     }
     case static_cast<int>(tesseract_collision::CollisionMarginOverrideType::REPLACE):
@@ -1631,7 +1653,7 @@ void toMsg(tesseract_msgs::msg::JointTrajectory& traj_msg, const tesseract_commo
     for (int i = 0; i < js.acceleration.size(); ++i)
       js_msg.acceleration[static_cast<size_t>(i)] = js.acceleration(i);
 
-    js_msg.time_from_start = rclcpp::Duration(js.time);
+    js_msg.time_from_start = rclcpp::Duration::from_seconds(js.time);
     traj_msg.states.push_back(js_msg);
   }
 }
@@ -1640,60 +1662,6 @@ tesseract_common::JointTrajectory fromMsg(const tesseract_msgs::msg::JointTrajec
 {
   tesseract_common::JointTrajectory trajectory;
   for (const auto& js_msg : traj_msg.states)
-  {
-    assert(js_msg.joint_names.size() == static_cast<unsigned>(js_msg.position.size()));
-
-    tesseract_common::JointState js;
-    js.joint_names = js_msg.joint_names;
-    js.position.resize(static_cast<long>(js_msg.position.size()));
-    js.velocity.resize(static_cast<long>(js_msg.velocity.size()));
-    js.acceleration.resize(static_cast<long>(js_msg.acceleration.size()));
-
-    for (std::size_t i = 0; i < js_msg.position.size(); ++i)
-      js.position(static_cast<long>(i)) = js_msg.position[i];
-
-    for (std::size_t i = 0; i < js_msg.velocity.size(); ++i)
-      js.velocity(static_cast<long>(i)) = js_msg.velocity[i];
-
-    for (std::size_t i = 0; i < js_msg.acceleration.size(); ++i)
-      js.acceleration(static_cast<long>(i)) = js_msg.acceleration[i];
-
-    js.time = js_msg.time_from_start.sec;
-    trajectory.push_back(js);
-  }
-  return trajectory;
-}
-
-void toMsg(std::vector<tesseract_msgs::msg::JointState>& traj_msg, const tesseract_common::JointTrajectory& traj)
-{
-  for (const auto& js : traj)
-  {
-    assert(js.joint_names.size() == static_cast<unsigned>(js.position.size()));
-
-    tesseract_msgs::msg::JointState js_msg;
-    js_msg.joint_names = js.joint_names;
-    js_msg.position.resize(static_cast<size_t>(js.position.size()));
-    js_msg.velocity.resize(static_cast<size_t>(js.velocity.size()));
-    js_msg.acceleration.resize(static_cast<size_t>(js.acceleration.size()));
-
-    for (int i = 0; i < js.position.size(); ++i)
-      js_msg.position[static_cast<size_t>(i)] = js.position(i);
-
-    for (int i = 0; i < js.velocity.size(); ++i)
-      js_msg.velocity[static_cast<size_t>(i)] = js.velocity(i);
-
-    for (int i = 0; i < js.acceleration.size(); ++i)
-      js_msg.acceleration[static_cast<size_t>(i)] = js.acceleration(i);
-
-    js_msg.time_from_start = rclcpp::Duration::from_seconds(js.time);
-    traj_msg.push_back(js_msg);
-  }
-}
-
-tesseract_common::JointTrajectory fromMsg(const std::vector<tesseract_msgs::msg::JointState>& traj_msg)
-{
-  tesseract_common::JointTrajectory trajectory;
-  for (const auto& js_msg : traj_msg)
   {
     assert(js_msg.joint_names.size() == static_cast<unsigned>(js_msg.position.size()));
 
@@ -2138,8 +2106,7 @@ bool fromMsg(tesseract_common::TransformMap& transform_map, const tesseract_msgs
 
 bool toMsg(sensor_msgs::msg::JointState& joint_state_msg, const std::unordered_map<std::string, double>& joint_state)
 {
-  auto clk = std::make_shared<rclcpp::Clock>(RCL_ROS_TIME);
-  joint_state_msg.header.stamp = clk->now();
+  joint_state_msg.header.stamp = rclcpp::Clock{RCL_ROS_TIME}.now();
   joint_state_msg.name.reserve(joint_state.size());
   joint_state_msg.position.reserve(joint_state.size());
   for (const auto& pair : joint_state)
@@ -2224,6 +2191,9 @@ tesseract_environment::Environment::UPtr fromMsg(const tesseract_msgs::msg::Envi
                  e.what());
     return nullptr;
   }
+
+  if (commands.empty())
+    return nullptr;
 
   auto env = std::make_unique<tesseract_environment::Environment>();
   if (!env->init(commands))  // TODO: Get state solver

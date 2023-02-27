@@ -47,15 +47,15 @@ class DisplayContext;
 namespace rviz_rendering
 {
 class Arrow;
-}
+} // namespace rviz_rendering
 
 namespace tesseract_rviz
 {
 class ArrowMarker : public MarkerBase
 {
 public:
-  using Ptr = boost::shared_ptr<ArrowMarker>;
-  using ConstPtr = boost::shared_ptr<const ArrowMarker>;
+  using Ptr = std::shared_ptr<ArrowMarker>;
+  using ConstPtr = std::shared_ptr<const ArrowMarker>;
 
   ArrowMarker(const std::string& ns, const int id, Ogre::SceneManager* scene_manager, Ogre::SceneNode* parent_node);
 

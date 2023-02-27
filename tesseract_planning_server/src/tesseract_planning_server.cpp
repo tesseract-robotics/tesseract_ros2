@@ -26,7 +26,11 @@
 #include <tesseract_common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <rclcpp/rclcpp.hpp>
-#include <tf2_eigen/tf2_eigen.h>
+#if __has_include(<tf2_eigen/tf2_eigen.hpp>)
+#  include <tf2_eigen/tf2_eigen.hpp>
+#else
+#  include <tf2_eigen/tf2_eigen.h>
+#endif
 #include <console_bridge/console.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 

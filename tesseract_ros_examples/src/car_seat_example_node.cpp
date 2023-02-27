@@ -45,8 +45,9 @@ int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
 
-  auto node = std::make_shared<rclcpp::Node>("puzzle_piece_example_node");
+  auto node = std::make_shared<rclcpp::Node>("car_seat_example_node");
 
+  // Get ROS Parameters
   bool plotting = node->declare_parameter("plotting", true);
   bool rviz = node->declare_parameter("rviz", true);
 
@@ -71,8 +72,8 @@ int main(int argc, char** argv)
     plotter = std::make_shared<ROSPlotting>(env->getSceneGraph()->getRoot());
 
   CarSeatExample example(env, plotter);
-  std::this_thread::sleep_for(std::chrono::duration<double>(5.0));
-
+  rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(5.0)));
+  
   example.run();
 
   spinner.join();

@@ -14,11 +14,15 @@ repositories:
   opw_kinematics:
     type: git
     url: https://github.com/Jmeyer1292/opw_kinematics.git
-    version: 0.4.5
+    version: 0.4.6
   ros_industrial_cmake_boilerplate:
     type: git
     url: https://github.com/ros-industrial/ros_industrial_cmake_boilerplate.git
-    version: 0.2.15
+    version: 0.3.1
+  taskflow:
+    type: git
+    url: https://github.com/taskflow/taskflow.git
+    version: v3.4.0
   tesseract:
     type: git
     url: https://github.com/tesseract-robotics/tesseract.git
@@ -34,7 +38,7 @@ repositories:
   tesseract_qt:
     type: git
     url: https://github.com/tesseract-robotics/tesseract_qt.git
-    version: 0c47b534b26157d9dfd5358a01afe24c978c5ed9
+    version: 0.14.0
   Qt-Advanced-Docking-System:
     type: git
     url: https://github.com/Levi-Armstrong/Qt-Advanced-Docking-System.git

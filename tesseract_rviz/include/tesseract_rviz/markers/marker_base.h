@@ -32,10 +32,6 @@
 #include "rviz_common/interaction/forwards.hpp"
 #include "rviz_common/interactive_object.hpp"
 
-#ifndef Q_MOC_RUN
-#include <boost/shared_ptr.hpp>
-#endif
-
 namespace Ogre
 {
 class SceneNode;
@@ -56,8 +52,8 @@ typedef std::pair<std::string, int32_t> MarkerID;
 class MarkerBase
 {
 public:
-  using Ptr = boost::shared_ptr<MarkerBase>;
-  using ConstPtr = boost::shared_ptr<const MarkerBase>;
+  using Ptr = std::shared_ptr<MarkerBase>;
+  using ConstPtr = std::shared_ptr<const MarkerBase>;
 
   MarkerBase(std::string ns, const int id, Ogre::SceneManager* scene_manager, Ogre::SceneNode* parent_node);
   virtual ~MarkerBase();
@@ -99,7 +95,7 @@ protected:
 
   Ogre::SceneNode* scene_node_;
 
-  boost::shared_ptr<MarkerSelectionHandler> handler_;
+  std::shared_ptr<MarkerSelectionHandler> handler_;
 };
 
 }  // namespace tesseract_rviz

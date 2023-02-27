@@ -25,12 +25,14 @@
 
 #include <tesseract_common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
+#include <rclcpp/rclcpp.hpp>
+#include <tesseract_msgs/srv/modify_environment.hpp>
+#include <tesseract_msgs/msg/environment_command.hpp>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_monitoring/environment_monitor_interface.h>
-#include <tesseract_msgs/msg/environment_command.hpp>
-#include <tesseract_msgs/srv/modify_environment.hpp>
-#include <tesseract_msgs/srv/get_environment_information.hpp>
+#include <tesseract_rosutils/utils.h>
+#include <tesseract_monitoring/constants.h>
 
 namespace tesseract_monitoring
 {
@@ -38,8 +40,6 @@ using namespace std::chrono_literals;
 
 /**
  * Call and wait for service by running a new executor which only operates on one callback group
- *
- * @throws std::runtime_error if something goes wrong
  */
 template <class SrvType>
 typename SrvType::Response::SharedPtr call_service(const std::string& name,
@@ -51,9 +51,8 @@ typename SrvType::Response::SharedPtr call_service(const std::string& name,
   auto client = node.create_client<SrvType>(name, ::rmw_qos_profile_services_default, cbg);
   if (!client->service_is_ready())
   {
-    std::ostringstream ss;
-    ss << "Service '" << name << "' not available!";
-    throw std::runtime_error(ss.str());
+    RCLCPP_ERROR_STREAM(node.get_logger(), "Service '" << name << "' not available!");
+    return nullptr;
   }
 
   rclcpp::executors::SingleThreadedExecutor exec;
@@ -63,21 +62,20 @@ typename SrvType::Response::SharedPtr call_service(const std::string& name,
   auto retcode = exec.spin_until_future_complete(future, timeout);
   if (retcode != rclcpp::FutureReturnCode::SUCCESS)
   {
-    std::ostringstream ss;
-    ss << "No response received for service '" << name << "'";
-    throw std::runtime_error(ss.str());
+    RCLCPP_ERROR_STREAM(node.get_logger(), "No response received for service '" << name << "'");
+    return nullptr;
   }
 
   return future.get();
 }
 
-EnvironmentMonitorInterface::EnvironmentMonitorInterface(rclcpp::Node::SharedPtr node, const std::string& env_name)
-  : node_{ node }, env_name_{ env_name }, logger_{ node_->get_logger().get_child(env_name_ + "_env_monitor") }
+ROSEnvironmentMonitorInterface::ROSEnvironmentMonitorInterface(rclcpp::Node::SharedPtr node, const std::string& env_name)
+  : EnvironmentMonitorInterface(std::move(env_name)), node_{ node }, logger_{ node_->get_logger().get_child(env_name + "_env_monitor") }, env_name_{ env_name }
 {
   // callback_group_ = node_->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive, false);
 }
 
-bool EnvironmentMonitorInterface::wait(rclcpp::Duration timeout) const
+bool ROSEnvironmentMonitorInterface::wait(rclcpp::Duration timeout) const
 {
   if (ns_.empty())
   {
@@ -101,7 +99,7 @@ bool EnvironmentMonitorInterface::wait(rclcpp::Duration timeout) const
   return true;
 }
 
-bool EnvironmentMonitorInterface::waitForNamespace(const std::string& monitor_namespace, rclcpp::Duration timeout) const
+bool ROSEnvironmentMonitorInterface::waitForNamespace(const std::string& monitor_namespace, rclcpp::Duration timeout) const
 {
   std::string service_name = R"(/)" + monitor_namespace + DEFAULT_GET_ENVIRONMENT_INFORMATION_SERVICE;
 
@@ -126,20 +124,21 @@ bool EnvironmentMonitorInterface::waitForNamespace(const std::string& monitor_na
   return true;
 }
 
-void EnvironmentMonitorInterface::addNamespace(std::string monitor_namespace)
+void ROSEnvironmentMonitorInterface::addNamespace(std::string monitor_namespace)
 {
   if (std::find(ns_.begin(), ns_.end(), monitor_namespace) == ns_.end())
     ns_.push_back(monitor_namespace);
 }
 
-void EnvironmentMonitorInterface::removeNamespace(const std::string& monitor_namespace)
+void ROSEnvironmentMonitorInterface::removeNamespace(const std::string& monitor_namespace)
 {
   auto it = std::remove_if(
       ns_.begin(), ns_.end(), [monitor_namespace](const std::string& ns) { return (ns == monitor_namespace); });
   ns_.erase(it, ns_.end());
 }
 
-std::vector<std::string> EnvironmentMonitorInterface::applyCommand(const tesseract_environment::Command& command) const
+std::vector<std::string> 
+ROSEnvironmentMonitorInterface::applyCommand(const tesseract_environment::Command& command) const
 {
   std::vector<std::string> failed_namespace;
   failed_namespace.reserve(ns_.size());
@@ -151,7 +150,7 @@ std::vector<std::string> EnvironmentMonitorInterface::applyCommand(const tessera
 }
 
 std::vector<std::string>
-EnvironmentMonitorInterface::applyCommands(const tesseract_environment::Commands& commands) const
+ROSEnvironmentMonitorInterface::applyCommands(const tesseract_environment::Commands& commands) const
 {
   std::vector<std::string> failed_namespace;
   failed_namespace.reserve(ns_.size());
@@ -163,7 +162,7 @@ EnvironmentMonitorInterface::applyCommands(const tesseract_environment::Commands
 }
 
 std::vector<std::string>
-EnvironmentMonitorInterface::applyCommands(const std::vector<tesseract_environment::Command>& commands) const
+ROSEnvironmentMonitorInterface::applyCommands(const std::vector<tesseract_environment::Command>& commands) const
 {
   std::vector<std::string> failed_namespace;
   failed_namespace.reserve(ns_.size());
@@ -174,7 +173,7 @@ EnvironmentMonitorInterface::applyCommands(const std::vector<tesseract_environme
   return failed_namespace;
 }
 
-bool EnvironmentMonitorInterface::applyCommand(const std::string& monitor_namespace,
+bool ROSEnvironmentMonitorInterface::applyCommand(const std::string& monitor_namespace,
                                                const tesseract_environment::Command& command) const
 {
   tesseract_msgs::msg::EnvironmentCommand command_msg;
@@ -190,7 +189,7 @@ bool EnvironmentMonitorInterface::applyCommand(const std::string& monitor_namesp
   }
 }
 
-bool EnvironmentMonitorInterface::applyCommands(const std::string& monitor_namespace,
+bool ROSEnvironmentMonitorInterface::applyCommands(const std::string& monitor_namespace,
                                                 const tesseract_environment::Commands& commands) const
 {
   std::vector<tesseract_msgs::msg::EnvironmentCommand> commands_msg;
@@ -206,7 +205,7 @@ bool EnvironmentMonitorInterface::applyCommands(const std::string& monitor_names
   }
 }
 
-bool EnvironmentMonitorInterface::applyCommands(const std::string& monitor_namespace,
+bool ROSEnvironmentMonitorInterface::applyCommands(const std::string& monitor_namespace,
                                                 const std::vector<tesseract_environment::Command>& commands) const
 {
   std::vector<tesseract_msgs::msg::EnvironmentCommand> commands_msg;
@@ -229,9 +228,8 @@ bool EnvironmentMonitorInterface::applyCommands(const std::string& monitor_names
   return sendCommands(monitor_namespace, commands_msg);
 }
 
-bool EnvironmentMonitorInterface::sendCommands(
-    const std::string& ns,
-    const std::vector<tesseract_msgs::msg::EnvironmentCommand>& commands) const
+bool ROSEnvironmentMonitorInterface::sendCommands(const std::string& ns,
+                                                  const std::vector<tesseract_msgs::msg::EnvironmentCommand>& commands) const
 {
   auto req = std::make_shared<tesseract_msgs::srv::ModifyEnvironment::Request>();
   req->id = env_name_;
@@ -242,8 +240,7 @@ bool EnvironmentMonitorInterface::sendCommands(
   {
     auto response = call_service<tesseract_msgs::srv::ModifyEnvironment>(
         ns + DEFAULT_MODIFY_ENVIRONMENT_SERVICE, req, *node_, callback_group_, 10s);
-
-    if (!response->success)
+    if (!response || !response->success)
     {
       RCLCPP_ERROR_STREAM(logger_, "sendCommands (" + ns + "): Failed to update monitored environment!");
       return false;
@@ -258,7 +255,7 @@ bool EnvironmentMonitorInterface::sendCommands(
 }
 
 tesseract_scene_graph::SceneState
-EnvironmentMonitorInterface::getEnvironmentState(const std::string& monitor_namespace) const
+ROSEnvironmentMonitorInterface::getEnvironmentState(const std::string& monitor_namespace) const
 {
   auto req = std::make_shared<tesseract_msgs::srv::GetEnvironmentInformation::Request>();
   req->flags = tesseract_msgs::srv::GetEnvironmentInformation::Request::JOINT_STATES |
@@ -269,7 +266,8 @@ EnvironmentMonitorInterface::getEnvironmentState(const std::string& monitor_name
   {
     const std::string srv_name = R"(/)" + monitor_namespace + DEFAULT_GET_ENVIRONMENT_INFORMATION_SERVICE;
     auto res = call_service<tesseract_msgs::srv::GetEnvironmentInformation>(srv_name, req, *node_, callback_group_, 3s);
-
+    if (!res || !res->success)
+        throw std::runtime_error("getEnvironmentState: Failed to get monitor environment information!");
     tesseract_scene_graph::SceneState env_state;
     tesseract_rosutils::fromMsg(env_state.joints, res->joint_states);
     tesseract_rosutils::fromMsg(env_state.link_transforms, res->link_transforms);
@@ -282,7 +280,7 @@ EnvironmentMonitorInterface::getEnvironmentState(const std::string& monitor_name
   }
 }
 
-bool EnvironmentMonitorInterface::setEnvironmentState(const std::string& monitor_namespace,
+bool ROSEnvironmentMonitorInterface::setEnvironmentState(const std::string& monitor_namespace,
                                                       const std::unordered_map<std::string, double>& joints) const
 {
   tesseract_msgs::msg::EnvironmentCommand command;
@@ -291,9 +289,9 @@ bool EnvironmentMonitorInterface::setEnvironmentState(const std::string& monitor
   return sendCommands(monitor_namespace, { command });
 }
 
-bool EnvironmentMonitorInterface::setEnvironmentState(const std::string& monitor_namespace,
+bool ROSEnvironmentMonitorInterface::setEnvironmentState(const std::string& monitor_namespace,
                                                       const std::vector<std::string>& joint_names,
-                                                      const std::vector<double>& joint_values)
+                                                      const std::vector<double>& joint_values) const
 {
   std::unordered_map<std::string, double> joints;
   for (std::size_t i = 0; i < joint_names.size(); ++i)
@@ -305,9 +303,9 @@ bool EnvironmentMonitorInterface::setEnvironmentState(const std::string& monitor
   return sendCommands(monitor_namespace, { command });
 }
 
-bool EnvironmentMonitorInterface::setEnvironmentState(const std::string& monitor_namespace,
+bool ROSEnvironmentMonitorInterface::setEnvironmentState(const std::string& monitor_namespace,
                                                       const std::vector<std::string>& joint_names,
-                                                      const Eigen::Ref<const Eigen::VectorXd>& joint_values)
+                                                      const Eigen::Ref<const Eigen::VectorXd>& joint_values) const
 {
   std::unordered_map<std::string, double> joints;
   for (std::size_t i = 0; i < joint_names.size(); ++i)
@@ -320,7 +318,7 @@ bool EnvironmentMonitorInterface::setEnvironmentState(const std::string& monitor
 }
 
 std::vector<std::string>
-EnvironmentMonitorInterface::setEnvironmentState(const std::unordered_map<std::string, double>& joints)
+ROSEnvironmentMonitorInterface::setEnvironmentState(const std::unordered_map<std::string, double>& joints) const
 {
   std::vector<std::string> failed_namespace;
   failed_namespace.reserve(ns_.size());
@@ -331,8 +329,9 @@ EnvironmentMonitorInterface::setEnvironmentState(const std::unordered_map<std::s
   return failed_namespace;
 }
 
-std::vector<std::string> EnvironmentMonitorInterface::setEnvironmentState(const std::vector<std::string>& joint_names,
-                                                                          const std::vector<double>& joint_values)
+std::vector<std::string>
+ROSEnvironmentMonitorInterface::setEnvironmentState(const std::vector<std::string>& joint_names,
+                                                                          const std::vector<double>& joint_values) const
 {
   std::vector<std::string> failed_namespace;
   failed_namespace.reserve(ns_.size());
@@ -344,8 +343,8 @@ std::vector<std::string> EnvironmentMonitorInterface::setEnvironmentState(const 
 }
 
 std::vector<std::string>
-EnvironmentMonitorInterface::setEnvironmentState(const std::vector<std::string>& joint_names,
-                                                 const Eigen::Ref<const Eigen::VectorXd>& joint_values)
+ROSEnvironmentMonitorInterface::setEnvironmentState(const std::vector<std::string>& joint_names,
+                                                 const Eigen::Ref<const Eigen::VectorXd>& joint_values) const
 {
   std::vector<std::string> failed_namespace;
   failed_namespace.reserve(ns_.size());
@@ -356,8 +355,8 @@ EnvironmentMonitorInterface::setEnvironmentState(const std::vector<std::string>&
   return failed_namespace;
 }
 
-tesseract_environment::Environment::Ptr
-EnvironmentMonitorInterface::getEnvironment(const std::string& monitor_namespace)
+tesseract_environment::Environment::UPtr
+ROSEnvironmentMonitorInterface::getEnvironment(const std::string& monitor_namespace) const
 {
   auto req = std::make_shared<tesseract_msgs::srv::GetEnvironmentInformation::Request>();
   req->flags = tesseract_msgs::srv::GetEnvironmentInformation::Request::COMMAND_HISTORY;
@@ -366,17 +365,20 @@ EnvironmentMonitorInterface::getEnvironment(const std::string& monitor_namespace
   {
     const std::string srv_name = R"(/)" + monitor_namespace + DEFAULT_GET_ENVIRONMENT_INFORMATION_SERVICE;
     auto res = call_service<tesseract_msgs::srv::GetEnvironmentInformation>(srv_name, req, *node_, callback_group_, 3s);
-
+    if (!res || !res->success)
+    {
+        RCLCPP_ERROR_STREAM(logger_, "getEnvironment: Failed to get monitor environment information!");
+        return nullptr;
+    }
     tesseract_environment::Commands commands;
     commands = tesseract_rosutils::fromMsg(res->command_history);
-
-    auto env = std::make_shared<tesseract_environment::Environment>();
+    auto env = std::make_unique<tesseract_environment::Environment>();
     env->init(commands);
     return env;
   }
   catch (std::runtime_error& ex)
   {
-    RCLCPP_ERROR_STREAM(logger_, "getEnvironment: Failed - " << ex.what());
+    RCLCPP_ERROR_STREAM(logger_, "getEnvironment: Failed to convert command history message!" << ex.what());
     return nullptr;
   }
 }

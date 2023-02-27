@@ -71,7 +71,7 @@
 namespace tesseract_rviz
 {
 InteractiveMarkerControl::InteractiveMarkerControl(std::string name,
-                                                   std::string description,
+                                                   const std::string& description,
                                                    rviz_common::DisplayContext* context,
                                                    Ogre::SceneNode* reference_node,
                                                    InteractiveMarker* parent,
@@ -228,7 +228,6 @@ Ogre::SceneNode* InteractiveMarkerControl::getMarkerSceneNode() { return markers
 
 void InteractiveMarkerControl::addMarker(const MarkerBase::Ptr& marker)
 {
-  //  auto obj_ptr = std::static_pointer_cast<rviz_common::InteractiveObject>(shared_from_this());
   marker->setInteractiveObject(shared_from_this());
 
   addHighlightPass(marker->getMaterials());
@@ -293,10 +292,7 @@ void InteractiveMarkerControl::update()
 {
   if (mouse_dragging_)
   {
-    if (dragging_in_place_event_)
-    {
-      handleMouseMovement(*dragging_in_place_event_);
-    }
+     handleMouseMovement(*dragging_in_place_event_);
   }
 }
 
@@ -434,8 +430,8 @@ Ogre::Ray InteractiveMarkerControl::getMouseRayInReferenceFrame(const rviz_commo
   float width = viewport->getActualWidth() - 1;
   float height = viewport->getActualHeight() - 1;
 
-  Ogre::Ray mouse_ray = viewport->getCamera()->getCameraToViewportRay(static_cast<float>(x + .5) / width,
-                                                                      static_cast<float>(y + .5) / height);
+  Ogre::Ray mouse_ray = viewport->getCamera()->getCameraToViewportRay((static_cast<float>(x) + 0.5f) / width,
+                                                                      (static_cast<float>(y) + 0.5f) / height);
 
   // convert ray into reference frame
   mouse_ray.setOrigin(reference_node_->convertWorldToLocalPosition(mouse_ray.getOrigin()));
@@ -477,9 +473,9 @@ void InteractiveMarkerControl::rotateXYRelative(const rviz_common::ViewportMouse
   if (!getRelativeMouseMotion(event, dx, dy))
     return;
 
-  static const double MOUSE_SCALE = 2 * 3.14 / 300;  // 300 pixels = 360deg
-  Ogre::Radian rx(dx * MOUSE_SCALE);
-  Ogre::Radian ry(dy * MOUSE_SCALE);
+  static const Ogre::Real MOUSE_SCALE = 2 * 3.14f / 300.0f;  // 300 pixels = 360deg
+  Ogre::Radian rx(static_cast<Ogre::Real>(dx) * MOUSE_SCALE);
+  Ogre::Radian ry(static_cast<Ogre::Real>(dy) * MOUSE_SCALE);
 
   auto viewport = rviz_rendering::RenderWindowOgreAdapter::getOgreViewport(event.panel->getRenderWindow());
   Ogre::Quaternion up_rot(rx, viewport->getCamera()->getRealUp());
@@ -1195,16 +1191,15 @@ void InteractiveMarkerControl::handleMouseEvent(rviz_common::ViewportMouseEvent&
     case InteractiveMode::MOVE_ROTATE_3D:
       if (event.leftDown())
       {
+        // aleeper: This line was causing badness
+        // orientation_mode_ = OrientationMode::VIEW_FACING;
         beginMouseMovement(event, false);
       }
-      else
+      else if (event.left() && 
+               ((modifiers_at_drag_begin_ ^ event.modifiers) & (Qt::ShiftModifier | Qt::ControlModifier)))
       {
-        // Can't satisfy cpplint and uncrustify: https://github.com/ament/ament_lint/issues/158
-        if (event.left() && ((modifiers_at_drag_begin_ ^ event.modifiers) & (Qt::ShiftModifier | Qt::ControlModifier)))
-        {
-          // modifier buttons changed.  Restart the drag.
-          beginRelativeMouseMotion(event);
-        }
+        // modifier buttons changed.  Restart the drag.
+        beginRelativeMouseMotion(event);
       }
       break;
 

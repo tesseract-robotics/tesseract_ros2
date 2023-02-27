@@ -24,29 +24,59 @@
  * limitations under the License.
  */
 
-#include <tesseract_ros_examples/glass_upright_example.h>
+#include <thread>
+#include <tesseract_examples/glass_upright_example.h>
+#include <tesseract_monitoring/environment_monitor.h>
+#include <tesseract_rosutils/plotting.h>
 
-using namespace tesseract_ros_examples;
+using namespace tesseract_examples;
+using namespace tesseract_rosutils;
+
+/** @brief Default ROS parameter for robot description */
+const std::string ROBOT_DESCRIPTION_PARAM = "robot_description";
+
+/** @brief Default ROS parameter for robot description */
+const std::string ROBOT_SEMANTIC_PARAM = "robot_description_semantic";
+
+/** @brief RViz Example Namespace */
+const std::string EXAMPLE_MONITOR_NAMESPACE = "tesseract_ros_examples";
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "glass_upright_example_node");
-  ros::NodeHandle pnh("~");
-  ros::NodeHandle nh;
+  rclcpp::init(argc, argv);
 
-  bool plotting = true;
-  bool rviz = true;
-  bool write_to_file = false;
-  bool ifopt = false;
-  bool debug = false;
+  auto node = std::make_shared<rclcpp::Node>("glass_upright_example_node");
 
   // Get ROS Parameters
-  pnh.param("plotting", plotting, plotting);
-  pnh.param("rviz", rviz, rviz);
-  pnh.param<bool>("write_to_file", write_to_file, write_to_file);
-  pnh.param("ifopt", ifopt, ifopt);
-  pnh.param("debug", debug, debug);
+  bool plotting = node->declare_parameter("plotting", true);
+  bool rviz = node->declare_parameter("rviz", true);
+  bool ifopt = node->declare_parameter("ifopt", false);
+  bool debug = node->declare_parameter("debug", false);
 
-  GlassUprightExample example(nh, plotting, rviz, write_to_file, ifopt, debug);
+  // Initial setup
+  std::string urdf_xml_string = node->declare_parameter(ROBOT_DESCRIPTION_PARAM, "");
+  std::string srdf_xml_string = node->declare_parameter(ROBOT_SEMANTIC_PARAM, "");
+
+  auto env = std::make_shared<tesseract_environment::Environment>();
+  auto locator = std::make_shared<tesseract_rosutils::ROSResourceLocator>();
+  if (!env->init(urdf_xml_string, srdf_xml_string, locator))
+    exit(1);
+
+  std::thread spinner{ [node]() { rclcpp::spin(node); } };
+
+  // Create monitor
+  auto monitor = std::make_shared<tesseract_monitoring::ROSEnvironmentMonitor>(node, env, EXAMPLE_MONITOR_NAMESPACE);
+  if (rviz)
+    monitor->startPublishingEnvironment();
+
+  ROSPlottingPtr plotter;
+  if (plotting)
+    plotter = std::make_shared<ROSPlotting>(env->getSceneGraph()->getRoot());
+
+  GlassUprightExample example(env, plotter, ifopt, debug);
+  rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(5.0)));
+  
   example.run();
+
+  spinner.join();
 }

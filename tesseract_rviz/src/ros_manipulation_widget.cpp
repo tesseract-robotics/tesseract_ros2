@@ -234,7 +234,7 @@ void ROSManipulationWidget::addInteractiveMarker()
   std::vector<std::string> joint_names = kin_group.getJointNames();
 
   // Add 6 DOF interactive marker at the end of the manipulator
-  data_->interactive_marker = boost::make_shared<InteractiveMarker>(
+  data_->interactive_marker = std::make_shared<InteractiveMarker>(
       "6DOF", "Move Robot", data_->root_interactive_node, data_->context, data_->interactive_marker_scale);
   make6Dof(*data_->interactive_marker);
 
@@ -261,7 +261,7 @@ void ROSManipulationWidget::addInteractiveMarker()
   {
     std::string name = joint_name + "_interactive_marker";
     std::string disc = "Move joint: " + joint_name;
-    InteractiveMarker::Ptr interactive_marker = boost::make_shared<InteractiveMarker>(
+    InteractiveMarker::Ptr interactive_marker = std::make_shared<InteractiveMarker>(
         name, disc, data_->root_interactive_node, data_->context, data_->joint_interactive_marker_scale);
     const auto& joint = environment().getJoint(joint_name);
 

@@ -4,6 +4,7 @@
 #include <tesseract_common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <rviz_common/display.hpp>
+#include <tesseract_qt/common/component_info.h>
 #ifndef Q_MOC_RUN
 #include <tesseract_environment/environment.h>
 #endif
@@ -28,6 +29,7 @@ public:
 
 public Q_SLOTS:
   void onEnableChanged() override;
+  void onComponentInfoChanged(tesseract_gui::ComponentInfo component_info);
 
 protected:
   // overrides from Display
@@ -35,7 +37,8 @@ protected:
   void onEnable() override;
   void onDisable() override;
 
-  std::unique_ptr<WorkbenchDisplayPrivate> data_;
+  struct Implementation;
+  std::unique_ptr<Implementation> data_;
 };
 }  // namespace tesseract_rviz
 

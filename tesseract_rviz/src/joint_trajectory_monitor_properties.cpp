@@ -24,7 +24,7 @@ namespace tesseract_rviz
 {
 struct JointTrajectoryMonitorProperties::Implementation
 {
-//public:
+  // public:
   std::shared_ptr<rclcpp::Node> rviz_node;
   std::shared_ptr<rclcpp::Node> node;
   rclcpp::executors::MultiThreadedExecutor::SharedPtr internal_node_executor;
@@ -102,7 +102,7 @@ struct JointTrajectoryMonitorProperties::Implementation
     catch (...)
     {
       parent->setStatus(
-            rviz_common::properties::StatusProperty::Error, "Tesseract", "Failed to process trajectory message!");
+          rviz_common::properties::StatusProperty::Error, "Tesseract", "Failed to process trajectory message!");
     }
   }
 };
@@ -217,8 +217,9 @@ void JointTrajectoryMonitorProperties::onLegacyJointTrajectoryTopicConnect()
   data_->legacy_joint_trajectory_sub = data_->node->create_subscription<trajectory_msgs::msg::JointTrajectory>(
       data_->legacy_joint_trajectory_topic_property->getStdString(),
       20,
-      std::bind(
-          &JointTrajectoryMonitorProperties::Implementation::legacyJointTrajectoryCallback, *data_, std::placeholders::_1));
+      std::bind(&JointTrajectoryMonitorProperties::Implementation::legacyJointTrajectoryCallback,
+                *data_,
+                std::placeholders::_1));
 }
 
 void JointTrajectoryMonitorProperties::onTesseractJointTrajectoryTopicConnect()
@@ -226,8 +227,9 @@ void JointTrajectoryMonitorProperties::onTesseractJointTrajectoryTopicConnect()
   data_->tesseract_joint_trajectory_sub = data_->node->create_subscription<tesseract_msgs::msg::Trajectory>(
       data_->tesseract_joint_trajectory_topic_property->getStdString(),
       20,
-      std::bind(
-          &JointTrajectoryMonitorProperties::Implementation::tesseractJointTrajectoryCallback, *data_, std::placeholders::_1));
+      std::bind(&JointTrajectoryMonitorProperties::Implementation::tesseractJointTrajectoryCallback,
+                *data_,
+                std::placeholders::_1));
 }
 
 void JointTrajectoryMonitorProperties::onLegacyJointTrajectoryTopicDisconnect()

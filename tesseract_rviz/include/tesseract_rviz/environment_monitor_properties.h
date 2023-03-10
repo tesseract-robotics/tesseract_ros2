@@ -30,7 +30,6 @@ class EnvironmentWidget;
 
 namespace tesseract_rviz
 {
-
 class EnvironmentMonitorProperties : public QObject
 {
   Q_OBJECT
@@ -40,7 +39,9 @@ public:
                                rviz_common::properties::Property* main_property = nullptr);
   ~EnvironmentMonitorProperties() override;
 
-  void onInitialize(Ogre::SceneManager* scene_manager, Ogre::SceneNode* scene_node, rviz_common::DisplayContext* context);
+  void onInitialize(Ogre::SceneManager* scene_manager,
+                    Ogre::SceneNode* scene_node,
+                    rviz_common::DisplayContext* context);
 
   /**
    * @brief Return the component info based on the settings of the object

@@ -142,7 +142,7 @@ void ROSContactResultsRenderManager::render()
       }
       else
       {
-//        ROS_ERROR("ROSContactResultsRenderManager, removing child elements is currently not supported");
+        //        ROS_ERROR("ROSContactResultsRenderManager, removing child elements is currently not supported");
       }
     }
     else if (event->type() == tesseract_gui::events::ContactResultsSet::kType)

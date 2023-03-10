@@ -48,7 +48,7 @@ struct WorkbenchDisplay::Implementation
   std::string workbench_display_ns;
 };
 
-int WorkbenchDisplay::Implementation::workbench_display_counter = -1; // NOLINT
+int WorkbenchDisplay::Implementation::workbench_display_counter = -1;  // NOLINT
 
 WorkbenchDisplay::WorkbenchDisplay() : data_(std::make_unique<Implementation>())
 {

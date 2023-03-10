@@ -94,7 +94,7 @@ void EnvironmentDisplay::update(float wall_dt, float ros_dt)
   Display::update(wall_dt, ros_dt);
 
   if (data_->widget != nullptr)
-      QApplication::sendEvent(qApp, new tesseract_gui::events::PreRender(data_->widget->getComponentInfo().scene_name));
+    QApplication::sendEvent(qApp, new tesseract_gui::events::PreRender(data_->widget->getComponentInfo().scene_name));
 }
 
 void EnvironmentDisplay::load(const rviz_common::Config& config)
@@ -112,7 +112,7 @@ void EnvironmentDisplay::save(rviz_common::Config config) const
 void EnvironmentDisplay::onEnable()
 {
   Display::onEnable();
-//  data_->widget->setEnable(true);
+  //  data_->widget->setEnable(true);
 }
 
 void EnvironmentDisplay::onDisable() { Display::onDisable(); }

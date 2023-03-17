@@ -125,6 +125,10 @@ void ROSSceneGraphRenderManager::render()
 
   for (const auto& event : events_)
   {
+    if (!event)
+    {
+      continue;
+    }
     if (event->type() == tesseract_gui::events::SceneGraphClear::kType)
     {
       auto& e = static_cast<tesseract_gui::events::SceneGraphClear&>(*event);

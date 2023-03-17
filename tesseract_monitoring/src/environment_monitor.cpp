@@ -79,6 +79,7 @@ ROSEnvironmentMonitor::ROSEnvironmentMonitor(rclcpp::Node::SharedPtr node,
 
   if (!initialize())
   {
+    last_robot_state_update_wall_time_ = node_->now();
     RCLCPP_WARN(logger_, "EnvironmentMonitor failed to initialize from URDF and SRDF");
   }
 
@@ -100,6 +101,7 @@ ROSEnvironmentMonitor::ROSEnvironmentMonitor(rclcpp::Node::SharedPtr node,
 {
   if (!initialize())
   {
+    last_robot_state_update_wall_time_ = node_->now();
     RCLCPP_WARN(logger_, "ENV passed to ros env monitor did not initialize");
   }
   internal_node_executor_ = std::make_shared<rclcpp::executors::MultiThreadedExecutor>();
@@ -649,7 +651,9 @@ void ROSEnvironmentMonitor::stopStateMonitor()
     current_state_monitor_->stopStateMonitor();
 
   // stop must be called with state_pending_mutex_ unlocked to avoid deadlock
-  state_update_timer_->cancel();
+  if (state_update_timer_)
+    state_update_timer_->cancel();
+
   publish_ = false;
   {
     std::scoped_lock lock(state_pending_mutex_);
@@ -659,7 +663,7 @@ void ROSEnvironmentMonitor::stopStateMonitor()
 
 void ROSEnvironmentMonitor::onJointStateUpdate(const sensor_msgs::msg::JointState::ConstSharedPtr /* joint_state */)
 {
-  const rclcpp::Time n = node_->now();
+  rclcpp::Time n = node_->now();
   rclcpp::Duration dt = n - last_robot_state_update_wall_time_;
 
   bool update = enforce_next_state_update_;

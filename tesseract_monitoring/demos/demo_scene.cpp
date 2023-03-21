@@ -196,11 +196,12 @@ int main(int argc, char** argv)
   rclcpp::init(argc, argv);
   node = std::make_shared<rclcpp::Node>("demo");
 
-  std::thread spinner{[node]() { rclcpp::spin(node); }};
+  std::thread spinner{ [node]() { rclcpp::spin(node); } };
 
   // These are used to keep visualization updated
   modify_env_rviz = nh.serviceClient<tesseract_msgs::srv::ModifyEnvironment>("modify_tesseract_rviz", true);
-  get_env_changes_rviz = nh.serviceClient<tesseract_msgs::srv::GetEnvironmentChanges>("get_tesseract_changes_rviz", true);
+  get_env_changes_rviz =
+      nh.serviceClient<tesseract_msgs::srv::GetEnvironmentChanges>("get_tesseract_changes_rviz", true);
 
   // These are used to keep master version of the environment updated
   modify_env_master = nh.serviceClient<tesseract_msgs::srv::ModifyEnvironment>("modify_tesseract", true);

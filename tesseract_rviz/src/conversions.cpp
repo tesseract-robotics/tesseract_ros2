@@ -278,7 +278,7 @@ Ogre::SceneNode* loadLink(Ogre::SceneManager& scene,
       loadLinkCollisions(scene, entity_container, link, collision_material_override);
   collisions_scene_node->getUserObjectBindings().setUserAny(USER_VISIBILITY, Ogre::Any(false));
   scene_node->addChild(collisions_scene_node);
- 
+
   if (!link.visual.empty() || !link.collision.empty())
   {
     Ogre::AxisAlignedBox aabb = getAABB(*scene_node, false);

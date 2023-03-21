@@ -101,8 +101,9 @@ public:
   void callbackModifyTesseractEnv(tesseract_msgs::srv::ModifyEnvironment::Request::SharedPtr request,
                                   tesseract_msgs::srv::ModifyEnvironment::Response::SharedPtr response);
 
-  void callbackComputeContactResultVector(tesseract_msgs::srv::ComputeContactResultVector::Request::SharedPtr request,
-                                          tesseract_msgs::srv::ComputeContactResultVector::Response::SharedPtr response);
+  void
+  callbackComputeContactResultVector(tesseract_msgs::srv::ComputeContactResultVector::Request::SharedPtr request,
+                                     tesseract_msgs::srv::ComputeContactResultVector::Response::SharedPtr response);
 
   void callbackTesseractEnvDiff(const tesseract_msgs::msg::EnvironmentState::SharedPtr state);
 

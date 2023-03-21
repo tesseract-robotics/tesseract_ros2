@@ -71,8 +71,7 @@ typename SrvType::Response::SharedPtr call_service(const std::string& name,
   return future.get();
 }
 
-ROSEnvironmentMonitorInterface::ROSEnvironmentMonitorInterface(rclcpp::Node::SharedPtr node,
-                                                               const std::string env_name)
+ROSEnvironmentMonitorInterface::ROSEnvironmentMonitorInterface(rclcpp::Node::SharedPtr node, const std::string env_name)
   : EnvironmentMonitorInterface(std::move(env_name))
   , node_{ node }
   , logger_{ node_->get_logger().get_child(env_name + "_env_monitor") }

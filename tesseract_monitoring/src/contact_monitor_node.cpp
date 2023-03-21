@@ -65,7 +65,8 @@ int main(int argc, char** argv)
   std::string monitored_namespace = node->declare_parameter("monitored_namespace", "");
   std::string robot_description = node->declare_parameter(ROBOT_DESCRIPTION_PARAM, "");
   std::string robot_description_semantic = node->declare_parameter(ROBOT_SEMANTIC_PARAM, "");
-  std::string joint_state_topic = node->declare_parameter("joint_state_topic", tesseract_monitoring::DEFAULT_JOINT_STATES_TOPIC);
+  std::string joint_state_topic =
+      node->declare_parameter("joint_state_topic", tesseract_monitoring::DEFAULT_JOINT_STATES_TOPIC);
   bool publish_environment = node->declare_parameter("publish_environment", false);
   bool publish_markers = node->declare_parameter("publish_markers", false);
 

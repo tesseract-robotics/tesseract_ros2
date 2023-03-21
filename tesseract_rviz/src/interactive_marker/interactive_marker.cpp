@@ -176,7 +176,9 @@ void InteractiveMarker::populateMenu(QMenu* /*menu*/, std::vector<uint32_t>& ids
   {
     auto node_it = menu_entries_.find(id);
     if (node_it != menu_entries_.end())
-        RCLCPP_ERROR(rclcpp::get_logger("InteractiveMarker"), "Interactive marker menu entry %u not found during populateMenu().", id);
+      RCLCPP_ERROR(rclcpp::get_logger("InteractiveMarker"),
+                   "Interactive marker menu entry %u not found during populateMenu().",
+                   id);
     MenuNode node = (*node_it).second;
 
     //    if ( node.child_ids.empty() )

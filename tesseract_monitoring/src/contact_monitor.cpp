@@ -60,7 +60,8 @@ ContactMonitor::ContactMonitor(std::string monitor_namespace,
     throw std::runtime_error("Null pointer passed for environment object to contact monitor.");
 
   // Create Environment Monitor
-  monitor_ = std::make_unique<tesseract_monitoring::ROSEnvironmentMonitor>(internal_node_, std::move(env), monitor_namespace_);
+  monitor_ =
+      std::make_unique<tesseract_monitoring::ROSEnvironmentMonitor>(internal_node_, std::move(env), monitor_namespace_);
   manager_ = monitor_->environment().getDiscreteContactManager();
 
   if (manager_ == nullptr)
@@ -74,17 +75,16 @@ ContactMonitor::ContactMonitor(std::string monitor_namespace,
   std::cout << ((disabled_link_names_.empty()) ? "Empty" : "Not Empty") << std::endl;
 
   joint_states_sub_ = internal_node_->create_subscription<sensor_msgs::msg::JointState>(
-      joint_state_topic,
-      1000,
-      std::bind(&ContactMonitor::callbackJointState, this, std::placeholders::_1));
+      joint_state_topic, 1000, std::bind(&ContactMonitor::callbackJointState, this, std::placeholders::_1));
   std::string contact_results_topic = R"(/)" + monitor_namespace_ + DEFAULT_PUBLISH_CONTACT_RESULTS_TOPIC;
   std::string compute_contact_results = R"(/)" + monitor_namespace_ + DEFAULT_COMPUTE_CONTACT_RESULTS_SERVICE;
 
-  contact_results_pub_ =
-      internal_node_->create_publisher<tesseract_msgs::msg::ContactResultVector>(contact_results_topic, rclcpp::QoS(100));
+  contact_results_pub_ = internal_node_->create_publisher<tesseract_msgs::msg::ContactResultVector>(
+      contact_results_topic, rclcpp::QoS(100));
   compute_contact_results_ = internal_node_->create_service<tesseract_msgs::srv::ComputeContactResultVector>(
       compute_contact_results,
-      std::bind(&ContactMonitor::callbackComputeContactResultVector, this, std::placeholders::_1, std::placeholders::_2),
+      std::bind(
+          &ContactMonitor::callbackComputeContactResultVector, this, std::placeholders::_1, std::placeholders::_2),
       rmw_qos_profile_services_default);
 }
 

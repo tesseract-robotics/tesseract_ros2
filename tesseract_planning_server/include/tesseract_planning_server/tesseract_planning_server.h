@@ -34,68 +34,80 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 //#include <actionlib/server/simple_action_server.h>
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
-//#include <tesseract_msgs/GetMotionPlanAction.h>
+#include <tesseract_msgs/msg/GetMotionPlanAction.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
-#include <tesseract_monitoring/environment_monitor.h>
-#include <tesseract_process_managers/core/process_planning_server.h>
+#include <tesseract_environment/environment_monitor.h>
+#include <tesseract_environment/environment_cache.h>
+#include <tesseract_task_composer/task_composer_server.h>
 
 namespace tesseract_planning_server
 {
-class ROSPlanningServer
+class TesseractPlanningServer
 {
 public:
   static const std::string DEFAULT_PLANNER_PROFILES_PARAM;  // "/tesseract_planner_profiles"
 
   static const std::string DEFAULT_GET_MOTION_PLAN_ACTION;  // "/tesseract_get_motion_plan"
 
-  ROSPlanningServer(rclcpp::Node::SharedPtr node,
-                    const std::string& robot_description,
-                    std::string name,
-                    size_t n = std::thread::hardware_concurrency());
+  TesseractPlanningServer(rclcpp::Node::SharedPtr node,
+                          const std::string& robot_description,
+                          std::string input_key,
+                          std::string output_key,
+                          std::string name);
 
   ROSPlanningServer(rclcpp::Node::SharedPtr node,
                     tesseract_environment::Environment::UPtr env,
-                    std::string name,
-                    size_t n = std::thread::hardware_concurrency());
+                    std::string input_key,
+                    std::string output_key,
+                    std::string name);
 
-  ~ROSPlanningServer() = default;
-  ROSPlanningServer(const ROSPlanningServer&) = delete;
-  ROSPlanningServer& operator=(const ROSPlanningServer&) = delete;
-  ROSPlanningServer(ROSPlanningServer&&) = delete;
-  ROSPlanningServer& operator=(ROSPlanningServer&&) = delete;
+  ~TesseractPlanningServer() = default;
+  TesseractPlanningServer(const TesseractPlanningServer&) = delete;
+  TesseractPlanningServer& operator=(const TesseractPlanningServer&) = delete;
+  TesseractPlanningServer(TesseractPlanningServer&&) = delete;
+  TesseractPlanningServer& operator=(TesseractPlanningServer&&) = delete;
 
-  tesseract_monitoring::EnvironmentMonitor& getEnvironmentMonitor();
-  const tesseract_monitoring::EnvironmentMonitor& getEnvironmentMonitor() const;
+  tesseract_environment::EnvironmentMonitor& getEnvironmentMonitor();
+  const tesseract_environment::EnvironmentMonitor& getEnvironmentMonitor() const;
 
-  tesseract_planning::ProcessPlanningServer& getProcessPlanningServer();
-  const tesseract_planning::ProcessPlanningServer& getProcessPlanningServer() const;
+  tesseract_planning::TaskComposerServer& getTaskComposerServer();
+  const tesseract_planning::TaskComposerServer& getTaskComposerServer() const;
 
-  tesseract_planning::EnvironmentCache& getEnvironmentCache();
-  const tesseract_planning::EnvironmentCache& getEnvironmentCache() const;
+  tesseract_environment::EnvironmentCache& getEnvironmentCache();
+  const tesseract_environment::EnvironmentCache& getEnvironmentCache() const;
 
-  // TODO
-  /*
+  tesseract_planning::ProfileDictionary& getProfileDictionary();
+  const tesseract_planning::ProfileDictionary& getProfileDictionary() const;
+
   void onMotionPlanningCallback(const tesseract_msgs::GetMotionPlanGoalConstPtr& goal);
-  */
 
 protected:
   rclcpp::Node::SharedPtr node_;
 
   /** @brief The environment monitor to keep the planning server updated with the latest */
-  tesseract_monitoring::EnvironmentMonitor::Ptr environment_;
+  tesseract_environment::EnvironmentMonitor::Ptr monitor_;
 
   /** @brief The environment cache being used by the process planning server */
-  tesseract_planning::EnvironmentCache::Ptr environment_cache_;
+  tesseract_environment::EnvironmentCache::Ptr environment_cache_;
 
-  /** @brief The process planning server */
-  tesseract_planning::ProcessPlanningServer::UPtr planning_server_;
+  /** @brief The task profiles */
+  tesseract_planning::ProfileDictionary::Ptr profiles_;
+
+  /** @brief The task planning server */
+  tesseract_planning::TaskComposerServer::UPtr planning_server_;
+
+  /** @brief The input key */
+  std::string input_key_;
+
+  /** @brief The output key */
+  std::string output_key_;
 
   /** @brief The motion planning action server */
   // actionlib::SimpleActionServer<tesseract_msgs::GetMotionPlanAction> motion_plan_server_;
 
   /** @brief TF buffer to track TCP transforms */
-  std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
+  std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
 
   /** @brief TF listener to lookup TCP transforms */
   tf2_ros::TransformListener tf_listener_;
@@ -104,7 +116,7 @@ protected:
 
   void loadDefaultPlannerProfiles();
 
-  Eigen::Isometry3d tfFindTCPOffset(const tesseract_planning::ManipulatorInfo& manip_info);
+  Eigen::Isometry3d tfFindTCPOffset(const tesseract_common::ManipulatorInfo& manip_info);
 };
 }  // namespace tesseract_planning_server
 #endif  // TESSERACT_ROS_TESSERACT_PLANNING_SERVER_H

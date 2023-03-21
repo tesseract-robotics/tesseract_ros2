@@ -1,4 +1,8 @@
 repositories:
+  ros_industrial_cmake_boilerplate:
+    type: git
+    url: https://github.com/ros-industrial/ros_industrial_cmake_boilerplate.git
+    version: 0.4.5
   tesseract:
     type: git
     url: https://github.com/tesseract-robotics/tesseract.git
@@ -39,4 +43,3 @@ repositories:
     type: git
     url: https://github.com/flexible-collision-library/fcl.git
     version: 0.7.0
-  

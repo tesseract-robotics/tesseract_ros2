@@ -15,6 +15,7 @@
 #include <OgreSceneNode.h>
 
 #include <boost/uuid/uuid_io.hpp>
+#include <rclcpp/rclcpp.hpp>
 
 static const std::string USER_VISIBILITY = "user_visibility";
 
@@ -142,7 +143,7 @@ void ROSContactResultsRenderManager::render()
       }
       else
       {
-        //        ROS_ERROR("ROSContactResultsRenderManager, removing child elements is currently not supported");
+        RCLCPP_ERROR(rclcpp::get_logger("ROSContactResultsRenderManager"), "Removing child elements is currently not supported");
       }
     }
     else if (event->type() == tesseract_gui::events::ContactResultsSet::kType)

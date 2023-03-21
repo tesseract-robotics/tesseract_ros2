@@ -36,57 +36,58 @@
 
 #include <tesseract_common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
-#include <ros/console.h>
-#include <tesseract_msgs/EnvironmentState.h>
-#include <tesseract_msgs/ModifyEnvironment.h>
-#include <tesseract_msgs/EnvironmentCommand.h>
-#include <tesseract_msgs/GetEnvironmentChanges.h>
-#include <ros/service.h>
+#include <rclcpp/rclcpp.hpp>
+#include <tesseract_msgs/msg/environment_state.hpp>
+#include <tesseract_msgs/srv/modify_environment.hpp>
+#include <tesseract_msgs/msg/environment_command.hpp>
+#include <tesseract_msgs/srv/get_environment_changes.hpp>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 static const std::string ROBOT_DESCRIPTION = "robot_description";
 
-static ros::ServiceClient modify_env_rviz;
-static ros::ServiceClient get_env_changes_rviz;
+static rclcpp::Service<tesseract_msgs::srv::ModifyEnvironment>::SharedPtr modify_env_rviz;
+static rclcpp::Service<tesseract_msgs::srv::GetEnvironmentChanges>::SharedPtr get_env_changes_rviz;
 
-static ros::ServiceClient modify_env_master;
-static ros::ServiceClient get_env_changes_master;
+static rclcpp::Service<tesseract_msgs::srv::ModifyEnvironment>::SharedPtr modify_env_master;
+static rclcpp::Service<tesseract_msgs::srv::GetEnvironmentChanges>::SharedPtr get_env_changes_master;
+
+rclcpp::Node::SharedPtr node;
 
 void addSphere(const std::string& name, const std::string& id, unsigned long& revision)
 {
-  tesseract_msgs::ModifyEnvironment update_env;
+  tesseract_msgs::srv::ModifyEnvironment update_env;
 
   // Create add command
-  tesseract_msgs::EnvironmentCommand add_sphere_command;
-  add_sphere_command.command = tesseract_msgs::EnvironmentCommand::ADD_LINK;
+  tesseract_msgs::msg::EnvironmentCommand add_sphere_command;
+  add_sphere_command.command = tesseract_msgs::msg::EnvironmentCommand::ADD_LINK;
 
   // Create the link
   add_sphere_command.add_link.name = name;
 
-  tesseract_msgs::VisualGeometry visual;
+  tesseract_msgs::msg::VisualGeometry visual;
   visual.origin.position.x = 0.5;
   visual.origin.position.y = 0;
   visual.origin.position.z = 0.55;
   visual.material.empty = true;
 
-  visual.geometry.type = tesseract_msgs::Geometry::SPHERE;
+  visual.geometry.type = tesseract_msgs::msg::Geometry::SPHERE;
   visual.geometry.sphere_radius = 0.15;
 
   add_sphere_command.add_link.visual.push_back(visual);
 
-  tesseract_msgs::CollisionGeometry collision;
+  tesseract_msgs::msg::CollisionGeometry collision;
   collision.origin.position.x = 0.5;
   collision.origin.position.y = 0;
   collision.origin.position.z = 0.55;
   collision.material.empty = true;
 
-  collision.geometry.type = tesseract_msgs::Geometry::SPHERE;
+  collision.geometry.type = tesseract_msgs::msg::Geometry::SPHERE;
   collision.geometry.sphere_radius = 0.15;
 
   add_sphere_command.add_link.collision.push_back(collision);
 
   // Create the Joint
-  add_sphere_command.add_joint.type = tesseract_msgs::Joint::FIXED;
+  add_sphere_command.add_joint.type = tesseract_msgs::msg::Joint::FIXED;
   add_sphere_command.add_joint.name = name + "_joint";
   add_sphere_command.add_joint.parent_link_name = "base_link";
   add_sphere_command.add_joint.child_link_name = name;
@@ -97,22 +98,22 @@ void addSphere(const std::string& name, const std::string& id, unsigned long& re
 
   if (modify_env_rviz.call(update_env))
   {
-    ROS_INFO("Sphere added to Environment!");
+    RCLCPP_INFO(node->get_logger(), "Sphere added to Environment!");
     revision = update_env.response.revision;
   }
   else
   {
-    ROS_INFO("Failed to add sphere to environment");
+    RCLCPP_INFO(node->get_logger(), "Failed to add sphere to environment");
   }
 }
 
 void removeSphere(const std::string& name, const std::string& id, unsigned long& revision)
 {
-  tesseract_msgs::ModifyEnvironment update_env;
+  tesseract_msgs::srv::ModifyEnvironment update_env;
 
   // Create remove command
-  tesseract_msgs::EnvironmentCommand command;
-  command.command = tesseract_msgs::EnvironmentCommand::REMOVE_LINK;
+  tesseract_msgs::msg::EnvironmentCommand command;
+  command.command = tesseract_msgs::msg::EnvironmentCommand::REMOVE_LINK;
   command.remove_link = name;
 
   update_env.request.id = id;
@@ -121,12 +122,12 @@ void removeSphere(const std::string& name, const std::string& id, unsigned long&
 
   if (modify_env_rviz.call(update_env))
   {
-    ROS_INFO("Removed sphere from environment!");
+    RCLCPP_INFO(node->get_logger(), "Removed sphere from environment!");
     revision = update_env.response.revision;
   }
   else
   {
-    ROS_INFO("Failed to remove sphere from environment");
+    RCLCPP_INFO(node->get_logger(), "Failed to remove sphere from environment");
   }
 }
 
@@ -134,15 +135,15 @@ bool updateRViz()
 {
   get_env_changes_rviz.waitForExistence();
   // Get the current state of the environment
-  tesseract_msgs::GetEnvironmentChanges env_changes;
+  tesseract_msgs::srv::GetEnvironmentChanges env_changes;
   env_changes.request.revision = 0;
   if (get_env_changes_rviz.call(env_changes))
   {
-    ROS_INFO("Retrieve current environment changes!");
+    RCLCPP_INFO(node->get_logger(), "Retrieve current environment changes!");
   }
   else
   {
-    ROS_INFO("Failed retrieve current environment changes!");
+    RCLCPP_INFO(node->get_logger(), "Failed retrieve current environment changes!");
     return false;
   }
 
@@ -164,15 +165,15 @@ bool updateMaster()
 {
   get_env_changes_master.waitForExistence();
   // Get the current state of the environment
-  tesseract_msgs::GetEnvironmentChanges env_changes;
+  tesseract_msgs::srv::GetEnvironmentChanges env_changes;
   env_changes.request.revision = 0;
   if (get_env_changes_master.call(env_changes))
   {
-    ROS_INFO("Retrieve current environment changes!");
+    RCLCPP_INFO(node->get_logger(), "Retrieve current environment changes!");
   }
   else
   {
-    ROS_INFO("Failed retrieve current environment changes!");
+    RCLCPP_INFO(node->get_logger(), "Failed retrieve current environment changes!");
     return false;
   }
 
@@ -192,19 +193,18 @@ bool updateMaster()
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "demo", ros::init_options::AnonymousName);
-  ros::NodeHandle nh;
+  rclcpp::init(argc, argv);
+  node = std::make_shared<rclcpp::Node>("demo");
 
-  ros::AsyncSpinner spinner(1);
-  spinner.start();
+  std::thread spinner{[node]() { rclcpp::spin(node); }};
 
   // These are used to keep visualization updated
-  modify_env_rviz = nh.serviceClient<tesseract_msgs::ModifyEnvironment>("modify_tesseract_rviz", true);
-  get_env_changes_rviz = nh.serviceClient<tesseract_msgs::GetEnvironmentChanges>("get_tesseract_changes_rviz", true);
+  modify_env_rviz = nh.serviceClient<tesseract_msgs::srv::ModifyEnvironment>("modify_tesseract_rviz", true);
+  get_env_changes_rviz = nh.serviceClient<tesseract_msgs::srv::GetEnvironmentChanges>("get_tesseract_changes_rviz", true);
 
   // These are used to keep master version of the environment updated
-  modify_env_master = nh.serviceClient<tesseract_msgs::ModifyEnvironment>("modify_tesseract", true);
-  get_env_changes_master = nh.serviceClient<tesseract_msgs::GetEnvironmentChanges>("get_tesseract_changes", true);
+  modify_env_master = nh.serviceClient<tesseract_msgs::srv::ModifyEnvironment>("modify_tesseract", true);
+  get_env_changes_master = nh.serviceClient<tesseract_msgs::srv::GetEnvironmentChanges>("get_tesseract_changes", true);
 
   if (!updateRViz())
     return -1;

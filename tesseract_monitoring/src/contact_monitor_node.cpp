@@ -27,99 +27,132 @@
 
 #include <tesseract_common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
-#include <ros/ros.h>
+#include <rclcpp/rclcpp.hpp>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <boost/thread/thread.hpp>
 
 #include <tesseract_environment/environment.h>
 #include <tesseract_scene_graph/graph.h>
-#include <tesseract_scene_graph/utils.h>
 #include <tesseract_srdf/srdf_model.h>
 #include <tesseract_urdf/urdf_parser.h>
 #include <tesseract_rosutils/utils.h>
 
 // Stuff for the contact monitor
-const static std::string ROBOT_DESCRIPTION_PARAM =
-    "robot_description"; /**< Default ROS parameter for robot description */
+/** @brief Default ROS parameter for robot description */
+const std::string ROBOT_DESCRIPTION_PARAM = "robot_description";
+
+/** @brief Default ROS parameter for robot description */
+const std::string ROBOT_SEMANTIC_PARAM = "robot_description_semantic";
+
 const static double DEFAULT_CONTACT_DISTANCE = 0.1;
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "tesseract_contact_monitoring");
-  ros::NodeHandle nh;
-  ros::NodeHandle pnh("~");
+  rclcpp::init(argc, argv);
+  auto node = std::make_shared<rclcpp::Node>("tesseract_contact_monitoring");
 
   tesseract_scene_graph::SceneGraph::Ptr scene_graph;
   tesseract_srdf::SRDFModel::Ptr srdf_model;
-  std::string robot_description;
-  std::string joint_state_topic;
-  std::string monitor_namespace;
-  std::string monitored_namespace;
-  bool publish_environment{ false };
-  bool publish_markers{ false };
 
-  if (!pnh.getParam("monitor_namespace", monitor_namespace))
+  std::string monitor_namespace = node->declare_parameter("monitor_namespace", "");
+  if (monitor_namespace.empty())
   {
-    ROS_ERROR("Missing required parameter monitor_namespace!");
+    RCLCPP_ERROR(node->get_logger(), "Missing required parameter monitor_namespace!");
     return 1;
   }
 
-  pnh.param<std::string>("monitored_namespace", monitored_namespace, "");
-  pnh.param<std::string>("robot_description", robot_description, ROBOT_DESCRIPTION_PARAM);
-  pnh.param<std::string>("joint_state_topic", joint_state_topic, tesseract_monitoring::DEFAULT_JOINT_STATES_TOPIC);
-  pnh.param<bool>("publish_environment", publish_environment, publish_environment);
-  pnh.param<bool>("publish_markers", publish_markers, publish_markers);
+  std::string monitored_namespace = node->declare_parameter("monitored_namespace", "");
+  std::string robot_description = node->declare_parameter(ROBOT_DESCRIPTION_PARAM, "");
+  std::string robot_description_semantic = node->declare_parameter(ROBOT_SEMANTIC_PARAM, "");
+  std::string joint_state_topic = node->declare_parameter("joint_state_topic", tesseract_monitoring::DEFAULT_JOINT_STATES_TOPIC);
+  bool publish_environment = node->declare_parameter("publish_environment", false);
+  bool publish_markers = node->declare_parameter("publish_markers", false);
 
   // Initial setup
-  std::string urdf_xml_string, srdf_xml_string;
-  if (!nh.hasParam(robot_description))
+  if (robot_description.empty())
   {
-    ROS_ERROR("Failed to find parameter: %s", robot_description.c_str());
+    RCLCPP_ERROR(node->get_logger(), "Failed to find parameter: %s", ROBOT_DESCRIPTION_PARAM.c_str());
     return -1;
   }
 
-  if (!nh.hasParam(robot_description + "_semantic"))
+  if (robot_description_semantic.empty())
   {
-    ROS_ERROR("Failed to find parameter: %s", (robot_description + "_semantic").c_str());
+    RCLCPP_ERROR(node->get_logger(), "Failed to find parameter: %s", ROBOT_SEMANTIC_PARAM.c_str());
     return -1;
   }
 
-  nh.getParam(robot_description, urdf_xml_string);
-  nh.getParam(robot_description + "_semantic", srdf_xml_string);
-
-  auto env = std::make_shared<tesseract_environment::Environment>();
+  auto env = std::make_unique<tesseract_environment::Environment>();
   auto locator = std::make_shared<tesseract_rosutils::ROSResourceLocator>();
-  if (!env->init(urdf_xml_string, srdf_xml_string, locator))
+  if (!env->init(robot_description, robot_description_semantic, locator))
   {
-    ROS_ERROR("Failed to initialize environment.");
+    RCLCPP_ERROR(node->get_logger(), "Failed to initialize environment.");
     return -1;
   }
 
-  double contact_distance;
-  pnh.param<double>("contact_distance", contact_distance, DEFAULT_CONTACT_DISTANCE);
+  double contact_distance = node->declare_parameter("contact_distance", DEFAULT_CONTACT_DISTANCE);
 
   std::vector<std::string> monitored_link_names;
-  monitored_link_names = env->getLinkNames();
-  if (pnh.hasParam("monitor_links"))
-    pnh.getParam("monitor_links", monitored_link_names);
+  std::string monitored_link_names_str = node->declare_parameter("monitor_links", "");
+  if (!monitored_link_names_str.empty())
+  {
+    boost::split(monitored_link_names, monitored_link_names_str, boost::is_any_of(" "));
+  }
 
   if (monitored_link_names.empty())
     monitored_link_names = env->getLinkNames();
 
-  int contact_test_type = 2;
-  if (pnh.hasParam("contact_test_type"))
-    pnh.getParam("contact_test_type", contact_test_type);
+  std::vector<std::string> disabled_link_names;
+  std::string disabled_link_names_str = node->declare_parameter("disabled_links", "");
+  if (!disabled_link_names_str.empty())
+  {
+    boost::split(disabled_link_names, disabled_link_names_str, boost::is_any_of(" "));
+  }
+
+  for (const auto& disabled_link : disabled_link_names)
+  {
+    if (disabled_link_names_str.empty())
+      disabled_link_names_str = disabled_link;
+    else
+      disabled_link_names_str += (", " + disabled_link);
+  }
+
+  RCLCPP_INFO(node->get_logger(), "DISABLED_LINKS: %s", disabled_link_names_str.c_str());
+
+  auto pred = [&disabled_link_names](const std::string& key) -> bool {
+    return std::find(disabled_link_names.begin(), disabled_link_names.end(), key) != disabled_link_names.end();
+  };
+
+  monitored_link_names.erase(std::remove_if(monitored_link_names.begin(), monitored_link_names.end(), pred),
+                             monitored_link_names.end());
+
+  for (const auto& monitor_link : monitored_link_names)
+  {
+    if (monitored_link_names_str.empty())
+      monitored_link_names_str = monitor_link;
+    else
+      monitored_link_names_str += (", " + monitor_link);
+  }
+
+  RCLCPP_INFO(node->get_logger(), "MONITORED_LINKS: %s", monitored_link_names_str.c_str());
+
+  int contact_test_type = node->declare_parameter("contact_test_type", 2);
 
   if (contact_test_type < 0 || contact_test_type > 3)
   {
-    ROS_WARN("Request type must be 0, 1, 2 or 3. Setting to 2(ALL)!");
+    RCLCPP_WARN(node->get_logger(), "Request type must be 0, 1, 2 or 3. Setting to 2(ALL)!");
     contact_test_type = 2;
   }
   tesseract_collision::ContactTestType type = static_cast<tesseract_collision::ContactTestType>(contact_test_type);
 
-  tesseract_monitoring::ContactMonitor cm(
-      monitor_namespace, env, nh, pnh, monitored_link_names, type, contact_distance, joint_state_topic);
+  tesseract_monitoring::ContactMonitor cm(monitor_namespace,
+                                          std::move(env),
+                                          node,
+                                          monitored_link_names,
+                                          disabled_link_names,
+                                          type,
+                                          contact_distance,
+                                          joint_state_topic);
 
   if (publish_environment)
     cm.startPublishingEnvironment();
@@ -132,9 +165,9 @@ int main(int argc, char** argv)
 
   boost::thread t(&tesseract_monitoring::ContactMonitor::computeCollisionReportThread, &cm);
 
-  ROS_INFO("Contact Monitor Running!");
+  RCLCPP_INFO(node->get_logger(), "Contact Monitor Running!");
 
-  ros::spin();
+  rclcpp::spin(node);
 
   return 0;
 }

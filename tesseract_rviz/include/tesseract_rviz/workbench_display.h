@@ -1,19 +1,11 @@
 #ifndef TESSERACT_RVIZ_WORKBENCH_DISPLAY_H
 #define TESSERACT_RVIZ_WORKBENCH_DISPLAY_H
 
-#include <tesseract_common/macros.h>
-TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <rviz_common/display.hpp>
 #include <tesseract_qt/common/component_info.h>
-#ifndef Q_MOC_RUN
-#include <tesseract_environment/environment.h>
-#endif
-TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 namespace tesseract_rviz
 {
-struct WorkbenchDisplayPrivate;
-
 class WorkbenchDisplay : public rviz_common::Display
 {
   Q_OBJECT

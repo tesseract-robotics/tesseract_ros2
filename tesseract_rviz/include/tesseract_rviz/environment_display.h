@@ -6,8 +6,6 @@
 
 namespace tesseract_rviz
 {
-struct EnvironmentDisplayPrivate;
-
 class EnvironmentDisplay : public rviz_common::Display
 {
   Q_OBJECT

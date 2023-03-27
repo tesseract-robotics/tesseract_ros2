@@ -24,6 +24,8 @@
  */
 
 #include <tesseract_common/macros.h>
+#include <rclcpp/clock.hpp>
+#include <rclcpp/duration.hpp>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <rclcpp/rclcpp.hpp>
 #include <tesseract_msgs/srv/modify_environment.hpp>
@@ -69,8 +71,7 @@ typename SrvType::Response::SharedPtr call_service(const std::string& name,
   return future.get();
 }
 
-ROSEnvironmentMonitorInterface::ROSEnvironmentMonitorInterface(rclcpp::Node::SharedPtr node,
-                                                               const std::string& env_name)
+ROSEnvironmentMonitorInterface::ROSEnvironmentMonitorInterface(rclcpp::Node::SharedPtr node, const std::string env_name)
   : EnvironmentMonitorInterface(std::move(env_name))
   , node_{ node }
   , logger_{ node_->get_logger().get_child(env_name + "_env_monitor") }
@@ -79,7 +80,7 @@ ROSEnvironmentMonitorInterface::ROSEnvironmentMonitorInterface(rclcpp::Node::Sha
   // callback_group_ = node_->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive, false);
 }
 
-bool ROSEnvironmentMonitorInterface::wait(rclcpp::Duration timeout) const
+bool ROSEnvironmentMonitorInterface::wait(std::chrono::duration<double> duration) const
 {
   if (ns_.empty())
   {
@@ -87,46 +88,64 @@ bool ROSEnvironmentMonitorInterface::wait(rclcpp::Duration timeout) const
     return false;
   }
 
-  const auto start_time = node_->now();
+  const auto start_time = rclcpp::Clock().now();
+  rclcpp::Duration wall_timeout(duration);
+  if (std::chrono::duration_cast<std::chrono::seconds>(duration).count() == 0)
+    wall_timeout = rclcpp::Duration::from_seconds(-1);
+
   for (const auto& ns : ns_)
   {
-    bool results = waitForNamespace(ns, timeout);
+    bool results = waitForNamespace(ns, duration);
     if (!results)
       return false;
 
-    if (timeout > rclcpp::Duration::from_seconds(0) && (node_->now() - start_time) >= timeout)
+    if (wall_timeout >= rclcpp::Duration::from_seconds(0))
     {
-      RCLCPP_ERROR(logger_, "Timeout waiting for namespaces");
-      return false;
+      const auto current_time = rclcpp::Clock().now();
+
+      if ((current_time - start_time) >= wall_timeout)
+        return false;
     }
   }
   return true;
 }
 
 bool ROSEnvironmentMonitorInterface::waitForNamespace(const std::string& monitor_namespace,
-                                                      rclcpp::Duration timeout) const
+                                                      std::chrono::duration<double> duration) const
 {
   std::string service_name = R"(/)" + monitor_namespace + DEFAULT_GET_ENVIRONMENT_INFORMATION_SERVICE;
+  const auto start_time = rclcpp::Clock().now();
+  rclcpp::Duration wall_timeout(duration);
+  if (std::chrono::duration_cast<std::chrono::seconds>(duration).count() == 0)
+    wall_timeout = rclcpp::Duration::from_seconds(-1);
 
   auto req = std::make_shared<tesseract_msgs::srv::GetEnvironmentInformation::Request>();
   req->flags = tesseract_msgs::srv::GetEnvironmentInformation::Request::COMMAND_HISTORY;
-
-  try
+  while (rclcpp::ok())
   {
-    auto res =
-        call_service<tesseract_msgs::srv::GetEnvironmentInformation>(service_name, req, *node_, callback_group_, 5s);
-    if (!res->success)
+    try
     {
-      RCLCPP_ERROR_STREAM(logger_, "Service '" << service_name << "' returned failure");
-      return false;
+      auto res =
+          call_service<tesseract_msgs::srv::GetEnvironmentInformation>(service_name, req, *node_, callback_group_, 5s);
+      if (res->success)
+        return true;
     }
+    catch (std::runtime_error& ex)
+    {
+      // RCLCPP_ERROR_STREAM(logger_, ex.what());
+    }
+    if (wall_timeout >= rclcpp::Duration::from_seconds(0))
+    {
+      const auto current_time = rclcpp::Clock().now();
+
+      if ((current_time - start_time) >= wall_timeout)
+        return false;
+    }
+
+    rclcpp::sleep_for(20ms);
   }
-  catch (std::runtime_error& ex)
-  {
-    RCLCPP_ERROR_STREAM(logger_, ex.what());
-    return false;
-  }
-  return true;
+
+  return false;
 }
 
 void ROSEnvironmentMonitorInterface::addNamespace(std::string monitor_namespace)

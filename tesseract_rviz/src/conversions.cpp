@@ -50,7 +50,7 @@
 #include <ament_index_cpp/get_package_share_directory.hpp>
 #include <boost/algorithm/string.hpp>
 
-#include "rviz_common/load_resource.hpp"
+#include <rviz_common/load_resource.hpp>
 #include <rviz_rendering/mesh_loader.hpp>
 #include <rviz_rendering/objects/axes.hpp>
 #include <rviz_rendering/objects/object.hpp>
@@ -278,9 +278,6 @@ Ogre::SceneNode* loadLink(Ogre::SceneManager& scene,
       loadLinkCollisions(scene, entity_container, link, collision_material_override);
   collisions_scene_node->getUserObjectBindings().setUserAny(USER_VISIBILITY, Ogre::Any(false));
   scene_node->addChild(collisions_scene_node);
-
-  scene_node->addChild(loadLinkVisuals(scene, entity_container, link, visual_material_override));
-  scene_node->addChild(loadLinkCollisions(scene, entity_container, link, collision_material_override));
 
   if (!link.visual.empty() || !link.collision.empty())
   {

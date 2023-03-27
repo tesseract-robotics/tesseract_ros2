@@ -24,8 +24,6 @@ struct ComponentInfo;
 
 namespace tesseract_rviz
 {
-class JointTrajectoryMonitorPropertiesPrivate;
-
 class JointTrajectoryMonitorProperties : public QObject
 {
   Q_OBJECT

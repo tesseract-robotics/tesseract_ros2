@@ -1,40 +1,36 @@
 - git:
+    local-name: ros_industrial_cmake_boilerplate
+    uri: https://github.com/ros-industrial/ros_industrial_cmake_boilerplate.git
+    version: 0.4.5
+- git:
+    local-name: tesseract_ext
+    uri: https://github.com/tesseract-robotics/tesseract_ext.git
+    version: master
+- git:
+    local-name: tesseract
+    uri: https://github.com/tesseract-robotics/tesseract.git
+    version: 0.15.0
+- git:
+    local-name: trajopt
+    uri: https://github.com/tesseract-robotics/trajopt_ros.git
+    version: 0.4.0
+- git:
+    local-name: tesseract_planning
+    uri: https://github.com/tesseract-robotics/tesseract_planning.git
+    version: 0.15.0
+- git:
+    local-name: tesseract_qt
+    uri: https://github.com/tesseract-robotics/tesseract_qt.git
+    version: 0.15.0
+- git:
     local-name: descartes_light
     uri: https://github.com/swri-robotics/descartes_light.git
-    version: 0eeeaf216677112c24d8ec51b984044e7f62c209
+    version: 0.3.1
 - git:
-    local-name: fcl
-    uri: https://github.com/flexible-collision-library/fcl.git
-    version: 0.6.1
+    local-name: opw_kinematics
+    uri: https://github.com/Jmeyer1292/opw_kinematics.git
+    version: 0.4.6
 - git:
     local-name: ifopt
     uri: https://github.com/ethz-adrl/ifopt.git
     version: 2.1.3
-- git:
-    local-name: opw_kinematics
-    uri: https://github.com/Jmeyer1292/opw_kinematics.git
-    version: 0.4.5
-- git:
-    local-name: ros_industrial_cmake_boilerplate
-    uri: https://github.com/ros-industrial/ros_industrial_cmake_boilerplate.git
-    version: 0.2.15
-- git:
-    local-name: tesseract
-    uri: https://github.com/tesseract-robotics/tesseract.git
-    version: 0.14.0
-- git:
-    local-name: tesseract_planning
-    uri: https://github.com/tesseract-robotics/tesseract_planning.git
-    version: 0.14.0
-- git:
-    local-name: trajopt
-    uri: https://github.com/tesseract-robotics/trajopt.git
-    version: 0.3.1
-- git:
-    local-name: tesseract_qt
-    uri: https://github.com/tesseract-robotics/tesseract_qt.git
-    version: 0c47b534b26157d9dfd5358a01afe24c978c5ed9
-- git:
-    local-name: Qt-Advanced-Docking-System
-    uri: https://github.com/Levi-Armstrong/Qt-Advanced-Docking-System.git
-    version: ros

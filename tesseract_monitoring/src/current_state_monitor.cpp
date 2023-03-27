@@ -49,6 +49,11 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 namespace tesseract_monitoring
 {
+CurrentStateMonitor::CurrentStateMonitor(const tesseract_environment::Environment::ConstPtr& env)
+  : CurrentStateMonitor(env, std::make_shared<rclcpp::Node>("current_state_monitor"))
+{
+}
+
 CurrentStateMonitor::CurrentStateMonitor(const tesseract_environment::Environment::ConstPtr& env,
                                          rclcpp::Node::SharedPtr node)
   : node_(node)

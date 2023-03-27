@@ -39,15 +39,10 @@
 
 #include <rclcpp/rclcpp.hpp>
 
-#include "rviz_common/frame_manager_iface.hpp"
 #include "rviz_common/display_context.hpp"
-#include "rviz_common/interaction/selection_manager.hpp"
-//#include "rviz/frame_manager.h"
 #include "rviz_common/render_panel.hpp"
 #include "rviz_rendering/geometry.hpp"
-#include "rviz_common/properties/quaternion_property.hpp"
 #include "rviz_common/interaction/view_picker_iface.hpp"
-//#include "rviz/validate_quaternions.h"
 #include "rviz_rendering/render_window.hpp"
 
 #include <tesseract_rviz/interactive_marker/integer_action.h>
@@ -180,8 +175,10 @@ void InteractiveMarker::populateMenu(QMenu* /*menu*/, std::vector<uint32_t>& ids
   for (unsigned int id : ids)
   {
     auto node_it = menu_entries_.find(id);
-    //    ROS_ASSERT_MSG(
-    //        node_it != menu_entries_.end(), "interactive marker menu entry %u not found during populateMenu().", id);
+    if (node_it != menu_entries_.end())
+      RCLCPP_ERROR(rclcpp::get_logger("InteractiveMarker"),
+                   "Interactive marker menu entry %u not found during populateMenu().",
+                   id);
     MenuNode node = (*node_it).second;
 
     //    if ( node.child_ids.empty() )

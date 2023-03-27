@@ -30,18 +30,20 @@
 
 #include <tesseract_common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
-#include <ros/ros.h>
-#include <sensor_msgs/JointState.h>
-#include <tesseract_msgs/ComputeContactResultVector.h>
-#include <tesseract_msgs/ModifyEnvironment.h>
-#include <tesseract_msgs/EnvironmentState.h>
+#include <rclcpp/rclcpp.hpp>
+#include <sensor_msgs/msg/joint_state.hpp>
+#include <tesseract_msgs/srv/compute_contact_result_vector.hpp>
+#include <tesseract_msgs/srv/modify_environment.hpp>
+#include <tesseract_msgs/msg/environment_state.hpp>
+#include <visualization_msgs/msg/marker_array.hpp>
 #include <mutex>
 #include <condition_variable>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
+#include <tesseract_monitoring/constants.h>
 #include <tesseract_collision/core/discrete_contact_manager.h>
 #include <tesseract_environment/environment.h>
-#include <tesseract_monitoring/environment_monitor.h>
+#include <tesseract_environment/environment_monitor.h>
 
 namespace tesseract_monitoring
 {
@@ -49,17 +51,17 @@ class ContactMonitor
 {
 public:
   ContactMonitor(std::string monitor_namespace,
-                 const tesseract_environment::Environment::Ptr& env,
-                 ros::NodeHandle& nh,
-                 ros::NodeHandle& pnh,
-                 const std::vector<std::string>& monitored_link_names,
-                 const tesseract_collision::ContactTestType& type,
+                 tesseract_environment::Environment::UPtr env,
+                 rclcpp::Node::SharedPtr node,
+                 std::vector<std::string> monitored_link_names,
+                 std::vector<std::string> disabled_link_names,
+                 tesseract_collision::ContactTestType type,
                  double contact_distance = 0.1,
                  const std::string& joint_state_topic = DEFAULT_JOINT_STATES_TOPIC);
   ~ContactMonitor();
   /**
    * @brief Custom copy constructor, copy assignment, move constructor, and move
-   * assignment.  Because the condition vairable current_joint_states_evt_
+   * assignment.  Because the condition variable current_joint_states_evt_
    * requires a 'cleanup' function call, a custom destructor is required.
    * When a custom destructor is required, it is best to explicitly create
    * these functions.  Here, we do so by assigning them to default values.
@@ -90,39 +92,40 @@ public:
   /**
    * @brief Compute collision results and publish results.
    *
-   * This also publishes environment and contact markers if correct flags are enabled for visualization and debuging.
+   * This also publishes environment and contact markers if correct flags are enabled for visualization and debugging.
    */
   void computeCollisionReportThread();
 
-  void callbackJointState(boost::shared_ptr<sensor_msgs::JointState> msg);
+  void callbackJointState(std::shared_ptr<sensor_msgs::msg::JointState> msg);
 
-  void callbackModifyTesseractEnv(tesseract_msgs::ModifyEnvironment::Request& request,
-                                  tesseract_msgs::ModifyEnvironment::Response& response);
+  void callbackModifyTesseractEnv(tesseract_msgs::srv::ModifyEnvironment::Request::SharedPtr request,
+                                  tesseract_msgs::srv::ModifyEnvironment::Response::SharedPtr response);
 
-  void callbackComputeContactResultVector(tesseract_msgs::ComputeContactResultVector::Request& request,
-                                          tesseract_msgs::ComputeContactResultVector::Response& response);
+  void
+  callbackComputeContactResultVector(tesseract_msgs::srv::ComputeContactResultVector::Request::SharedPtr request,
+                                     tesseract_msgs::srv::ComputeContactResultVector::Response::SharedPtr response);
 
-  void callbackTesseractEnvDiff(const tesseract_msgs::EnvironmentStatePtr& state);
+  void callbackTesseractEnvDiff(const tesseract_msgs::msg::EnvironmentState::SharedPtr state);
 
 private:
   std::string monitor_namespace_;
   std::string monitored_namespace_;
   int env_revision_{ 0 };
-  tesseract_monitoring::EnvironmentMonitor::Ptr monitor_;
-  tesseract_environment::Environment::Ptr env_;
-  ros::NodeHandle& nh_;
-  ros::NodeHandle& pnh_;
+  tesseract_environment::EnvironmentMonitor::UPtr monitor_;
+  rclcpp::Node::SharedPtr node_;
+  rclcpp::Node::SharedPtr internal_node_;
   std::vector<std::string> monitored_link_names_;
+  std::vector<std::string> disabled_link_names_;
   tesseract_collision::ContactTestType type_;
   double contact_distance_;
-  tesseract_collision::DiscreteContactManager::Ptr manager_;
+  tesseract_collision::DiscreteContactManager::UPtr manager_;
   bool publish_contact_markers_{ false };
-  ros::Subscriber joint_states_sub_;
-  ros::Publisher contact_results_pub_;
-  ros::Publisher contact_marker_pub_;
-  ros::ServiceServer compute_contact_results_;
+  rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_states_sub_;
+  rclcpp::Publisher<tesseract_msgs::msg::ContactResultVector>::SharedPtr contact_results_pub_;
+  rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr contact_marker_pub_;
+  rclcpp::Service<tesseract_msgs::srv::ComputeContactResultVector>::SharedPtr compute_contact_results_;
   std::mutex modify_mutex_;
-  boost::shared_ptr<sensor_msgs::JointState> current_joint_states_;
+  std::shared_ptr<sensor_msgs::msg::JointState> current_joint_states_;
   std::condition_variable current_joint_states_evt_;
 };
 

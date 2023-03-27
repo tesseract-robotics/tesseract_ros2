@@ -258,58 +258,6 @@ void EnvironmentMonitorProperties::onEnvironmentTopicChanged()
 
     onJointStateTopicChanged();
   }
-  //  if (it != data_->configs.end())
-  //  {
-  //    data_->monitor = std::make_unique<tesseract_monitoring::ROSEnvironmentMonitor>(
-  //        data_->node, it->second->getEnvironment(), data_->monitor_namespace);
-  //    if (data_->monitor != nullptr)
-  //    {
-  //      data_->widget->setConfiguration(it->second);
-  //      onJointStateTopicChanged();
-  //    }
-  //  }
-  //  else
-  //  {
-  //    std::string urdf_xml_string;
-  //    std::string srdf_xml_string;
-  //    if (!data_->rviz_node->get_parameter(data_->urdf_description_string_property->getStdString(), urdf_xml_string))
-  //      urdf_xml_string =
-  //          data_->rviz_node->declare_parameter(data_->urdf_description_string_property->getStdString(), "");
-  //    if (!data_->rviz_node->get_parameter(data_->urdf_description_string_property->getStdString() + "_semantic",
-  //                                         srdf_xml_string))
-  //      srdf_xml_string = data_->rviz_node->declare_parameter(
-  //          data_->urdf_description_string_property->getStdString() + "_semantic", "");
-
-  //    auto env = std::make_shared<tesseract_environment::Environment>();
-  //    auto locator = std::make_shared<tesseract_rosutils::ROSResourceLocator>();
-  //    if (env->init(urdf_xml_string, srdf_xml_string, locator))
-  //    {
-  //      data_->monitor =
-  //          std::make_unique<tesseract_monitoring::ROSEnvironmentMonitor>(data_->node, env, data_->monitor_namespace);
-
-  //      if (data_->monitor != nullptr)
-  //      {
-  //        auto config = std::make_shared<tesseract_gui::EnvironmentWidgetConfig>();
-  //        config->setEnvironment(env);
-  //        data_->widget->setConfiguration(config);
-
-  //        std::string ns = getEnvNamespaceFromTopic(data_->environment_topic_property->getStdString());
-  //        if (!ns.empty())
-  //          data_->monitor->startMonitoringEnvironment(ns);
-  //        else
-  //          data_->parent->setStatus(
-  //              rviz_common::properties::StatusProperty::Error, "Tesseract", "Invalid environment monitor topic!");
-
-  //        onJointStateTopicChanged();
-  //        data_->configs[data_->environment_topic_property->getStdString()] = config;
-  //      }
-  //    }
-  //    else
-  //    {
-  //      data_->parent->setStatus(
-  //          rviz_common::properties::StatusProperty::Error, "Tesseract", "URDF file failed to parse");
-  //    }
-  //  }
 }
 
 void EnvironmentMonitorProperties::onJointStateTopicChanged()

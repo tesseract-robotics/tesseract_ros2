@@ -123,230 +123,227 @@ void ROSSceneGraphRenderManager::render()
     return entity_manager;
   };
 
-  while (!events_.empty())
+  for (size_t i = 0u; i < events_.size(); i++)
   {
-    auto events(std::move(events_));
-    for (const auto& event : events)
+    const auto& event = events_[i];
+    if (!event)
     {
-      if (!event)
+      continue;
+    }
+    if (event->type() == tesseract_gui::events::SceneGraphClear::kType)
+    {
+      auto& e = static_cast<tesseract_gui::events::SceneGraphClear&>(*event);
+      data_->clear(e.getComponentInfo());
+    }
+    else if (event->type() == tesseract_gui::events::SceneGraphSet::kType)
+    {
+      auto& e = static_cast<tesseract_gui::events::SceneGraphSet&>(*event);
+      data_->clear(e.getComponentInfo());
+      tesseract_gui::EntityManager::Ptr entity_manager = getEntityManager(e.getComponentInfo());
+      loadSceneGraph(*data_->scene_manager, *data_->scene_node, *entity_manager, *e.getSceneGraph(), "");
+    }
+    else if (event->type() == tesseract_gui::events::SceneGraphAddLink::kType)
+    {
+      auto& e = static_cast<tesseract_gui::events::SceneGraphAddLink&>(*event);
+      tesseract_gui::EntityManager::Ptr entity_manager = getEntityManager(e.getComponentInfo());
+      auto entity_container = entity_manager->getEntityContainer(e.getLink()->getName());
+      Ogre::SceneNode* sn = loadLink(*data_->scene_manager, *entity_container, *e.getLink());
+      data_->scene_node->addChild(sn);
+    }
+    else if (event->type() == tesseract_gui::events::SceneGraphRemoveLink::kType)
+    {
+      auto& e = static_cast<tesseract_gui::events::SceneGraphRemoveLink&>(*event);
+      tesseract_gui::EntityManager::Ptr entity_manager = getEntityManager(e.getComponentInfo());
+      if (entity_manager->hasEntityContainer(e.getLinkName()))
       {
-        continue;
+        auto entity_container = entity_manager->getEntityContainer(e.getLinkName());
+        data_->clear(*entity_container);
+        entity_container->clear();
+        entity_manager->removeEntityContainer(e.getLinkName());
       }
-      if (event->type() == tesseract_gui::events::SceneGraphClear::kType)
+    }
+    else if (event->type() == tesseract_gui::events::SceneGraphModifyLinkVisibility::kType)
+    {
+      auto& e = static_cast<tesseract_gui::events::SceneGraphModifyLinkVisibility&>(*event);
+      tesseract_gui::EntityManager::Ptr entity_manager = getEntityManager(e.getComponentInfo());
+      for (const auto& link_name : e.getLinkNames())
       {
-        auto& e = static_cast<tesseract_gui::events::SceneGraphClear&>(*event);
-        data_->clear(e.getComponentInfo());
-      }
-      else if (event->type() == tesseract_gui::events::SceneGraphSet::kType)
-      {
-        auto& e = static_cast<tesseract_gui::events::SceneGraphSet&>(*event);
-        data_->clear(e.getComponentInfo());
-        tesseract_gui::EntityManager::Ptr entity_manager = getEntityManager(e.getComponentInfo());
-        loadSceneGraph(*data_->scene_manager, *data_->scene_node, *entity_manager, *e.getSceneGraph(), "");
-      }
-      else if (event->type() == tesseract_gui::events::SceneGraphAddLink::kType)
-      {
-        auto& e = static_cast<tesseract_gui::events::SceneGraphAddLink&>(*event);
-        tesseract_gui::EntityManager::Ptr entity_manager = getEntityManager(e.getComponentInfo());
-        auto entity_container = entity_manager->getEntityContainer(e.getLink()->getName());
-        Ogre::SceneNode* sn = loadLink(*data_->scene_manager, *entity_container, *e.getLink());
-        data_->scene_node->addChild(sn);
-      }
-      else if (event->type() == tesseract_gui::events::SceneGraphRemoveLink::kType)
-      {
-        auto& e = static_cast<tesseract_gui::events::SceneGraphRemoveLink&>(*event);
-        tesseract_gui::EntityManager::Ptr entity_manager = getEntityManager(e.getComponentInfo());
-        if (entity_manager->hasEntityContainer(e.getLinkName()))
+        if (entity_manager->hasEntityContainer(link_name))
         {
-          auto entity_container = entity_manager->getEntityContainer(e.getLinkName());
-          data_->clear(*entity_container);
-          entity_container->clear();
-          entity_manager->removeEntityContainer(e.getLinkName());
-        }
-      }
-      else if (event->type() == tesseract_gui::events::SceneGraphModifyLinkVisibility::kType)
-      {
-        auto& e = static_cast<tesseract_gui::events::SceneGraphModifyLinkVisibility&>(*event);
-        tesseract_gui::EntityManager::Ptr entity_manager = getEntityManager(e.getComponentInfo());
-        for (const auto& link_name : e.getLinkNames())
-        {
-          if (entity_manager->hasEntityContainer(link_name))
+          tesseract_gui::EntityContainer::Ptr entity_container = entity_manager->getEntityContainer(link_name);
+
+          bool link_visible{ true };
+          // Link Property
+          if (entity_container->hasTrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS, link_name))
           {
-            tesseract_gui::EntityContainer::Ptr entity_container = entity_manager->getEntityContainer(link_name);
-
-            bool link_visible{ true };
-            // Link Property
-            if (entity_container->hasTrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS, link_name))
-            {
-              auto entity = entity_container->getTrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS, link_name);
-              Ogre::SceneNode* sn = data_->scene_manager->getSceneNode(entity.unique_name);
-
-              if (e.getVisibilityFlags() & tesseract_gui::LinkVisibilityFlags::LINK ||
-                  e.getVisibilityFlags() & tesseract_gui::LinkVisibilityFlags::ALL)
-              {
-                sn->getUserObjectBindings().setUserAny(USER_VISIBILITY, Ogre::Any(e.visible()));
-              }
-
-              link_visible = Ogre::any_cast<bool>(sn->getUserObjectBindings().getUserAny(USER_VISIBILITY));
-              sn->setVisible(link_visible, true);
-            }
-
-            // Link Visual Property
-            std::string visual_key = link_name + "::Visuals";
-            if (entity_container->hasTrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS, visual_key))
-            {
-              auto entity = entity_container->getTrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS, visual_key);
-              Ogre::SceneNode* sn = data_->scene_manager->getSceneNode(entity.unique_name);
-
-              if (e.getVisibilityFlags() & tesseract_gui::LinkVisibilityFlags::VISUAL ||
-                  e.getVisibilityFlags() & tesseract_gui::LinkVisibilityFlags::ALL)
-              {
-                sn->getUserObjectBindings().setUserAny(USER_VISIBILITY, Ogre::Any(e.visible()));
-              }
-
-              bool visible = Ogre::any_cast<bool>(sn->getUserObjectBindings().getUserAny(USER_VISIBILITY));
-              sn->setVisible(link_visible & visible, true);
-            }
-
-            // Link Collision Property
-            visual_key = link_name + "::Collisions";
-            if (entity_container->hasTrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS, visual_key))
-            {
-              auto entity = entity_container->getTrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS, visual_key);
-              Ogre::SceneNode* sn = data_->scene_manager->getSceneNode(entity.unique_name);
-
-              if (e.getVisibilityFlags() & tesseract_gui::LinkVisibilityFlags::COLLISION ||
-                  e.getVisibilityFlags() & tesseract_gui::LinkVisibilityFlags::ALL)
-              {
-                sn->getUserObjectBindings().setUserAny(USER_VISIBILITY, Ogre::Any(e.visible()));
-              }
-
-              bool visible = Ogre::any_cast<bool>(sn->getUserObjectBindings().getUserAny(USER_VISIBILITY));
-              sn->setVisible(link_visible & visible, true);
-            }
-
-            // Link WireBox Property
-            visual_key = link_name + "::WireBox";
-            if (entity_container->hasTrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS, visual_key))
-            {
-              auto entity = entity_container->getTrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS, visual_key);
-              Ogre::SceneNode* sn = data_->scene_manager->getSceneNode(entity.unique_name);
-
-              if (e.getVisibilityFlags() & tesseract_gui::LinkVisibilityFlags::WIREBOX ||
-                  e.getVisibilityFlags() & tesseract_gui::LinkVisibilityFlags::ALL)
-              {
-                sn->getUserObjectBindings().setUserAny(USER_VISIBILITY, Ogre::Any(e.visible()));
-              }
-
-              bool visible = Ogre::any_cast<bool>(sn->getUserObjectBindings().getUserAny(USER_VISIBILITY));
-              sn->setVisible(link_visible & visible, true);
-            }
-
-            // Link Axis Property
-            visual_key = link_name + "::Axis";
-            if (entity_container->hasTrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS, visual_key))
-            {
-              auto entity = entity_container->getTrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS, visual_key);
-              Ogre::SceneNode* sn = data_->scene_manager->getSceneNode(entity.unique_name);
-
-              if (e.getVisibilityFlags() & tesseract_gui::LinkVisibilityFlags::AXIS ||
-                  e.getVisibilityFlags() & tesseract_gui::LinkVisibilityFlags::ALL)
-              {
-                sn->getUserObjectBindings().setUserAny(USER_VISIBILITY, Ogre::Any(e.visible()));
-              }
-
-              bool visible = Ogre::any_cast<bool>(sn->getUserObjectBindings().getUserAny(USER_VISIBILITY));
-              sn->setVisible(link_visible & visible, true);
-            }
-          }
-        }
-      }
-      else if (event->type() == tesseract_gui::events::SceneGraphModifyLinkVisibilityALL::kType)
-      {
-        auto& e = static_cast<tesseract_gui::events::SceneGraphModifyLinkVisibilityALL&>(*event);
-        tesseract_gui::EntityManager::Ptr entity_manager = getEntityManager(e.getComponentInfo());
-        for (const auto& entity_container : entity_manager->getEntityContainers())
-        {
-          for (const auto& ns : entity_container.second->getTrackedEntities(tesseract_gui::EntityContainer::VISUAL_NS))
-          {
-            std::vector<std::string> sub_ns = tesseract_gui::getNamespaces(ns.first);
-            if (sub_ns.size() == 2)
-            {
-              if (sub_ns[1] == "Visuals" || sub_ns[1] == "Collisions")
-              {
-                auto link_entity =
-                    entity_container.second->getTrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS, sub_ns[0]);
-                Ogre::SceneNode* link_visual_node = data_->scene_manager->getSceneNode(link_entity.unique_name);
-
-                if (e.getVisibilityFlags() & tesseract_gui::LinkVisibilityFlags::LINK)
-                {
-                  link_visual_node->getUserObjectBindings().setUserAny(USER_VISIBILITY, Ogre::Any(e.visible()));
-                  bool link_visible =
-                      Ogre::any_cast<bool>(link_visual_node->getUserObjectBindings().getUserAny(USER_VISIBILITY));
-
-                  Ogre::SceneNode* sn = data_->scene_manager->getSceneNode(ns.second.unique_name);
-                  bool visible = Ogre::any_cast<bool>(sn->getUserObjectBindings().getUserAny(USER_VISIBILITY));
-                  sn->setVisible(link_visible & visible, true);
-                }
-
-                if (sub_ns[1] == "Visuals" && e.getVisibilityFlags() & tesseract_gui::LinkVisibilityFlags::VISUAL)
-                {
-                  if (e.visible())
-                    link_visual_node->getUserObjectBindings().setUserAny(USER_VISIBILITY, Ogre::Any(e.visible()));
-
-                  bool link_visible =
-                      Ogre::any_cast<bool>(link_visual_node->getUserObjectBindings().getUserAny(USER_VISIBILITY));
-                  Ogre::SceneNode* sn = data_->scene_manager->getSceneNode(ns.second.unique_name);
-                  sn->getUserObjectBindings().setUserAny(USER_VISIBILITY, Ogre::Any(e.visible()));
-                  sn->setVisible(link_visible & e.visible(), true);
-                }
-
-                if (sub_ns[1] == "Collisions" && e.getVisibilityFlags() & tesseract_gui::LinkVisibilityFlags::COLLISION)
-                {
-                  if (e.visible())
-                    link_visual_node->getUserObjectBindings().setUserAny(USER_VISIBILITY, Ogre::Any(e.visible()));
-
-                  bool link_visible =
-                      Ogre::any_cast<bool>(link_visual_node->getUserObjectBindings().getUserAny(USER_VISIBILITY));
-                  Ogre::SceneNode* sn = data_->scene_manager->getSceneNode(ns.second.unique_name);
-                  sn->getUserObjectBindings().setUserAny(USER_VISIBILITY, Ogre::Any(e.visible()));
-                  sn->setVisible(link_visible & e.visible(), true);
-                }
-              }
-              else if (sub_ns[1] == "Axis" && e.getVisibilityFlags() & tesseract_gui::LinkVisibilityFlags::AXIS)
-              {
-                Ogre::SceneNode* sn = data_->scene_manager->getSceneNode(ns.second.unique_name);
-                sn->getUserObjectBindings().setUserAny(USER_VISIBILITY, Ogre::Any(e.visible()));
-                sn->setVisible(e.visible(), true);
-              }
-              else if (sub_ns[1] == "WireBox" && e.getVisibilityFlags() & tesseract_gui::LinkVisibilityFlags::WIREBOX)
-              {
-                Ogre::SceneNode* sn = data_->scene_manager->getSceneNode(ns.second.unique_name);
-                sn->getUserObjectBindings().setUserAny(USER_VISIBILITY, Ogre::Any(e.visible()));
-                sn->setVisible(e.visible(), true);
-              }
-            }
-          }
-        }
-      }
-      else if (event->type() == tesseract_gui::events::SceneStateChanged::kType)
-      {
-        auto& e = static_cast<tesseract_gui::events::SceneStateChanged&>(*event);
-        tesseract_gui::EntityManager::Ptr entity_manager = getEntityManager(e.getComponentInfo());
-        for (const auto& pair : e.getState().link_transforms)
-        {
-          if (entity_manager->hasEntityContainer(pair.first))
-          {
-            auto container = entity_manager->getEntityContainer(pair.first);
-            Ogre::Vector3 position;
-            Ogre::Quaternion orientation;
-            toOgre(position, orientation, pair.second);
-
-            auto entity = container->getTrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS, pair.first);
+            auto entity = entity_container->getTrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS, link_name);
             Ogre::SceneNode* sn = data_->scene_manager->getSceneNode(entity.unique_name);
-            sn->setPosition(position);
-            sn->setOrientation(orientation);
+
+            if (e.getVisibilityFlags() & tesseract_gui::LinkVisibilityFlags::LINK ||
+                e.getVisibilityFlags() & tesseract_gui::LinkVisibilityFlags::ALL)
+            {
+              sn->getUserObjectBindings().setUserAny(USER_VISIBILITY, Ogre::Any(e.visible()));
+            }
+
+            link_visible = Ogre::any_cast<bool>(sn->getUserObjectBindings().getUserAny(USER_VISIBILITY));
+            sn->setVisible(link_visible, true);
           }
+
+          // Link Visual Property
+          std::string visual_key = link_name + "::Visuals";
+          if (entity_container->hasTrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS, visual_key))
+          {
+            auto entity = entity_container->getTrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS, visual_key);
+            Ogre::SceneNode* sn = data_->scene_manager->getSceneNode(entity.unique_name);
+
+            if (e.getVisibilityFlags() & tesseract_gui::LinkVisibilityFlags::VISUAL ||
+                e.getVisibilityFlags() & tesseract_gui::LinkVisibilityFlags::ALL)
+            {
+              sn->getUserObjectBindings().setUserAny(USER_VISIBILITY, Ogre::Any(e.visible()));
+            }
+
+            bool visible = Ogre::any_cast<bool>(sn->getUserObjectBindings().getUserAny(USER_VISIBILITY));
+            sn->setVisible(link_visible & visible, true);
+          }
+
+          // Link Collision Property
+          visual_key = link_name + "::Collisions";
+          if (entity_container->hasTrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS, visual_key))
+          {
+            auto entity = entity_container->getTrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS, visual_key);
+            Ogre::SceneNode* sn = data_->scene_manager->getSceneNode(entity.unique_name);
+
+            if (e.getVisibilityFlags() & tesseract_gui::LinkVisibilityFlags::COLLISION ||
+                e.getVisibilityFlags() & tesseract_gui::LinkVisibilityFlags::ALL)
+            {
+              sn->getUserObjectBindings().setUserAny(USER_VISIBILITY, Ogre::Any(e.visible()));
+            }
+
+            bool visible = Ogre::any_cast<bool>(sn->getUserObjectBindings().getUserAny(USER_VISIBILITY));
+            sn->setVisible(link_visible & visible, true);
+          }
+
+          // Link WireBox Property
+          visual_key = link_name + "::WireBox";
+          if (entity_container->hasTrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS, visual_key))
+          {
+            auto entity = entity_container->getTrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS, visual_key);
+            Ogre::SceneNode* sn = data_->scene_manager->getSceneNode(entity.unique_name);
+
+            if (e.getVisibilityFlags() & tesseract_gui::LinkVisibilityFlags::WIREBOX ||
+                e.getVisibilityFlags() & tesseract_gui::LinkVisibilityFlags::ALL)
+            {
+              sn->getUserObjectBindings().setUserAny(USER_VISIBILITY, Ogre::Any(e.visible()));
+            }
+
+            bool visible = Ogre::any_cast<bool>(sn->getUserObjectBindings().getUserAny(USER_VISIBILITY));
+            sn->setVisible(link_visible & visible, true);
+          }
+
+          // Link Axis Property
+          visual_key = link_name + "::Axis";
+          if (entity_container->hasTrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS, visual_key))
+          {
+            auto entity = entity_container->getTrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS, visual_key);
+            Ogre::SceneNode* sn = data_->scene_manager->getSceneNode(entity.unique_name);
+
+            if (e.getVisibilityFlags() & tesseract_gui::LinkVisibilityFlags::AXIS ||
+                e.getVisibilityFlags() & tesseract_gui::LinkVisibilityFlags::ALL)
+            {
+              sn->getUserObjectBindings().setUserAny(USER_VISIBILITY, Ogre::Any(e.visible()));
+            }
+
+            bool visible = Ogre::any_cast<bool>(sn->getUserObjectBindings().getUserAny(USER_VISIBILITY));
+            sn->setVisible(link_visible & visible, true);
+          }
+        }
+      }
+    }
+    else if (event->type() == tesseract_gui::events::SceneGraphModifyLinkVisibilityALL::kType)
+    {
+      auto& e = static_cast<tesseract_gui::events::SceneGraphModifyLinkVisibilityALL&>(*event);
+      tesseract_gui::EntityManager::Ptr entity_manager = getEntityManager(e.getComponentInfo());
+      for (const auto& entity_container : entity_manager->getEntityContainers())
+      {
+        for (const auto& ns : entity_container.second->getTrackedEntities(tesseract_gui::EntityContainer::VISUAL_NS))
+        {
+          std::vector<std::string> sub_ns = tesseract_gui::getNamespaces(ns.first);
+          if (sub_ns.size() == 2)
+          {
+            if (sub_ns[1] == "Visuals" || sub_ns[1] == "Collisions")
+            {
+              auto link_entity =
+                  entity_container.second->getTrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS, sub_ns[0]);
+              Ogre::SceneNode* link_visual_node = data_->scene_manager->getSceneNode(link_entity.unique_name);
+
+              if (e.getVisibilityFlags() & tesseract_gui::LinkVisibilityFlags::LINK)
+              {
+                link_visual_node->getUserObjectBindings().setUserAny(USER_VISIBILITY, Ogre::Any(e.visible()));
+                bool link_visible =
+                    Ogre::any_cast<bool>(link_visual_node->getUserObjectBindings().getUserAny(USER_VISIBILITY));
+
+                Ogre::SceneNode* sn = data_->scene_manager->getSceneNode(ns.second.unique_name);
+                bool visible = Ogre::any_cast<bool>(sn->getUserObjectBindings().getUserAny(USER_VISIBILITY));
+                sn->setVisible(link_visible & visible, true);
+              }
+
+              if (sub_ns[1] == "Visuals" && e.getVisibilityFlags() & tesseract_gui::LinkVisibilityFlags::VISUAL)
+              {
+                if (e.visible())
+                  link_visual_node->getUserObjectBindings().setUserAny(USER_VISIBILITY, Ogre::Any(e.visible()));
+
+                bool link_visible =
+                    Ogre::any_cast<bool>(link_visual_node->getUserObjectBindings().getUserAny(USER_VISIBILITY));
+                Ogre::SceneNode* sn = data_->scene_manager->getSceneNode(ns.second.unique_name);
+                sn->getUserObjectBindings().setUserAny(USER_VISIBILITY, Ogre::Any(e.visible()));
+                sn->setVisible(link_visible & e.visible(), true);
+              }
+
+              if (sub_ns[1] == "Collisions" && e.getVisibilityFlags() & tesseract_gui::LinkVisibilityFlags::COLLISION)
+              {
+                if (e.visible())
+                  link_visual_node->getUserObjectBindings().setUserAny(USER_VISIBILITY, Ogre::Any(e.visible()));
+
+                bool link_visible =
+                    Ogre::any_cast<bool>(link_visual_node->getUserObjectBindings().getUserAny(USER_VISIBILITY));
+                Ogre::SceneNode* sn = data_->scene_manager->getSceneNode(ns.second.unique_name);
+                sn->getUserObjectBindings().setUserAny(USER_VISIBILITY, Ogre::Any(e.visible()));
+                sn->setVisible(link_visible & e.visible(), true);
+              }
+            }
+            else if (sub_ns[1] == "Axis" && e.getVisibilityFlags() & tesseract_gui::LinkVisibilityFlags::AXIS)
+            {
+              Ogre::SceneNode* sn = data_->scene_manager->getSceneNode(ns.second.unique_name);
+              sn->getUserObjectBindings().setUserAny(USER_VISIBILITY, Ogre::Any(e.visible()));
+              sn->setVisible(e.visible(), true);
+            }
+            else if (sub_ns[1] == "WireBox" && e.getVisibilityFlags() & tesseract_gui::LinkVisibilityFlags::WIREBOX)
+            {
+              Ogre::SceneNode* sn = data_->scene_manager->getSceneNode(ns.second.unique_name);
+              sn->getUserObjectBindings().setUserAny(USER_VISIBILITY, Ogre::Any(e.visible()));
+              sn->setVisible(e.visible(), true);
+            }
+          }
+        }
+      }
+    }
+    else if (event->type() == tesseract_gui::events::SceneStateChanged::kType)
+    {
+      auto& e = static_cast<tesseract_gui::events::SceneStateChanged&>(*event);
+      tesseract_gui::EntityManager::Ptr entity_manager = getEntityManager(e.getComponentInfo());
+      for (const auto& pair : e.getState().link_transforms)
+      {
+        if (entity_manager->hasEntityContainer(pair.first))
+        {
+          auto container = entity_manager->getEntityContainer(pair.first);
+          Ogre::Vector3 position;
+          Ogre::Quaternion orientation;
+          toOgre(position, orientation, pair.second);
+
+          auto entity = container->getTrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS, pair.first);
+          Ogre::SceneNode* sn = data_->scene_manager->getSceneNode(entity.unique_name);
+          sn->setPosition(position);
+          sn->setOrientation(orientation);
         }
       }
     }

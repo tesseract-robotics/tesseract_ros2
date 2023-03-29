@@ -123,8 +123,9 @@ void ROSSceneGraphRenderManager::render()
     return entity_manager;
   };
 
-  for (const auto& event : events_)
+  for (size_t i = 0u; i < events_.size(); i++)
   {
+    const auto& event = events_[i];
     if (!event)
     {
       continue;

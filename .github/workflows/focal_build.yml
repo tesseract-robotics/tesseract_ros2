@@ -20,7 +20,7 @@ jobs:
       ROS_DISTRO: foxy
       ROS_REPO: main
       UPSTREAM_WORKSPACE: 'dependencies.repos'
-      ROSDEP_SKIP_KEYS: "catkin taskflow"
+      ROSDEP_SKIP_KEYS: "catkin taskflow fcl"
       DOCKER_IMAGE: "ros:foxy"
       PARALLEL_TESTS: false
       NOT_TEST_BUILD: true

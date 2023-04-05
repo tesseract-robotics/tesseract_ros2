@@ -95,8 +95,6 @@ target_compile_definitions(${PROJECT_NAME}_interactive_marker PUBLIC $ENV{ROS_DI
 
 # Environment Panel
 qt_wrap_cpp(${PROJECT_NAME}_cpp_MOCS
-  include/tesseract_rviz/ros_environment_widget.h
-  include/tesseract_rviz/ros_manipulation_widget.h
   include/tesseract_rviz/rostopic_combo_box.h
   include/tesseract_rviz/environment_display.h
   include/tesseract_rviz/environment_monitor_properties.h
@@ -105,14 +103,14 @@ qt_wrap_cpp(${PROJECT_NAME}_cpp_MOCS
   include/tesseract_rviz/set_theme_tool.h
 )
 add_library(${PROJECT_NAME} SHARED
-  src/ros_environment_widget.cpp
-  src/ros_manipulation_widget.cpp
   src/rostopic_combo_box.cpp
   src/environment_display.cpp
   src/environment_monitor_properties.cpp
   src/joint_trajectory_monitor_properties.cpp
   src/workbench_display.cpp
   src/conversions.cpp
+  src/ros_contact_results_render_manager.cpp
+  src/ros_scene_graph_render_manager.cpp
   src/set_theme_tool.cpp
   ${${PROJECT_NAME}_cpp_MOCS})
 target_link_libraries(${PROJECT_NAME} PUBLIC
@@ -123,9 +121,9 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
   rviz_rendering::rviz_rendering
 
   tesseract::tesseract_qt_common
-  tesseract::tesseract_qt_environment
-  tesseract::tesseract_qt_manipulation
-  tesseract::tesseract_qt_workbench
+  tesseract::tesseract_qt_environment_widgets
+  tesseract::tesseract_qt_manipulation_widgets
+  tesseract::tesseract_qt_workbench_widgets
 
   tesseract_monitoring::tesseract_monitoring_environment
   ${PROJECT_NAME}_markers

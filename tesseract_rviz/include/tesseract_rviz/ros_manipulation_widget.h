@@ -28,7 +28,7 @@ public:
   ~ROSManipulationWidget() override;
 
 public Q_SLOTS:
-  void onRender(float dt) override;
+  void onRender(float dt);
   void onLinkVisibilityChanged(const std::vector<std::string>& links);
   void onGroupNameChanged(const QString& group_name);
   void onManipulationStateChanged(const tesseract_scene_graph::SceneState& state, int state_index);

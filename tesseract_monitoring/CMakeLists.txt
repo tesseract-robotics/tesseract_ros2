@@ -5,9 +5,14 @@ find_package(ros_industrial_cmake_boilerplate REQUIRED)
 extract_package_metadata(pkg)
 project(${pkg_extracted_name} VERSION ${pkg_extracted_version} LANGUAGES CXX)
 
+find_package(Boost REQUIRED system thread)
 # ROS
 find_package(pluginlib REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(visualization_msgs REQUIRED)
 # tesseract_ros2
+find_package(tesseract_msgs REQUIRED)
 find_package(tesseract_rosutils REQUIRED)
 
 # Load variable for clang tidy args, compiler options and cxx version
@@ -30,7 +35,7 @@ target_include_directories(${PROJECT_NAME}_environment PUBLIC
   "$<INSTALL_INTERFACE:include>")
 
 add_executable(${PROJECT_NAME}_environment_node src/environment_monitor_node.cpp)
-target_link_libraries(${PROJECT_NAME}_environment_node PRIVATE ${PROJECT_NAME}_environment ${catkin_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}_environment_node PRIVATE ${PROJECT_NAME}_environment)
 target_compile_options(${PROJECT_NAME}_environment_node PRIVATE ${TESSERACT_COMPILE_OPTIONS})
 target_clang_tidy(${PROJECT_NAME}_environment_node ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS} ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
 target_cxx_version(${PROJECT_NAME}_environment_node PRIVATE VERSION ${TESSERACT_CXX_VERSION})
@@ -38,24 +43,35 @@ target_include_directories(${PROJECT_NAME}_environment_node PUBLIC
   " $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
 
-# add_library(${PROJECT_NAME}_contacts src/contact_monitor.cpp)
-# target_link_libraries(${PROJECT_NAME}_contacts PRIVATE tesseract::tesseract_environment ${PROJECT_NAME}_environment ${catkin_LIBRARIES})
-# target_compile_options(${PROJECT_NAME}_contacts PRIVATE ${TESSERACT_COMPILE_OPTIONS})
-# target_clang_tidy(${PROJECT_NAME}_contacts ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS} ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
-# target_cxx_version(${PROJECT_NAME}_contacts PUBLIC VERSION ${TESSERACT_CXX_VERSION})
-# target_include_directories(${PROJECT_NAME}_contacts PRIVATE
-#   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-#   "$<INSTALL_INTERFACE:include>")
-# add_dependencies(${PROJECT_NAME}_contacts ${PROJECT_NAME}_gencfg)
+add_library(${PROJECT_NAME}_contacts src/contact_monitor.cpp)
+target_link_libraries(${PROJECT_NAME}_contacts PUBLIC 
+  rclcpp::rclcpp
+  tesseract::tesseract_environment
+  ${PROJECT_NAME}_environment
+)
+ament_target_dependencies(${PROJECT_NAME}_contacts PUBLIC
+  sensor_msgs
+  visualization_msgs
+  tesseract_msgs
+)
+target_compile_options(${PROJECT_NAME}_contacts PRIVATE ${TESSERACT_COMPILE_OPTIONS})
+target_clang_tidy(${PROJECT_NAME}_contacts ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS} ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
+target_cxx_version(${PROJECT_NAME}_contacts PUBLIC VERSION ${TESSERACT_CXX_VERSION})
+target_include_directories(${PROJECT_NAME}_contacts PRIVATE
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+  "$<INSTALL_INTERFACE:include>")
 
-# add_executable(${PROJECT_NAME}_contacts_node src/contact_monitor_node.cpp)
-# target_link_libraries(${PROJECT_NAME}_contacts_node PRIVATE tesseract::tesseract_environment ${PROJECT_NAME}_contacts ${catkin_LIBRARIES})
-# target_compile_options(${PROJECT_NAME}_contacts_node PRIVATE ${TESSERACT_COMPILE_OPTIONS})
-# target_clang_tidy(${PROJECT_NAME}_contacts_node ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS} ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
-# target_cxx_version(${PROJECT_NAME}_contacts_node PRIVATE VERSION ${TESSERACT_CXX_VERSION})
-# target_include_directories(${PROJECT_NAME}_contacts_node PRIVATE
-#   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-#   "$<INSTALL_INTERFACE:include>")
+add_executable(${PROJECT_NAME}_contacts_node src/contact_monitor_node.cpp)
+target_link_libraries(${PROJECT_NAME}_contacts_node PRIVATE
+  Boost::thread
+  tesseract::tesseract_environment 
+  ${PROJECT_NAME}_contacts)
+target_compile_options(${PROJECT_NAME}_contacts_node PRIVATE ${TESSERACT_COMPILE_OPTIONS})
+target_clang_tidy(${PROJECT_NAME}_contacts_node ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS} ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
+target_cxx_version(${PROJECT_NAME}_contacts_node PRIVATE VERSION ${TESSERACT_CXX_VERSION})
+target_include_directories(${PROJECT_NAME}_contacts_node PRIVATE
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+  "$<INSTALL_INTERFACE:include>")
 
 add_library(${PROJECT_NAME}_environment_interface SHARED src/environment_monitor_interface.cpp)
 target_link_libraries(${PROJECT_NAME}_environment_interface PUBLIC
@@ -82,7 +98,7 @@ install(
   TARGETS
     ${PROJECT_NAME}_environment
     ${PROJECT_NAME}_environment_interface
-    # ${PROJECT_NAME}_contacts
+    ${PROJECT_NAME}_contacts
   EXPORT ${PROJECT_NAME}-targets
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
@@ -93,7 +109,7 @@ install(
 # Mark executables for installation
 install(
   TARGETS
-   # ${PROJECT_NAME}_contacts_node
+    ${PROJECT_NAME}_contacts_node
     ${PROJECT_NAME}_environment_node
   # demo_scene
   RUNTIME DESTINATION lib/${PROJECT_NAME}

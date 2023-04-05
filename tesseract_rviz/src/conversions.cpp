@@ -50,7 +50,7 @@
 #include <ament_index_cpp/get_package_share_directory.hpp>
 #include <boost/algorithm/string.hpp>
 
-#include "rviz_common/load_resource.hpp"
+#include <rviz_common/load_resource.hpp>
 #include <rviz_rendering/mesh_loader.hpp>
 #include <rviz_rendering/objects/axes.hpp>
 #include <rviz_rendering/objects/object.hpp>
@@ -58,6 +58,8 @@
 #include <rviz_rendering/objects/point_cloud.hpp>
 
 #include <tesseract_geometry/geometries.h>
+
+const std::string USER_VISIBILITY = "user_visibility";
 
 namespace tesseract_rviz
 {
@@ -266,17 +268,32 @@ Ogre::SceneNode* loadLink(Ogre::SceneManager& scene,
   auto entity = entity_container.addTrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS, link.getName());
   Ogre::SceneNode* scene_node = scene.createSceneNode(entity.unique_name);
 
-  scene_node->addChild(loadLinkVisuals(scene, entity_container, link, visual_material_override));
-  scene_node->addChild(loadLinkCollisions(scene, entity_container, link, collision_material_override));
+  scene_node->getUserObjectBindings().setUserAny(USER_VISIBILITY, Ogre::Any(true));
+
+  Ogre::SceneNode* visuals_scene_node = loadLinkVisuals(scene, entity_container, link, visual_material_override);
+  visuals_scene_node->getUserObjectBindings().setUserAny(USER_VISIBILITY, Ogre::Any(true));
+  scene_node->addChild(visuals_scene_node);
+
+  Ogre::SceneNode* collisions_scene_node =
+      loadLinkCollisions(scene, entity_container, link, collision_material_override);
+  collisions_scene_node->getUserObjectBindings().setUserAny(USER_VISIBILITY, Ogre::Any(false));
+  scene_node->addChild(collisions_scene_node);
 
   if (!link.visual.empty() || !link.collision.empty())
   {
     Ogre::AxisAlignedBox aabb = getAABB(*scene_node, false);
     if (aabb.isFinite())
-      scene_node->addChild(loadLinkWireBox(scene, entity_container, link, aabb));
+    {
+      Ogre::SceneNode* wirebox_scene_node = loadLinkWireBox(scene, entity_container, link, aabb);
+      wirebox_scene_node->getUserObjectBindings().setUserAny(USER_VISIBILITY, Ogre::Any(false));
+      scene_node->addChild(wirebox_scene_node);
+    }
   }
 
-  scene_node->addChild(loadLinkAxis(scene, entity_container, link));
+  Ogre::SceneNode* axis_scene_node = loadLinkAxis(scene, entity_container, link);
+  axis_scene_node->getUserObjectBindings().setUserAny(USER_VISIBILITY, Ogre::Any(false));
+  scene_node->addChild(axis_scene_node);
+
   return scene_node;
 }
 
@@ -355,7 +372,7 @@ Ogre::SceneNode* loadLinkAxis(Ogre::SceneManager& scene,
   /** @todo Does this need to be manually deleted */
   auto axis = std::make_shared<rviz_rendering::Axes>(&scene, scene_node);
   axis->setScale(Ogre::Vector3(0.1f, 0.1f, 0.1f));
-  entity_container.addUnmanagedObject(tesseract_gui::EntityContainer::VISUAL_NS, axis);
+  entity_container.addUntrackedUnmanagedObject(tesseract_gui::EntityContainer::VISUAL_NS, axis);
 
   scene_node->setVisible(false, true);
   return scene_node;
@@ -730,7 +747,7 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
         data.shape_type = octomap.getSubType();
 
         offset_node->attachObject(data.point_cloud.get());
-        entity_container.addUnmanagedObject(tesseract_gui::EntityContainer::VISUAL_NS, data.point_cloud);
+        entity_container.addUntrackedUnmanagedObject(tesseract_gui::EntityContainer::VISUAL_NS, data.point_cloud);
       }
 
       offset_node->setScale(ogre_scale);

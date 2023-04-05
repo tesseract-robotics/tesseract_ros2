@@ -19,13 +19,11 @@ class Property;
 namespace tesseract_gui
 {
 class JointTrajectoryWidget;
-class EnvironmentWidgetConfig;
+struct ComponentInfo;
 }  // namespace tesseract_gui
 
 namespace tesseract_rviz
 {
-class JointTrajectoryMonitorPropertiesPrivate;
-
 class JointTrajectoryMonitorProperties : public QObject
 {
   Q_OBJECT
@@ -39,7 +37,10 @@ public:
                                    rviz_common::properties::Property* main_property = nullptr);
   ~JointTrajectoryMonitorProperties() override;
 
-  void onInitialize(tesseract_gui::JointTrajectoryWidget* widget, rviz_common::DisplayContext* context);
+  void onInitialize(rviz_common::DisplayContext* context);
+
+  void setComponentInfo(tesseract_gui::ComponentInfo component_info);
+  tesseract_gui::ComponentInfo getComponentInfo() const;
 
   void load(const rviz_common::Config& config);
   void save(rviz_common::Config config) const;
@@ -57,7 +58,8 @@ private Q_SLOTS:
   void onTesseractJointTrajectoryChanged();
 
 protected:
-  std::unique_ptr<JointTrajectoryMonitorPropertiesPrivate> data_;
+  struct Implementation;
+  std::unique_ptr<Implementation> data_;
 };
 
 }  // namespace tesseract_rviz

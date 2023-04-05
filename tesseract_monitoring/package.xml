@@ -11,6 +11,9 @@
   <build_depend>ros_industrial_cmake_boilerplate</build_depend>
 
   <depend>pluginlib</depend>
+  <depend>sensor_msgs</depend>
+  <depend>visualization_msgs</depend>
+  <depend>tesseract_msgs</depend>
   <depend>tesseract_rosutils</depend>
   
   <export>

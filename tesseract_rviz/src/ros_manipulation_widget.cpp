@@ -4,7 +4,7 @@
 #include <tesseract_rviz/interactive_marker/interactive_marker.h>
 
 #include <tesseract_qt/common/entity_manager.h>
-#include <tesseract_qt/common/link_visibility_properties.h>
+//#include <tesseract_qt/common/link_visibility_properties.h>
 
 #include <tesseract_environment/environment.h>
 

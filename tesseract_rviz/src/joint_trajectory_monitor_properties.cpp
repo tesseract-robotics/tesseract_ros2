@@ -1,8 +1,11 @@
 #include <tesseract_rviz/joint_trajectory_monitor_properties.h>
 #include <tesseract_rviz/conversions.h>
 
-#include <tesseract_qt/joint_trajectory/joint_trajectory_widget.h>
+#include <tesseract_qt/joint_trajectory/widgets/joint_trajectory_widget.h>
+
+#include <tesseract_qt/common/events/joint_trajectory_events.h>
 #include <tesseract_qt/common/joint_trajectory_set.h>
+#include <tesseract_qt/common/component_info.h>
 
 #include <trajectory_msgs/msg/joint_trajectory.hpp>
 #include <tesseract_msgs/msg/trajectory.hpp>
@@ -15,18 +18,21 @@
 #include <unordered_map>
 #include <thread>
 
+#include <QApplication>
+
 namespace tesseract_rviz
 {
-class JointTrajectoryMonitorPropertiesPrivate
+struct JointTrajectoryMonitorProperties::Implementation
 {
-public:
+  // public:
   std::shared_ptr<rclcpp::Node> rviz_node;
   std::shared_ptr<rclcpp::Node> node;
   rclcpp::executors::MultiThreadedExecutor::SharedPtr internal_node_executor;
   std::shared_ptr<std::thread> internal_node_spinner;
   rviz_common::Display* parent;
   rviz_common::properties::Property* main_property;
-  tesseract_gui::JointTrajectoryWidget* widget;
+
+  tesseract_gui::ComponentInfo component_info{ "rviz_scene" };
 
   rviz_common::properties::BoolProperty* legacy_main;
   rviz_common::properties::RosTopicProperty* legacy_joint_trajectory_topic_property;
@@ -37,13 +43,73 @@ public:
   rclcpp::Subscription<trajectory_msgs::msg::JointTrajectory>::SharedPtr legacy_joint_trajectory_sub;
   rclcpp::Subscription<tesseract_msgs::msg::Trajectory>::SharedPtr tesseract_joint_trajectory_sub;
 
-  void legacyJointTrajectoryCallback(const trajectory_msgs::msg::JointTrajectory::ConstSharedPtr msg);
-  void tesseractJointTrajectoryCallback(const tesseract_msgs::msg::Trajectory::ConstSharedPtr msg);
+  void legacyJointTrajectoryCallback(const trajectory_msgs::msg::JointTrajectory::ConstSharedPtr msg)
+  {
+    if (msg->joint_names.empty())
+      return;
+
+    if (msg->points.empty())
+      return;
+
+    std::unordered_map<std::string, double> initial_state;
+    for (std::size_t i = 0; i < msg->joint_names.size(); ++i)
+      initial_state[msg->joint_names[i]] = msg->points[0].positions[i];
+
+    tesseract_common::JointTrajectorySet trajectory_set(initial_state);
+    tesseract_common::JointTrajectory joint_trajectory = tesseract_rosutils::fromMsg(*msg);
+    trajectory_set.appendJointTrajectory(joint_trajectory);
+    QApplication::sendEvent(qApp, new tesseract_gui::events::JointTrajectoryAdd(component_info, trajectory_set));
+  }
+
+  void tesseractJointTrajectoryCallback(const tesseract_msgs::msg::Trajectory::ConstSharedPtr msg)
+  {
+    try
+    {
+      tesseract_common::JointTrajectorySet trajectory_set;
+
+      // Get environment initial state
+      std::unordered_map<std::string, double> initial_state;
+      for (const auto& pair_msg : msg->initial_state)
+        initial_state[pair_msg.first] = pair_msg.second;
+
+      // Get environment information
+      tesseract_environment::Environment::UPtr environment = tesseract_rosutils::fromMsg(msg->environment);
+      tesseract_environment::Commands commands = tesseract_rosutils::fromMsg(msg->commands);
+
+      if (environment != nullptr)
+      {
+        trajectory_set = tesseract_common::JointTrajectorySet(std::move(environment));
+      }
+      else if (!commands.empty())
+      {
+        trajectory_set = tesseract_common::JointTrajectorySet(initial_state, commands);
+      }
+      else
+      {
+        trajectory_set = tesseract_common::JointTrajectorySet(initial_state);
+      }
+
+      if (!msg->ns.empty())
+        trajectory_set.setNamespace(msg->ns);
+
+      for (const auto& joint_trajectory_msg : msg->joint_trajectories)
+      {
+        tesseract_common::JointTrajectory joint_trajectory = tesseract_rosutils::fromMsg(joint_trajectory_msg);
+        trajectory_set.appendJointTrajectory(joint_trajectory);
+        QApplication::sendEvent(qApp, new tesseract_gui::events::JointTrajectoryAdd(component_info, trajectory_set));
+      }
+    }
+    catch (...)
+    {
+      parent->setStatus(
+          rviz_common::properties::StatusProperty::Error, "Tesseract", "Failed to process trajectory message!");
+    }
+  }
 };
 
 JointTrajectoryMonitorProperties::JointTrajectoryMonitorProperties(rviz_common::Display* parent,
                                                                    rviz_common::properties::Property* main_property)
-  : data_(std::make_unique<JointTrajectoryMonitorPropertiesPrivate>())
+  : data_(std::make_unique<Implementation>())
 {
   data_->parent = parent;
 
@@ -98,8 +164,7 @@ JointTrajectoryMonitorProperties::~JointTrajectoryMonitorProperties()
     data_->internal_node_spinner->join();
 }
 
-void JointTrajectoryMonitorProperties::onInitialize(tesseract_gui::JointTrajectoryWidget* widget,
-                                                    rviz_common::DisplayContext* context)
+void JointTrajectoryMonitorProperties::onInitialize(rviz_common::DisplayContext* context)
 {
   auto ros_node_abstraction = context->getRosNodeAbstraction().lock();
   data_->rviz_node = ros_node_abstraction->get_raw_node();
@@ -115,9 +180,18 @@ void JointTrajectoryMonitorProperties::onInitialize(tesseract_gui::JointTrajecto
     data_->internal_node_executor->spin();
   } });
 
-  data_->widget = widget;
   onLegacyJointTrajectoryTopicConnect();
   onTesseractJointTrajectoryTopicConnect();
+}
+
+void JointTrajectoryMonitorProperties::setComponentInfo(tesseract_gui::ComponentInfo component_info)
+{
+  data_->component_info = std::move(component_info);
+}
+
+tesseract_gui::ComponentInfo JointTrajectoryMonitorProperties::getComponentInfo() const
+{
+  return data_->component_info;
 }
 
 void JointTrajectoryMonitorProperties::load(const rviz_common::Config& config)
@@ -143,8 +217,9 @@ void JointTrajectoryMonitorProperties::onLegacyJointTrajectoryTopicConnect()
   data_->legacy_joint_trajectory_sub = data_->node->create_subscription<trajectory_msgs::msg::JointTrajectory>(
       data_->legacy_joint_trajectory_topic_property->getStdString(),
       20,
-      std::bind(
-          &JointTrajectoryMonitorPropertiesPrivate::legacyJointTrajectoryCallback, *data_, std::placeholders::_1));
+      std::bind(&JointTrajectoryMonitorProperties::Implementation::legacyJointTrajectoryCallback,
+                *data_,
+                std::placeholders::_1));
 }
 
 void JointTrajectoryMonitorProperties::onTesseractJointTrajectoryTopicConnect()
@@ -152,8 +227,9 @@ void JointTrajectoryMonitorProperties::onTesseractJointTrajectoryTopicConnect()
   data_->tesseract_joint_trajectory_sub = data_->node->create_subscription<tesseract_msgs::msg::Trajectory>(
       data_->tesseract_joint_trajectory_topic_property->getStdString(),
       20,
-      std::bind(
-          &JointTrajectoryMonitorPropertiesPrivate::tesseractJointTrajectoryCallback, *data_, std::placeholders::_1));
+      std::bind(&JointTrajectoryMonitorProperties::Implementation::tesseractJointTrajectoryCallback,
+                *data_,
+                std::placeholders::_1));
 }
 
 void JointTrajectoryMonitorProperties::onLegacyJointTrajectoryTopicDisconnect()
@@ -192,71 +268,6 @@ void JointTrajectoryMonitorProperties::onTesseractJointTrajectoryChanged()
     onTesseractJointTrajectoryTopicConnect();
   else
     onTesseractJointTrajectoryTopicDisconnect();
-}
-
-void JointTrajectoryMonitorPropertiesPrivate::legacyJointTrajectoryCallback(
-    const trajectory_msgs::msg::JointTrajectory::ConstSharedPtr msg)
-{
-  if (msg->joint_names.empty())
-    return;
-
-  if (msg->points.empty())
-    return;
-
-  std::unordered_map<std::string, double> initial_state;
-  for (std::size_t i = 0; i < msg->joint_names.size(); ++i)
-    initial_state[msg->joint_names[i]] = msg->points[0].positions[i];
-
-  tesseract_common::JointTrajectorySet trajectory_set(initial_state);
-  tesseract_common::JointTrajectory joint_trajectory = tesseract_rosutils::fromMsg(*msg);
-  trajectory_set.appendJointTrajectory(joint_trajectory);
-  widget->addJointTrajectorySet(trajectory_set);
-}
-
-void JointTrajectoryMonitorPropertiesPrivate::tesseractJointTrajectoryCallback(
-    const tesseract_msgs::msg::Trajectory::ConstSharedPtr msg)
-{
-  try
-  {
-    tesseract_common::JointTrajectorySet trajectory_set;
-
-    // Get environment initial state
-    std::unordered_map<std::string, double> initial_state;
-    for (const auto& pair_msg : msg->initial_state)
-      initial_state[pair_msg.first] = pair_msg.second;
-
-    // Get environment information
-    tesseract_environment::Environment::UPtr environment = tesseract_rosutils::fromMsg(msg->environment);
-    tesseract_environment::Commands commands = tesseract_rosutils::fromMsg(msg->commands);
-
-    if (environment != nullptr)
-    {
-      trajectory_set = tesseract_common::JointTrajectorySet(std::move(environment));
-    }
-    else if (!commands.empty())
-    {
-      trajectory_set = tesseract_common::JointTrajectorySet(initial_state, commands);
-    }
-    else
-    {
-      trajectory_set = tesseract_common::JointTrajectorySet(initial_state);
-    }
-
-    if (!msg->ns.empty())
-      trajectory_set.setNamespace(msg->ns);
-
-    for (const auto& joint_trajectory_msg : msg->joint_trajectories)
-    {
-      tesseract_common::JointTrajectory joint_trajectory = tesseract_rosutils::fromMsg(joint_trajectory_msg);
-      trajectory_set.appendJointTrajectory(joint_trajectory);
-      widget->addJointTrajectorySet(trajectory_set);
-    }
-  }
-  catch (...)
-  {
-    parent->setStatus(
-        rviz_common::properties::StatusProperty::Error, "Tesseract", "Failed to process trajectory message!");
-  }
 }
 
 }  // namespace tesseract_rviz

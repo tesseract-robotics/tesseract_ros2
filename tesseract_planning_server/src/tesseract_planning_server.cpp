@@ -80,18 +80,20 @@ TesseractPlanningServer::TesseractPlanningServer(rclcpp::Node::SharedPtr node,
                                                  std::string output_key,
                                                  std::string name)
   : node_(node)
-  , monitor_(std::make_shared<tesseract_monitoring::ROSEnvironmentMonitor>(robot_description, name))
+  , monitor_(std::make_shared<tesseract_monitoring::ROSEnvironmentMonitor>(node_, robot_description, name))
   , environment_cache_(std::make_shared<tesseract_environment::DefaultEnvironmentCache>(monitor_->getEnvironment()))
   , profiles_(std::make_shared<tesseract_planning::ProfileDictionary>())
   , planning_server_(std::make_unique<tesseract_planning::TaskComposerServer>())
   , input_key_(std::move(input_key))
   , output_key_(std::move(output_key))
-  , motion_plan_server_(nh_,
-                        DEFAULT_GET_MOTION_PLAN_ACTION,
-                        boost::bind(&TesseractPlanningServer::onMotionPlanningCallback, this, _1),
-                        true)
-  , tf_buffer_(std::make_shared<tf2_ros::Buffer>())
-  , tf_listener_(*tf_buffer_)
+  , motion_plan_server_(rclcpp_action::create_server<GetMotionPlan>(
+        node_,
+        DEFAULT_GET_MOTION_PLAN_ACTION,
+        std::bind(&TesseractPlanningServer::handle_goal, this, std::placeholders::_1, std::placeholders::_2),
+        std::bind(&TesseractPlanningServer::handle_cancel, this, std::placeholders::_1),
+        std::bind(&TesseractPlanningServer::onMotionPlanningCallback, this, std::placeholders::_1)))
+  , tf_buffer_(std::make_shared<tf2_ros::Buffer>(node_->get_clock()))
+  , tf_listener_(std::make_shared<tf2_ros::TransformListener>(*tf_buffer_))
 {
   ctor();
 }
@@ -101,19 +103,21 @@ TesseractPlanningServer::TesseractPlanningServer(rclcpp::Node::SharedPtr node,
                                                  std::string input_key,
                                                  std::string output_key,
                                                  std::string name)
-  : nh_("~")
-  , monitor_(std::make_shared<tesseract_monitoring::ROSEnvironmentMonitor>(std::move(env), name))
+  : node_(node)
+  , monitor_(std::make_shared<tesseract_monitoring::ROSEnvironmentMonitor>(node_, std::move(env), name))
   , environment_cache_(std::make_shared<tesseract_environment::DefaultEnvironmentCache>(monitor_->getEnvironment()))
   , profiles_(std::make_shared<tesseract_planning::ProfileDictionary>())
   , planning_server_(std::make_unique<tesseract_planning::TaskComposerServer>())
   , input_key_(std::move(input_key))
   , output_key_(std::move(output_key))
-  , motion_plan_server_(nh_,
-                        DEFAULT_GET_MOTION_PLAN_ACTION,
-                        boost::bind(&TesseractPlanningServer::onMotionPlanningCallback, this, _1),
-                        true)
-  , tf_buffer_(std::make_shared<tf2_ros::Buffer>())
-  , tf_listener_(*tf_buffer_)
+  , motion_plan_server_(rclcpp_action::create_server<GetMotionPlan>(
+        node_,
+        DEFAULT_GET_MOTION_PLAN_ACTION,
+        std::bind(&TesseractPlanningServer::handle_goal, this, std::placeholders::_1, std::placeholders::_2),
+        std::bind(&TesseractPlanningServer::handle_cancel, this, std::placeholders::_1),
+        std::bind(&TesseractPlanningServer::onMotionPlanningCallback, this, std::placeholders::_1)))
+  , tf_buffer_(std::make_shared<tf2_ros::Buffer>(node_->get_clock()))
+  , tf_listener_(std::make_shared<tf2_ros::TransformListener>(*tf_buffer_))
 {
   ctor();
 }
@@ -149,22 +153,33 @@ const tesseract_planning::ProfileDictionary& TesseractPlanningServer::getProfile
   return *profiles_;
 }
 
-void TesseractPlanningServer::onMotionPlanningCallback(const tesseract_msgs::GetMotionPlanGoalConstPtr& goal)
+rclcpp_action::GoalResponse TesseractPlanningServer::handle_goal(const rclcpp_action::GoalUUID&, std::shared_ptr<const GetMotionPlan::Goal>)
 {
-  ROS_INFO("Tesseract Planning Server Received Request!");
-  tesseract_msgs::GetMotionPlanResult result;
+  return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
+}
+
+rclcpp_action::CancelResponse TesseractPlanningServer::handle_cancel(const std::shared_ptr<GoalHandleGetMotionPlan>)
+{
+  return rclcpp_action::CancelResponse::ACCEPT;
+}
+
+void TesseractPlanningServer::onMotionPlanningCallback(const std::shared_ptr<GoalHandleGetMotionPlan> goal_handle)
+{
+  RCLCPP_INFO(node_->get_logger(), "Tesseract Planning Server Received Request!");
+  const auto goal = goal_handle->get_goal();
+  auto result = std::make_shared<GetMotionPlan::Result>();
 
   // Check if process planner exist
   if (!planning_server_->hasTask(goal->request.name))
   {
-    result.response.successful = false;
+    result->response.successful = false;
     std::ostringstream oss;
     oss << "Requested task '" << goal->request.name << "' is not supported!" << std::endl;
     oss << "   Available Tasks:" << std::endl;
     for (const auto& planner : planning_server_->getAvailableTasks())
       oss << "      - " << planner << std::endl;
-    ROS_ERROR_STREAM(oss.str());
-    motion_plan_server_.setSucceeded(result);
+    RCLCPP_ERROR_STREAM(node_->get_logger(), oss.str());
+    goal_handle->succeed(result);
     return;
   }
 
@@ -176,14 +191,14 @@ void TesseractPlanningServer::onMotionPlanningCallback(const tesseract_msgs::Get
   // Check if executor exists
   if (!planning_server_->hasExecutor(executor_name))
   {
-    result.response.successful = false;
+    result->response.successful = false;
     std::ostringstream oss;
     oss << "Requested executor '" << executor_name << "' is not supported!" << std::endl;
     oss << "   Available Executors:" << std::endl;
     for (const auto& executor : available_executors)
       oss << "      - " << executor << std::endl;
-    ROS_ERROR_STREAM(oss.str());
-    motion_plan_server_.setSucceeded(result);
+    RCLCPP_ERROR_STREAM(node_->get_logger(), oss.str());
+    goal_handle->succeed(result);
     return;
   }
 
@@ -197,13 +212,13 @@ void TesseractPlanningServer::onMotionPlanningCallback(const tesseract_msgs::Get
   }
   catch (const std::exception& e)
   {
-    result.response.successful = false;
+    result->response.successful = false;
     std::ostringstream oss;
     oss << "Failed to deserialize program instruction with error: '" << e.what() << "'!" << std::endl;
     oss << "   Make sure the program was serialized from an Instruction type and not a CompositeInstruction type."
         << std::endl;
-    ROS_ERROR_STREAM(oss.str());
-    motion_plan_server_.setSucceeded(result);
+    RCLCPP_ERROR_STREAM(node_->get_logger(), oss.str());
+    goal_handle->succeed(result);
     return;
   }
 
@@ -222,7 +237,7 @@ void TesseractPlanningServer::onMotionPlanningCallback(const tesseract_msgs::Get
 
   // Store the initial state in the response for publishing trajectories
   tesseract_scene_graph::SceneState initial_state = env->getState();
-  tesseract_rosutils::toMsg(result.response.initial_state, initial_state.joints);
+  tesseract_rosutils::toMsg(result->response.initial_state, initial_state.joints);
 
   tesseract_common::Timer timer;
   timer.start();
@@ -234,24 +249,24 @@ void TesseractPlanningServer::onMotionPlanningCallback(const tesseract_msgs::Get
   try
   {
     tesseract_common::AnyPoly results = input.data_storage.getData(output_key_);
-    result.response.results = Serialization::toArchiveStringXML<tesseract_planning::InstructionPoly>(
+    result->response.results = Serialization::toArchiveStringXML<tesseract_planning::InstructionPoly>(
         results.as<tesseract_planning::CompositeInstruction>());
   }
   catch (const std::exception& e)
   {
-    result.response.successful = false;
+    result->response.successful = false;
     std::ostringstream oss;
     oss << "Failed to get output results from task with error: '" << e.what() << "'!" << std::endl;
-    ROS_ERROR_STREAM(oss.str());
-    motion_plan_server_.setSucceeded(result);
+    RCLCPP_ERROR_STREAM(node_->get_logger(), oss.str());
+    goal_handle->succeed(result);
     return;
   }
 
-  result.response.successful = input.isSuccessful();
+  result->response.successful = input.isSuccessful();
   plan_future->clear();
 
-  ROS_INFO("Tesseract Planning Server Finished Request in %f seconds!", timer.elapsedSeconds());
-  motion_plan_server_.setSucceeded(result);
+  RCLCPP_INFO(node_->get_logger(), "Tesseract Planning Server Finished Request in %f seconds!", timer.elapsedSeconds());
+  goal_handle->succeed(result);
 }
 
 void TesseractPlanningServer::loadDefaultPlannerProfiles()
@@ -312,7 +327,7 @@ Eigen::Isometry3d TesseractPlanningServer::tfFindTCPOffset(const tesseract_commo
   const std::string& tcp_frame = manip_info.tcp_frame;
   const std::string& tcp_name = std::get<0>(manip_info.tcp_offset);
 
-  auto tcp_msg = tf_buffer_->lookupTransform(tcp_frame, tcp_name, ros::Time(0), ros::Duration(2));
+  auto tcp_msg = tf_buffer_->lookupTransform(tcp_frame, tcp_name, tf2::TimePointZero);
   return tf2::transformToEigen(tcp_msg.transform);
 }
 

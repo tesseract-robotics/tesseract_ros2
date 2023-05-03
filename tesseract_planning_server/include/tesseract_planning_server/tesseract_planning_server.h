@@ -43,10 +43,6 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 namespace tesseract_planning_server
 {
-
-using GetMotionPlan = tesseract_msgs::action::GetMotionPlan;
-using GoalHandleGetMotionPlan = rclcpp_action::ServerGoalHandle<GetMotionPlan>;
-
 class TesseractPlanningServer
 {
 public:
@@ -84,10 +80,13 @@ public:
   tesseract_planning::ProfileDictionary& getProfileDictionary();
   const tesseract_planning::ProfileDictionary& getProfileDictionary() const;
 
-  rclcpp_action::GoalResponse handle_goal(const rclcpp_action::GoalUUID&, std::shared_ptr<const GetMotionPlan::Goal>);
-  rclcpp_action::CancelResponse handle_cancel(const std::shared_ptr<GoalHandleGetMotionPlan>);
+  rclcpp_action::GoalResponse handle_goal(const rclcpp_action::GoalUUID&,
+                                          std::shared_ptr<const tesseract_msgs::action::GetMotionPlan::Goal>);
+  rclcpp_action::CancelResponse
+  handle_cancel(const std::shared_ptr<rclcpp_action::ServerGoalHandle<tesseract_msgs::action::GetMotionPlan>>);
 
-  void onMotionPlanningCallback(const std::shared_ptr<GoalHandleGetMotionPlan> goal_handle);
+  void onMotionPlanningCallback(
+      const std::shared_ptr<rclcpp_action::ServerGoalHandle<tesseract_msgs::action::GetMotionPlan>> goal_handle);
 
 protected:
   rclcpp::Node::SharedPtr node_;

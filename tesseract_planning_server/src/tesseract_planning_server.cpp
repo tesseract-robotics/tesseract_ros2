@@ -86,7 +86,7 @@ TesseractPlanningServer::TesseractPlanningServer(rclcpp::Node::SharedPtr node,
   , planning_server_(std::make_unique<tesseract_planning::TaskComposerServer>())
   , input_key_(std::move(input_key))
   , output_key_(std::move(output_key))
-  , motion_plan_server_(rclcpp_action::create_server<GetMotionPlan>(
+  , motion_plan_server_(rclcpp_action::create_server<tesseract_msgs::action::GetMotionPlan>(
         node_,
         DEFAULT_GET_MOTION_PLAN_ACTION,
         std::bind(&TesseractPlanningServer::handle_goal, this, std::placeholders::_1, std::placeholders::_2),
@@ -110,7 +110,7 @@ TesseractPlanningServer::TesseractPlanningServer(rclcpp::Node::SharedPtr node,
   , planning_server_(std::make_unique<tesseract_planning::TaskComposerServer>())
   , input_key_(std::move(input_key))
   , output_key_(std::move(output_key))
-  , motion_plan_server_(rclcpp_action::create_server<GetMotionPlan>(
+  , motion_plan_server_(rclcpp_action::create_server<tesseract_msgs::action::GetMotionPlan>(
         node_,
         DEFAULT_GET_MOTION_PLAN_ACTION,
         std::bind(&TesseractPlanningServer::handle_goal, this, std::placeholders::_1, std::placeholders::_2),
@@ -153,22 +153,25 @@ const tesseract_planning::ProfileDictionary& TesseractPlanningServer::getProfile
   return *profiles_;
 }
 
-rclcpp_action::GoalResponse TesseractPlanningServer::handle_goal(const rclcpp_action::GoalUUID&,
-                                                                 std::shared_ptr<const GetMotionPlan::Goal>)
+rclcpp_action::GoalResponse
+TesseractPlanningServer::handle_goal(const rclcpp_action::GoalUUID&,
+                                     std::shared_ptr<const tesseract_msgs::action::GetMotionPlan::Goal>)
 {
   return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
 }
 
-rclcpp_action::CancelResponse TesseractPlanningServer::handle_cancel(const std::shared_ptr<GoalHandleGetMotionPlan>)
+rclcpp_action::CancelResponse TesseractPlanningServer::handle_cancel(
+    const std::shared_ptr<rclcpp_action::ServerGoalHandle<tesseract_msgs::action::GetMotionPlan>>)
 {
   return rclcpp_action::CancelResponse::ACCEPT;
 }
 
-void TesseractPlanningServer::onMotionPlanningCallback(const std::shared_ptr<GoalHandleGetMotionPlan> goal_handle)
+void TesseractPlanningServer::onMotionPlanningCallback(
+    const std::shared_ptr<rclcpp_action::ServerGoalHandle<tesseract_msgs::action::GetMotionPlan>> goal_handle)
 {
   RCLCPP_INFO(node_->get_logger(), "Tesseract Planning Server Received Request!");
   const auto goal = goal_handle->get_goal();
-  auto result = std::make_shared<GetMotionPlan::Result>();
+  auto result = std::make_shared<tesseract_msgs::action::GetMotionPlan::Result>();
 
   // Check if process planner exist
   if (!planning_server_->hasTask(goal->request.name))

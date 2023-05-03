@@ -51,6 +51,12 @@ int main(int argc, char** argv)
   bool plotting = node->declare_parameter("plotting", true);
   bool rviz = node->declare_parameter("rviz", true);
   bool ifopt = node->declare_parameter("ifopt", false);
+
+  if (ifopt == true)
+  {
+    RCLCPP_INFO(node->get_logger(), "Using TrajOpt Ifopt!");
+  }
+
   bool debug = node->declare_parameter("debug", false);
 
   // Initial setup

@@ -92,9 +92,9 @@ ContactMonitor::~ContactMonitor() { current_joint_states_evt_.notify_all(); }
 
 void ContactMonitor::startPublishingEnvironment() { monitor_->startPublishingEnvironment(); }
 
-void ContactMonitor::startMonitoringEnvironment(const std::string& monitored_namepsace)
+void ContactMonitor::startMonitoringEnvironment(const std::string& monitored_namespace)
 {
-  monitor_->startMonitoringEnvironment(monitored_namepsace);
+  monitor_->startMonitoringEnvironment(monitored_namespace);
 }
 
 void ContactMonitor::startPublishingMarkers()
@@ -116,6 +116,7 @@ void ContactMonitor::computeCollisionReportThread()
   {
     std::shared_ptr<sensor_msgs::msg::JointState> msg = nullptr;
     tesseract_collision::ContactResultMap contacts;
+    tesseract_collision::ContactResultVector contacts_vector;
     tesseract_msgs::msg::ContactResultVector contacts_msg;
     std::string root_link;
     // Limit the lock
@@ -158,6 +159,7 @@ void ContactMonitor::computeCollisionReportThread()
       current_joint_states_.reset();
 
       contacts.clear();
+      contacts_vector.clear();
       contacts_msg.contacts.clear();
 
       monitor_->environment().setState(msg->name,
@@ -170,8 +172,7 @@ void ContactMonitor::computeCollisionReportThread()
 
     if (!contacts.empty())
     {
-      tesseract_collision::ContactResultVector contacts_vector;
-      tesseract_collision::flattenMoveResults(std::move(contacts), contacts_vector);
+      contacts.flattenCopyResults(contacts_vector);
       contacts_msg.contacts.reserve(contacts_vector.size());
       for (std::size_t i = 0; i < contacts_vector.size(); ++i)
       {
@@ -249,7 +250,10 @@ void ContactMonitor::callbackComputeContactResultVector(
     tesseract_msgs::srv::ComputeContactResultVector::Request::SharedPtr request,
     tesseract_msgs::srv::ComputeContactResultVector::Response::SharedPtr response)
 {
-  tesseract_collision::ContactResultMap contact_results;
+  thread_local tesseract_collision::ContactResultMap contact_results;
+  thread_local tesseract_collision::ContactResultVector contacts_vector;
+  contact_results.clear();
+  contacts_vector.clear();
 
   monitor_->environment().setState(
       request->joint_states.name,
@@ -263,8 +267,7 @@ void ContactMonitor::callbackComputeContactResultVector(
     manager_->contactTest(contact_results, type_);
   }
 
-  tesseract_collision::ContactResultVector contacts_vector;
-  tesseract_collision::flattenMoveResults(std::move(contact_results), contacts_vector);
+  contact_results.flattenCopyResults(contacts_vector);
   response->collision_result.contacts.reserve(contacts_vector.size());
   for (const auto& contact : contacts_vector)
   {

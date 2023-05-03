@@ -6,6 +6,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <rviz_common/display_context.hpp>
 #include <tesseract_qt/common/component_info.h>
+#include <tesseract_msgs/msg/environment.hpp>
 
 namespace rviz_common
 {
@@ -59,12 +60,14 @@ public Q_SLOTS:
   void onDisplayModeChanged();
   void onURDFDescriptionChanged();
   void onEnvironmentTopicChanged();
+  void onEnvironmentSnapshotTopicChanged();
   void onJointStateTopicChanged();
 
 protected:
   struct Implementation;
-
   std::unique_ptr<Implementation> data_;
+
+  void snapshotCallback(const tesseract_msgs::msg::Environment::ConstSharedPtr& msg);
 };
 
 }  // namespace tesseract_rviz

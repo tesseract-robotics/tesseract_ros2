@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>tesseract_rviz</name>
-  <version>0.14.0</version>
-  <description>The tesseract_rviz package for ROS 2</description>
+  <version>0.16.2</version>
+  <description>The tesseract_rviz package</description>
   <maintainer email="Armstrong@todo.todo">Levi Armstrong</maintainer>
   <license>BSD</license>
   <author >Levi Armstrong</author>

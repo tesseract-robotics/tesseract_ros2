@@ -26,6 +26,7 @@
 #include <tesseract_common/macros.h>
 #include <rclcpp/clock.hpp>
 #include <rclcpp/duration.hpp>
+#include <rclcpp/version.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <rclcpp/rclcpp.hpp>
 #include <tesseract_msgs/srv/modify_environment.hpp>
@@ -74,7 +75,11 @@ typename SrvType::Response::SharedPtr call_service(const std::string& name,
 ROSEnvironmentMonitorInterface::ROSEnvironmentMonitorInterface(rclcpp::Node::SharedPtr node, const std::string env_name)
   : EnvironmentMonitorInterface(std::move(env_name))
   , node_{ node }
+#if RCLCPP_VERSION_GTE(9, 0, 0)  // Galactic and up
   , callback_group_{ node_->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive, false) }
+#else
+  , callback_group_{ node_->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive) }
+#endif
   , logger_{ node_->get_logger().get_child(env_name + "_env_monitor") }
   , env_name_{ env_name }
 {

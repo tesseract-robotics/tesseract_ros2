@@ -324,8 +324,7 @@ void InteractiveMarkerControl::interactiveMarkerPoseChanged(Ogre::Vector3 int_ma
       markers_node_->setOrientation(control_frame_node_->getOrientation());
       break;
 
-    case OrientationMode::FIXED:
-    {
+    case OrientationMode::FIXED: {
       control_frame_node_->setOrientation(Ogre::Quaternion(rotation_, control_orientation_.xAxis()));
       markers_node_->setOrientation(control_frame_node_->getOrientation());
       break;

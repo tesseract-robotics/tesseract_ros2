@@ -267,8 +267,7 @@ void ROSManipulationWidget::addInteractiveMarker()
 
     switch (joint->type)
     {
-      case tesseract_scene_graph::JointType::PRISMATIC:
-      {
+      case tesseract_scene_graph::JointType::PRISMATIC: {
         Eigen::Vector3d disc_axis(1, 0, 0);
         Eigen::Quaternionf q = Eigen::Quaterniond::FromTwoVectors(disc_axis, joint->axis).cast<float>();
 
@@ -284,8 +283,7 @@ void ROSManipulationWidget::addInteractiveMarker()
         data_->joint_interactive_markers[joint_name] = interactive_marker;
         break;
       }
-      case tesseract_scene_graph::JointType::REVOLUTE:
-      {
+      case tesseract_scene_graph::JointType::REVOLUTE: {
         Eigen::Vector3d disc_axis(1, 0, 0);
         Eigen::Quaternionf q = Eigen::Quaterniond::FromTwoVectors(disc_axis, joint->axis).cast<float>();
         InteractiveMarkerControl::Ptr control =
@@ -299,8 +297,7 @@ void ROSManipulationWidget::addInteractiveMarker()
         data_->joint_interactive_markers[joint_name] = interactive_marker;
         break;
       }
-      case tesseract_scene_graph::JointType::CONTINUOUS:
-      {
+      case tesseract_scene_graph::JointType::CONTINUOUS: {
         Eigen::Vector3d disc_axis(1, 0, 0);
         Eigen::Quaternionf q = Eigen::Quaterniond::FromTwoVectors(disc_axis, joint->axis).cast<float>();
         InteractiveMarkerControl::Ptr control =
@@ -379,14 +376,12 @@ void ROSManipulationWidget::jointMarkerFeedback(const std::string& joint_name,
   double delta_joint_value = 0;
   switch (joint->type)
   {
-    case tesseract_scene_graph::JointType::PRISMATIC:
-    {
+    case tesseract_scene_graph::JointType::PRISMATIC: {
       delta_axis = delta_pose.translation().normalized();
       delta_joint_value = delta_pose.translation().norm();
       break;
     }
-    case tesseract_scene_graph::JointType::REVOLUTE:
-    {
+    case tesseract_scene_graph::JointType::REVOLUTE: {
       Eigen::AngleAxisd delta_rotation;
       delta_rotation.fromRotationMatrix(delta_pose.rotation());
 
@@ -394,8 +389,7 @@ void ROSManipulationWidget::jointMarkerFeedback(const std::string& joint_name,
       delta_joint_value = delta_rotation.angle();
       break;
     }
-    case tesseract_scene_graph::JointType::CONTINUOUS:
-    {
+    case tesseract_scene_graph::JointType::CONTINUOUS: {
       Eigen::AngleAxisd delta_rotation;
       delta_rotation.fromRotationMatrix(delta_pose.rotation());
 

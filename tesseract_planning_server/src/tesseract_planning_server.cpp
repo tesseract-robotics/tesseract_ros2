@@ -153,7 +153,8 @@ const tesseract_planning::ProfileDictionary& TesseractPlanningServer::getProfile
   return *profiles_;
 }
 
-rclcpp_action::GoalResponse TesseractPlanningServer::handle_goal(const rclcpp_action::GoalUUID&, std::shared_ptr<const GetMotionPlan::Goal>)
+rclcpp_action::GoalResponse TesseractPlanningServer::handle_goal(const rclcpp_action::GoalUUID&,
+                                                                 std::shared_ptr<const GetMotionPlan::Goal>)
 {
   return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
 }

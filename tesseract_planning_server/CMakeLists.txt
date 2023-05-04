@@ -27,7 +27,6 @@ add_library(${PROJECT_NAME} SHARED
   src/tesseract_planning_server.cpp)
 target_link_libraries(${PROJECT_NAME} PUBLIC
   rclcpp::rclcpp
-  tf2_eigen::tf2_eigen
   tf2_ros::tf2_ros
 
   tesseract::tesseract_command_language

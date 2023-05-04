@@ -58,7 +58,11 @@ typename SrvType::Response::SharedPtr call_service(const std::string& name,
   }
 
   rclcpp::executors::SingleThreadedExecutor exec;
+#if __has_include(<rclcpp/version.h>)  // ROS 2 Humble
   exec.add_callback_group(cbg, node.get_node_base_interface());
+#else  // ROS 2 Foxy
+  exec.add_node(node.get_node_base_interface());
+#endif
 
   auto future = client->async_send_request(request);
   auto retcode = exec.spin_until_future_complete(future, timeout);
@@ -76,7 +80,7 @@ ROSEnvironmentMonitorInterface::ROSEnvironmentMonitorInterface(rclcpp::Node::Sha
   , node_{ node }
 #if __has_include(<rclcpp/version.h>)  // ROS 2 Humble
   , callback_group_{ node_->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive, false) }
-#else
+#else  // ROS 2 Foxy
   , callback_group_{ node_->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive) }
 #endif
   , logger_{ node_->get_logger().get_child(env_name + "_env_monitor") }

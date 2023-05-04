@@ -294,7 +294,7 @@ void EnvironmentMonitorProperties::onEnvironmentTopicChanged()
   }
 }
 
-void EnvironmentMonitorProperties::snapshotCallback(const tesseract_msgs::msg::Environment::ConstSharedPtr& msg)
+void EnvironmentMonitorProperties::snapshotCallback(const tesseract_msgs::msg::Environment::SharedPtr msg)
 {
   if (data_->scene_manager == nullptr || data_->scene_node == nullptr)
     return;

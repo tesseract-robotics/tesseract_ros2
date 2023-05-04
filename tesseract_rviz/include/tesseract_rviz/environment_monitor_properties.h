@@ -67,7 +67,7 @@ protected:
   struct Implementation;
   std::unique_ptr<Implementation> data_;
 
-  void snapshotCallback(const tesseract_msgs::msg::Environment::ConstSharedPtr& msg);
+  void snapshotCallback(const tesseract_msgs::msg::Environment::SharedPtr msg);
 };
 
 }  // namespace tesseract_rviz

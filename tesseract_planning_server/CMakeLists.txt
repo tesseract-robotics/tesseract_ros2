@@ -51,21 +51,16 @@ target_cxx_version(${PROJECT_NAME} PUBLIC VERSION ${TESSERACT_CXX_VERSION})
 target_include_directories(${PROJECT_NAME} PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include>"
-  # ${tf2_eigen_INCLUDE_DIRS}
 )
-# target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC 
-#   ${EIGEN3_INCLUDE_DIRS})
 
-# add_executable(${PROJECT_NAME}_node src/tesseract_planning_server_node.cpp)
-# target_link_libraries(${PROJECT_NAME}_node PRIVATE ${PROJECT_NAME} ${catkin_LIBRARIES})
-# target_compile_options(${PROJECT_NAME}_node PRIVATE ${TESSERACT_COMPILE_OPTIONS})
-# target_clang_tidy(${PROJECT_NAME}_node ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS} ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
-# target_cxx_version(${PROJECT_NAME}_node PRIVATE VERSION ${TESSERACT_CXX_VERSION})
-# target_include_directories(${PROJECT_NAME}_node PUBLIC
-#   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-#   "$<INSTALL_INTERFACE:include>")
-# target_include_directories(${PROJECT_NAME}_node SYSTEM PUBLIC
-#   ${catkin_INCLUDE_DIRS})
+add_executable(${PROJECT_NAME}_node src/tesseract_planning_server_node.cpp)
+target_link_libraries(${PROJECT_NAME}_node PRIVATE ${PROJECT_NAME} ${catkin_LIBRARIES})
+target_compile_options(${PROJECT_NAME}_node PRIVATE ${TESSERACT_COMPILE_OPTIONS})
+target_clang_tidy(${PROJECT_NAME}_node ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS} ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
+target_cxx_version(${PROJECT_NAME}_node PRIVATE VERSION ${TESSERACT_CXX_VERSION})
+target_include_directories(${PROJECT_NAME}_node PUBLIC
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+  "$<INSTALL_INTERFACE:include>")
 
 # add_executable(${PROJECT_NAME}_raster_example examples/server_raster_example.cpp)
 # target_link_libraries(${PROJECT_NAME}_raster_example PRIVATE tesseract::tesseract_command_language tesseract::tesseract_task_composer ${catkin_LIBRARIES})
@@ -89,12 +84,12 @@ install(
 )
 
 # Mark executables for installation
-#install(
-#  TARGETS 
-#    ${PROJECT_NAME}_node 
-#    ${PROJECT_NAME}_raster_example
-#  RUNTIME DESTINATION lib/${PROJECT_NAME}
-#)
+install(
+ TARGETS 
+   ${PROJECT_NAME}_node 
+  #  ${PROJECT_NAME}_raster_example
+ RUNTIME DESTINATION lib/${PROJECT_NAME}
+)
 
 install(DIRECTORY include/${PROJECT_NAME} DESTINATION include)
 install(DIRECTORY launch DESTINATION share/${PROJECT_NAME})

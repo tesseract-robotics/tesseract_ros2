@@ -25,7 +25,7 @@
  */
 #include <tesseract_common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
-#include <ros/ros.h>
+#include <rclcpp/rclcpp.hpp>
 #include <memory>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
@@ -37,53 +37,50 @@ using namespace tesseract_environment;
 const std::string ROBOT_DESCRIPTION_PARAM = "robot_description"; /**< Default ROS parameter for robot description */
 static std::shared_ptr<tesseract_planning_server::TesseractPlanningServer> planning_server;
 
-void updateCacheCallback(const ros::TimerEvent&) { planning_server->getEnvironmentCache().refreshCache(); }
+void updateCacheCallback() { planning_server->getEnvironmentCache().refreshCache(); }
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "tesseract_planning_server");
-  ros::NodeHandle nh;
-  ros::NodeHandle pnh("~");
+  rclcpp::init(argc, argv);
+  auto node = std::make_shared<rclcpp::Node>("tesseract_planning_server");
 
-  std::string robot_description;
-  std::string discrete_plugin;
-  std::string continuous_plugin;
-  std::string monitor_namespace;
-  std::string monitored_namespace;
+  std::string robot_description = ROBOT_DESCRIPTION_PARAM;
+  std::string monitored_namespace = "";
   std::string task_composer_config;
-  std::string input_key;
-  std::string output_key;
   bool publish_environment{ false };
   int cache_size{ 5 };
   double cache_refresh_rate{ 0.1 };
 
-  if (!pnh.getParam("monitor_namespace", monitor_namespace))
+  std::string monitor_namespace = node->declare_parameter("monitor_namespace", "");
+  if (monitor_namespace.empty())
   {
-    ROS_ERROR("Missing required parameter monitor_namespace!");
+    RCLCPP_ERROR(node->get_logger(), "Missing required parameter monitor_namespace!");
     return 1;
   }
 
-  if (!pnh.getParam("input_key", input_key))
+  std::string input_key = node->declare_parameter("input_key", "");
+  if (input_key.empty())
   {
-    ROS_ERROR("Missing required parameter input_key!");
+    RCLCPP_ERROR(node->get_logger(), "Missing required parameter input_key!");
     return 1;
   }
 
-  if (!pnh.getParam("output_key", output_key))
+  std::string output_key = node->declare_parameter("output_key", "");
+  if (output_key.empty())
   {
-    ROS_ERROR("Missing required parameter output_key!");
+    RCLCPP_ERROR(node->get_logger(), "Missing required parameter output_key!");
     return 1;
   }
 
-  pnh.param<std::string>("monitored_namespace", monitored_namespace, "");
-  pnh.param<std::string>("robot_description", robot_description, ROBOT_DESCRIPTION_PARAM);
-  pnh.param<bool>("publish_environment", publish_environment, publish_environment);
-  pnh.param<int>("cache_size", cache_size, cache_size);
-  pnh.param<double>("cache_refresh_rate", cache_refresh_rate, cache_refresh_rate);
-  pnh.param<std::string>("task_composer_config", task_composer_config, task_composer_config);
+  monitored_namespace = node->declare_parameter("monitored_namespace", monitored_namespace);
+  robot_description = node->declare_parameter("robot_description", robot_description);
+  publish_environment = node->declare_parameter("publish_environment", publish_environment);
+  cache_size = node->declare_parameter("cache_size", cache_size);
+  cache_refresh_rate = node->declare_parameter("cache_refresh_rate", cache_refresh_rate);
+  task_composer_config = node->declare_parameter("task_composer_config", task_composer_config);
 
   planning_server = std::make_shared<tesseract_planning_server::TesseractPlanningServer>(
-      robot_description, input_key, output_key, monitor_namespace);
+      node, robot_description, input_key, output_key, monitor_namespace);
 
   planning_server->getEnvironmentCache().setCacheSize(cache_size);
 
@@ -99,12 +96,13 @@ int main(int argc, char** argv)
     planning_server->getTaskComposerServer().loadConfig(config);
   }
 
-  ros::Timer update_cache = nh.createTimer(ros::Duration(cache_refresh_rate), updateCacheCallback);
+  // TODO: Rate seems in seconds, whereas this should be in Hz (otherwise it should be called interval)
+  auto update_cache =
+      node->create_wall_timer(std::chrono::duration<double>(cache_refresh_rate), [] { updateCacheCallback(); });
 
-  ros::AsyncSpinner spinner(4);
-  spinner.start();
+  RCLCPP_INFO(node->get_logger(), "Planning Server Running!");
 
-  ros::waitForShutdown();
+  rclcpp::spin(node);
 
   return 0;
 }

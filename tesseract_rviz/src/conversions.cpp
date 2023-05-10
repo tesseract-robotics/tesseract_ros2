@@ -496,7 +496,8 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
 
   switch (geometry.getType())
   {
-    case tesseract_geometry::GeometryType::SPHERE: {
+    case tesseract_geometry::GeometryType::SPHERE:
+    {
       const auto& sphere = static_cast<const tesseract_geometry::Sphere&>(geometry);
       auto entity = entity_container.addUntrackedEntity(tesseract_gui::EntityContainer::RESOURCE_NS);
       ogre_entity = scene.createEntity(entity.unique_name, "tesseract_sphere.mesh");
@@ -504,7 +505,8 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
       ogre_scale = Ogre::Vector3(diameter, diameter, diameter);
       break;
     }
-    case tesseract_geometry::GeometryType::BOX: {
+    case tesseract_geometry::GeometryType::BOX:
+    {
       const auto& box = static_cast<const tesseract_geometry::Box&>(geometry);
       auto entity = entity_container.addUntrackedEntity(tesseract_gui::EntityContainer::RESOURCE_NS);
       ogre_entity = scene.createEntity(entity.unique_name, "tesseract_cube.mesh");
@@ -512,7 +514,8 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
           Ogre::Vector3(static_cast<float>(box.getX()), static_cast<float>(box.getY()), static_cast<float>(box.getZ()));
       break;
     }
-    case tesseract_geometry::GeometryType::CYLINDER: {
+    case tesseract_geometry::GeometryType::CYLINDER:
+    {
       const auto& cylinder = static_cast<const tesseract_geometry::Cylinder&>(geometry);
       auto entity = entity_container.addUntrackedEntity(tesseract_gui::EntityContainer::RESOURCE_NS);
       ogre_entity = scene.createEntity(entity.unique_name, "tesseract_cylinder.mesh");
@@ -521,7 +524,8 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
                                  static_cast<float>(cylinder.getLength()));
       break;
     }
-    case tesseract_geometry::GeometryType::CONE: {
+    case tesseract_geometry::GeometryType::CONE:
+    {
       const auto& cone = static_cast<const tesseract_geometry::Cone&>(geometry);
       auto entity = entity_container.addUntrackedEntity(tesseract_gui::EntityContainer::RESOURCE_NS);
       ogre_entity = scene.createEntity(entity.unique_name, "tesseract_cone.mesh");
@@ -530,7 +534,8 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
                                  static_cast<float>(cone.getLength()));
       break;
     }
-    case tesseract_geometry::GeometryType::CAPSULE: {
+    case tesseract_geometry::GeometryType::CAPSULE:
+    {
       const auto& capsule = static_cast<const tesseract_geometry::Capsule&>(geometry);
       auto entity = entity_container.addUntrackedEntity(tesseract_gui::EntityContainer::RESOURCE_NS);
       ogre_entity = scene.createEntity(entity.unique_name, "tesseract_capsule.mesh");
@@ -539,7 +544,8 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
                                  static_cast<float>((0.5 * capsule.getLength()) + capsule.getRadius()));
       break;
     }
-    case tesseract_geometry::GeometryType::MESH: {
+    case tesseract_geometry::GeometryType::MESH:
+    {
       const auto& mesh = static_cast<const tesseract_geometry::Mesh&>(geometry);
 
       if (mesh.getResource() && mesh.getResource()->isFile() && is_visual)
@@ -578,7 +584,8 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
 
       break;
     }
-    case tesseract_geometry::GeometryType::CONVEX_MESH: {
+    case tesseract_geometry::GeometryType::CONVEX_MESH:
+    {
       const auto& mesh = static_cast<const tesseract_geometry::ConvexMesh&>(geometry);
 
       if (mesh.getResource() && mesh.getResource()->isFile() && is_visual)
@@ -616,7 +623,8 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
       }
       break;
     }
-    case tesseract_geometry::GeometryType::OCTREE: {
+    case tesseract_geometry::GeometryType::OCTREE:
+    {
       std::size_t max_octree_depth = 0;
       double color_factor = 0.8;
       OctreeVoxelRenderMode octree_voxel_rendering = OCTOMAP_OCCUPIED_VOXELS;

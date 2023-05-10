@@ -103,7 +103,8 @@ bool isIdentical(const tesseract_geometry::Geometry& shape1, const tesseract_geo
 
   switch (shape1.getType())
   {
-    case tesseract_geometry::GeometryType::BOX: {
+    case tesseract_geometry::GeometryType::BOX:
+    {
       const auto& s1 = static_cast<const tesseract_geometry::Box&>(shape1);
       const auto& s2 = static_cast<const tesseract_geometry::Box&>(shape2);
 
@@ -118,7 +119,8 @@ bool isIdentical(const tesseract_geometry::Geometry& shape1, const tesseract_geo
 
       break;
     }
-    case tesseract_geometry::GeometryType::SPHERE: {
+    case tesseract_geometry::GeometryType::SPHERE:
+    {
       const auto& s1 = static_cast<const tesseract_geometry::Sphere&>(shape1);
       const auto& s2 = static_cast<const tesseract_geometry::Sphere&>(shape2);
 
@@ -127,7 +129,8 @@ bool isIdentical(const tesseract_geometry::Geometry& shape1, const tesseract_geo
 
       break;
     }
-    case tesseract_geometry::GeometryType::CYLINDER: {
+    case tesseract_geometry::GeometryType::CYLINDER:
+    {
       const auto& s1 = static_cast<const tesseract_geometry::Cylinder&>(shape1);
       const auto& s2 = static_cast<const tesseract_geometry::Cylinder&>(shape2);
 
@@ -139,7 +142,8 @@ bool isIdentical(const tesseract_geometry::Geometry& shape1, const tesseract_geo
 
       break;
     }
-    case tesseract_geometry::GeometryType::CONE: {
+    case tesseract_geometry::GeometryType::CONE:
+    {
       const auto& s1 = static_cast<const tesseract_geometry::Cone&>(shape1);
       const auto& s2 = static_cast<const tesseract_geometry::Cone&>(shape2);
 
@@ -151,7 +155,8 @@ bool isIdentical(const tesseract_geometry::Geometry& shape1, const tesseract_geo
 
       break;
     }
-    case tesseract_geometry::GeometryType::MESH: {
+    case tesseract_geometry::GeometryType::MESH:
+    {
       const auto& s1 = static_cast<const tesseract_geometry::Mesh&>(shape1);
       const auto& s2 = static_cast<const tesseract_geometry::Mesh&>(shape2);
 
@@ -169,7 +174,8 @@ bool isIdentical(const tesseract_geometry::Geometry& shape1, const tesseract_geo
 
       break;
     }
-    case tesseract_geometry::GeometryType::CONVEX_MESH: {
+    case tesseract_geometry::GeometryType::CONVEX_MESH:
+    {
       const auto& s1 = static_cast<const tesseract_geometry::ConvexMesh&>(shape1);
       const auto& s2 = static_cast<const tesseract_geometry::ConvexMesh&>(shape2);
 
@@ -187,7 +193,8 @@ bool isIdentical(const tesseract_geometry::Geometry& shape1, const tesseract_geo
 
       break;
     }
-    case tesseract_geometry::GeometryType::SDF_MESH: {
+    case tesseract_geometry::GeometryType::SDF_MESH:
+    {
       const auto& s1 = static_cast<const tesseract_geometry::Mesh&>(shape1);
       const auto& s2 = static_cast<const tesseract_geometry::Mesh&>(shape2);
 
@@ -205,7 +212,8 @@ bool isIdentical(const tesseract_geometry::Geometry& shape1, const tesseract_geo
 
       break;
     }
-    case tesseract_geometry::GeometryType::OCTREE: {
+    case tesseract_geometry::GeometryType::OCTREE:
+    {
       const auto& s1 = static_cast<const tesseract_geometry::Octree&>(shape1);
       const auto& s2 = static_cast<const tesseract_geometry::Octree&>(shape2);
 
@@ -293,14 +301,16 @@ bool toMsg(tesseract_msgs::msg::Geometry& geometry_msgs, const tesseract_geometr
 {
   switch (geometry.getType())
   {
-    case tesseract_geometry::GeometryType::SPHERE: {
+    case tesseract_geometry::GeometryType::SPHERE:
+    {
       const auto& sphere = static_cast<const tesseract_geometry::Sphere&>(geometry);
 
       geometry_msgs.type = tesseract_msgs::msg::Geometry::SPHERE;
       geometry_msgs.sphere_radius = sphere.getRadius();
       break;
     }
-    case tesseract_geometry::GeometryType::BOX: {
+    case tesseract_geometry::GeometryType::BOX:
+    {
       const auto& box = static_cast<const tesseract_geometry::Box&>(geometry);
 
       geometry_msgs.type = tesseract_msgs::msg::Geometry::BOX;
@@ -309,7 +319,8 @@ bool toMsg(tesseract_msgs::msg::Geometry& geometry_msgs, const tesseract_geometr
       geometry_msgs.box_dimensions[2] = box.getZ();
       break;
     }
-    case tesseract_geometry::GeometryType::CYLINDER: {
+    case tesseract_geometry::GeometryType::CYLINDER:
+    {
       const auto& cylinder = static_cast<const tesseract_geometry::Cylinder&>(geometry);
 
       geometry_msgs.type = tesseract_msgs::msg::Geometry::CYLINDER;
@@ -317,7 +328,8 @@ bool toMsg(tesseract_msgs::msg::Geometry& geometry_msgs, const tesseract_geometr
       geometry_msgs.cylinder_dimensions[1] = cylinder.getLength();
       break;
     }
-    case tesseract_geometry::GeometryType::CAPSULE: {
+    case tesseract_geometry::GeometryType::CAPSULE:
+    {
       const auto& capsule = static_cast<const tesseract_geometry::Capsule&>(geometry);
 
       geometry_msgs.type = tesseract_msgs::msg::Geometry::CAPSULE;
@@ -325,7 +337,8 @@ bool toMsg(tesseract_msgs::msg::Geometry& geometry_msgs, const tesseract_geometr
       geometry_msgs.capsule_dimensions[1] = capsule.getLength();
       break;
     }
-    case tesseract_geometry::GeometryType::CONE: {
+    case tesseract_geometry::GeometryType::CONE:
+    {
       const auto& cone = static_cast<const tesseract_geometry::Cone&>(geometry);
 
       geometry_msgs.type = tesseract_msgs::msg::Geometry::CONE;
@@ -333,7 +346,8 @@ bool toMsg(tesseract_msgs::msg::Geometry& geometry_msgs, const tesseract_geometr
       geometry_msgs.cone_dimensions[1] = cone.getLength();
       break;
     }
-    case tesseract_geometry::GeometryType::PLANE: {
+    case tesseract_geometry::GeometryType::PLANE:
+    {
       const auto& plane = static_cast<const tesseract_geometry::Plane&>(geometry);
 
       geometry_msgs.type = tesseract_msgs::msg::Geometry::PLANE;
@@ -343,7 +357,8 @@ bool toMsg(tesseract_msgs::msg::Geometry& geometry_msgs, const tesseract_geometr
       geometry_msgs.plane_coeff[3] = plane.getD();
       break;
     }
-    case tesseract_geometry::GeometryType::OCTREE: {
+    case tesseract_geometry::GeometryType::OCTREE:
+    {
       const auto& octree = static_cast<const tesseract_geometry::Octree&>(geometry);
 
       geometry_msgs.type = tesseract_msgs::msg::Geometry::OCTREE;
@@ -351,7 +366,8 @@ bool toMsg(tesseract_msgs::msg::Geometry& geometry_msgs, const tesseract_geometr
       geometry_msgs.octomap_sub_type.type = static_cast<uint8_t>(octree.getSubType());
       break;
     }
-    case tesseract_geometry::GeometryType::MESH: {
+    case tesseract_geometry::GeometryType::MESH:
+    {
       const auto& mesh = static_cast<const tesseract_geometry::Mesh&>(geometry);
 
       geometry_msgs.type = tesseract_msgs::msg::Geometry::MESH;
@@ -390,7 +406,8 @@ bool toMsg(tesseract_msgs::msg::Geometry& geometry_msgs, const tesseract_geometr
 
       break;
     }
-    case tesseract_geometry::GeometryType::CONVEX_MESH: {
+    case tesseract_geometry::GeometryType::CONVEX_MESH:
+    {
       const auto& mesh = static_cast<const tesseract_geometry::ConvexMesh&>(geometry);
 
       geometry_msgs.type = tesseract_msgs::msg::Geometry::CONVEX_MESH;
@@ -429,7 +446,8 @@ bool toMsg(tesseract_msgs::msg::Geometry& geometry_msgs, const tesseract_geometr
 
       break;
     }
-    case tesseract_geometry::GeometryType::SDF_MESH: {
+    case tesseract_geometry::GeometryType::SDF_MESH:
+    {
       const auto& mesh = static_cast<const tesseract_geometry::SDFMesh&>(geometry);
 
       geometry_msgs.type = tesseract_msgs::msg::Geometry::SDF_MESH;
@@ -468,7 +486,8 @@ bool toMsg(tesseract_msgs::msg::Geometry& geometry_msgs, const tesseract_geometr
 
       break;
     }
-    default: {
+    default:
+    {
       RCLCPP_ERROR(rclcpp::get_logger(LOGGER_ID),
                    "Unable to construct primitive shape message for shape of type %d",
                    static_cast<int>(geometry.getType()));
@@ -1103,25 +1122,32 @@ fromMsg(const tesseract_msgs::msg::CollisionMarginOverrideType& contact_margin_o
 {
   switch (contact_margin_override_type_msg.type)
   {
-    case tesseract_msgs::msg::CollisionMarginOverrideType::OVERRIDE_DEFAULT_MARGIN: {
+    case tesseract_msgs::msg::CollisionMarginOverrideType::OVERRIDE_DEFAULT_MARGIN:
+    {
       return tesseract_common::CollisionMarginOverrideType::OVERRIDE_DEFAULT_MARGIN;
     }
-    case tesseract_msgs::msg::CollisionMarginOverrideType::OVERRIDE_PAIR_MARGIN: {
+    case tesseract_msgs::msg::CollisionMarginOverrideType::OVERRIDE_PAIR_MARGIN:
+    {
       return tesseract_common::CollisionMarginOverrideType::OVERRIDE_PAIR_MARGIN;
     }
-    case tesseract_msgs::msg::CollisionMarginOverrideType::MODIFY_PAIR_MARGIN: {
+    case tesseract_msgs::msg::CollisionMarginOverrideType::MODIFY_PAIR_MARGIN:
+    {
       return tesseract_common::CollisionMarginOverrideType::MODIFY_PAIR_MARGIN;
     }
-    case tesseract_msgs::msg::CollisionMarginOverrideType::MODIFY: {
+    case tesseract_msgs::msg::CollisionMarginOverrideType::MODIFY:
+    {
       return tesseract_common::CollisionMarginOverrideType::MODIFY;
     }
-    case tesseract_msgs::msg::CollisionMarginOverrideType::REPLACE: {
+    case tesseract_msgs::msg::CollisionMarginOverrideType::REPLACE:
+    {
       return tesseract_common::CollisionMarginOverrideType::REPLACE;
     }
-    case tesseract_msgs::msg::CollisionMarginOverrideType::NONE: {
+    case tesseract_msgs::msg::CollisionMarginOverrideType::NONE:
+    {
       return tesseract_common::CollisionMarginOverrideType::NONE;
     }
-    default: {
+    default:
+    {
       throw std::runtime_error("fromMsg: Invalid CollisionMarginOverrideType!");
     }
   }
@@ -1133,27 +1159,33 @@ toMsg(const tesseract_common::CollisionMarginOverrideType& contact_margin_overri
   tesseract_msgs::msg::CollisionMarginOverrideType contact_margin_override_type_msg;
   switch (static_cast<int>(contact_margin_override_type))
   {
-    case static_cast<int>(tesseract_collision::CollisionMarginOverrideType::OVERRIDE_DEFAULT_MARGIN): {
+    case static_cast<int>(tesseract_collision::CollisionMarginOverrideType::OVERRIDE_DEFAULT_MARGIN):
+    {
       contact_margin_override_type_msg.type = tesseract_msgs::msg::CollisionMarginOverrideType::OVERRIDE_DEFAULT_MARGIN;
       break;
     }
-    case static_cast<int>(tesseract_collision::CollisionMarginOverrideType::OVERRIDE_PAIR_MARGIN): {
+    case static_cast<int>(tesseract_collision::CollisionMarginOverrideType::OVERRIDE_PAIR_MARGIN):
+    {
       contact_margin_override_type_msg.type = tesseract_msgs::msg::CollisionMarginOverrideType::OVERRIDE_PAIR_MARGIN;
       break;
     }
-    case static_cast<int>(tesseract_collision::CollisionMarginOverrideType::MODIFY_PAIR_MARGIN): {
+    case static_cast<int>(tesseract_collision::CollisionMarginOverrideType::MODIFY_PAIR_MARGIN):
+    {
       contact_margin_override_type_msg.type = tesseract_msgs::msg::CollisionMarginOverrideType::MODIFY_PAIR_MARGIN;
       break;
     }
-    case static_cast<int>(tesseract_collision::CollisionMarginOverrideType::MODIFY): {
+    case static_cast<int>(tesseract_collision::CollisionMarginOverrideType::MODIFY):
+    {
       contact_margin_override_type_msg.type = tesseract_msgs::msg::CollisionMarginOverrideType::MODIFY;
       break;
     }
-    case static_cast<int>(tesseract_collision::CollisionMarginOverrideType::REPLACE): {
+    case static_cast<int>(tesseract_collision::CollisionMarginOverrideType::REPLACE):
+    {
       contact_margin_override_type_msg.type = tesseract_msgs::msg::CollisionMarginOverrideType::REPLACE;
       break;
     }
-    case static_cast<int>(tesseract_collision::CollisionMarginOverrideType::NONE): {
+    case static_cast<int>(tesseract_collision::CollisionMarginOverrideType::NONE):
+    {
       contact_margin_override_type_msg.type = tesseract_msgs::msg::CollisionMarginOverrideType::NONE;
       break;
     }
@@ -1231,7 +1263,8 @@ bool toMsg(tesseract_msgs::msg::EnvironmentCommand& command_msg, const tesseract
 {
   switch (command.getType())
   {
-    case tesseract_environment::CommandType::ADD_LINK: {
+    case tesseract_environment::CommandType::ADD_LINK:
+    {
       command_msg.command = tesseract_msgs::msg::EnvironmentCommand::ADD_LINK;
       const auto& cmd = static_cast<const tesseract_environment::AddLinkCommand&>(command);
       tesseract_rosutils::toMsg(command_msg.add_link, *(cmd.getLink()));
@@ -1242,76 +1275,88 @@ bool toMsg(tesseract_msgs::msg::EnvironmentCommand& command_msg, const tesseract
 
       return true;
     }
-    case tesseract_environment::CommandType::MOVE_LINK: {
+    case tesseract_environment::CommandType::MOVE_LINK:
+    {
       command_msg.command = tesseract_msgs::msg::EnvironmentCommand::MOVE_LINK;
       const auto& cmd = static_cast<const tesseract_environment::MoveLinkCommand&>(command);
       tesseract_rosutils::toMsg(command_msg.move_link_joint, *(cmd.getJoint()));
       return true;
     }
-    case tesseract_environment::CommandType::MOVE_JOINT: {
+    case tesseract_environment::CommandType::MOVE_JOINT:
+    {
       command_msg.command = tesseract_msgs::msg::EnvironmentCommand::MOVE_JOINT;
       const auto& cmd = static_cast<const tesseract_environment::MoveJointCommand&>(command);
       command_msg.move_joint_name = cmd.getJointName();
       command_msg.move_joint_parent_link = cmd.getParentLink();
       return true;
     }
-    case tesseract_environment::CommandType::REMOVE_LINK: {
+    case tesseract_environment::CommandType::REMOVE_LINK:
+    {
       command_msg.command = tesseract_msgs::msg::EnvironmentCommand::REMOVE_LINK;
       const auto& cmd = static_cast<const tesseract_environment::RemoveLinkCommand&>(command);
       command_msg.remove_link = cmd.getLinkName();
       return true;
     }
-    case tesseract_environment::CommandType::REMOVE_JOINT: {
+    case tesseract_environment::CommandType::REMOVE_JOINT:
+    {
       command_msg.command = tesseract_msgs::msg::EnvironmentCommand::REMOVE_JOINT;
       const auto& cmd = static_cast<const tesseract_environment::RemoveJointCommand&>(command);
       command_msg.remove_joint = cmd.getJointName();
       return true;
     }
-    case tesseract_environment::CommandType::REPLACE_JOINT: {
+    case tesseract_environment::CommandType::REPLACE_JOINT:
+    {
       command_msg.command = tesseract_msgs::msg::EnvironmentCommand::REPLACE_JOINT;
       const auto& cmd = static_cast<const tesseract_environment::ReplaceJointCommand&>(command);
       tesseract_rosutils::toMsg(command_msg.replace_joint, *(cmd.getJoint()));
       return true;
     }
-    case tesseract_environment::CommandType::CHANGE_LINK_ORIGIN: {
+    case tesseract_environment::CommandType::CHANGE_LINK_ORIGIN:
+    {
       assert(false);
       return false;
     }
-    case tesseract_environment::CommandType::CHANGE_JOINT_ORIGIN: {
+    case tesseract_environment::CommandType::CHANGE_JOINT_ORIGIN:
+    {
       command_msg.command = tesseract_msgs::msg::EnvironmentCommand::CHANGE_JOINT_ORIGIN;
       const auto& cmd = static_cast<const tesseract_environment::ChangeJointOriginCommand&>(command);
       command_msg.change_joint_origin_name = cmd.getJointName();
       command_msg.change_joint_origin_pose = Eigen::toMsg(cmd.getOrigin());
       return true;
     }
-    case tesseract_environment::CommandType::CHANGE_LINK_COLLISION_ENABLED: {
+    case tesseract_environment::CommandType::CHANGE_LINK_COLLISION_ENABLED:
+    {
       command_msg.command = tesseract_msgs::msg::EnvironmentCommand::CHANGE_LINK_COLLISION_ENABLED;
       const auto& cmd = static_cast<const tesseract_environment::ChangeLinkCollisionEnabledCommand&>(command);
       command_msg.change_link_collision_enabled_name = cmd.getLinkName();
       command_msg.change_link_collision_enabled_value = cmd.getEnabled();
       return true;
     }
-    case tesseract_environment::CommandType::CHANGE_LINK_VISIBILITY: {
+    case tesseract_environment::CommandType::CHANGE_LINK_VISIBILITY:
+    {
       command_msg.command = tesseract_msgs::msg::EnvironmentCommand::CHANGE_LINK_VISIBILITY;
       const auto& cmd = static_cast<const tesseract_environment::ChangeLinkVisibilityCommand&>(command);
       command_msg.change_link_visibility_name = cmd.getLinkName();
       command_msg.change_link_visibility_value = cmd.getEnabled();
       return true;
     }
-    case tesseract_environment::CommandType::MODIFY_ALLOWED_COLLISIONS: {
+    case tesseract_environment::CommandType::MODIFY_ALLOWED_COLLISIONS:
+    {
       command_msg.command = tesseract_msgs::msg::EnvironmentCommand::MODIFY_ALLOWED_COLLISIONS;
       const auto& cmd = static_cast<const tesseract_environment::ModifyAllowedCollisionsCommand&>(command);
       command_msg.modify_allowed_collisions_type = static_cast<uint8_t>(cmd.getModifyType());
       toMsg(command_msg.modify_allowed_collisions, cmd.getAllowedCollisionMatrix());
       return true;
     }
-    case tesseract_environment::CommandType::REMOVE_ALLOWED_COLLISION_LINK: {
+    case tesseract_environment::CommandType::REMOVE_ALLOWED_COLLISION_LINK:
+    {
       command_msg.command = tesseract_msgs::msg::EnvironmentCommand::REMOVE_ALLOWED_COLLISION_LINK;
       const auto& cmd = static_cast<const tesseract_environment::RemoveAllowedCollisionLinkCommand&>(command);
       command_msg.remove_allowed_collision_link = cmd.getLinkName();
       return true;
     }
-    case tesseract_environment::CommandType::ADD_SCENE_GRAPH: {
+    case tesseract_environment::CommandType::ADD_SCENE_GRAPH:
+    {
       command_msg.command = tesseract_msgs::msg::EnvironmentCommand::ADD_SCENE_GRAPH;
       const auto& cmd = static_cast<const tesseract_environment::AddSceneGraphCommand&>(command);
 
@@ -1322,7 +1367,8 @@ bool toMsg(tesseract_msgs::msg::EnvironmentCommand& command_msg, const tesseract
       command_msg.scene_graph_prefix = cmd.getPrefix();
       return true;
     }
-    case tesseract_environment::CommandType::CHANGE_JOINT_POSITION_LIMITS: {
+    case tesseract_environment::CommandType::CHANGE_JOINT_POSITION_LIMITS:
+    {
       command_msg.command = tesseract_msgs::msg::EnvironmentCommand::CHANGE_JOINT_POSITION_LIMITS;
       const auto& cmd = static_cast<const tesseract_environment::ChangeJointPositionLimitsCommand&>(command);
       for (const auto& l : cmd.getLimits())
@@ -1336,7 +1382,8 @@ bool toMsg(tesseract_msgs::msg::EnvironmentCommand& command_msg, const tesseract
 
       return true;
     }
-    case tesseract_environment::CommandType::CHANGE_JOINT_VELOCITY_LIMITS: {
+    case tesseract_environment::CommandType::CHANGE_JOINT_VELOCITY_LIMITS:
+    {
       command_msg.command = tesseract_msgs::msg::EnvironmentCommand::CHANGE_JOINT_VELOCITY_LIMITS;
       const auto& cmd = static_cast<const tesseract_environment::ChangeJointVelocityLimitsCommand&>(command);
       for (const auto& l : cmd.getLimits())
@@ -1349,7 +1396,8 @@ bool toMsg(tesseract_msgs::msg::EnvironmentCommand& command_msg, const tesseract
 
       return true;
     }
-    case tesseract_environment::CommandType::CHANGE_JOINT_ACCELERATION_LIMITS: {
+    case tesseract_environment::CommandType::CHANGE_JOINT_ACCELERATION_LIMITS:
+    {
       command_msg.command = tesseract_msgs::msg::EnvironmentCommand::CHANGE_JOINT_ACCELERATION_LIMITS;
       const auto& cmd = static_cast<const tesseract_environment::ChangeJointAccelerationLimitsCommand&>(command);
       for (const auto& l : cmd.getLimits())
@@ -1362,37 +1410,43 @@ bool toMsg(tesseract_msgs::msg::EnvironmentCommand& command_msg, const tesseract
 
       return true;
     }
-    case tesseract_environment::CommandType::ADD_KINEMATICS_INFORMATION: {
+    case tesseract_environment::CommandType::ADD_KINEMATICS_INFORMATION:
+    {
       command_msg.command = tesseract_msgs::msg::EnvironmentCommand::ADD_KINEMATICS_INFORMATION;
       const auto& cmd = static_cast<const tesseract_environment::AddKinematicsInformationCommand&>(command);
       return toMsg(command_msg.add_kinematics_information, cmd.getKinematicsInformation());
     }
-    case tesseract_environment::CommandType::CHANGE_COLLISION_MARGINS: {
+    case tesseract_environment::CommandType::CHANGE_COLLISION_MARGINS:
+    {
       command_msg.command = tesseract_msgs::msg::EnvironmentCommand::CHANGE_COLLISION_MARGINS;
       const auto& cmd = static_cast<const tesseract_environment::ChangeCollisionMarginsCommand&>(command);
       command_msg.collision_margin_data = toMsg(cmd.getCollisionMarginData());
       command_msg.collision_margin_override_type = toMsg(cmd.getCollisionMarginOverrideType());
       return true;
     }
-    case tesseract_environment::CommandType::ADD_CONTACT_MANAGERS_PLUGIN_INFO: {
+    case tesseract_environment::CommandType::ADD_CONTACT_MANAGERS_PLUGIN_INFO:
+    {
       command_msg.command = tesseract_msgs::msg::EnvironmentCommand::ADD_CONTACT_MANAGERS_PLUGIN_INFO;
       const auto& cmd = static_cast<const tesseract_environment::AddContactManagersPluginInfoCommand&>(command);
       command_msg.add_contact_managers_plugin_info = toMsg(cmd.getContactManagersPluginInfo());
       return true;
     }
-    case tesseract_environment::CommandType::SET_ACTIVE_DISCRETE_CONTACT_MANAGER: {
+    case tesseract_environment::CommandType::SET_ACTIVE_DISCRETE_CONTACT_MANAGER:
+    {
       command_msg.command = tesseract_msgs::msg::EnvironmentCommand::SET_ACTIVE_DISCRETE_CONTACT_MANAGER;
       const auto& cmd = static_cast<const tesseract_environment::SetActiveDiscreteContactManagerCommand&>(command);
       command_msg.set_active_discrete_contact_manager = cmd.getName();
       return true;
     }
-    case tesseract_environment::CommandType::SET_ACTIVE_CONTINUOUS_CONTACT_MANAGER: {
+    case tesseract_environment::CommandType::SET_ACTIVE_CONTINUOUS_CONTACT_MANAGER:
+    {
       command_msg.command = tesseract_msgs::msg::EnvironmentCommand::SET_ACTIVE_CONTINUOUS_CONTACT_MANAGER;
       const auto& cmd = static_cast<const tesseract_environment::SetActiveContinuousContactManagerCommand&>(command);
       command_msg.set_active_continuous_contact_manager = cmd.getName();
       return true;
     }
-    case tesseract_environment::CommandType::ADD_TRAJECTORY_LINK: {
+    case tesseract_environment::CommandType::ADD_TRAJECTORY_LINK:
+    {
       command_msg.command = tesseract_msgs::msg::EnvironmentCommand::ADD_TRAJECTORY_LINK;
       const auto& cmd = static_cast<const tesseract_environment::AddTrajectoryLinkCommand&>(command);
       command_msg.add_trajectory_link_name = cmd.getLinkName();
@@ -1401,7 +1455,8 @@ bool toMsg(tesseract_msgs::msg::EnvironmentCommand& command_msg, const tesseract
       command_msg.add_trajectory_link_replace_allowed = cmd.replaceAllowed();
       return true;
     }
-    default: {
+    default:
+    {
       CONSOLE_BRIDGE_logWarn("Unhandled CommandType '%d' in toMsg", command.getType());
     }
   }
@@ -1439,7 +1494,8 @@ tesseract_environment::Command::Ptr fromMsg(const tesseract_msgs::msg::Environme
 {
   switch (command_msg.command)
   {
-    case tesseract_msgs::msg::EnvironmentCommand::ADD_LINK: {
+    case tesseract_msgs::msg::EnvironmentCommand::ADD_LINK:
+    {
       tesseract_scene_graph::Link l = fromMsg(command_msg.add_link);
       if (command_msg.add_joint.name.empty() || command_msg.add_joint.type == 0)
         return std::make_shared<tesseract_environment::AddLinkCommand>(l, command_msg.add_replace_allowed);
@@ -1447,25 +1503,31 @@ tesseract_environment::Command::Ptr fromMsg(const tesseract_msgs::msg::Environme
       tesseract_scene_graph::Joint j = fromMsg(command_msg.add_joint);
       return std::make_shared<tesseract_environment::AddLinkCommand>(l, j, command_msg.add_replace_allowed);
     }
-    case tesseract_msgs::msg::EnvironmentCommand::MOVE_LINK: {
+    case tesseract_msgs::msg::EnvironmentCommand::MOVE_LINK:
+    {
       tesseract_scene_graph::Joint j = fromMsg(command_msg.move_link_joint);
       return std::make_shared<tesseract_environment::MoveLinkCommand>(j);
     }
-    case tesseract_msgs::msg::EnvironmentCommand::MOVE_JOINT: {
+    case tesseract_msgs::msg::EnvironmentCommand::MOVE_JOINT:
+    {
       return std::make_shared<tesseract_environment::MoveJointCommand>(command_msg.move_joint_name,
                                                                        command_msg.move_joint_parent_link);
     }
-    case tesseract_msgs::msg::EnvironmentCommand::REMOVE_LINK: {
+    case tesseract_msgs::msg::EnvironmentCommand::REMOVE_LINK:
+    {
       return std::make_shared<tesseract_environment::RemoveLinkCommand>(command_msg.remove_link);
     }
-    case tesseract_msgs::msg::EnvironmentCommand::REMOVE_JOINT: {
+    case tesseract_msgs::msg::EnvironmentCommand::REMOVE_JOINT:
+    {
       return std::make_shared<tesseract_environment::RemoveJointCommand>(command_msg.remove_joint);
     }
-    case tesseract_msgs::msg::EnvironmentCommand::REPLACE_JOINT: {
+    case tesseract_msgs::msg::EnvironmentCommand::REPLACE_JOINT:
+    {
       tesseract_scene_graph::Joint j = fromMsg(command_msg.replace_joint);
       return std::make_shared<tesseract_environment::ReplaceJointCommand>(j);
     }
-    case tesseract_msgs::msg::EnvironmentCommand::CHANGE_JOINT_ORIGIN: {
+    case tesseract_msgs::msg::EnvironmentCommand::CHANGE_JOINT_ORIGIN:
+    {
       Eigen::Isometry3d pose{ Eigen::Isometry3d::Identity() };
       if (!fromMsg(pose, command_msg.change_joint_origin_pose))
         throw std::runtime_error("Failed to convert pose message to eigen");
@@ -1473,15 +1535,18 @@ tesseract_environment::Command::Ptr fromMsg(const tesseract_msgs::msg::Environme
       return std::make_shared<tesseract_environment::ChangeJointOriginCommand>(command_msg.change_joint_origin_name,
                                                                                pose);
     }
-    case tesseract_msgs::msg::EnvironmentCommand::CHANGE_LINK_COLLISION_ENABLED: {
+    case tesseract_msgs::msg::EnvironmentCommand::CHANGE_LINK_COLLISION_ENABLED:
+    {
       return std::make_shared<tesseract_environment::ChangeLinkCollisionEnabledCommand>(
           command_msg.change_link_collision_enabled_name, command_msg.change_link_collision_enabled_value);
     }
-    case tesseract_msgs::msg::EnvironmentCommand::CHANGE_LINK_VISIBILITY: {
+    case tesseract_msgs::msg::EnvironmentCommand::CHANGE_LINK_VISIBILITY:
+    {
       return std::make_shared<tesseract_environment::ChangeLinkCollisionEnabledCommand>(
           command_msg.change_link_visibility_name, command_msg.change_link_visibility_value);
     }
-    case tesseract_msgs::msg::EnvironmentCommand::MODIFY_ALLOWED_COLLISIONS: {
+    case tesseract_msgs::msg::EnvironmentCommand::MODIFY_ALLOWED_COLLISIONS:
+    {
       tesseract_common::AllowedCollisionMatrix acm;
       for (const auto& entry : command_msg.modify_allowed_collisions)
         acm.addAllowedCollision(entry.link_1, entry.link_2, entry.reason);
@@ -1489,11 +1554,13 @@ tesseract_environment::Command::Ptr fromMsg(const tesseract_msgs::msg::Environme
           acm,
           static_cast<tesseract_environment::ModifyAllowedCollisionsType>(command_msg.modify_allowed_collisions_type));
     }
-    case tesseract_msgs::msg::EnvironmentCommand::REMOVE_ALLOWED_COLLISION_LINK: {
+    case tesseract_msgs::msg::EnvironmentCommand::REMOVE_ALLOWED_COLLISION_LINK:
+    {
       return std::make_shared<tesseract_environment::RemoveAllowedCollisionLinkCommand>(
           command_msg.remove_allowed_collision_link);
     }
-    case tesseract_msgs::msg::EnvironmentCommand::ADD_SCENE_GRAPH: {
+    case tesseract_msgs::msg::EnvironmentCommand::ADD_SCENE_GRAPH:
+    {
       if (command_msg.scene_graph_joint.name.empty() || command_msg.scene_graph_joint.type == 0)
       {
         return std::make_shared<tesseract_environment::AddSceneGraphCommand>(fromMsg(command_msg.scene_graph),
@@ -1507,52 +1574,61 @@ tesseract_environment::Command::Ptr fromMsg(const tesseract_msgs::msg::Environme
             fromMsg(command_msg.scene_graph), j, command_msg.scene_graph_prefix);
       }
     }
-    case tesseract_msgs::msg::EnvironmentCommand::CHANGE_JOINT_POSITION_LIMITS: {
+    case tesseract_msgs::msg::EnvironmentCommand::CHANGE_JOINT_POSITION_LIMITS:
+    {
       std::unordered_map<std::string, std::pair<double, double>> limits_map;
       for (const auto& l : command_msg.change_joint_position_limits)
         limits_map[l.first] = std::make_pair(l.second[0], l.second[1]);
 
       return std::make_shared<tesseract_environment::ChangeJointPositionLimitsCommand>(limits_map);
     }
-    case tesseract_msgs::msg::EnvironmentCommand::CHANGE_JOINT_VELOCITY_LIMITS: {
+    case tesseract_msgs::msg::EnvironmentCommand::CHANGE_JOINT_VELOCITY_LIMITS:
+    {
       std::unordered_map<std::string, double> limits_map;
       for (const auto& l : command_msg.change_joint_velocity_limits)
         limits_map[l.first] = l.second;
 
       return std::make_shared<tesseract_environment::ChangeJointVelocityLimitsCommand>(limits_map);
     }
-    case tesseract_msgs::msg::EnvironmentCommand::CHANGE_JOINT_ACCELERATION_LIMITS: {
+    case tesseract_msgs::msg::EnvironmentCommand::CHANGE_JOINT_ACCELERATION_LIMITS:
+    {
       std::unordered_map<std::string, double> limits_map;
       for (const auto& l : command_msg.change_joint_acceleration_limits)
         limits_map[l.first] = l.second;
 
       return std::make_shared<tesseract_environment::ChangeJointAccelerationLimitsCommand>(limits_map);
     }
-    case tesseract_msgs::msg::EnvironmentCommand::ADD_KINEMATICS_INFORMATION: {
+    case tesseract_msgs::msg::EnvironmentCommand::ADD_KINEMATICS_INFORMATION:
+    {
       tesseract_srdf::KinematicsInformation kin_info;
       fromMsg(kin_info, command_msg.add_kinematics_information);
 
       return std::make_shared<tesseract_environment::AddKinematicsInformationCommand>(kin_info);
     }
-    case tesseract_msgs::msg::EnvironmentCommand::CHANGE_COLLISION_MARGINS: {
+    case tesseract_msgs::msg::EnvironmentCommand::CHANGE_COLLISION_MARGINS:
+    {
       tesseract_common::CollisionMarginData collision_margin_data = fromMsg(command_msg.collision_margin_data);
       tesseract_common::CollisionMarginOverrideType override_type = fromMsg(command_msg.collision_margin_override_type);
       return std::make_shared<tesseract_environment::ChangeCollisionMarginsCommand>(collision_margin_data,
                                                                                     override_type);
     }
-    case tesseract_msgs::msg::EnvironmentCommand::ADD_CONTACT_MANAGERS_PLUGIN_INFO: {
+    case tesseract_msgs::msg::EnvironmentCommand::ADD_CONTACT_MANAGERS_PLUGIN_INFO:
+    {
       tesseract_common::ContactManagersPluginInfo info = fromMsg(command_msg.add_contact_managers_plugin_info);
       return std::make_shared<tesseract_environment::AddContactManagersPluginInfoCommand>(info);
     }
-    case tesseract_msgs::msg::EnvironmentCommand::SET_ACTIVE_DISCRETE_CONTACT_MANAGER: {
+    case tesseract_msgs::msg::EnvironmentCommand::SET_ACTIVE_DISCRETE_CONTACT_MANAGER:
+    {
       return std::make_shared<tesseract_environment::SetActiveDiscreteContactManagerCommand>(
           command_msg.set_active_discrete_contact_manager);
     }
-    case tesseract_msgs::msg::EnvironmentCommand::SET_ACTIVE_CONTINUOUS_CONTACT_MANAGER: {
+    case tesseract_msgs::msg::EnvironmentCommand::SET_ACTIVE_CONTINUOUS_CONTACT_MANAGER:
+    {
       return std::make_shared<tesseract_environment::SetActiveContinuousContactManagerCommand>(
           command_msg.set_active_continuous_contact_manager);
     }
-    case tesseract_msgs::msg::EnvironmentCommand::ADD_TRAJECTORY_LINK: {
+    case tesseract_msgs::msg::EnvironmentCommand::ADD_TRAJECTORY_LINK:
+    {
       tesseract_common::JointTrajectory traj = fromMsg(command_msg.add_trajectory_link_traj);
       return std::make_shared<tesseract_environment::AddTrajectoryLinkCommand>(
           command_msg.add_trajectory_link_name,
@@ -1560,7 +1636,8 @@ tesseract_environment::Command::Ptr fromMsg(const tesseract_msgs::msg::Environme
           traj,
           command_msg.add_trajectory_link_replace_allowed);
     }
-    default: {
+    default:
+    {
       throw std::runtime_error("Unsupported command type " + std::to_string(command_msg.command));
     }
   }

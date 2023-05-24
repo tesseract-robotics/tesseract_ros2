@@ -27,6 +27,7 @@ jobs:
       CCACHE_DIR: "/home/runner/work/tesseract_ros/tesseract_ros/Clang-Tidy/.ccache"
       UPSTREAM_CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=Debug"
       TARGET_CMAKE_ARGS: "-DTESSERACT_ENABLE_CLANG_TIDY=ON -DTESSERACT_ENABLE_TESTING=ON"
+      CXXFLAGS: "-std=c++17"
     steps:
       - uses: actions/checkout@v1
 

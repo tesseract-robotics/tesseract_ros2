@@ -19,6 +19,7 @@ jobs:
       OS_CODE_NAME: jammy
       ROS_DISTRO: humble
       ROS_REPO: main
+      ADDITIONAL_DEBS: clang-tidy
       UPSTREAM_WORKSPACE: 'dependencies.repos'
       ROSDEP_SKIP_KEYS: "catkin taskflow orocos_kdl fcl"
       DOCKER_IMAGE: "ros:humble"

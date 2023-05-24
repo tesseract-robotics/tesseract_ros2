@@ -129,8 +129,7 @@ void makeDisc(InteractiveMarkerControl& control, float width)
   std::vector<Ogre::ColourValue> colors;
   switch (control.getInteractionMode())
   {
-    case InteractiveMode::ROTATE_AXIS:
-    {
+    case InteractiveMode::ROTATE_AXIS: {
       colors.resize(2 * steps);
       Ogre::ColourValue base_color = color;
       for (size_t i = 0; i < steps; i++)
@@ -161,8 +160,7 @@ void makeDisc(InteractiveMarkerControl& control, float width)
       break;
     }
 
-    case InteractiveMode::MOVE_ROTATE:
-    {
+    case InteractiveMode::MOVE_ROTATE: {
       colors.resize(2 * steps);
       Ogre::ColourValue base_color = color;
       for (size_t i = 0; i < steps - 1; i += 2)

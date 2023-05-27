@@ -9,6 +9,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 using namespace tesseract_environment;
 
 const std::string ROBOT_DESCRIPTION_PARAM = "robot_description"; /**< Default ROS parameter for robot description */
+const std::string ROBOT_DESCRIPTION_SEMANTIC_PARAM = "robot_description_semantic";
 
 int main(int argc, char** argv)
 {
@@ -24,11 +25,22 @@ int main(int argc, char** argv)
   }
 
   std::string monitored_namespace = node->declare_parameter("monitored_namespace", "");
-  std::string robot_description = node->declare_parameter("robot_description", ROBOT_DESCRIPTION_PARAM);
+  std::string robot_description = node->declare_parameter(ROBOT_DESCRIPTION_PARAM, "");
+  if (robot_description == "")
+  {
+    RCLCPP_ERROR(node->get_logger(), "Missing required parameter %s!", ROBOT_DESCRIPTION_PARAM.c_str());
+    return 1;
+  }
+  std::string robot_description_semantic = node->declare_parameter(ROBOT_DESCRIPTION_SEMANTIC_PARAM, "");
+  if (robot_description_semantic == "")
+  {
+    RCLCPP_ERROR(node->get_logger(), "Missing required parameter %s!", ROBOT_DESCRIPTION_SEMANTIC_PARAM.c_str());
+    return 1;
+  }
   std::string joint_state_topic = node->declare_parameter("joint_state_topic", "");
   bool publish_environment = node->declare_parameter("publish_environment", false);
 
-  tesseract_monitoring::ROSEnvironmentMonitor monitor(node, robot_description, monitor_namespace);
+  tesseract_monitoring::ROSEnvironmentMonitor monitor(node, ROBOT_DESCRIPTION_PARAM, monitor_namespace);
 
   if (publish_environment)
     monitor.startPublishingEnvironment();
@@ -40,6 +52,8 @@ int main(int argc, char** argv)
     monitor.startStateMonitor();
   else
     monitor.startStateMonitor(joint_state_topic);
+
+  RCLCPP_INFO(node->get_logger(), "Environment Monitor Running!");
 
   rclcpp::spin(node);
 

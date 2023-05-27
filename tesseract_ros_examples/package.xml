@@ -1,12 +1,10 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>tesseract_ros_examples</name>
-  <version>1.0.0</version>
-  <description>This package contains examples demonstrating tesseract_ros functionality.</description>
-
+  <version>0.16.2</version>
+  <description>This package contains examples related to this trajopt_ros repository.</description>
   <maintainer email="levi.armstrong@swri.org">Levi Armstrong</maintainer>
   <license>Apache 2.0</license>
-  <license>BSD 2-Clause</license>
   <author >Levi Armstrong</author>
 
   <build_depend>ament_cmake</build_depend>

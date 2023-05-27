@@ -3,7 +3,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <ros/ros.h>
 #include <memory>
 #include <actionlib/server/simple_action_server.h>
-#include <tesseract_msgs/GetMotionPlanAction.h>
+#include <tesseract_msgs/action/get_motion_plan.hpp>
 #include <taskflow/taskflow.hpp>
 #include <tesseract_common/utils.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP

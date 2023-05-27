@@ -31,10 +31,10 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <deque>
 #include <shared_mutex>
 #include <rclcpp/rclcpp.hpp>
-//#include <actionlib/server/simple_action_server.h>
+#include <rclcpp_action/rclcpp_action.hpp>
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
-#include <tesseract_msgs/msg/GetMotionPlanAction.h>
+#include <tesseract_msgs/action/get_motion_plan.hpp>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_environment/environment_monitor.h>
@@ -56,11 +56,11 @@ public:
                           std::string output_key,
                           std::string name);
 
-  ROSPlanningServer(rclcpp::Node::SharedPtr node,
-                    tesseract_environment::Environment::UPtr env,
-                    std::string input_key,
-                    std::string output_key,
-                    std::string name);
+  TesseractPlanningServer(rclcpp::Node::SharedPtr node,
+                          tesseract_environment::Environment::UPtr env,
+                          std::string input_key,
+                          std::string output_key,
+                          std::string name);
 
   ~TesseractPlanningServer() = default;
   TesseractPlanningServer(const TesseractPlanningServer&) = delete;
@@ -80,7 +80,13 @@ public:
   tesseract_planning::ProfileDictionary& getProfileDictionary();
   const tesseract_planning::ProfileDictionary& getProfileDictionary() const;
 
-  void onMotionPlanningCallback(const tesseract_msgs::GetMotionPlanGoalConstPtr& goal);
+  rclcpp_action::GoalResponse handle_goal(const rclcpp_action::GoalUUID&,
+                                          std::shared_ptr<const tesseract_msgs::action::GetMotionPlan::Goal>);
+  rclcpp_action::CancelResponse
+  handle_cancel(const std::shared_ptr<rclcpp_action::ServerGoalHandle<tesseract_msgs::action::GetMotionPlan>>);
+
+  void onMotionPlanningCallback(
+      const std::shared_ptr<rclcpp_action::ServerGoalHandle<tesseract_msgs::action::GetMotionPlan>> goal_handle);
 
 protected:
   rclcpp::Node::SharedPtr node_;
@@ -104,13 +110,13 @@ protected:
   std::string output_key_;
 
   /** @brief The motion planning action server */
-  // actionlib::SimpleActionServer<tesseract_msgs::GetMotionPlanAction> motion_plan_server_;
+  rclcpp_action::Server<tesseract_msgs::action::GetMotionPlan>::SharedPtr motion_plan_server_;
 
   /** @brief TF buffer to track TCP transforms */
   std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
 
   /** @brief TF listener to lookup TCP transforms */
-  tf2_ros::TransformListener tf_listener_;
+  std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
 
   void ctor();
 

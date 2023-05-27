@@ -49,15 +49,15 @@
 #include "rviz_rendering/geometry.hpp"
 #include "rviz_rendering/render_window.hpp"
 
-//#include "rviz_rendering/objects/line.hpp"
+// #include "rviz_rendering/objects/line.hpp"
 
-//#include "interactive_markers/interactive_marker_client.h"
+// #include "interactive_markers/interactive_marker_client.h"
 
-//#include "rviz/default_plugin/marker_utils.h"
-//#include "rviz/default_plugin/markers/points_marker.h"
+// #include "rviz/default_plugin/marker_utils.h"
+// #include "rviz/default_plugin/markers/points_marker.h"
 
-//#include "rviz/default_plugin/interactive_markers/interactive_marker_control.h"
-//#include "rviz/default_plugin/interactive_markers/interactive_marker.h"
+// #include "rviz/default_plugin/interactive_markers/interactive_marker_control.h"
+// #include "rviz/default_plugin/interactive_markers/interactive_marker.h"
 
 #include <tesseract_rviz/interactive_marker/interactive_marker_control.h>
 #include <tesseract_rviz/interactive_marker/interactive_marker.h>

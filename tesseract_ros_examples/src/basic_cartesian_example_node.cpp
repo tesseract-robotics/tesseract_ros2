@@ -62,6 +62,11 @@ int main(int argc, char** argv)
   std::string urdf_xml_string = node->declare_parameter(ROBOT_DESCRIPTION_PARAM, "");
   std::string srdf_xml_string = node->declare_parameter(ROBOT_SEMANTIC_PARAM, "");
 
+  if (ifopt == true)
+  {
+    RCLCPP_INFO(node->get_logger(), "Using TrajOpt Ifopt!");
+  }
+
   auto env = std::make_shared<tesseract_environment::Environment>();
   auto locator = std::make_shared<tesseract_rosutils::ROSResourceLocator>();
   if (!env->init(urdf_xml_string, srdf_xml_string, locator))

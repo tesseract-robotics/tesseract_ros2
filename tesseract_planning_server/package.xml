@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>tesseract_planning_server</name>
-  <version>0.1.0</version>
+  <version>0.16.2</version>
   <description>Tesseract ROS Planning Server</description>
   <maintainer email="levi.armstrong@swri.org">Levi Armstrong</maintainer>
   <license>Apache 2.0</license>
@@ -14,7 +14,7 @@
   <depend>tesseract_msgs</depend>
   <depend>tesseract_common</depend>
   <depend>tesseract_command_language</depend>
-  <depend>tesseract_process_managers</depend>
+  <depend>tesseract_task_composer</depend>
   <depend>tesseract_motion_planners</depend>
   <depend>tesseract_rosutils</depend>
   <depend>tf2_ros</depend>

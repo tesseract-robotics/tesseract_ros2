@@ -81,7 +81,7 @@ public:
    * @brief Start monitoring an environment for applying changes to this environment
    * @param topic The topic to monitor for environment changes
    */
-  void startMonitoringEnvironment(const std::string& monitored_namepsace);
+  void startMonitoringEnvironment(const std::string& monitored_namespace);
 
   /**
    * @brief Start publishing the contact markers

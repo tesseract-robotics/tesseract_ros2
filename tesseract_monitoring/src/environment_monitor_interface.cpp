@@ -58,7 +58,11 @@ typename SrvType::Response::SharedPtr call_service(const std::string& name,
   }
 
   rclcpp::executors::SingleThreadedExecutor exec;
-  // exec.add_callback_group(cbg, node.get_node_base_interface());
+#if __has_include(<rclcpp/version.h>)  // ROS 2 Humble
+  exec.add_callback_group(cbg, node.get_node_base_interface());
+#else  // ROS 2 Foxy
+  exec.add_node(node.get_node_base_interface());
+#endif
 
   auto future = client->async_send_request(request);
   auto retcode = exec.spin_until_future_complete(future, timeout);
@@ -72,13 +76,16 @@ typename SrvType::Response::SharedPtr call_service(const std::string& name,
 }
 
 ROSEnvironmentMonitorInterface::ROSEnvironmentMonitorInterface(rclcpp::Node::SharedPtr node, const std::string env_name)
-  : EnvironmentMonitorInterface(std::move(env_name))
-  , node_{ node }
-  , logger_{ node_->get_logger().get_child(env_name + "_env_monitor") }
-  , env_name_{ env_name }
+  : EnvironmentMonitorInterface(std::move(env_name)), node_
 {
-  // callback_group_ = node_->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive, false);
+  node
 }
+#if __has_include(<rclcpp/version.h>)  // ROS 2 Humble
+, callback_group_ { node_->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive, false) }
+#else  // ROS 2 Foxy
+, callback_group_ { node_->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive) }
+#endif
+, logger_{ node_->get_logger().get_child(env_name + "_env_monitor") }, env_name_{ env_name } {}
 
 bool ROSEnvironmentMonitorInterface::wait(std::chrono::duration<double> duration) const
 {
@@ -113,7 +120,7 @@ bool ROSEnvironmentMonitorInterface::wait(std::chrono::duration<double> duration
 bool ROSEnvironmentMonitorInterface::waitForNamespace(const std::string& monitor_namespace,
                                                       std::chrono::duration<double> duration) const
 {
-  std::string service_name = R"(/)" + monitor_namespace + DEFAULT_GET_ENVIRONMENT_INFORMATION_SERVICE;
+  std::string srv_name = R"(/)" + monitor_namespace + DEFAULT_GET_ENVIRONMENT_INFORMATION_SERVICE;
   const auto start_time = rclcpp::Clock().now();
   rclcpp::Duration wall_timeout(duration);
   if (std::chrono::duration_cast<std::chrono::seconds>(duration).count() == 0)
@@ -126,8 +133,8 @@ bool ROSEnvironmentMonitorInterface::waitForNamespace(const std::string& monitor
     try
     {
       auto res =
-          call_service<tesseract_msgs::srv::GetEnvironmentInformation>(service_name, req, *node_, callback_group_, 5s);
-      if (res->success)
+          call_service<tesseract_msgs::srv::GetEnvironmentInformation>(srv_name, req, *node_, callback_group_, 5s);
+      if (res && res->success)
         return true;
     }
     catch (std::runtime_error& ex)
@@ -263,8 +270,8 @@ bool ROSEnvironmentMonitorInterface::sendCommands(
 
   try
   {
-    auto response = call_service<tesseract_msgs::srv::ModifyEnvironment>(
-        ns + DEFAULT_MODIFY_ENVIRONMENT_SERVICE, req, *node_, callback_group_, 10s);
+    const std::string srv_name = R"(/)" + ns + DEFAULT_MODIFY_ENVIRONMENT_SERVICE;
+    auto response = call_service<tesseract_msgs::srv::ModifyEnvironment>(srv_name, req, *node_, callback_group_, 10s);
     if (!response || !response->success)
     {
       RCLCPP_ERROR_STREAM(logger_, "sendCommands (" + ns + "): Failed to update monitored environment!");

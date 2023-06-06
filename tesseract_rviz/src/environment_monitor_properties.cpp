@@ -102,7 +102,7 @@ EnvironmentMonitorProperties::EnvironmentMonitorProperties(rviz_common::Display*
 
   data_->joint_state_topic_property =
       new rviz_common::properties::RosTopicProperty("Joint State Topic",
-                                                    "/joint_states",
+                                                    tesseract_monitoring::DEFAULT_JOINT_STATES_TOPIC.c_str(),
                                                     rosidl_generator_traits::data_type<sensor_msgs::msg::JointState>(),
                                                     "This will monitor this topic for joint state changes.",
                                                     data_->main_property,

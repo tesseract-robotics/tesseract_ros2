@@ -48,7 +48,7 @@ const std::string ROBOT_SEMANTIC_PARAM = "robot_description_semantic";
 const std::string EXAMPLE_MONITOR_NAMESPACE = "tesseract_ros_examples";
 
 /** @brief Dynamic object joint states topic */
-const std::string DYNAMIC_OBJECT_JOINT_STATE = "/joint_states";
+const std::string DYNAMIC_OBJECT_JOINT_STATE = tesseract_monitoring::DEFAULT_JOINT_STATES_TOPIC;
 
 int main(int argc, char** argv)
 {

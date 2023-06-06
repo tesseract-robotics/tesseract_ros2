@@ -273,7 +273,7 @@ bool CurrentStateMonitor::waitForCurrentState(rclcpp::Time t, double wait_time) 
   while (current_state_time_ < t)
   {
     state_update_condition_.wait_for(slock, std::chrono::nanoseconds((timeout - elapsed).nanoseconds()));
-    elapsed = node_->now() - start;
+    elapsed = rclcpp::Clock{ RCL_STEADY_TIME }.now() - start;
     if (elapsed > timeout)
       return false;
   }
@@ -311,7 +311,6 @@ bool CurrentStateMonitor::waitForCompleteState(const std::string& manip, double 
       std::set<std::string> mj;
       mj.insert(missing_joints.begin(), missing_joints.end());
       const std::vector<std::string>& names = jmg->getJointNames();
-      bool ok = true;
       for (std::size_t i = 0; ok && i < names.size(); ++i)
         if (mj.find(names[i]) != mj.end())
           ok = false;

@@ -50,6 +50,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <tf2_ros/transform_broadcaster.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
+#include <tesseract_monitoring/constants.h>
 #include <tesseract_environment/environment.h>
 
 namespace tesseract_monitoring
@@ -91,7 +92,8 @@ public:
    *  @param publish_tf If true, TFs will be published for each joint (similar to robot description publisher). Default:
    * true
    */
-  void startStateMonitor(const std::string& joint_states_topic = "joint_states", bool publish_tf = true);
+  void startStateMonitor(const std::string& joint_states_topic = tesseract_monitoring::DEFAULT_JOINT_STATES_TOPIC,
+                         bool publish_tf = true);
 
   /** @brief Stop monitoring the "joint_states" topic
    */

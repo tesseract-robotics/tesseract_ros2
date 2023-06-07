@@ -243,7 +243,7 @@ void ROSEnvironmentMonitor::sceneStateChangedCallback(const tesseract_environmen
   if (!monitored_environment_subscriber_ && !current_state_monitor_ &&
       (typeid(event) == typeid(tesseract_environment::SceneStateChangedEvent)))
   {
-    last_robot_motion_time_ = node_->now();
+    last_update_time_ = last_robot_motion_time_ = node_->now();
   }
 }
 

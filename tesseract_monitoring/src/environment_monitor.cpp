@@ -117,6 +117,7 @@ ROSEnvironmentMonitor::~ROSEnvironmentMonitor()
   stopStateMonitor();
 
   current_state_monitor_.reset();
+  env_->removeEventCallback(std::hash<ROSEnvironmentMonitor*>()(this));
   env_ = nullptr;
 
   shutdown();
@@ -191,14 +192,17 @@ bool ROSEnvironmentMonitor::initialize()
   state_update_pending_ = false;
   setStateUpdateFrequency(10);
 
+  const auto& _ph1 = std::placeholders::_1;
+  const auto& _ph2 = std::placeholders::_2;
+
+  env_->addEventCallback(std::hash<ROSEnvironmentMonitor*>()(this),
+                         std::bind(&ROSEnvironmentMonitor::sceneStateChangedCallback, this, _ph1));
+
   // Shutdown current services
   modify_environment_service_.reset();
   get_environment_changes_service_.reset();
   get_environment_information_service_.reset();
   save_scene_graph_service_.reset();
-
-  const auto& _ph1 = std::placeholders::_1;
-  const auto& _ph2 = std::placeholders::_2;
 
   // Create new service
   std::string modify_environment_service = R"(/)" + monitor_namespace_ + DEFAULT_MODIFY_ENVIRONMENT_SERVICE;
@@ -232,6 +236,15 @@ bool ROSEnvironmentMonitor::initialize()
       cb_group_);
 
   return true;
+}
+
+void ROSEnvironmentMonitor::sceneStateChangedCallback(const tesseract_environment::Event& event)
+{
+  if (!monitored_environment_subscriber_ && !current_state_monitor_ &&
+      (typeid(event) == typeid(tesseract_environment::SceneStateChangedEvent)))
+  {
+    last_robot_motion_time_ = node_->now();
+  }
 }
 
 void ROSEnvironmentMonitor::stopPublishingEnvironment()

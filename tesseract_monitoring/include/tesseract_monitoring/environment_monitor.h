@@ -193,6 +193,9 @@ protected:
   rclcpp::CallbackGroup::SharedPtr cb_group_;
 
 private:
+  /** @brief Handle state changes (when not monitoring) */
+  void sceneStateChangedCallback(const tesseract_environment::Event& event);
+
   // publish environment update diffs (runs in its own thread)
   void environmentPublishingThread();
 

@@ -21,8 +21,8 @@ jobs:
       ROS_REPO: main
       BEFORE_INIT: './.add-gazebo-ppa'
       UPSTREAM_WORKSPACE: 'dependencies.repos'
-      ROSDEP_SKIP_KEYS: "catkin taskflow orocos_kdl fcl gz-math7"
-      ADDITIONAL_DEBS: "clang-tidy libgz-math7-dev wget"
+      ROSDEP_SKIP_KEYS: "catkin taskflow orocos_kdl fcl gz-common5 gz-math7"
+      ADDITIONAL_DEBS: "clang-tidy libgz-common5-dev libgz-math7-dev"
       DOCKER_IMAGE: "ros:humble"
       CCACHE_DIR: "/home/runner/work/tesseract_ros/tesseract_ros/Clang-Tidy/.ccache"
       NOT_TEST_BUILD: true

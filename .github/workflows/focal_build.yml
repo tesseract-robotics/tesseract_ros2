@@ -21,8 +21,8 @@ jobs:
       ROS_REPO: main
       BEFORE_INIT: './.add-gazebo-ppa'
       UPSTREAM_WORKSPACE: 'dependencies.repos'
-      ROSDEP_SKIP_KEYS: "catkin taskflow fcl gz-common5 gz-math7"
-      ADDITIONAL_DEBS: "libgz-common5-dev libgz-math7-dev"
+      ROSDEP_SKIP_KEYS: "catkin taskflow fcl gz-common5 gz-math7 gz-rendering7"
+      ADDITIONAL_DEBS: "libgz-common5-dev libgz-math7-dev libgz-rendering7-dev"
       DOCKER_IMAGE: "ros:foxy"
       PARALLEL_TESTS: false
       NOT_TEST_BUILD: true

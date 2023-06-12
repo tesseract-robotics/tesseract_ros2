@@ -93,8 +93,8 @@ struct ROSContactResultsRenderManager::Implementation
 
 ROSContactResultsRenderManager::ROSContactResultsRenderManager(
     std::shared_ptr<const tesseract_gui::ComponentInfo> component_info,
-                                                               Ogre::SceneManager* scene_manager,
-                                                               Ogre::SceneNode* scene_node)
+    Ogre::SceneManager* scene_manager,
+    Ogre::SceneNode* scene_node)
   : tesseract_gui::ContactResultsRenderManager(std::move(component_info)), data_(std::make_unique<Implementation>())
 {
   data_->scene_manager = scene_manager;

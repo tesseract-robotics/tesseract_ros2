@@ -35,6 +35,8 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 using namespace tesseract_environment;
 
 const std::string ROBOT_DESCRIPTION_PARAM = "robot_description"; /**< Default ROS parameter for robot description */
+const std::string ROBOT_DESCRIPTION_SEMANTIC_PARAM = "robot_description_semantic";
+
 static std::shared_ptr<tesseract_planning_server::TesseractPlanningServer> planning_server;
 
 void updateCacheCallback() { planning_server->getEnvironmentCache().refreshCache(); }
@@ -44,9 +46,7 @@ int main(int argc, char** argv)
   rclcpp::init(argc, argv);
   auto node = std::make_shared<rclcpp::Node>("tesseract_planning_server");
 
-  std::string robot_description = ROBOT_DESCRIPTION_PARAM;
-  std::string monitored_namespace = "";
-  std::string task_composer_config;
+  // Defaults
   bool publish_environment{ false };
   int cache_size{ 5 };
   double cache_refresh_rate{ 0.1 };
@@ -57,30 +57,38 @@ int main(int argc, char** argv)
     RCLCPP_ERROR(node->get_logger(), "Missing required parameter monitor_namespace!");
     return 1;
   }
-
   std::string input_key = node->declare_parameter("input_key", "");
   if (input_key.empty())
   {
     RCLCPP_ERROR(node->get_logger(), "Missing required parameter input_key!");
     return 1;
   }
-
   std::string output_key = node->declare_parameter("output_key", "");
   if (output_key.empty())
   {
     RCLCPP_ERROR(node->get_logger(), "Missing required parameter output_key!");
     return 1;
   }
-
-  monitored_namespace = node->declare_parameter("monitored_namespace", monitored_namespace);
-  robot_description = node->declare_parameter("robot_description", robot_description);
+  std::string monitored_namespace = node->declare_parameter("monitored_namespace", "");
+  std::string robot_description = node->declare_parameter(ROBOT_DESCRIPTION_PARAM, "");
+  if (robot_description.empty())
+  {
+    RCLCPP_ERROR(node->get_logger(), "Missing required parameter robot_description!");
+    return 1;
+  }
+  std::string robot_description_semantic = node->declare_parameter(ROBOT_DESCRIPTION_SEMANTIC_PARAM, "");
+  if (robot_description_semantic.empty())
+  {
+    RCLCPP_ERROR(node->get_logger(), "Missing required parameter robot_description_semantic!");
+    return 1;
+  }
   publish_environment = node->declare_parameter("publish_environment", publish_environment);
   cache_size = node->declare_parameter("cache_size", cache_size);
   cache_refresh_rate = node->declare_parameter("cache_refresh_rate", cache_refresh_rate);
-  task_composer_config = node->declare_parameter("task_composer_config", task_composer_config);
+  std::string task_composer_config = node->declare_parameter("task_composer_config", "");
 
   planning_server = std::make_shared<tesseract_planning_server::TesseractPlanningServer>(
-      node, robot_description, input_key, output_key, monitor_namespace);
+      node, ROBOT_DESCRIPTION_PARAM, input_key, output_key, monitor_namespace);
 
   planning_server->getEnvironmentCache().setCacheSize(cache_size);
 

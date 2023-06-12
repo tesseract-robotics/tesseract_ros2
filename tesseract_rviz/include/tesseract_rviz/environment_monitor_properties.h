@@ -46,15 +46,15 @@ public:
 
   /**
    * @brief Return the component info based on the settings of the object
-   * @return The environment component info
+   * @return The component info
    */
-  tesseract_gui::ComponentInfo getComponentInfo() const;
+  std::shared_ptr<const tesseract_gui::ComponentInfo> getComponentInfo() const;
 
   void load(const rviz_common::Config& config);
   void save(rviz_common::Config config) const;
 
 Q_SIGNALS:
-  void componentInfoChanged(tesseract_gui::ComponentInfo component_info);
+  void componentInfoChanged(std::shared_ptr<const tesseract_gui::ComponentInfo> component_info);
 
 public Q_SLOTS:
   void onDisplayModeChanged();

@@ -39,8 +39,8 @@ public:
 
   void onInitialize(rviz_common::DisplayContext* context);
 
-  void setComponentInfo(tesseract_gui::ComponentInfo component_info);
-  tesseract_gui::ComponentInfo getComponentInfo() const;
+  void setComponentInfo(std::shared_ptr<const tesseract_gui::ComponentInfo> component_info);
+  std::shared_ptr<const tesseract_gui::ComponentInfo> getComponentInfo() const;
 
   void load(const rviz_common::Config& config);
   void save(rviz_common::Config config) const;

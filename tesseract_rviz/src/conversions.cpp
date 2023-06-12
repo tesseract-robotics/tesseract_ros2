@@ -267,7 +267,6 @@ Ogre::SceneNode* loadLink(Ogre::SceneManager& scene,
 {
   auto entity = entity_container.addTrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS, link.getName());
   Ogre::SceneNode* scene_node = scene.createSceneNode(entity.unique_name);
-
   scene_node->getUserObjectBindings().setUserAny(USER_VISIBILITY, Ogre::Any(true));
 
   Ogre::SceneNode* visuals_scene_node = loadLinkVisuals(scene, entity_container, link, visual_material_override);

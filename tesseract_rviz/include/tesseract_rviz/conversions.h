@@ -121,4 +121,5 @@ std::shared_ptr<rviz_rendering::PointCloud> createPointCloud(std::vector<rviz_re
 Ogre::AxisAlignedBox getAABB(Ogre::SceneNode& scene_node, bool visible_only = true);
 
 }  // namespace tesseract_rviz
+
 #endif  // TESSERACT_RVIZ_CONVERSIONS_H

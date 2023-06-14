@@ -38,6 +38,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
   tesseract::tesseract_motion_planners_ompl
   tesseract::tesseract_motion_planners_descartes
   tesseract::tesseract_task_composer
+  tesseract::tesseract_task_composer_planning
 
   tesseract_monitoring::tesseract_monitoring_environment
   tesseract_rosutils::tesseract_rosutils

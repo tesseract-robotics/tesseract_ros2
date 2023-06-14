@@ -19,12 +19,13 @@ jobs:
       OS_CODE_NAME: jammy
       ROS_DISTRO: humble
       ROS_REPO: main
-      ADDITIONAL_DEBS: clang-tidy
+      BEFORE_INIT: './.add-gazebo-ppa'
       UPSTREAM_WORKSPACE: 'dependencies.repos'
-      ROSDEP_SKIP_KEYS: "catkin taskflow orocos_kdl fcl"
+      ROSDEP_SKIP_KEYS: "catkin taskflow orocos_kdl fcl gz-common5 gz-math7 gz-rendering7"
+      ADDITIONAL_DEBS: "clang-tidy libgz-common5-dev libgz-math7-dev libgz-rendering7-dev"
       DOCKER_IMAGE: "ros:humble"
-      NOT_TEST_BUILD: true
       CCACHE_DIR: "/home/runner/work/tesseract_ros/tesseract_ros/Clang-Tidy/.ccache"
+      NOT_TEST_BUILD: true
       UPSTREAM_CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=Debug"
       TARGET_CMAKE_ARGS: "-DTESSERACT_ENABLE_CLANG_TIDY=ON -DTESSERACT_ENABLE_TESTING=ON"
       CXXFLAGS: "-std=c++17"

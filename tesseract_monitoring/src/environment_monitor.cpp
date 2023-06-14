@@ -79,7 +79,6 @@ ROSEnvironmentMonitor::ROSEnvironmentMonitor(rclcpp::Node::SharedPtr node,
 
   if (!initialize())
   {
-    last_robot_state_update_wall_time_ = node_->now();
     RCLCPP_WARN(logger_, "EnvironmentMonitor failed to initialize from URDF and SRDF");
   }
 
@@ -101,7 +100,6 @@ ROSEnvironmentMonitor::ROSEnvironmentMonitor(rclcpp::Node::SharedPtr node,
 {
   if (!initialize())
   {
-    last_robot_state_update_wall_time_ = node_->now();
     RCLCPP_WARN(logger_, "ENV passed to ros env monitor did not initialize");
   }
   internal_node_executor_ = std::make_shared<rclcpp::executors::MultiThreadedExecutor>();
@@ -127,7 +125,7 @@ const std::string& ROSEnvironmentMonitor::getURDFDescription() const { return ro
 
 bool ROSEnvironmentMonitor::waitForConnection(std::chrono::duration<double> duration) const
 {
-  const rclcpp::Time start_time = node_->now();
+  const rclcpp::Time start_time = rclcpp::Clock().now();
   rclcpp::Duration wall_timeout(0, 0);
   if (std::chrono::duration_cast<std::chrono::seconds>(duration).count() == 0)
     wall_timeout = rclcpp::Duration(-1, 0);
@@ -143,7 +141,7 @@ bool ROSEnvironmentMonitor::waitForConnection(std::chrono::duration<double> dura
 
     if (wall_timeout >= rclcpp::Duration(0, 0))
     {
-      const rclcpp::Time current_time = node_->now();
+      const rclcpp::Time current_time = rclcpp::Clock().now();
       if ((current_time - start_time) >= wall_timeout)
         return false;
     }
@@ -187,7 +185,7 @@ bool ROSEnvironmentMonitor::initialize()
   publish_environment_frequency_ = 30.0;
 
   last_update_time_ = last_robot_motion_time_ = node_->now();
-  last_robot_state_update_wall_time_ = node_->now();
+  last_robot_state_update_wall_time_ = rclcpp::Clock().now();
 
   state_update_pending_ = false;
   setStateUpdateFrequency(10);
@@ -581,7 +579,8 @@ bool ROSEnvironmentMonitor::waitForCurrentState(std::chrono::duration<double> du
   if (std::chrono::duration_cast<std::chrono::seconds>(duration).count() == 0)
     return false;
 
-  rclcpp::Time start = node_->now();
+  rclcpp::Time t = node_->now();
+  rclcpp::Time start = rclcpp::Clock().now();
   auto timeout = rclcpp::Duration::from_seconds(duration.count());
 
   RCLCPP_DEBUG(logger_, "sync robot state to: %.3fs", fmod(duration.count(), 10.));
@@ -591,7 +590,7 @@ bool ROSEnvironmentMonitor::waitForCurrentState(std::chrono::duration<double> du
     // Wait for next robot update in state monitor. Those updates are only
     // passed to PSM when robot actually moved!
     enforce_next_state_update_ = true;  // enforce potential updates to be directly applied
-    bool success = current_state_monitor_->waitForCurrentState(start, duration.count());
+    bool success = current_state_monitor_->waitForCurrentState(t, duration.count());
     enforce_next_state_update_ = false;  // back to normal throttling behavior,
                                          // not applying incoming updates
                                          // immediately
@@ -616,21 +615,21 @@ bool ROSEnvironmentMonitor::waitForCurrentState(std::chrono::duration<double> du
   // As publishing planning scene updates is throttled (2Hz by default), a 1s
   // timeout is a suitable default.
   rclcpp::Time prev_robot_motion_time = last_robot_motion_time_;
-  while (last_robot_motion_time_ < start &&  // Wait until the state update actually reaches the scene.
+  while (last_robot_motion_time_ < t &&  // Wait until the state update actually reaches the scene.
          timeout > rclcpp::Duration(0, 0))
   {
-    RCLCPP_DEBUG_STREAM(logger_, "last robot motion: " << (start - last_robot_motion_time_).seconds() << " ago");
-    timeout = timeout - (node_->now() - start);  // compute remaining wait_time
+    RCLCPP_DEBUG_STREAM(logger_, "last robot motion: " << (t - last_robot_motion_time_).seconds() << " ago");
+    timeout = timeout - (rclcpp::Clock().now() - start);  // compute remaining wait_time
   }
-  bool success = last_robot_motion_time_ >= start;
+  bool success = last_robot_motion_time_ >= t;
   // suppress warning if we received an update at all
   if (!success && prev_robot_motion_time != last_robot_motion_time_)
     RCLCPP_WARN(
         logger_, "Maybe failed to update robot state, time diff: %.3fs", (start - last_robot_motion_time_).seconds());
 
   RCLCPP_DEBUG_STREAM(logger_,
-                      "sync done: robot motion: " << (start - last_robot_motion_time_).seconds()
-                                                  << " scene update: " << (start - last_update_time_).seconds());
+                      "sync done: robot motion: " << (t - last_robot_motion_time_).seconds()
+                                                  << " scene update: " << (t - last_update_time_).seconds());
   return success;
 }
 
@@ -676,7 +675,7 @@ void ROSEnvironmentMonitor::stopStateMonitor()
 
 void ROSEnvironmentMonitor::onJointStateUpdate(const sensor_msgs::msg::JointState::ConstSharedPtr /* joint_state */)
 {
-  rclcpp::Time n = node_->now();
+  rclcpp::Time n = rclcpp::Clock().now();
   rclcpp::Duration dt = n - last_robot_state_update_wall_time_;
 
   bool update = enforce_next_state_update_;
@@ -705,7 +704,7 @@ void ROSEnvironmentMonitor::updateJointStateTimerCallback()
   {
     bool update = false;
 
-    rclcpp::Duration dt = node_->now() - last_robot_state_update_wall_time_;
+    rclcpp::Duration dt = rclcpp::Clock().now() - last_robot_state_update_wall_time_;
 
     {
       // lock for access to dt_state_update_ and state_update_pending_
@@ -713,7 +712,7 @@ void ROSEnvironmentMonitor::updateJointStateTimerCallback()
       if (state_update_pending_ && dt >= dt_state_update_)
       {
         state_update_pending_ = false;
-        last_robot_state_update_wall_time_ = node_->now();
+        last_robot_state_update_wall_time_ = rclcpp::Clock().now();
         update = true;
         RCLCPP_DEBUG_STREAM(logger_,
                             "performPendingStateUpdate: " << fmod(last_robot_state_update_wall_time_.seconds(), 10));

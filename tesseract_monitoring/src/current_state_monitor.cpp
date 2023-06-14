@@ -273,7 +273,7 @@ bool CurrentStateMonitor::waitForCurrentState(rclcpp::Time t, double wait_time) 
   while (current_state_time_ < t)
   {
     state_update_condition_.wait_for(slock, std::chrono::nanoseconds((timeout - elapsed).nanoseconds()));
-    elapsed = node_->now() - start;
+    elapsed = rclcpp::Clock{ RCL_STEADY_TIME }.now() - start;
     if (elapsed > timeout)
       return false;
   }

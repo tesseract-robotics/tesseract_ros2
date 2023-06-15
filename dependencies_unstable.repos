@@ -1,0 +1,45 @@
+repositories:
+  ros_industrial_cmake_boilerplate:
+    type: git
+    url: https://github.com/ros-industrial/ros_industrial_cmake_boilerplate.git
+    version: master
+  tesseract:
+    type: git
+    url: https://github.com/tesseract-robotics/tesseract.git
+    version: master
+  trajopt:
+    type: git
+    url: https://github.com/tesseract-robotics/trajopt.git
+    version: master
+  tesseract_planning:
+    type: git
+    url: https://github.com/tesseract-robotics/tesseract_planning.git
+    version: master
+  tesseract_qt:
+    type: git
+    url: https://github.com/tesseract-robotics/tesseract_qt.git
+    version: main
+  descartes_light:
+    type: git
+    url: https://github.com/swri-robotics/descartes_light.git
+    version: master
+  opw_kinematics:
+    type: git
+    url: https://github.com/Jmeyer1292/opw_kinematics.git
+    version: master
+  ifopt:
+    type: git
+    url: https://github.com/ethz-adrl/ifopt.git
+    version: master
+  taskflow:
+    type: git
+    url: https://github.com/taskflow/taskflow.git
+    version: master
+  Qt-Advanced-Docking-System:
+    type: git
+    url: https://github.com/Levi-Armstrong/Qt-Advanced-Docking-System.git
+    version: ros
+  fcl:
+    type: git
+    url: https://github.com/flexible-collision-library/fcl.git
+    version: master

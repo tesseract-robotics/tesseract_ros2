@@ -20,7 +20,7 @@ jobs:
       ROS_DISTRO: humble
       ROS_REPO: main
       BEFORE_INIT: './.add-gazebo-ppa'
-      UPSTREAM_WORKSPACE: 'dependencies.repos'
+      UPSTREAM_WORKSPACE: 'dependencies_unstable.repos'
       ROSDEP_SKIP_KEYS: "catkin taskflow orocos_kdl fcl gz-common5 gz-math7 gz-rendering7"
       ADDITIONAL_DEBS: "clang-tidy libgz-common5-dev libgz-math7-dev libgz-rendering7-dev"
       DOCKER_IMAGE: "ros:humble"

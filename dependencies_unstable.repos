@@ -34,7 +34,7 @@ repositories:
   taskflow:
     type: git
     url: https://github.com/taskflow/taskflow.git
-    version: master
+    version: v3.4.0
   Qt-Advanced-Docking-System:
     type: git
     url: https://github.com/Levi-Armstrong/Qt-Advanced-Docking-System.git
@@ -42,4 +42,4 @@ repositories:
   fcl:
     type: git
     url: https://github.com/flexible-collision-library/fcl.git
-    version: master
+    version: 0.7.0

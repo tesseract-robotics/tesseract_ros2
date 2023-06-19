@@ -208,12 +208,13 @@ void TesseractPlanningServer::onMotionPlanningCallback(
     return;
   }
 
-  tesseract_planning::CompositeInstruction ci;
+  auto problem = std::make_unique<tesseract_planning::PlanningTaskComposerProblem>(goal->request.name);
 
   try
   {
-    ci = Serialization::fromArchiveStringXML<tesseract_planning::InstructionPoly>(goal->request.instructions)
-             .as<tesseract_planning::CompositeInstruction>();
+    auto ci = Serialization::fromArchiveStringXML<tesseract_planning::InstructionPoly>(goal->request.instructions)
+                  .as<tesseract_planning::CompositeInstruction>();
+    problem->input_data.setData(input_key_, ci);
   }
   catch (const std::exception& e)
   {
@@ -235,12 +236,9 @@ void TesseractPlanningServer::onMotionPlanningCallback(
   env->applyCommands(tesseract_rosutils::fromMsg(goal->request.commands));
   env->setState(env_state.joints);
 
-  tesseract_planning::TaskComposerDataStorage input_data;
-  input_data.setData(input_key_, ci);
-  auto problem = std::make_unique<tesseract_planning::PlanningTaskComposerProblem>(
-      env, input_data, profiles_);  //, goal->request.name);
-
-  //  process_request.save_io = goal->request.save_io;
+  problem->env = env;
+  // process_request.save_io = goal->request.save_io;
+  problem->profiles = profiles_;
   problem->move_profile_remapping = tesseract_rosutils::fromMsg(goal->request.move_profile_remapping);
   problem->composite_profile_remapping = tesseract_rosutils::fromMsg(goal->request.composite_profile_remapping);
 

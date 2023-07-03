@@ -2,6 +2,9 @@
 Changelog for package tesseract_monitoring
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.18.0 (2023-07-03)
+-------------------
+
 0.17.0 (2023-06-07)
 -------------------
 * Fix shadowing outer variable (`#215 <https://github.com/tesseract-robotics/tesseract_ros/issues/215>`_)

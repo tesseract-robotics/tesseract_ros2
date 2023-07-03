@@ -248,10 +248,34 @@ void TesseractPlanningServer::onMotionPlanningCallback(
 
   tesseract_common::Timer timer;
   timer.start();
+  // Create Input
   tesseract_planning::TaskComposerInput input(std::move(problem));
+  input.dotgraph = goal->request.dotgraph;
+  // Solve
   tesseract_planning::TaskComposerFuture::UPtr plan_future = planning_server_->run(input, executor_name);
   plan_future->wait();  // Wait for results
   timer.stop();
+
+  // Generate DOT Graph if requested
+  if (goal->request.dotgraph)
+  {
+    try
+    {
+      // Get Task
+      const tesseract_planning::TaskComposerNode& task = planning_server_->getTask(input.problem->name);
+
+      // Save dot graph
+      std::stringstream dotgraph;
+      task.dump(dotgraph, nullptr, input.task_infos.getInfoMap());
+      result->response.dotgraph = dotgraph.str();
+    }
+    catch (const std::exception& e)
+    {
+      std::ostringstream oss;
+      oss << "Failed to generated DOT Graph: '" << e.what() << "'!" << std::endl;
+      RCLCPP_ERROR_STREAM(node_->get_logger(), oss.str());
+    }
+  }
 
   try
   {

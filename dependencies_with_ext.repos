@@ -2,27 +2,27 @@ repositories:
   ros_industrial_cmake_boilerplate:
     type: git
     url: https://github.com/ros-industrial/ros_industrial_cmake_boilerplate.git
-    version: 0.4.5
+    version: 0.4.7
   tesseract_ext:
     type: git
     url: https://github.com/tesseract-robotics/tesseract_ext.git
-    version: 0.17.0
+    version: master
   tesseract:
     type: git
     url: https://github.com/tesseract-robotics/tesseract.git
-    version: 0.17.0
+    version: 0.18.1
   trajopt:
     type: git
     url: https://github.com/tesseract-robotics/trajopt.git
-    version: 0.5.2
+    version: 0.6.0
   tesseract_planning:
     type: git
     url: https://github.com/tesseract-robotics/tesseract_planning.git
-    version: 0.17.0
+    version: 0.18.0
   tesseract_qt:
     type: git
     url: https://github.com/tesseract-robotics/tesseract_qt.git
-    version: 0.17.0
+    version: 0.18.0
   descartes_light:
     type: git
     url: https://github.com/swri-robotics/descartes_light.git

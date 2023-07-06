@@ -30,6 +30,9 @@ jobs:
       CCACHE_DIR: "/home/runner/work/tesseract_ros2/tesseract_ros2/Focal-Build/.ccache"
       UPSTREAM_CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=Release"
       TARGET_CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=Debug"
+      REGISTRY: ghcr.io
+      IMAGE_NAME: ${{ github.repository }}
+      PUSH_DOCKER_IMAGE: ${{ github.ref == 'refs/heads/master' || github.event_name == 'release' }}
     steps:
       - uses: actions/checkout@v1
 
@@ -58,5 +61,38 @@ jobs:
           restore-keys: |
             ${{ env.CI_NAME }}-ccache-
 
+      - name: Login to Github container registry
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker meta-information
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          flavor: |
+            latest=false
+            prefix=
+            suffix=
+          tags: |
+            type=ref,event=branch,prefix=${{ ROS_DISTRO }}-
+            type=semver,pattern={{major}}.{{minor}},prefix=${{ ROS_DISTRO }}-
+
+      - name: Set build type
+        run: |
+          if [[ "${{ env.PUSH_DOCKER_IMAGE }}" = true ]]
+          then
+            echo "BUILD_TYPE=Release" >> $GITHUB_ENV
+          else
+            echo "BUILD_TYPE=Debug" >> $GITHUB_ENV
+          fi
+
       - uses: 'ros-industrial/industrial_ci@master'
         env: ${{env}}
+
+      - name: Push post-build Docker
+        if: ${{ env.PUSH_DOCKER_IMAGE == 'true' }}
+        run: docker push ${{ steps.meta.outputs.tags }}

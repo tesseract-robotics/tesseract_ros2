@@ -1,4 +1,4 @@
-name: Focal-Build
+name: Ubuntu
 
 on:
   push:
@@ -30,7 +30,7 @@ jobs:
       PARALLEL_TESTS: false
       NOT_TEST_BUILD: true
       BEFORE_RUN_TARGET_TEST_EMBED: "source /root/target_ws/install/local_setup.bash"
-      CCACHE_DIR: "/home/runner/work/tesseract_ros2/tesseract_ros2/Focal-Build/.ccache"
+      CCACHE_DIR: "/home/runner/work/tesseract_ros2/tesseract_ros2/${{ matrix.distro }}-Build/.ccache"
       UPSTREAM_CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=Release"
       TARGET_CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=Debug"
       REGISTRY: ghcr.io

@@ -36,6 +36,7 @@ jobs:
       REGISTRY: ghcr.io
       IMAGE_NAME: ${{ github.repository }}
       PUSH_DOCKER_IMAGE: ${{ github.ref == 'refs/heads/master' || github.event_name == 'release' }}
+      DOCKER_COMMIT: ${{ steps.meta.outputs.tags }}
     steps:
       - uses: actions/checkout@v1
 

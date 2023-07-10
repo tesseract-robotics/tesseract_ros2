@@ -19,24 +19,10 @@ jobs:
         distro: [foxy, humble, rolling]
     env:
       CI_NAME: ${{ matrix.distro }}-Build
-      OS_NAME: ubuntu
-      ROS_DISTRO: ${{ matrix.distro }}
-      ROS_REPO: main
-      BEFORE_INIT: './.add-gazebo-ppa'
-      UPSTREAM_WORKSPACE: 'dependencies_unstable.repos'
-      ROSDEP_SKIP_KEYS: "catkin taskflow fcl gz-common5 gz-math7 gz-rendering7"
-      ADDITIONAL_DEBS: "libgz-common5-dev libgz-math7-dev libgz-rendering7-dev"
-      DOCKER_IMAGE: "ros:${{ matrix.distro }}"
-      PARALLEL_TESTS: false
-      NOT_TEST_BUILD: true
-      BEFORE_RUN_TARGET_TEST_EMBED: "source /root/target_ws/install/local_setup.bash"
       CCACHE_DIR: "/home/runner/work/tesseract_ros2/tesseract_ros2/${{ matrix.distro }}-Build/.ccache"
-      UPSTREAM_CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=Release"
-      TARGET_CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=Debug"
       REGISTRY: ghcr.io
       IMAGE_NAME: ${{ github.repository }}
       PUSH_DOCKER_IMAGE: ${{ github.ref == 'refs/heads/master' || github.event_name == 'release' }}
-      DOCKER_COMMIT: ${{ steps.meta.outputs.tags }}
     steps:
       - uses: actions/checkout@v1
 
@@ -82,8 +68,8 @@ jobs:
             prefix=
             suffix=
           tags: |
-            type=ref,event=branch,prefix=${{ env.ROS_DISTRO }}-
-            type=semver,pattern={{major}}.{{minor}},prefix=${{ env.ROS_DISTRO }}-
+            type=ref,event=branch,prefix=${{ matrix.distro }}-
+            type=semver,pattern={{major}}.{{minor}},prefix=${{ matrix.distro }}-
 
       - name: Set build type
         run: |
@@ -95,7 +81,21 @@ jobs:
           fi
 
       - uses: 'ros-industrial/industrial_ci@master'
-        env: ${{env}}
+        env:
+          OS_NAME: ubuntu
+          ROS_DISTRO: ${{ matrix.distro }}
+          ROS_REPO: main
+          BEFORE_INIT: './.add-gazebo-ppa'
+          UPSTREAM_WORKSPACE: 'dependencies_unstable.repos'
+          ROSDEP_SKIP_KEYS: "catkin taskflow fcl gz-common5 gz-math7 gz-rendering7"
+          ADDITIONAL_DEBS: "libgz-common5-dev libgz-math7-dev libgz-rendering7-dev"
+          DOCKER_IMAGE: "ros:${{ matrix.distro }}"
+          PARALLEL_TESTS: false
+          NOT_TEST_BUILD: true
+          BEFORE_RUN_TARGET_TEST_EMBED: "source /root/target_ws/install/local_setup.bash"
+          UPSTREAM_CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=Release"
+          TARGET_CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=Debug"
+          DOCKER_COMMIT: ${{ steps.meta.outputs.tags }}
 
       - name: Push post-build Docker
         if: ${{ env.PUSH_DOCKER_IMAGE == 'true' }}

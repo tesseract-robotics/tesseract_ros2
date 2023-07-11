@@ -92,9 +92,10 @@ jobs:
           DOCKER_IMAGE: "ros:${{ matrix.distro }}"
           PARALLEL_TESTS: false
           NOT_TEST_BUILD: true
-          BEFORE_RUN_TARGET_TEST_EMBED: "source /root/target_ws/install/local_setup.bash"
           UPSTREAM_CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=Release"
           TARGET_CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=Debug"
+          BEFORE_RUN_TARGET_TEST_EMBED: "source /root/target_ws/install/local_setup.bash"
+          AFTER_SCRIPT: 'rm -r $BASEDIR/${PREFIX}upstream_ws/build $BASEDIR/${PREFIX}target_ws/build'
           DOCKER_COMMIT: ${{ steps.meta.outputs.tags }}
 
       - name: Push post-build Docker

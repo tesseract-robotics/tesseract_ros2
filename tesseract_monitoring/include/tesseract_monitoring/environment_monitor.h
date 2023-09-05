@@ -43,10 +43,8 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <memory>
 #include <shared_mutex>
 #include <mutex>
-#include <condition_variable>
 #include <thread>
 #include <functional>
-#include <pluginlib/class_loader.hpp>
 #include <tesseract_msgs/msg/environment_state.hpp>
 #include <tesseract_msgs/srv/modify_environment.hpp>
 #include <tesseract_msgs/srv/get_environment_changes.hpp>
@@ -54,17 +52,9 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <tesseract_msgs/srv/save_scene_graph.hpp>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
-#include <tesseract_collision/core/discrete_contact_manager.h>
-#include <tesseract_collision/core/continuous_contact_manager.h>
 #include <tesseract_environment/environment.h>
 #include <tesseract_environment/environment_monitor.h>
 #include <tesseract_monitoring/current_state_monitor.h>
-#include <tesseract_monitoring/environment_monitor.h>
-#include <tesseract_monitoring/constants.h>
-#include <tesseract_rosutils/utils.h>
-#include <tesseract_scene_graph/graph.h>
-#include <tesseract_urdf/urdf_parser.h>
-#include <tesseract_kinematics/core/forward_kinematics.h>
 
 namespace tesseract_monitoring
 {
@@ -147,9 +137,9 @@ protected:
    */
   bool initialize();
 
-  rclcpp::Time last_update_time_;        /// Last time the state was updated
-  rclcpp::Time last_robot_motion_time_;  /// Last time the robot has moved
-  bool enforce_next_state_update_;       /// flag to enforce immediate state update in onStateUpdate()
+  rclcpp::Time last_update_time_ = rclcpp::Time(0l, RCL_ROS_TIME);        /// Last time the state was updated
+  rclcpp::Time last_robot_motion_time_ = rclcpp::Time(0l, RCL_ROS_TIME);  /// Last time the robot has moved
+  bool enforce_next_state_update_;  /// flag to enforce immediate state update in onStateUpdate()
 
   rclcpp::Node::SharedPtr node_;
   rclcpp::Node::SharedPtr internal_node_;
@@ -247,7 +237,7 @@ private:
 
   /// Last time the state was updated from current_state_monitor_
   // Only access this from callback functions (and constructor)
-  rclcpp::Time last_robot_state_update_wall_time_;
+  rclcpp::Time last_robot_state_update_wall_time_ = rclcpp::Time(0l, RCL_SYSTEM_TIME);
 
   std::atomic<bool> publish_{ false };
 

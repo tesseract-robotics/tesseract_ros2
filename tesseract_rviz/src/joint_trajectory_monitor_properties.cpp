@@ -180,6 +180,7 @@ void JointTrajectoryMonitorProperties::onInitialize(rviz_common::DisplayContext*
   data_->internal_node_spinner = std::make_shared<std::thread>(std::thread{ [this]() {
     data_->internal_node_executor->add_node(data_->node);
     data_->internal_node_executor->spin();
+    data_->internal_node_executor->remove_node(data_->node);
   } });
 
   onLegacyJointTrajectoryTopicConnect();

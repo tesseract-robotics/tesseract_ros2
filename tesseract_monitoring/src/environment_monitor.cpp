@@ -43,7 +43,6 @@ BOOST_BIND_NO_PLACEHOLDERS
 #endif
 
 #include <tesseract_monitoring/environment_monitor.h>
-#include <tesseract_environment/utils.h>
 #include <tesseract_rosutils/utils.h>
 
 namespace tesseract_monitoring
@@ -536,7 +535,6 @@ bool ROSEnvironmentMonitor::applyEnvironmentCommandsMessage(
       filtered_commands.push_back(cmd);
   }
 
-  std::string old_scene_name;
   if (!filtered_commands.empty())
     result = tesseract_rosutils::processMsg(*env_, filtered_commands);
 

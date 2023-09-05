@@ -111,6 +111,6 @@ int main(int argc, char** argv)
   RCLCPP_INFO(node->get_logger(), "Planning Server Running!");
 
   rclcpp::spin(node);
-
+  rclcpp::shutdown();
   return 0;
 }

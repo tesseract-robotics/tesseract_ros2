@@ -25,19 +25,16 @@
  */
 #include <tesseract_common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
-#include <future>
 #include <thread>
 #include <Eigen/Geometry>
 #include <rclcpp/rclcpp.hpp>
-#include <geometry_msgs/msg/pose_array.hpp>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_rosutils/plotting.h>
 #include <tesseract_rosutils/utils.h>
-#include <tesseract_rosutils/conversions.h>
 
+#include <tesseract_command_language/utils.h>
 #include <tesseract_command_language/composite_instruction.h>
-
 #include <tesseract_motion_planners/core/utils.h>
 
 #include <tesseract_environment/environment.h>
@@ -45,7 +42,6 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <tesseract_visualization/markers/arrow_marker.h>
 #include <tesseract_visualization/markers/axis_marker.h>
 #include <tesseract_visualization/markers/contact_results_marker.h>
-#include <tesseract_visualization/markers/geometry_marker.h>
 #include <tesseract_visualization/markers/toolpath_marker.h>
 
 namespace tesseract_rosutils
@@ -69,6 +65,7 @@ ROSPlotting::ROSPlotting(std::string root_link, std::string topic_namespace)
   internal_node_spinner_ = std::make_shared<std::thread>(std::thread{ [this]() {
     internal_node_executor_->add_node(node_);
     internal_node_executor_->spin();
+    internal_node_executor_->remove_node(node_);
   } });
 }
 

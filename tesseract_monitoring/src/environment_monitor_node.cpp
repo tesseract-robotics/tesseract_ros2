@@ -58,6 +58,6 @@ int main(int argc, char** argv)
   RCLCPP_INFO(node->get_logger(), "Environment Monitor Running!");
 
   rclcpp::spin(node);
-
+  rclcpp::shutdown();
   return 0;
 }

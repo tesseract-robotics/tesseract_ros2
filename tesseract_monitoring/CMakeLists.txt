@@ -5,12 +5,15 @@ find_package(ros_industrial_cmake_boilerplate REQUIRED)
 extract_package_metadata(pkg)
 project(${pkg_extracted_name} VERSION ${pkg_extracted_version} LANGUAGES CXX)
 
-find_package(Boost REQUIRED system thread)
 # ROS
 find_package(pluginlib REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(tf2_eigen REQUIRED)
+find_package(tf2_ros REQUIRED)
 find_package(visualization_msgs REQUIRED)
+# tesseract
+find_package(tesseract_common REQUIRED)
 # tesseract_ros2
 find_package(tesseract_msgs REQUIRED)
 find_package(tesseract_rosutils REQUIRED)
@@ -23,9 +26,13 @@ add_library(${PROJECT_NAME}_environment SHARED
   src/environment_monitor.cpp
   src/current_state_monitor.cpp
 )
-target_link_libraries(${PROJECT_NAME}_environment PUBLIC
-  pluginlib::pluginlib
-  tesseract_rosutils::tesseract_rosutils
+target_link_libraries(${PROJECT_NAME}_environment
+  PUBLIC
+    pluginlib::pluginlib
+    tf2_ros::tf2_ros
+    tesseract_rosutils::tesseract_rosutils
+  PRIVATE
+    tf2_eigen::tf2_eigen
 )
 target_compile_options(${PROJECT_NAME}_environment PRIVATE ${TESSERACT_COMPILE_OPTIONS})
 target_clang_tidy(${PROJECT_NAME}_environment ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS} ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
@@ -40,7 +47,7 @@ target_compile_options(${PROJECT_NAME}_environment_node PRIVATE ${TESSERACT_COMP
 target_clang_tidy(${PROJECT_NAME}_environment_node ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS} ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
 target_cxx_version(${PROJECT_NAME}_environment_node PRIVATE VERSION ${TESSERACT_CXX_VERSION})
 target_include_directories(${PROJECT_NAME}_environment_node PUBLIC
-  " $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
 
 add_library(${PROJECT_NAME}_contacts src/contact_monitor.cpp)
@@ -63,7 +70,6 @@ target_include_directories(${PROJECT_NAME}_contacts PRIVATE
 
 add_executable(${PROJECT_NAME}_contacts_node src/contact_monitor_node.cpp)
 target_link_libraries(${PROJECT_NAME}_contacts_node PRIVATE
-  Boost::thread
   tesseract::tesseract_environment 
   ${PROJECT_NAME}_contacts)
 target_compile_options(${PROJECT_NAME}_contacts_node PRIVATE ${TESSERACT_COMPILE_OPTIONS})
@@ -121,6 +127,8 @@ install(DIRECTORY launch DESTINATION share/${PROJECT_NAME})
 ament_export_targets(${PROJECT_NAME}-targets HAS_LIBRARY_TARGET)
 ament_export_dependencies(
   pluginlib
+  rclcpp
+  tf2_ros
   tesseract_rosutils
 )
 

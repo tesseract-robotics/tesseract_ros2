@@ -36,7 +36,6 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_visualization/visualization.h>
 #include <tesseract_visualization/markers/arrow_marker.h>
-#include <tesseract_visualization/markers/axis_marker.h>
 #include <tesseract_visualization/markers/contact_results_marker.h>
 #include <tesseract_command_language/poly/instruction_poly.h>
 

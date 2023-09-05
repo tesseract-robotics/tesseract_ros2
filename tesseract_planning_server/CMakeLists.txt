@@ -25,23 +25,26 @@ tesseract_variables()
 
 add_library(${PROJECT_NAME} SHARED
   src/tesseract_planning_server.cpp)
-target_link_libraries(${PROJECT_NAME} PUBLIC
-  rclcpp::rclcpp
-  tf2_ros::tf2_ros
+target_link_libraries(${PROJECT_NAME} 
+  PUBLIC
+    rclcpp::rclcpp
+    tf2_ros::tf2_ros
 
-  tesseract::tesseract_command_language
-  tesseract::tesseract_common
-  tesseract::tesseract_motion_planners_core
-  tesseract::tesseract_motion_planners_simple
-  tesseract::tesseract_motion_planners_trajopt
-  tesseract::tesseract_motion_planners_trajopt_ifopt
-  tesseract::tesseract_motion_planners_ompl
-  tesseract::tesseract_motion_planners_descartes
-  tesseract::tesseract_task_composer
-  tesseract::tesseract_task_composer_planning
+    tesseract::tesseract_command_language
+    tesseract::tesseract_common
+    tesseract::tesseract_motion_planners_core
+    tesseract::tesseract_motion_planners_simple
+    tesseract::tesseract_motion_planners_trajopt
+    tesseract::tesseract_motion_planners_trajopt_ifopt
+    tesseract::tesseract_motion_planners_ompl
+    tesseract::tesseract_motion_planners_descartes
+    tesseract::tesseract_task_composer
+    tesseract::tesseract_task_composer_planning
 
-  tesseract_monitoring::tesseract_monitoring_environment
-  tesseract_rosutils::tesseract_rosutils
+    tesseract_monitoring::tesseract_monitoring_environment
+    tesseract_rosutils::tesseract_rosutils
+  PRIVATE
+    tf2_eigen::tf2_eigen
 )
 ament_target_dependencies(${PROJECT_NAME} PUBLIC 
   tesseract_msgs
@@ -97,6 +100,8 @@ install(DIRECTORY launch DESTINATION share/${PROJECT_NAME})
 
 ament_export_targets(${PROJECT_NAME}-targets HAS_LIBRARY_TARGET)
 ament_export_dependencies(
-  tesseract_rosutils
+  rclcpp
+  tf2_ros
+  tesseract_msgs
 )
 ament_package()

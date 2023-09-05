@@ -136,6 +136,7 @@ void EnvironmentMonitorProperties::onInitialize(Ogre::SceneManager* scene_manage
   data_->internal_node_spinner = std::make_shared<std::thread>(std::thread{ [this]() {
     data_->internal_node_executor->add_node(data_->node);
     data_->internal_node_executor->spin();
+    data_->internal_node_executor->remove_node(data_->node);
   } });
 
   data_->scene_manager = scene_manager;

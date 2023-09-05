@@ -29,7 +29,7 @@
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <rclcpp/rclcpp.hpp>
 #include <vector>
-#include <tesseract_msgs/srv/get_environment_information.hpp>
+#include <tesseract_msgs/msg/environment_command.hpp>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <tesseract_environment/commands.h>
 #include <tesseract_environment/environment.h>

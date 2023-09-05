@@ -11,6 +11,7 @@ find_package(tf2_eigen REQUIRED)
 find_package(trajectory_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
 # tesseract
+find_package(tesseract_motion_planners REQUIRED)
 find_package(tesseract_task_composer REQUIRED)
 find_package(tesseract_visualization REQUIRED)
 # tesseract_ros2
@@ -20,14 +21,16 @@ find_package(tesseract_msgs REQUIRED)
 tesseract_variables()
 
 add_library(${PROJECT_NAME} SHARED src/plotting.cpp src/conversions.cpp src/utils.cpp)
-target_link_libraries(${PROJECT_NAME} PUBLIC
+target_link_libraries(${PROJECT_NAME}
+  PUBLIC
     rclcpp::rclcpp
     tesseract::tesseract_task_composer
     tesseract::tesseract_visualization
     tesseract::tesseract_motion_planners_core
+  PRIVATE
+    tf2_eigen::tf2_eigen
 )
 ament_target_dependencies(${PROJECT_NAME} PUBLIC
-  tf2_eigen
   trajectory_msgs
   visualization_msgs
   tesseract_msgs
@@ -42,7 +45,6 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 ament_export_targets(${PROJECT_NAME}-targets HAS_LIBRARY_TARGET)
 ament_export_dependencies(
   rclcpp
-  tf2_eigen
   trajectory_msgs
   visualization_msgs
   tesseract_task_composer

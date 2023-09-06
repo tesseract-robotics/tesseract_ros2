@@ -28,6 +28,7 @@
 #include <tesseract_examples/freespace_ompl_example.h>
 #include <tesseract_monitoring/environment_monitor.h>
 #include <tesseract_rosutils/plotting.h>
+#include <tesseract_rosutils/utils.h>
 
 using namespace tesseract_examples;
 using namespace tesseract_rosutils;

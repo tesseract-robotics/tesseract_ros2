@@ -26,13 +26,13 @@ add_library(${PROJECT_NAME}_environment SHARED
   src/environment_monitor.cpp
   src/current_state_monitor.cpp
 )
-target_link_libraries(${PROJECT_NAME}_environment
-  PUBLIC
-    pluginlib::pluginlib
-    tf2_ros::tf2_ros
-    tesseract_rosutils::tesseract_rosutils
-  PRIVATE
-    tf2_eigen::tf2_eigen
+target_link_libraries(${PROJECT_NAME}_environment PUBLIC
+  pluginlib::pluginlib
+  tf2_ros::tf2_ros
+  tesseract_rosutils::tesseract_rosutils
+)
+ament_target_dependencies(${PROJECT_NAME}_environment PUBLIC 
+  tf2_eigen
 )
 target_compile_options(${PROJECT_NAME}_environment PRIVATE ${TESSERACT_COMPILE_OPTIONS})
 target_clang_tidy(${PROJECT_NAME}_environment ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS} ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
@@ -58,6 +58,7 @@ target_link_libraries(${PROJECT_NAME}_contacts PUBLIC
 )
 ament_target_dependencies(${PROJECT_NAME}_contacts PUBLIC
   sensor_msgs
+  tf2_eigen
   visualization_msgs
   tesseract_msgs
 )

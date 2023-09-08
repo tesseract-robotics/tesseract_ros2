@@ -6,6 +6,7 @@ extract_package_metadata(pkg)
 project(${pkg_extracted_name} VERSION ${pkg_extracted_version} LANGUAGES CXX)
 
 # ROS
+find_package(ament_index_cpp REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(tf2_eigen REQUIRED)
 find_package(trajectory_msgs REQUIRED)
@@ -31,6 +32,7 @@ target_link_libraries(${PROJECT_NAME}
     tesseract::tesseract_visualization
     tesseract::tesseract_motion_planners_core
   PRIVATE
+    ament_index_cpp::ament_index_cpp
     ${tf2_eigen_TARGETS}
 )
 target_compile_options(${PROJECT_NAME} PRIVATE ${TESSERACT_COMPILE_OPTIONS})
@@ -45,8 +47,8 @@ ament_export_dependencies(
   rclcpp
   trajectory_msgs
   visualization_msgs
-  tesseract_task_composer
   tesseract_msgs
+  tesseract_task_composer
 )
 
 # Mark cpp header files for installation

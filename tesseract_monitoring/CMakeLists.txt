@@ -6,7 +6,6 @@ extract_package_metadata(pkg)
 project(${pkg_extracted_name} VERSION ${pkg_extracted_version} LANGUAGES CXX)
 
 # ROS
-find_package(pluginlib REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(tf2_eigen REQUIRED)
@@ -26,13 +25,12 @@ add_library(${PROJECT_NAME}_environment SHARED
   src/environment_monitor.cpp
   src/current_state_monitor.cpp
 )
-target_link_libraries(${PROJECT_NAME}_environment PUBLIC
-  pluginlib::pluginlib
-  tf2_ros::tf2_ros
-  tesseract_rosutils::tesseract_rosutils
-)
-ament_target_dependencies(${PROJECT_NAME}_environment PUBLIC 
-  tf2_eigen
+target_link_libraries(${PROJECT_NAME}_environment
+  PUBLIC
+    tf2_ros::tf2_ros
+    tesseract_rosutils::tesseract_rosutils
+  PRIVATE
+    ${tf2_eigen_TARGETS}
 )
 target_compile_options(${PROJECT_NAME}_environment PRIVATE ${TESSERACT_COMPILE_OPTIONS})
 target_clang_tidy(${PROJECT_NAME}_environment ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS} ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
@@ -51,16 +49,16 @@ target_include_directories(${PROJECT_NAME}_environment_node PUBLIC
   "$<INSTALL_INTERFACE:include>")
 
 add_library(${PROJECT_NAME}_contacts src/contact_monitor.cpp)
-target_link_libraries(${PROJECT_NAME}_contacts PUBLIC 
-  rclcpp::rclcpp
-  tesseract::tesseract_environment
-  ${PROJECT_NAME}_environment
-)
-ament_target_dependencies(${PROJECT_NAME}_contacts PUBLIC
-  sensor_msgs
-  tf2_eigen
-  visualization_msgs
-  tesseract_msgs
+target_link_libraries(${PROJECT_NAME}_contacts 
+  PUBLIC 
+    rclcpp::rclcpp
+    ${sensor_msgs_TARGETS}
+    ${visualization_msgs_TARGETS}
+    ${tesseract_msgs_TARGETS}
+    tesseract::tesseract_environment
+    ${PROJECT_NAME}_environment
+  PRIVATE
+    ${tf2_eigen_TARGETS}
 )
 target_compile_options(${PROJECT_NAME}_contacts PRIVATE ${TESSERACT_COMPILE_OPTIONS})
 target_clang_tidy(${PROJECT_NAME}_contacts ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS} ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
@@ -127,7 +125,6 @@ install(DIRECTORY launch DESTINATION share/${PROJECT_NAME})
 
 ament_export_targets(${PROJECT_NAME}-targets HAS_LIBRARY_TARGET)
 ament_export_dependencies(
-  pluginlib
   rclcpp
   tf2_ros
   tesseract_rosutils

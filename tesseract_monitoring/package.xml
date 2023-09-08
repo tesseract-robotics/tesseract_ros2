@@ -10,7 +10,6 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
   <build_depend>ros_industrial_cmake_boilerplate</build_depend>
 
-  <depend>pluginlib</depend>
   <depend>sensor_msgs</depend>
   <depend>tf2_ros</depend>
   <depend>tf2_eigen</depend>

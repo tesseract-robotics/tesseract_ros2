@@ -15,10 +15,9 @@ tesseract_variables()
 macro(add_example test_name test_file)
   add_executable(${test_name} ${test_file})
   target_link_libraries(${test_name}
+    ${std_srvs_TARGETS}
     tesseract::tesseract_examples
     tesseract_monitoring::tesseract_monitoring_environment)
-  ament_target_dependencies(${test_name}
-    std_srvs)
   target_compile_options(${test_name} PRIVATE ${TESSERACT_COMPILE_OPTIONS})
   target_clang_tidy(${test_name} ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS} ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
   target_cxx_version(${test_name} PUBLIC VERSION ${TESSERACT_CXX_VERSION})

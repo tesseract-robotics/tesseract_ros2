@@ -30,12 +30,9 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <rclcpp/rclcpp.hpp>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
-#include <boost/thread/thread.hpp>
-
 #include <tesseract_environment/environment.h>
 #include <tesseract_scene_graph/graph.h>
 #include <tesseract_srdf/srdf_model.h>
-#include <tesseract_urdf/urdf_parser.h>
 #include <tesseract_rosutils/utils.h>
 
 // Stuff for the contact monitor
@@ -164,11 +161,11 @@ int main(int argc, char** argv)
   if (publish_markers)
     cm.startPublishingMarkers();
 
-  boost::thread t(&tesseract_monitoring::ContactMonitor::computeCollisionReportThread, &cm);
+  std::thread t(&tesseract_monitoring::ContactMonitor::computeCollisionReportThread, &cm);
 
   RCLCPP_INFO(node->get_logger(), "Contact Monitor Running!");
 
   rclcpp::spin(node);
-
+  rclcpp::shutdown();
   return 0;
 }

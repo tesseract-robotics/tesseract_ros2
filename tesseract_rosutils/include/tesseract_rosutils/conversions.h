@@ -28,15 +28,10 @@
 
 #include <tesseract_common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
-#include <Eigen/Core>
 #include <Eigen/Geometry>
 #include <sensor_msgs/msg/joint_state.hpp>
-#include <geometry_msgs/msg/pose.hpp>
-#include <geometry_msgs/msg/pose_array.hpp>
-#include <tesseract_msgs/msg/joint_state.hpp>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
-
-#include <tesseract_common/types.h>
+#include <tesseract_msgs/msg/joint_state.hpp>
 
 namespace tesseract_rosutils
 {

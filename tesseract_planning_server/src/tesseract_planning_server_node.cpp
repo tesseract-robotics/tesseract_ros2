@@ -48,7 +48,7 @@ int main(int argc, char** argv)
 
   // Defaults
   bool publish_environment{ false };
-  int cache_size{ 5 };
+  long cache_size{ 5 };
   double cache_refresh_rate{ 0.1 };
 
   std::string monitor_namespace = node->declare_parameter("monitor_namespace", "");
@@ -111,6 +111,6 @@ int main(int argc, char** argv)
   RCLCPP_INFO(node->get_logger(), "Planning Server Running!");
 
   rclcpp::spin(node);
-
+  rclcpp::shutdown();
   return 0;
 }

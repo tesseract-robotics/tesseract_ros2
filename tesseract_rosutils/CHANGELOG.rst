@@ -2,6 +2,18 @@
 Changelog for package tesseract_rosutils
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#64 <https://github.com/tesseract-robotics/tesseract_ros2/issues/64>`_ from rjoomen/includecleanup
+  Cleanup includes and dependencies
+* - Add ament_index_cpp dependency to tesseract_rosutils
+  - Remove ament_target_dependencies() from tesseract_ros_examples
+* - Link tf2_eigen privately.
+  - Remove pluginlib dependency from tesseract_monitoring.
+* Foxy build fixes (and a warning fix)
+* Cleanup includes and dependencies
+* Contributors: Roelof Oomen, Tyler Marr
+
 0.18.0 (2023-07-03)
 -------------------
 * Changes to support task composer restructure

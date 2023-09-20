@@ -2,6 +2,18 @@
 Changelog for package tesseract_ros_examples
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#64 <https://github.com/tesseract-robotics/tesseract_ros2/issues/64>`_ from rjoomen/includecleanup
+  Cleanup includes and dependencies
+* - Add ament_index_cpp dependency to tesseract_rosutils
+  - Remove ament_target_dependencies() from tesseract_ros_examples
+* Merge pull request `#63 <https://github.com/tesseract-robotics/tesseract_ros2/issues/63>`_ from rjoomen/clockfix
+  Fix clock comparison errors
+* - Initializing time variables to prevent clock comparision errors. Closes `#50 <https://github.com/tesseract-robotics/tesseract_ros2/issues/50>`_.
+  - Cleaned up includes.
+* Contributors: Roelof Oomen, Tyler Marr
+
 0.18.0 (2023-07-03)
 -------------------
 

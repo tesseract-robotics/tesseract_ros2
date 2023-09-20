@@ -2,6 +2,16 @@
 Changelog for package tesseract_planning_server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#64 <https://github.com/tesseract-robotics/tesseract_ros2/issues/64>`_ from rjoomen/includecleanup
+  Cleanup includes and dependencies
+* - Link tf2_eigen privately.
+  - Remove pluginlib dependency from tesseract_monitoring.
+* Foxy build fixes (and a warning fix)
+* Cleanup includes and dependencies
+* Contributors: Roelof Oomen, Tyler Marr
+
 0.17.0 (2023-06-07)
 -------------------
 

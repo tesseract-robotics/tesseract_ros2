@@ -2,6 +2,17 @@
 Changelog for package tesseract_rviz
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#64 <https://github.com/tesseract-robotics/tesseract_ros2/issues/64>`_ from rjoomen/includecleanup
+  Cleanup includes and dependencies
+* Cleanup includes and dependencies
+* Merge pull request `#63 <https://github.com/tesseract-robotics/tesseract_ros2/issues/63>`_ from rjoomen/clockfix
+  Fix clock comparison errors
+* - Initializing time variables to prevent clock comparision errors. Closes `#50 <https://github.com/tesseract-robotics/tesseract_ros2/issues/50>`_.
+  - Cleaned up includes.
+* Contributors: Roelof Oomen, Tyler Marr
+
 0.18.0 (2023-07-03)
 -------------------
 

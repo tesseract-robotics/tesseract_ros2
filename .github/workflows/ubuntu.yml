@@ -21,8 +21,7 @@ jobs:
       matrix:
         distro: [foxy, humble, rolling]
     env:
-      CI_NAME: ${{ matrix.distro }}-Build
-      CCACHE_DIR: "/home/runner/work/tesseract_ros2/tesseract_ros2/${{ matrix.distro }}-Build/.ccache"
+      CCACHE_DIR: ${{ github.workspace }}/${{ matrix.distro }}/.ccache
       REGISTRY: ghcr.io
       IMAGE_NAME: ${{ github.repository }}
       PUSH_DOCKER_IMAGE: ${{ github.ref == 'refs/heads/master' || github.event_name == 'release' }}
@@ -49,10 +48,10 @@ jobs:
         continue-on-error: true
         uses: actions/cache@v1.1.0
         with:
-          path: ${{ env.CI_NAME }}/.ccache
-          key: ${{ env.CI_NAME }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
+          path: ${{ env.CCACHE_DIR }}
+          key: ${{ matrix.distro }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
           restore-keys: |
-            ${{ env.CI_NAME }}-ccache-
+            ${{ env.matrix.distro }}-ccache-
 
       - name: Login to Github container registry
         uses: docker/login-action@v1
@@ -93,7 +92,7 @@ jobs:
           NOT_TEST_BUILD: true
           PREFIX: ${{ github.repository }}_
           UPSTREAM_CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=Release -DBUILD_RENDERING=OFF -DBUILD_STUDIO=OFF"
-          TARGET_CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=Debug"
+          TARGET_CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}"
           BEFORE_RUN_TARGET_TEST_EMBED: "source /root/target_ws/install/local_setup.bash"
           AFTER_SCRIPT: 'rm -r $BASEDIR/${PREFIX}upstream_ws/build $BASEDIR/${PREFIX}target_ws/build'
           DOCKER_COMMIT: ${{ steps.meta.outputs.tags }}

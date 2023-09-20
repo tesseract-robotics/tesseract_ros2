@@ -51,7 +51,7 @@ jobs:
         env:
           ROS_DISTRO: humble
           ROS_REPO: main
-          UPSTREAM_WORKSPACE: 'dependencies_unstable.repos'
+          UPSTREAM_WORKSPACE: 'dependencies.repos'
           ROSDEP_SKIP_KEYS: "catkin taskflow orocos_kdl fcl gz-common5 gz-math7 gz-rendering7 qt_advanced_docking"
           ADDITIONAL_DEBS: "clang-tidy"
           NOT_TEST_BUILD: true

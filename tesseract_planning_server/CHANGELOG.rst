@@ -2,8 +2,8 @@
 Changelog for package tesseract_planning_server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.18.1 (2023-09-20)
+-------------------
 * Merge pull request `#64 <https://github.com/tesseract-robotics/tesseract_ros2/issues/64>`_ from rjoomen/includecleanup
   Cleanup includes and dependencies
 * - Link tf2_eigen privately.

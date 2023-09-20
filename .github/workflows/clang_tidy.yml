@@ -13,8 +13,12 @@ jobs:
   industrial_ci:
     name: ClangTidy
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        distro: [humble]
     env:
-      CI_NAME: Clang-Tidy
+      CCACHE_DIR: ${{ github.workspace }}/${{ matrix.distro }}/.ccache
     steps:
       - uses: actions/checkout@v1
 
@@ -38,10 +42,10 @@ jobs:
         continue-on-error: true
         uses: actions/cache@v1.1.0
         with:
-          path: ${{ env.CI_NAME }}/.ccache
-          key: ${{ env.CI_NAME }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
+          path: ${{ matrix.distro }}/.ccache
+          key: ${{ matrix.distro }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
           restore-keys: |
-            ${{ env.CI_NAME }}-ccache-
+            ${{ matrix.distro }}-ccache-
 
       - uses: 'ros-industrial/industrial_ci@master'
         env:
@@ -50,8 +54,7 @@ jobs:
           UPSTREAM_WORKSPACE: 'dependencies_unstable.repos'
           ROSDEP_SKIP_KEYS: "catkin taskflow orocos_kdl fcl gz-common5 gz-math7 gz-rendering7 qt_advanced_docking"
           ADDITIONAL_DEBS: "clang-tidy"
-          CCACHE_DIR: "${{ github.workspace }}/${{ env.CI_NAME }}/.ccache"
           NOT_TEST_BUILD: true
-          UPSTREAM_CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=Debug -DBUILD_RENDERING=OFF -DBUILD_STUDIO=OFF"
-          TARGET_CMAKE_ARGS: "-DTESSERACT_ENABLE_CLANG_TIDY=ON -DTESSERACT_ENABLE_TESTING=ON"
+          UPSTREAM_CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=Release -DBUILD_RENDERING=OFF -DBUILD_STUDIO=OFF"
+          TARGET_CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=Debug -DTESSERACT_ENABLE_CLANG_TIDY=ON -DTESSERACT_ENABLE_TESTING=ON"
           CXXFLAGS: "-std=c++17"

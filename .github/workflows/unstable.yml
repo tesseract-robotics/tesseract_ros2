@@ -1,4 +1,4 @@
-name: Ubuntu
+name: Unstable
 
 on:
   push:
@@ -19,12 +19,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        distro: [foxy, humble, rolling]
+        distro: [humble]
     env:
       CCACHE_DIR: ${{ github.workspace }}/${{ matrix.distro }}/.ccache
-      REGISTRY: ghcr.io
-      IMAGE_NAME: ${{ github.repository }}
-      PUSH_DOCKER_IMAGE: ${{ github.ref == 'refs/heads/master' || github.event_name == 'release' }}
     steps:
       - uses: actions/checkout@v1
 
@@ -53,50 +50,15 @@ jobs:
           restore-keys: |
             ${{ env.matrix.distro }}-ccache-
 
-      - name: Login to Github container registry
-        uses: docker/login-action@v1
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract Docker meta-information
-        id: meta
-        uses: docker/metadata-action@v3
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          flavor: |
-            latest=false
-            prefix=
-            suffix=
-          tags: |
-            type=ref,event=branch,prefix=${{ matrix.distro }}-
-            type=semver,pattern={{major}}.{{minor}},prefix=${{ matrix.distro }}-
-
-      - name: Set build type
-        run: |
-          if [[ "${{ env.PUSH_DOCKER_IMAGE }}" = true ]]
-          then
-            echo "BUILD_TYPE=Release" >> $GITHUB_ENV
-          else
-            echo "BUILD_TYPE=Debug" >> $GITHUB_ENV
-          fi
-
       - uses: 'ros-industrial/industrial_ci@master'
         env:
           ROS_DISTRO: ${{ matrix.distro }}
           ROS_REPO: main
-          UPSTREAM_WORKSPACE: 'dependencies.repos'
+          UPSTREAM_WORKSPACE: 'dependencies_unstable.repos'
           ROSDEP_SKIP_KEYS: "catkin taskflow fcl gz-common5 gz-math7 gz-rendering7 qt_advanced_docking"
           PARALLEL_TESTS: false
           NOT_TEST_BUILD: true
           PREFIX: ${{ github.repository }}_
           UPSTREAM_CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=Release -DBUILD_RENDERING=OFF -DBUILD_STUDIO=OFF"
-          TARGET_CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}"
+          TARGET_CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=Release"
           BEFORE_RUN_TARGET_TEST_EMBED: "source /root/target_ws/install/local_setup.bash"
-          AFTER_SCRIPT: 'rm -r $BASEDIR/${PREFIX}upstream_ws/build $BASEDIR/${PREFIX}target_ws/build'
-          DOCKER_COMMIT: ${{ steps.meta.outputs.tags }}
-
-      - name: Push post-build Docker
-        if: ${{ env.PUSH_DOCKER_IMAGE == 'true' }}
-        run: docker push ${{ steps.meta.outputs.tags }}

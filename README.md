@@ -2,10 +2,15 @@
 
 Platform             | CI Status
 ---------------------|:---------
-Linux (Focal)        | [![Build Status](https://github.com/tesseract-robotics/tesseract_ros2/workflows/Focal-Build/badge.svg)](https://github.com/tesseract-robotics/tesseract_ros2/actions)
-Linux (Jammy)        | [![Build Status](https://github.com/tesseract-robotics/tesseract_ros2/workflows/Jammy-Build/badge.svg)](https://github.com/tesseract-robotics/tesseract_ros2/actions)
+Ubuntu               | [![Build Status](https://github.com/tesseract-robotics/tesseract_ros2/workflows/Ubuntu/badge.svg)](https://github.com/tesseract-robotics/tesseract_ros2/actions)
 Lint  (Clang-Format) | [![Build Status](https://github.com/tesseract-robotics/tesseract_ros2/workflows/Clang-Format/badge.svg)](https://github.com/tesseract-robotics/tesseract_ros2/actions)
 Lint  (Clang Tidy)   | [![Build Status](https://github.com/tesseract-robotics/tesseract_ros2/workflows/Clang-Tidy/badge.svg)](https://github.com/tesseract-robotics/tesseract_ros2/actions)
+
+### Supported ROS Distros
+| Distro         | Support |
+| :---           | :---:   |
+| ROS Foxy       | &check; |
+| ROS Humble     | &check; |
 
 [![Github Issues](https://img.shields.io/github/issues/ros-industrial-consortium/tesseract_ros.svg)](http://github.com/ros-industrial-consortium/tesseract_ros/issues)
 
@@ -14,48 +19,42 @@ Lint  (Clang Tidy)   | [![Build Status](https://github.com/tesseract-robotics/te
 
 [![support level: consortium](https://img.shields.io/badge/support%20level-consortium-brightgreen.png)](http://rosindustrial.org/news/2016/10/7/better-supporting-a-growing-ros-industrial-software-platform)
 
-## Tesseract ROS Packages
+## Package Descriptions
 
-* **tesseract_ros_examples** – This package contains ROS examples using tesseract and tesseract_ros for motion planning and collision checking.
-* **tesseract_rosutils** – This package contains the utilities like converting from ROS message types to native Tesseract types and the reverse.
-* **tesseract_msgs** – This package contains the ROS message types used by Tesseract ROS.
-* **tesseract_rviz** – This package contains the ROS visualization plugins for Rviz to visualize Tesseract. All of the features have been composed in libraries to enable to the ability to create custom displays quickly.
-* **tesseract_monitoring** – This package contains different types of environment monitors. It currently contains a contact monitor and environment monitor. The contact monitor will monitor the active environment state and publish contact information. This is useful if the robot is being controlled outside of ROS, but you want to make sure it does not collide with objects in the environment. The second is the environment monitor, which is the main environment which facilitates requests to add, remove, disable and enable collision objects, while publishing its current state to keep other ROS nodes updated with the latest environment.
-* **tesseract_planning_server** - This package contains a planning server supporting asynchronous execution of multiple planning requests.
+### `tesseract_ros_examples`
+This package contains ROS examples using tesseract and tesseract_ros for motion planning and collision checking.
 
-## TODO's
+### `tesseract_rosutils`
+This package contains the utilities like converting from ROS message types to native Tesseract types and the reverse.
 
-.. Warning:: These packages are under heavy development and are subject to change.
+### `tesseract_msgs`
+This package contains the ROS message types used by Tesseract ROS.
 
+### `tesseract_rviz`
+This package contains the ROS visualization plugins for Rviz to visualize Tesseract.
+All of the features have been composed in libraries to enable to the ability to create custom displays quickly.
 
-See [issue #66](https://github.com/ros-industrial-consortium/tesseract/issues/66)
+### `tesseract_monitoring`
+This package contains different types of environment monitors.
+It currently contains a contact monitor and environment monitor.
+The contact monitor will monitor the active environment state and publish contact information.
+This is useful if the robot is being controlled outside of ROS, but you want to make sure it does not collide with objects in the environment.
+The second is the environment monitor, which is the main environment which facilitates requests to add, remove, disable and enable collision objects, while publishing its current state to keep other ROS nodes updated with the latest environment.
 
-## Install Instructions
+### `tesseract_planning_server`
+This package contains a planning server supporting asynchronous execution of multiple planning requests.
 
-Clone this repository and the packages in the dependencies.rosinstall into your workspace. Build using [catkin_tools](https://catkin-tools.readthedocs.io/en/latest/) or something similar
+## Build
+- Create a `colcon` workspace and clone this repository into its `src` directory
 
-.. NOTE: To speed up clean build you may want to add tesseract_ext to an extended workspace.
+- Add the dependencies
+    ```bash
+    cd <colcon_ws>
+    vcs import < src/tesseract_ros2/dependencies.repos
+    rosdep install --from-paths src -iry
+    ```
 
-## Tesseract Examples
-### Online Planning Example
-This example demonstrates using TrajOpt to plan in an "online" manner. Use the joint state publisher gui to change the location of the collision obstacle or the target and watch it dynamically plan. Adjust the box_size parameter for faster adaption.
-
-```roslaunch tesseract_ros_examples online_planning_example.launch```
-
-![Online Planning Example](gh_pages/_static/examples/online_planning_example.gif)
-
-## Building with Clang-Tidy Enabled
-
-Must pass the -DTESSERACT_ENABLE_CLANG_TIDY=ON to cmake when building. This is automatically enabled if cmake argument -DTESSERACT_ENABLE_TESTING_ALL=ON is passed.
-
-## Running Tesseract ROS Tests
-
-Tesseract ROS Packages use the typical method so pass catkin argument `run_tests` when wanting to run these tests.
-
-## Build Branch Sphinx Documentation
-
-```
-cd gh_pages
-sphinx-build . output
-```
-Now open gh_pages/output/index.rst and remove *output* directory before commiting changes.
+- Build
+    ```bash
+    colcon build --symlink-install --cmake-args -DTESSERACT_BUILD_FCL=OFF -DBUILD_RENDERING=OFF -DBUILD_STUDIO=OFF
+    ```

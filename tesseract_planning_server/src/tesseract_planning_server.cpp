@@ -214,7 +214,7 @@ void TesseractPlanningServer::onMotionPlanningCallback(
   {
     auto ci = Serialization::fromArchiveStringXML<tesseract_planning::InstructionPoly>(goal->request.instructions)
                   .as<tesseract_planning::CompositeInstruction>();
-    data_storage->setData("input_program", ci);
+    data_storage->setData(input_key_, ci);
   }
   catch (const std::exception& e)
   {

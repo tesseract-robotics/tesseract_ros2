@@ -19,7 +19,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        distro: [humble]
+        distro: [foxy, humble, rolling]
     env:
       CCACHE_DIR: ${{ github.workspace }}/${{ matrix.distro }}/.ccache
     steps:

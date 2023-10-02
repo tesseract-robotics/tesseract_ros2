@@ -159,15 +159,19 @@ void EnvironmentMonitorProperties::load(const rviz_common::Config& config)
   if (config.mapGetString("tesseract::EnvMonitorURDFDescription", &urdf_description))
     data_->urdf_description_string_property->setString(urdf_description);
 
-  QString topic;
-  if (config.mapGetString("tesseract::EnvMonitorTopic", &topic))
-    data_->environment_topic_property->setString(topic);
+  QString env_mon_topic;
+  if (config.mapGetString("tesseract::EnvMonitorTopic", &env_mon_topic))
+    data_->environment_topic_property->setString(env_mon_topic);
 
-  if (config.mapGetString("tesseract::EnvMonitorSnapshotTopic", &topic))
-    data_->environment_snapshot_topic_property->setString(topic);
+  QString snapshot_topic;
+  if (config.mapGetString("tesseract::EnvMonitorSnapshotTopic", &snapshot_topic))
+    data_->environment_snapshot_topic_property->setString(snapshot_topic);
 
-  if (config.mapGetString("tesseract::EnvMonitorJointStateTopic", &topic))
-    data_->joint_state_topic_property->setString(topic);
+  QString joint_state_topic;
+  if (config.mapGetString("tesseract::EnvMonitorJointStateTopic", &joint_state_topic))
+    data_->joint_state_topic_property->setString(joint_state_topic);
+
+  onDisplayModeChanged();
 }
 
 void EnvironmentMonitorProperties::save(rviz_common::Config config) const

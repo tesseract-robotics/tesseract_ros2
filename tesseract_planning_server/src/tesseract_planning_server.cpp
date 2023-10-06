@@ -64,6 +64,9 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <tesseract_common/timer.h>
 
 using tesseract_common::Serialization;
+using tesseract_planning::InstructionPoly;
+using tesseract_planning::PlanningTaskComposerProblem;
+using tesseract_planning::TaskComposerDataStorage;
 using tesseract_rosutils::processMsg;
 
 static const std::string TRAJOPT_DEFAULT_NAMESPACE = "TrajOptMotionPlannerTask";
@@ -78,16 +81,12 @@ const std::string TesseractPlanningServer::DEFAULT_GET_MOTION_PLAN_ACTION = "tes
 
 TesseractPlanningServer::TesseractPlanningServer(rclcpp::Node::SharedPtr node,
                                                  const std::string& robot_description,
-                                                 std::string input_key,
-                                                 std::string output_key,
                                                  std::string name)
   : node_(node)
   , monitor_(std::make_shared<tesseract_monitoring::ROSEnvironmentMonitor>(node_, robot_description, name))
   , environment_cache_(std::make_shared<tesseract_environment::DefaultEnvironmentCache>(monitor_->getEnvironment()))
   , profiles_(std::make_shared<tesseract_planning::ProfileDictionary>())
   , planning_server_(std::make_unique<tesseract_planning::TaskComposerServer>())
-  , input_key_(std::move(input_key))
-  , output_key_(std::move(output_key))
   , motion_plan_server_(rclcpp_action::create_server<tesseract_msgs::action::GetMotionPlan>(
         node_,
         DEFAULT_GET_MOTION_PLAN_ACTION,
@@ -102,16 +101,12 @@ TesseractPlanningServer::TesseractPlanningServer(rclcpp::Node::SharedPtr node,
 
 TesseractPlanningServer::TesseractPlanningServer(rclcpp::Node::SharedPtr node,
                                                  tesseract_environment::Environment::UPtr env,
-                                                 std::string input_key,
-                                                 std::string output_key,
                                                  std::string name)
   : node_(node)
   , monitor_(std::make_shared<tesseract_monitoring::ROSEnvironmentMonitor>(node_, std::move(env), name))
   , environment_cache_(std::make_shared<tesseract_environment::DefaultEnvironmentCache>(monitor_->getEnvironment()))
   , profiles_(std::make_shared<tesseract_planning::ProfileDictionary>())
   , planning_server_(std::make_unique<tesseract_planning::TaskComposerServer>())
-  , input_key_(std::move(input_key))
-  , output_key_(std::move(output_key))
   , motion_plan_server_(rclcpp_action::create_server<tesseract_msgs::action::GetMotionPlan>(
         node_,
         DEFAULT_GET_MOTION_PLAN_ACTION,
@@ -209,20 +204,17 @@ void TesseractPlanningServer::onMotionPlanningCallback(
   }
 
   auto problem = std::make_unique<tesseract_planning::PlanningTaskComposerProblem>(goal->request.name);
-  auto data_storage = std::make_unique<tesseract_planning::TaskComposerDataStorage>();
   try
   {
-    auto ci = Serialization::fromArchiveStringXML<tesseract_planning::InstructionPoly>(goal->request.instructions)
-                  .as<tesseract_planning::CompositeInstruction>();
-    data_storage->setData(input_key_, ci);
+    problem->input_instruction =
+        Serialization::fromArchiveStringXML<tesseract_planning::InstructionPoly>(goal->request.instructions);
   }
   catch (const std::exception& e)
   {
     result->response.successful = false;
     std::ostringstream oss;
     oss << "Failed to deserialize program instruction with error: '" << e.what() << "'!" << std::endl;
-    oss << "   Make sure the program was serialized from an Instruction type and not a CompositeInstruction type."
-        << std::endl;
+    oss << " Make sure the program was serialized from an InstructionPoly type." << std::endl;
     RCLCPP_ERROR_STREAM(node_->get_logger(), oss.str());
     goal_handle->succeed(result);
     return;
@@ -251,7 +243,7 @@ void TesseractPlanningServer::onMotionPlanningCallback(
   tesseract_common::Timer timer;
   timer.start();
   tesseract_planning::TaskComposerFuture::UPtr plan_future =
-      planning_server_->run(std::move(problem), std::move(data_storage), executor_name);
+      planning_server_->run(std::move(problem), std::make_unique<TaskComposerDataStorage>(), executor_name);
   plan_future->wait();  // Wait for results
   timer.stop();
 
@@ -260,10 +252,8 @@ void TesseractPlanningServer::onMotionPlanningCallback(
   {
     try
     {
-      // Get Task
-      const tesseract_planning::TaskComposerNode& task = planning_server_->getTask(plan_future->context->problem->name);
-
       // Save dot graph
+      const tesseract_planning::TaskComposerNode& task = planning_server_->getTask(plan_future->context->problem->name);
       std::stringstream dotgraph;
       task.dump(dotgraph, nullptr, plan_future->context->task_infos.getInfoMap());
       result->response.dotgraph = dotgraph.str();
@@ -278,7 +268,8 @@ void TesseractPlanningServer::onMotionPlanningCallback(
 
   try
   {
-    tesseract_common::AnyPoly results = plan_future->context->data_storage->getData(output_key_);
+    const tesseract_planning::TaskComposerNode& task = planning_server_->getTask(plan_future->context->problem->name);
+    tesseract_common::AnyPoly results = plan_future->context->data_storage->getData(task.getOutputKeys().front());
     result->response.results = Serialization::toArchiveStringXML<tesseract_planning::InstructionPoly>(
         results.as<tesseract_planning::CompositeInstruction>());
   }

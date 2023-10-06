@@ -101,18 +101,6 @@ void EnvironmentDisplay::update(float wall_dt, float ros_dt)
                             new tesseract_gui::events::PreRender(data_->widget->getComponentInfo()->getSceneName()));
 }
 
-void EnvironmentDisplay::load(const rviz_common::Config& config)
-{
-  rviz_common::Display::load(config);
-  data_->monitor_properties->load(config);
-}
-
-void EnvironmentDisplay::save(rviz_common::Config config) const
-{
-  data_->monitor_properties->save(config);
-  rviz_common::Display::save(config);
-}
-
 void EnvironmentDisplay::onEnable()
 {
   Display::onEnable();

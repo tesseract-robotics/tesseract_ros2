@@ -16,9 +16,6 @@ public:
   void update(float wall_dt, float ros_dt) override;
   void reset() override;
 
-  void load(const rviz_common::Config& config) override;
-  void save(rviz_common::Config config) const override;
-
 public Q_SLOTS:
   void onEnableChanged() override;
   void onComponentInfoChanged(std::shared_ptr<const tesseract_gui::ComponentInfo> component_info);

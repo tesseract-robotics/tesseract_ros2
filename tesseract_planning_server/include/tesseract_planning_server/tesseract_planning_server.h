@@ -28,8 +28,6 @@
 
 #include <tesseract_common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
-#include <deque>
-#include <shared_mutex>
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_action/rclcpp_action.hpp>
 #include <tf2_ros/buffer.h>
@@ -51,17 +49,9 @@ public:
 
   static const std::string DEFAULT_GET_MOTION_PLAN_ACTION;  // "/tesseract_get_motion_plan"
 
-  TesseractPlanningServer(rclcpp::Node::SharedPtr node,
-                          const std::string& robot_description,
-                          std::string input_key,
-                          std::string output_key,
-                          std::string name);
+  TesseractPlanningServer(rclcpp::Node::SharedPtr node, const std::string& robot_description, std::string name);
 
-  TesseractPlanningServer(rclcpp::Node::SharedPtr node,
-                          tesseract_environment::Environment::UPtr env,
-                          std::string input_key,
-                          std::string output_key,
-                          std::string name);
+  TesseractPlanningServer(rclcpp::Node::SharedPtr node, tesseract_environment::Environment::UPtr env, std::string name);
 
   ~TesseractPlanningServer() = default;
   TesseractPlanningServer(const TesseractPlanningServer&) = delete;
@@ -103,12 +93,6 @@ protected:
 
   /** @brief The task planning server */
   tesseract_planning::TaskComposerServer::UPtr planning_server_;
-
-  /** @brief The input key */
-  std::string input_key_;
-
-  /** @brief The output key */
-  std::string output_key_;
 
   /** @brief The motion planning action server */
   rclcpp_action::Server<tesseract_msgs::action::GetMotionPlan>::SharedPtr motion_plan_server_;

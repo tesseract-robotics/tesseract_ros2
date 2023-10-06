@@ -33,6 +33,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <tesseract_planning_server/tesseract_planning_server.h>
 
 using namespace tesseract_environment;
+using tesseract_planning_server::TesseractPlanningServer;
 
 const std::string ROBOT_DESCRIPTION_PARAM = "robot_description"; /**< Default ROS parameter for robot description */
 const std::string ROBOT_DESCRIPTION_SEMANTIC_PARAM = "robot_description_semantic";
@@ -57,18 +58,6 @@ int main(int argc, char** argv)
     RCLCPP_ERROR(node->get_logger(), "Missing required parameter monitor_namespace!");
     return 1;
   }
-  std::string input_key = node->declare_parameter("input_key", "");
-  if (input_key.empty())
-  {
-    RCLCPP_ERROR(node->get_logger(), "Missing required parameter input_key!");
-    return 1;
-  }
-  std::string output_key = node->declare_parameter("output_key", "");
-  if (output_key.empty())
-  {
-    RCLCPP_ERROR(node->get_logger(), "Missing required parameter output_key!");
-    return 1;
-  }
   std::string monitored_namespace = node->declare_parameter("monitored_namespace", "");
   std::string robot_description = node->declare_parameter(ROBOT_DESCRIPTION_PARAM, "");
   if (robot_description.empty())
@@ -87,8 +76,7 @@ int main(int argc, char** argv)
   cache_refresh_rate = node->declare_parameter("cache_refresh_rate", cache_refresh_rate);
   std::string task_composer_config = node->declare_parameter("task_composer_config", "");
 
-  planning_server = std::make_shared<tesseract_planning_server::TesseractPlanningServer>(
-      node, ROBOT_DESCRIPTION_PARAM, input_key, output_key, monitor_namespace);
+  planning_server = std::make_shared<TesseractPlanningServer>(node, ROBOT_DESCRIPTION_PARAM, monitor_namespace);
 
   planning_server->getEnvironmentCache().setCacheSize(cache_size);
 

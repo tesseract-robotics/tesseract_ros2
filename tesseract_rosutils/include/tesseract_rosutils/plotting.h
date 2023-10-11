@@ -67,9 +67,13 @@ public:
                       const tesseract_planning::InstructionPoly& instruction,
                       std::string ns = "");
 
+  void plotTrajectory(const tesseract_environment::Commands& cmds,
+                      const tesseract_planning::InstructionPoly& instruction,
+                      std::string = "");
+
   void plotToolpath(const tesseract_environment::Environment& env,
                     const tesseract_planning::InstructionPoly& instruction,
-                    std::string ns);
+                    std::string ns = "");
 
   void plotMarker(const tesseract_visualization::Marker& marker, std::string ns = "") override;
 

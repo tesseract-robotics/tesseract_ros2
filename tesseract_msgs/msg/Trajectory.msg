@@ -11,7 +11,7 @@ string description
 # (Optional) Override the existing Tesseract Environment
 Environment environment
 
-# (Optional) Additional Commands to be applied to environment prior to trajectory visualization
+# (Optional) Additional Commands to be applied to environment prior to trajectory visualization (ignored if environment is provided)
 tesseract_msgs/EnvironmentCommand[] commands
 
 # (Required) Initial Environment Joint State

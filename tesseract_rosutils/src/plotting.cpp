@@ -112,9 +112,10 @@ void ROSPlotting::plotTrajectory(const tesseract_msgs::msg::Trajectory& traj, st
 
 void ROSPlotting::plotTrajectory(const tesseract_common::JointTrajectory& traj,
                                  const tesseract_scene_graph::StateSolver& /*state_solver*/,
-                                 std::string /*ns*/)
+                                 std::string ns)
 {
   tesseract_msgs::msg::Trajectory msg;
+  msg.ns = ns;
 
   if (!traj.empty())
   {
@@ -138,9 +139,10 @@ void ROSPlotting::plotTrajectory(const tesseract_common::JointTrajectory& traj,
 
 void ROSPlotting::plotTrajectory(const tesseract_environment::Environment& env,
                                  const tesseract_planning::InstructionPoly& instruction,
-                                 std::string /*ns*/)
+                                 std::string ns)
 {
   tesseract_msgs::msg::Trajectory msg;
+  msg.ns = ns;
 
   // Set tesseract state information
   toMsg(msg.environment, env);
@@ -159,6 +161,43 @@ void ROSPlotting::plotTrajectory(const tesseract_environment::Environment& env,
   assert(instruction.isCompositeInstruction());
   const auto& ci = instruction.as<tesseract_planning::CompositeInstruction>();
   tesseract_common::JointTrajectory traj = tesseract_planning::toJointTrajectory(ci);
+
+  // Set the joint trajectory message
+  tesseract_msgs::msg::JointTrajectory traj_msg;
+  toMsg(traj_msg, traj);
+  msg.joint_trajectories.push_back(traj_msg);
+
+  plotTrajectory(msg);
+}
+
+void ROSPlotting::plotTrajectory(const tesseract_environment::Commands& cmds,
+                                 const tesseract_planning::InstructionPoly& instruction,
+                                 std::string ns)
+{
+  tesseract_msgs::msg::Trajectory msg;
+  msg.ns = ns;
+
+  // Set the commands message
+  std::vector<tesseract_msgs::msg::EnvironmentCommand> env_cmds;
+  tesseract_rosutils::toMsg(env_cmds, cmds, 0);
+  msg.commands = env_cmds;
+
+  // Convert to joint trajectory
+  assert(instruction.isCompositeInstruction());
+  const auto& ci = instruction.as<tesseract_planning::CompositeInstruction>();
+  tesseract_common::JointTrajectory traj = tesseract_planning::toJointTrajectory(ci);
+
+  if (!traj.empty())
+  {
+    // Set the initial state
+    for (std::size_t i = 0; i < traj[0].joint_names.size(); ++i)
+    {
+      tesseract_msgs::msg::StringDoublePair pair;
+      pair.first = traj[0].joint_names[i];
+      pair.second = traj[0].position[static_cast<Eigen::Index>(i)];
+      msg.initial_state.push_back(pair);
+    }
+  }
 
   // Set the joint trajectory message
   tesseract_msgs::msg::JointTrajectory traj_msg;

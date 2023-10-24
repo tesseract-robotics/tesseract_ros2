@@ -19,12 +19,19 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        distro: [foxy, humble, rolling]
+        include:
+          - os: focal
+            distro: foxy
+          - os: jammy
+            distro: humble
+          - os: jammy
+            distro: rolling
     env:
       CCACHE_DIR: ${{ github.workspace }}/${{ matrix.distro }}/.ccache
       REGISTRY: ghcr.io
       IMAGE_NAME: ${{ github.repository }}
       PUSH_DOCKER_IMAGE: ${{ github.ref == 'refs/heads/master' || github.event_name == 'release' }}
+      TESSERACT_VERSION: '0.20'
     steps:
       - uses: actions/checkout@v1
 
@@ -84,16 +91,20 @@ jobs:
 
       - uses: 'ros-industrial/industrial_ci@master'
         env:
+          DOCKER_IMAGE: ghcr.io/tesseract-robotics/tesseract_planning:${{ matrix.os }}-${{ env.TESSERACT_VERSION }}
           ROS_DISTRO: ${{ matrix.distro }}
+          BEFORE_INIT: 'apt install ros-${{ matrix.distro }}-ros-base -y -qq'
+          BEFORE_INIT_EMBED: 'ici_with_unset_variables source /opt/ros/${{ matrix.distro }}/setup.bash'
           ROS_REPO: main
-          UPSTREAM_WORKSPACE: 'dependencies.repos'
-          ROSDEP_SKIP_KEYS: "catkin taskflow fcl gz-common5 gz-math7 gz-rendering7 qt_advanced_docking"
+          UPSTREAM_WORKSPACE: '.github/workflows/dependencies.repos'
+          ROSDEP_SKIP_KEYS: 'catkin taskflow fcl gz-common5 gz-math7 gz-rendering7 qt_advanced_docking'
           PARALLEL_TESTS: false
           NOT_TEST_BUILD: true
+          UNDERLAY: /root/tesseract-robotics/tesseract_planning_target_ws/install
           PREFIX: ${{ github.repository }}_
-          UPSTREAM_CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=Release -DBUILD_RENDERING=OFF -DBUILD_STUDIO=OFF"
-          TARGET_CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}"
-          BEFORE_RUN_TARGET_TEST_EMBED: "source /root/target_ws/install/local_setup.bash"
+          UPSTREAM_CMAKE_ARGS: '-DCMAKE_BUILD_TYPE=Release -DBUILD_RENDERING=OFF -DBUILD_STUDIO=OFF'
+          TARGET_CMAKE_ARGS: '-DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}'
+          BEFORE_RUN_TARGET_TEST_EMBED: 'source /root/target_ws/install/local_setup.bash'
           AFTER_SCRIPT: 'rm -r $BASEDIR/${PREFIX}upstream_ws/build $BASEDIR/${PREFIX}target_ws/build'
           DOCKER_COMMIT: ${{ steps.meta.outputs.tags }}
 

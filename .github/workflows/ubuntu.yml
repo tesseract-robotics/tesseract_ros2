@@ -90,11 +90,12 @@ jobs:
           ROSDEP_SKIP_KEYS: "catkin taskflow fcl gz-common5 gz-math7 gz-rendering7 qt_advanced_docking"
           PARALLEL_TESTS: false
           NOT_TEST_BUILD: true
+          BASEDIR: /opt
           PREFIX: ${{ github.repository }}_
           UPSTREAM_CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=Release -DBUILD_RENDERING=OFF -DBUILD_STUDIO=OFF"
           TARGET_CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}"
-          BEFORE_RUN_TARGET_TEST_EMBED: "source /root/target_ws/install/local_setup.bash"
-          AFTER_SCRIPT: 'rm -r $BASEDIR/${PREFIX}upstream_ws/build $BASEDIR/${PREFIX}target_ws/build'
+          BEFORE_RUN_TARGET_TEST_EMBED: "source ${BASEDIR}/${PREFIX}target_ws/install/local_setup.bash"
+          AFTER_SCRIPT: 'rm -r ${BASEDIR}/${PREFIX}upstream_ws/build ${BASEDIR}/${PREFIX}target_ws/build'
           DOCKER_COMMIT: ${{ steps.meta.outputs.tags }}
 
       - name: Push post-build Docker

@@ -82,7 +82,7 @@ jobs:
             echo "BUILD_TYPE=Debug" >> $GITHUB_ENV
           fi
 
-      - uses: 'ros-industrial/industrial_ci@master'
+      - uses: 'tesseract-robotics/industrial_ci@0109bf3523050402490b56e19c9554e7d7c5379f'
         env:
           ROS_DISTRO: ${{ matrix.distro }}
           ROS_REPO: main

@@ -56,7 +56,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_task_composer/planning/planning_task_composer_problem.h>
 
-#include <tesseract_command_language/poly/instruction_poly.h>
+#include <tesseract_common/any_poly.h>
 
 #include <tesseract_monitoring/environment_monitor.h>
 #include <tesseract_rosutils/utils.h>
@@ -67,7 +67,6 @@ using tesseract_common::Serialization;
 using tesseract_planning::InstructionPoly;
 using tesseract_planning::PlanningTaskComposerProblem;
 using tesseract_planning::TaskComposerDataStorage;
-using tesseract_rosutils::processMsg;
 
 static const std::string TRAJOPT_DEFAULT_NAMESPACE = "TrajOptMotionPlannerTask";
 static const std::string TRAJOPT_IFOPT_DEFAULT_NAMESPACE = "TrajOptIfoptMotionPlannerTask";
@@ -206,8 +205,7 @@ void TesseractPlanningServer::onMotionPlanningCallback(
   auto problem = std::make_unique<tesseract_planning::PlanningTaskComposerProblem>(goal->request.name);
   try
   {
-    problem->input_instruction =
-        Serialization::fromArchiveStringXML<tesseract_planning::InstructionPoly>(goal->request.instructions);
+    problem->input = Serialization::fromArchiveStringXML<tesseract_common::AnyPoly>(goal->request.input);
   }
   catch (const std::exception& e)
   {

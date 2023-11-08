@@ -25,6 +25,8 @@
 #ifndef TESSERACT_MONITORING_CONSTANTS_H
 #define TESSERACT_MONITORING_CONSTANTS_H
 
+#include <string>
+
 namespace tesseract_monitoring
 {
 /// The name of the topic used by default for receiving joint states

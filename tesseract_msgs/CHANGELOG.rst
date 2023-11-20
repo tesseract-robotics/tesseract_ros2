@@ -2,16 +2,26 @@
 Changelog for package tesseract_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.18.2 (2023-09-22)
+0.21.0 (2023-11-10)
+-------------------
+* Update planning request input to leverage AnyPoly
+* Contributors: Levi Armstrong
+
+0.20.1 (2023-10-30)
 -------------------
 
-0.18.1 (2023-09-20)
+0.20.0 (2023-09-30)
+-------------------
+
+0.19.0 (2023-09-06)
+-------------------
+
+0.18.1 (2023-07-10)
 -------------------
 
 0.18.0 (2023-07-03)
 -------------------
 * Expose flag for generating DOT Graph in planning request
-* Changes to support task composer restructure
 * Contributors: Levi Armstrong
 
 0.17.0 (2023-06-07)

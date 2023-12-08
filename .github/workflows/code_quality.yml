@@ -1,0 +1,55 @@
+name: Code Quality
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    paths:
+      - 'tesseract**'
+      - '.github/workflows/code_quality.yml'
+  schedule:
+    - cron: '0 5 * * *'
+
+jobs:
+  ci:
+    name: ${{ matrix.job_type }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: jammy
+            distro: humble
+            env:
+              TARGET_CMAKE_ARGS: "-DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_BUILD_TYPE=Debug -DTESSERACT_ENABLE_CLANG_TIDY=ON -DTESSERACT_ENABLE_TESTING=ON"
+
+    container:
+      image: ghcr.io/tesseract-robotics/tesseract_qt:{{ matrix.os }}-0.21
+      env:
+        CCACHE_DIR: "${{ github.workspace }}/${{ matrix.os }}/.ccache"
+        DEBIAN_FRONTEND: noninteractive
+        TZ: Etc/UTC
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          path: target_ws/src
+
+      - name: Install Depends
+        shell: bash
+        run: |
+          curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | tee /etc/apt/sources.list.d/ros2.list > /dev/null
+          apt update -qq
+          apt upgrade -y
+          apt install -y clang-tidy ros-${{ matrix.distro }}-ros-base
+
+      - name: Build and Tests
+        uses: tesseract-robotics/colcon-action@v2
+        with:
+          before-script: apt install ros-${{ matrix.distro }}-ros-base && source /opt/tesseract_qt/install/setup.bash && source /opt/ros/${{ matrix.distro }}/setup.bash
+          ccache-prefix: ${{ matrix.distro }}
+          run-tests: false
+          target-path: target_ws/src
+          target-args: --cmake-args ${{ matrix.env.TARGET_CMAKE_ARGS }}

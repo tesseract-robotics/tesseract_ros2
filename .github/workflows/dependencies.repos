@@ -1,0 +1,5 @@
+repositories:
+  octomap_msgs:
+    type: git
+    url: https://github.com/OctoMap/octomap_msgs.git
+    version: 67be62db91510f3a10ac6c37b1013307c290631c

@@ -25,10 +25,13 @@ jobs:
         include:
           - os: focal
             distro: foxy
+            vcs-file:
           - os: jammy
             distro: humble
+            vcs-file: .github/workflows/dependencies.repos
           - os: jammy
             distro: rolling
+            vcs-file: .github/workflows/dependencies.repos
     container:
       image: ghcr.io/tesseract-robotics/tesseract_qt:${{ matrix.os }}-master
       env:
@@ -54,5 +57,6 @@ jobs:
         with:
           before-script: source /opt/tesseract_qt/install/setup.bash && source /opt/ros/${{ matrix.distro }}/setup.bash
           ccache-prefix: ${{ matrix.distro }}
+          vcs-file: ${{ matrix.vcs-file }}
           target-path: target_ws/src
           target-args: --cmake-args -DCMAKE_BUILD_TYPE=Debug -DTESSERACT_ENABLE_TESTING=ON

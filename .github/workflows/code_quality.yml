@@ -50,6 +50,7 @@ jobs:
         with:
           before-script: apt install ros-${{ matrix.distro }}-ros-base && source /opt/tesseract_qt/install/setup.bash && source /opt/ros/${{ matrix.distro }}/setup.bash
           ccache-prefix: ${{ matrix.distro }}
+          vcs-file: .github/workflows/dependencies.repos
           run-tests: false
           target-path: target_ws/src
           target-args: --cmake-args ${{ matrix.env.TARGET_CMAKE_ARGS }}

@@ -8,6 +8,7 @@ on:
     paths:
       - 'tesseract**'
       - '.github/workflows/code_quality.yml'
+      - '.clang-tidy'
   schedule:
     - cron: '0 5 * * *'
 

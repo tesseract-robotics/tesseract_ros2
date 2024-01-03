@@ -1,4 +1,4 @@
-name: Ubuntu
+name: Code Quality
 
 on:
   push:
@@ -7,35 +7,28 @@ on:
   pull_request:
     paths:
       - 'tesseract**'
-      - '.github/workflows/ubuntu.yml'
+      - '.github/workflows/code_quality.yml'
+      - '.clang-tidy'
   schedule:
     - cron: '0 5 * * *'
-  workflow_dispatch:
-  release:
-    types:
-      - released
 
 jobs:
   ci:
-    name: ${{ matrix.distro }}
+    name: ${{ matrix.job_type }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         include:
-          - os: focal
-            distro: foxy
-            vcs-file:
           - os: jammy
             distro: humble
-            vcs-file: .github/workflows/dependencies.repos
-          - os: jammy
-            distro: rolling
-            vcs-file: .github/workflows/dependencies.repos
+            env:
+              TARGET_CMAKE_ARGS: "-DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_BUILD_TYPE=Debug -DTESSERACT_ENABLE_CLANG_TIDY=ON -DTESSERACT_ENABLE_TESTING=ON"
+
     container:
       image: ghcr.io/tesseract-robotics/tesseract_qt:${{ matrix.os }}-0.21
       env:
-        CCACHE_DIR: ${{ github.workspace }}/${{ matrix.distro }}/.ccache
+        CCACHE_DIR: "${{ github.workspace }}/${{ matrix.os }}/.ccache"
         DEBIAN_FRONTEND: noninteractive
         TZ: Etc/UTC
     steps:
@@ -44,19 +37,21 @@ jobs:
         with:
           path: target_ws/src
 
-      - name: Install Dependencies
+      - name: Install Depends
         shell: bash
         run: |
           curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
           echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | tee /etc/apt/sources.list.d/ros2.list > /dev/null
           apt update -qq
-          apt install -y ros-${{ matrix.distro }}-ros-base
+          apt upgrade -y
+          apt install -y clang-tidy ros-${{ matrix.distro }}-ros-base
 
       - name: Build and Tests
         uses: tesseract-robotics/colcon-action@v5
         with:
-          before-script: source /opt/tesseract_qt/install/setup.bash && source /opt/ros/${{ matrix.distro }}/setup.bash
+          before-script: apt install ros-${{ matrix.distro }}-ros-base && source /opt/tesseract_qt/install/setup.bash && source /opt/ros/${{ matrix.distro }}/setup.bash
           ccache-prefix: ${{ matrix.distro }}
-          vcs-file: ${{ matrix.vcs-file }}
+          vcs-file: .github/workflows/dependencies.repos
+          run-tests: false
           target-path: target_ws/src
-          target-args: --cmake-args -DCMAKE_BUILD_TYPE=Debug -DTESSERACT_ENABLE_TESTING=ON
+          target-args: --cmake-args ${{ matrix.env.TARGET_CMAKE_ARGS }}

@@ -25,6 +25,14 @@ RUN apt install -y \
 
 # Bind mount the source directory so as not to unnecessarily copy source code into the docker image
 ARG WORKSPACE_DIR=/opt/tesseract_ros2
+
+# Install the latest version of octomap_msgs for Humble and beyond
+RUN --mount=type=bind,target=${WORKSPACE_DIR}/src/tesseract_ros2 \
+  if [[ "${ROS_DISTRO}" > "foxy" ]]; then \
+  cd ${WORKSPACE_DIR} \
+  && vcs import src < src/tesseract_ros2/.github/workflows/dependencies.repos --shallow ; \
+  fi
+
 RUN --mount=type=bind,target=${WORKSPACE_DIR}/src/tesseract_ros2 \
   source /opt/ros/${ROS_DISTRO}/setup.bash \
   && source /opt/tesseract_qt/install/setup.bash \

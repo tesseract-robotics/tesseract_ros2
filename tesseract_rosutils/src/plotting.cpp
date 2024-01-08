@@ -62,11 +62,11 @@ ROSPlotting::ROSPlotting(std::string root_link, std::string topic_namespace)
       node_->create_publisher<visualization_msgs::msg::MarkerArray>(topic_namespace + "/display_tool_path", 1);
 
   internal_node_executor_ = std::make_shared<rclcpp::executors::MultiThreadedExecutor>();
-  internal_node_spinner_ = std::make_shared<std::thread>(std::thread{ [this]() {
+  internal_node_spinner_ = std::make_shared<std::thread>([this]() {
     internal_node_executor_->add_node(node_);
     internal_node_executor_->spin();
     internal_node_executor_->remove_node(node_);
-  } });
+  });
 }
 
 ROSPlotting::~ROSPlotting()

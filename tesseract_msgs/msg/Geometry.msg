@@ -7,6 +7,7 @@ uint8 CONE=3
 uint8 BOX=4
 uint8 PLANE=5
 uint8 MESH=6
+uint8 POLYGON_MESH=11
 uint8 CONVEX_MESH=7
 uint8 SDF_MESH=8
 uint8 OCTREE=9
@@ -32,7 +33,7 @@ float64[3] box_dimensions
 # PLANE
 float64[4] plane_coeff
 
-# MESH, CONVEX_MESH, SDF_MESH
+# MESH, POLYGON_MESH, CONVEX_MESH, SDF_MESH
 tesseract_msgs/Mesh mesh
 
 # OCTREE

@@ -406,6 +406,46 @@ bool toMsg(tesseract_msgs::msg::Geometry& geometry_msgs, const tesseract_geometr
 
       break;
     }
+    case tesseract_geometry::GeometryType::POLYGON_MESH:
+    {
+      const auto& mesh = static_cast<const tesseract_geometry::PolygonMesh&>(geometry);
+
+      geometry_msgs.type = tesseract_msgs::msg::Geometry::POLYGON_MESH;
+
+      const tesseract_common::VectorVector3d& vertices = *(mesh.getVertices());
+      geometry_msgs.mesh.vertices.resize(vertices.size());
+      for (size_t i = 0; i < vertices.size(); ++i)
+      {
+        geometry_msgs.mesh.vertices[i].x = vertices[i](0);
+        geometry_msgs.mesh.vertices[i].y = vertices[i](1);
+        geometry_msgs.mesh.vertices[i].z = vertices[i](2);
+      }
+
+      const Eigen::VectorXi& faces = *(mesh.getFaces());
+      geometry_msgs.mesh.faces.resize(static_cast<size_t>(faces.size()));
+      for (size_t i = 0; i < static_cast<size_t>(faces.size()); ++i)
+        geometry_msgs.mesh.faces[i] = static_cast<unsigned>(faces[static_cast<unsigned>(i)]);
+
+      if (mesh.getResource() && mesh.getResource()->isFile())
+      {
+        geometry_msgs.mesh.file_path = mesh.getResource()->getFilePath();
+      }
+      if (geometry_msgs.mesh.file_path.empty())
+      {
+        geometry_msgs.mesh.scale[0] = 1;
+        geometry_msgs.mesh.scale[1] = 1;
+        geometry_msgs.mesh.scale[2] = 1;
+      }
+      else
+      {
+        const Eigen::Vector3f& scale = mesh.getScale().cast<float>();
+        geometry_msgs.mesh.scale[0] = scale.x();
+        geometry_msgs.mesh.scale[1] = scale.y();
+        geometry_msgs.mesh.scale[2] = scale.z();
+      }
+
+      break;
+    }
     case tesseract_geometry::GeometryType::CONVEX_MESH:
     {
       const auto& mesh = static_cast<const tesseract_geometry::ConvexMesh&>(geometry);
@@ -554,6 +594,29 @@ bool fromMsg(tesseract_geometry::Geometry::Ptr& geometry, const tesseract_msgs::
               .cast<double>());
     else
       geometry = std::make_shared<tesseract_geometry::Mesh>(vertices, faces);
+  }
+  else if (geometry_msg.type == tesseract_msgs::msg::Geometry::POLYGON_MESH)
+  {
+    auto vertices = std::make_shared<tesseract_common::VectorVector3d>(geometry_msg.mesh.vertices.size());
+    auto faces = std::make_shared<Eigen::VectorXi>(geometry_msg.mesh.faces.size());
+
+    for (unsigned int i = 0; i < geometry_msg.mesh.vertices.size(); ++i)
+      (*vertices)[i] = Eigen::Vector3d(
+          geometry_msg.mesh.vertices[i].x, geometry_msg.mesh.vertices[i].y, geometry_msg.mesh.vertices[i].z);
+
+    for (unsigned int i = 0; i < geometry_msg.mesh.faces.size(); ++i)
+      (*faces)[static_cast<int>(i)] = static_cast<int>(geometry_msg.mesh.faces[i]);
+
+    if (!geometry_msg.mesh.file_path.empty())
+      geometry = std::make_shared<tesseract_geometry::PolygonMesh>(
+          vertices,
+          faces,
+          std::make_shared<tesseract_common::SimpleLocatedResource>(geometry_msg.mesh.file_path,
+                                                                    geometry_msg.mesh.file_path),
+          Eigen::Vector3f(geometry_msg.mesh.scale[0], geometry_msg.mesh.scale[1], geometry_msg.mesh.scale[2])
+              .cast<double>());
+    else
+      geometry = std::make_shared<tesseract_geometry::PolygonMesh>(vertices, faces);
   }
   else if (geometry_msg.type == tesseract_msgs::msg::Geometry::CONVEX_MESH)
   {

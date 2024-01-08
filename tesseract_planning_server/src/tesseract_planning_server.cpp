@@ -49,9 +49,13 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <tesseract_motion_planners/trajopt/profile/trajopt_default_composite_profile.h>
 #include <tesseract_motion_planners/trajopt/profile/trajopt_default_plan_profile.h>
 #include <tesseract_motion_planners/trajopt/profile/trajopt_default_solver_profile.h>
+#include <tesseract_task_composer/planning/profiles/contact_check_profile.h>
+#include <tesseract_task_composer/planning/profiles/iterative_spline_parameterization_profile.h>
+#include <tesseract_task_composer/planning/profiles/min_length_profile.h>
 #ifdef TESSERACT_TASK_COMPOSER_HAS_TRAJOPT_IFOPT
 #include <tesseract_motion_planners/trajopt_ifopt/profile/trajopt_ifopt_default_composite_profile.h>
 #include <tesseract_motion_planners/trajopt_ifopt/profile/trajopt_ifopt_default_plan_profile.h>
+#include <tesseract_motion_planners/trajopt_ifopt/profile/trajopt_ifopt_default_solver_profile.h>
 #endif
 
 #include <tesseract_task_composer/planning/planning_task_composer_problem.h>
@@ -73,6 +77,9 @@ static const std::string TRAJOPT_IFOPT_DEFAULT_NAMESPACE = "TrajOptIfoptMotionPl
 static const std::string OMPL_DEFAULT_NAMESPACE = "OMPLMotionPlannerTask";
 static const std::string DESCARTES_DEFAULT_NAMESPACE = "DescartesMotionPlannerTask";
 static const std::string SIMPLE_DEFAULT_NAMESPACE = "SimpleMotionPlannerTask";
+static const std::string MLT_DEFAULT_NAMESPACE = "MinLengthTask";
+static const std::string ISP_DEFAULT_NAMESPACE = "IterativeSplineParameterizationTask";
+static const std::string DCC_DEFAULT_NAMESPACE = "DiscreteContactCheckTask";
 
 namespace tesseract_planning_server
 {
@@ -314,6 +321,10 @@ void TesseractPlanningServer::loadDefaultPlannerProfiles()
       TRAJOPT_IFOPT_DEFAULT_NAMESPACE,
       tesseract_planning::DEFAULT_PROFILE_KEY,
       std::make_shared<tesseract_planning::TrajOptIfoptDefaultCompositeProfile>());
+  profiles_->addProfile<tesseract_planning::TrajOptIfoptSolverProfile>(
+      TRAJOPT_IFOPT_DEFAULT_NAMESPACE,
+      tesseract_planning::DEFAULT_PROFILE_KEY,
+      std::make_shared<tesseract_planning::TrajOptIfoptDefaultSolverProfile>());
 #endif
 
   // Add Descartes Default Profiles
@@ -333,6 +344,23 @@ void TesseractPlanningServer::loadDefaultPlannerProfiles()
       SIMPLE_DEFAULT_NAMESPACE,
       tesseract_planning::DEFAULT_PROFILE_KEY,
       std::make_shared<tesseract_planning::SimplePlannerLVSNoIKPlanProfile>());
+
+  // MinLengthTask calls the SimpleMotionPlanner to generate a seed path with waypoints interpolated in joint space
+  profiles_->addProfile<tesseract_planning::MinLengthProfile>(MLT_DEFAULT_NAMESPACE,
+                                                              tesseract_planning::DEFAULT_PROFILE_KEY,
+                                                              std::make_shared<tesseract_planning::MinLengthProfile>());
+
+  // Post hoc collision checking
+  profiles_->addProfile<tesseract_planning::ContactCheckProfile>(
+      DCC_DEFAULT_NAMESPACE,
+      tesseract_planning::DEFAULT_PROFILE_KEY,
+      std::make_shared<tesseract_planning::ContactCheckProfile>());
+
+  // Time parameterization
+  profiles_->addProfile<tesseract_planning::IterativeSplineParameterizationProfile>(
+      ISP_DEFAULT_NAMESPACE,
+      tesseract_planning::DEFAULT_PROFILE_KEY,
+      std::make_shared<tesseract_planning::IterativeSplineParameterizationProfile>());
 }
 
 Eigen::Isometry3d TesseractPlanningServer::tfFindTCPOffset(const tesseract_common::ManipulatorInfo& manip_info)

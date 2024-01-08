@@ -137,11 +137,11 @@ void EnvironmentMonitorProperties::onInitialize(Ogre::SceneManager* scene_manage
   data_->joint_state_topic_property->initialize(ros_node_abstraction);
 
   data_->internal_node_executor = std::make_shared<rclcpp::executors::MultiThreadedExecutor>();
-  data_->internal_node_spinner = std::make_shared<std::thread>(std::thread{ [this]() {
+  data_->internal_node_spinner = std::make_shared<std::thread>([this]() {
     data_->internal_node_executor->add_node(data_->node);
     data_->internal_node_executor->spin();
     data_->internal_node_executor->remove_node(data_->node);
-  } });
+  });
 
   data_->scene_manager = scene_manager;
   data_->scene_node = scene_node;

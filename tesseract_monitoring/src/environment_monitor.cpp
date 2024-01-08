@@ -82,10 +82,10 @@ ROSEnvironmentMonitor::ROSEnvironmentMonitor(rclcpp::Node::SharedPtr node,
   }
 
   internal_node_executor_ = std::make_shared<rclcpp::executors::MultiThreadedExecutor>();
-  internal_node_spinner_ = std::make_shared<std::thread>(std::thread{ [this]() {
+  internal_node_spinner_ = std::make_shared<std::thread>([this]() {
     internal_node_executor_->add_node(internal_node_);
     internal_node_executor_->spin();
-  } });
+  });
 }
 
 ROSEnvironmentMonitor::ROSEnvironmentMonitor(rclcpp::Node::SharedPtr node,
@@ -102,10 +102,10 @@ ROSEnvironmentMonitor::ROSEnvironmentMonitor(rclcpp::Node::SharedPtr node,
     RCLCPP_WARN(logger_, "ENV passed to ros env monitor did not initialize");
   }
   internal_node_executor_ = std::make_shared<rclcpp::executors::MultiThreadedExecutor>();
-  internal_node_spinner_ = std::make_shared<std::thread>(std::thread{ [this]() {
+  internal_node_spinner_ = std::make_shared<std::thread>([this]() {
     internal_node_executor_->add_node(internal_node_);
     internal_node_executor_->spin();
-  } });
+  });
 }
 
 ROSEnvironmentMonitor::~ROSEnvironmentMonitor()

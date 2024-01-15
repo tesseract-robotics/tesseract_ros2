@@ -5,6 +5,8 @@
   <arg name="robot_description" default="robot_description"/>
   <arg name="plotting" default="true"/>
   <arg name="rviz" default="true"/>
+  <arg name="ifopt" default="false"/>
+  <arg name="debug" default="false"/>
   <arg name="testing" default="false"/>
   <arg name="range" default="0.01"/>
   <arg name="planning_time" default="10.0"/>
@@ -22,6 +24,8 @@
     <node pkg="tesseract_ros_examples" exec="tesseract_ros_examples_freespace_hybrid_example_node" output="screen">
       <param name="plotting" type="bool" value="$(var plotting)"/>
       <param name="rviz" type="bool" value="$(var rviz)"/>
+      <param name="ifopt" type="bool" value="$(var ifopt)"/>
+      <param name="debug" type="bool" value="$(var debug)"/>
       <param name="range" type="float" value="$(var range)"/>
       <param name="planning_time" type="float" value="$(var planning_time)"/>
       <param name="$(var robot_description)" value="$(var robot_description_file)" type="str"/>

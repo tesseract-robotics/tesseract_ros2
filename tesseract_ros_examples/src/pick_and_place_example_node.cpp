@@ -60,7 +60,7 @@ int main(int argc, char** argv)
   // Initial setup
   std::string urdf_xml_string = node->declare_parameter(ROBOT_DESCRIPTION_PARAM, "");
   std::string srdf_xml_string = node->declare_parameter(ROBOT_SEMANTIC_PARAM, "");
-  
+
   if (ifopt)
   {
     RCLCPP_INFO(node->get_logger(), "Using TrajOpt Ifopt!");

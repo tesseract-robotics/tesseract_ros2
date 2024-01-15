@@ -5,6 +5,8 @@
   <arg name="robot_description" default="robot_description"/>
   <arg name="plotting" default="true"/>
   <arg name="rviz" default="true"/>
+  <arg name="ifopt" default="false"/>
+  <arg name="debug" default="false"/>
   <arg name="testing" default="false"/>
 
   <!-- Load universal robot description format (URDF) -->
@@ -20,6 +22,8 @@
     <node pkg="tesseract_ros_examples" exec="tesseract_ros_examples_puzzle_piece_auxillary_axes_example_node" output="screen">
       <param name="plotting" type="bool" value="$(var plotting)"/>
       <param name="rviz" type="bool" value="$(var rviz)"/>
+      <param name="ifopt" type="bool" value="$(var ifopt)"/>
+      <param name="debug" type="bool" value="$(var debug)"/>
       <param name="$(var robot_description)" value="$(var robot_description_file)" type="str"/>
       <param name="$(var robot_description)_semantic" value="$(var robot_description_semantic_file)" type="str"/>
     </node>

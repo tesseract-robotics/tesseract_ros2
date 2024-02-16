@@ -31,7 +31,7 @@ Change URDF Version
 
 .. code-block:: xml
 
-   <robot name="kuka_iiwa" version="2">
+   <robot name="kuka_iiwa" tesseract_version="2">
    </robot>
 
 

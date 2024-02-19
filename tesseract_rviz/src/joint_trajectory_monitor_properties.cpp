@@ -98,9 +98,11 @@ struct JointTrajectoryMonitorProperties::Implementation
       {
         tesseract_common::JointTrajectory joint_trajectory = tesseract_rosutils::fromMsg(joint_trajectory_msg);
         trajectory_set.appendJointTrajectory(joint_trajectory);
-        tesseract_gui::events::JointTrajectoryAdd event(component_info, trajectory_set);
-        QApplication::sendEvent(qApp, &event);
       }
+
+      trajectory_set.setDescription(msg->description);
+      tesseract_gui::events::JointTrajectoryAdd event(component_info, trajectory_set);
+      QApplication::sendEvent(qApp, &event);
     }
     catch (...)
     {

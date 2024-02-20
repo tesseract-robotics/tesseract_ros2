@@ -97,25 +97,24 @@ void ROSPlotting::waitForConnection(long seconds) const
 
     rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.02)));
   }
-
-  return;
 }
 
 void ROSPlotting::plotEnvironment(const tesseract_environment::Environment& /*env*/, std::string /*ns*/) {}
 
 void ROSPlotting::plotEnvironmentState(const tesseract_scene_graph::SceneState& /*state*/, std::string /*ns*/) {}
 
-void ROSPlotting::plotTrajectory(const tesseract_msgs::msg::Trajectory& traj, std::string /*ns*/)
-{
-  trajectory_pub_->publish(traj);
-}
-
 void ROSPlotting::plotTrajectory(const tesseract_common::JointTrajectory& traj,
                                  const tesseract_scene_graph::StateSolver& /*state_solver*/,
                                  std::string ns)
 {
+  plotTrajectory(traj, ns);
+}
+
+void ROSPlotting::plotTrajectory(const tesseract_common::JointTrajectory& traj, std::string ns, std::string description)
+{
   tesseract_msgs::msg::Trajectory msg;
-  msg.ns = ns;
+  msg.ns = std::move(ns);
+  msg.description = std::move(description);
 
   if (!traj.empty())
   {
@@ -137,12 +136,24 @@ void ROSPlotting::plotTrajectory(const tesseract_common::JointTrajectory& traj,
   plotTrajectory(msg);
 }
 
+void ROSPlotting::plotTrajectory(const tesseract_msgs::msg::Trajectory& traj) { trajectory_pub_->publish(traj); }
+
 void ROSPlotting::plotTrajectory(const tesseract_environment::Environment& env,
                                  const tesseract_planning::InstructionPoly& instruction,
-                                 std::string ns)
+                                 std::string ns,
+                                 std::string description)
+{
+  plotTrajectories(env, { instruction }, std::move(ns), std::move(description));
+}
+
+void ROSPlotting::plotTrajectories(const tesseract_environment::Environment& env,
+                                   const std::vector<tesseract_planning::InstructionPoly>& instructions,
+                                   std::string ns,
+                                   std::string description)
 {
   tesseract_msgs::msg::Trajectory msg;
-  msg.ns = ns;
+  msg.ns = std::move(ns);
+  msg.description = std::move(description);
 
   // Set tesseract state information
   toMsg(msg.environment, env);
@@ -157,25 +168,29 @@ void ROSPlotting::plotTrajectory(const tesseract_environment::Environment& env,
     msg.initial_state.push_back(pair_msg);
   }
 
-  // Convert to joint trajectory
-  assert(instruction.isCompositeInstruction());
-  const auto& ci = instruction.as<tesseract_planning::CompositeInstruction>();
-  tesseract_common::JointTrajectory traj = tesseract_planning::toJointTrajectory(ci);
-
-  // Set the joint trajectory message
-  tesseract_msgs::msg::JointTrajectory traj_msg;
-  toMsg(traj_msg, traj);
-  msg.joint_trajectories.push_back(traj_msg);
+  // Convert to joint trajectories
+  for (const auto& instruction : instructions)
+  {
+    assert(instruction.isCompositeInstruction());
+    const auto& ci = instruction.as<tesseract_planning::CompositeInstruction>();
+    tesseract_common::JointTrajectory traj = tesseract_planning::toJointTrajectory(ci);
+    // Set the joint trajectory message
+    tesseract_msgs::msg::JointTrajectory traj_msg;
+    toMsg(traj_msg, traj);
+    msg.joint_trajectories.push_back(traj_msg);
+  }
 
   plotTrajectory(msg);
 }
 
 void ROSPlotting::plotTrajectory(const tesseract_environment::Commands& cmds,
                                  const tesseract_planning::InstructionPoly& instruction,
-                                 std::string ns)
+                                 std::string ns,
+                                 std::string description)
 {
   tesseract_msgs::msg::Trajectory msg;
-  msg.ns = ns;
+  msg.ns = std::move(ns);
+  msg.description = std::move(description);
 
   // Set the commands message
   std::vector<tesseract_msgs::msg::EnvironmentCommand> env_cmds;
@@ -308,7 +323,7 @@ visualization_msgs::msg::MarkerArray ROSPlotting::getMarkerAxisMsg(int& id_count
 
 void ROSPlotting::clear(std::string ns)
 {
-  // Remove old arrows
+  // Remove old markers
   marker_counter_ = 0;
   visualization_msgs::msg::MarkerArray msg;
   visualization_msgs::msg::Marker marker;
@@ -316,12 +331,12 @@ void ROSPlotting::clear(std::string ns)
   marker.header.stamp = rclcpp::Time();
   marker.ns = ns;
   marker.id = 0;
-  marker.type = visualization_msgs::msg::Marker::ARROW;
   marker.action = visualization_msgs::msg::Marker::DELETEALL;
   msg.markers.push_back(marker);
   collisions_pub_->publish(msg);
   arrows_pub_->publish(msg);
   axes_pub_->publish(msg);
+  tool_path_pub_->publish(msg);
 }
 
 static void waitForInputAsync(std::string message)

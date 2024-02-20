@@ -61,15 +61,24 @@ public:
                       const tesseract_scene_graph::StateSolver& state_solver,
                       std::string ns = "") override;
 
-  void plotTrajectory(const tesseract_msgs::msg::Trajectory& traj, std::string ns = "");
+  void plotTrajectory(const tesseract_common::JointTrajectory& traj, std::string ns = "", std::string description = "");
+
+  void plotTrajectory(const tesseract_msgs::msg::Trajectory& traj);
 
   void plotTrajectory(const tesseract_environment::Environment& env,
                       const tesseract_planning::InstructionPoly& instruction,
-                      std::string ns = "");
+                      std::string ns = "",
+                      std::string description = "");
+
+  void plotTrajectories(const tesseract_environment::Environment& env,
+                        const std::vector<tesseract_planning::InstructionPoly>& instructions,
+                        std::string ns,
+                        std::string description);
 
   void plotTrajectory(const tesseract_environment::Commands& cmds,
                       const tesseract_planning::InstructionPoly& instruction,
-                      std::string = "");
+                      std::string = "",
+                      std::string description = "");
 
   void plotToolpath(const tesseract_environment::Environment& env,
                     const tesseract_planning::InstructionPoly& instruction,

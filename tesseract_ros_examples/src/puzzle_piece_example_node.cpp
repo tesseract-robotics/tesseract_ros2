@@ -51,10 +51,17 @@ int main(int argc, char** argv)
   // Get ROS Parameters
   bool plotting = node->declare_parameter("plotting", true);
   bool rviz = node->declare_parameter("rviz", true);
+  bool ifopt = node->declare_parameter("ifopt", false);
+  bool debug = node->declare_parameter("debug", false);
 
   // Initial setup
   std::string urdf_xml_string = node->declare_parameter(ROBOT_DESCRIPTION_PARAM, "");
   std::string srdf_xml_string = node->declare_parameter(ROBOT_SEMANTIC_PARAM, "");
+
+  if (ifopt)
+  {
+    RCLCPP_INFO(node->get_logger(), "Using TrajOpt Ifopt!");
+  }
 
   auto env = std::make_shared<tesseract_environment::Environment>();
   auto locator = std::make_shared<tesseract_rosutils::ROSResourceLocator>();
@@ -72,7 +79,7 @@ int main(int argc, char** argv)
   if (plotting)
     plotter = std::make_shared<ROSPlotting>(env->getSceneGraph()->getRoot());
 
-  PuzzlePieceExample example(env, plotter);
+  PuzzlePieceExample example(env, plotter, ifopt, debug);
   rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(5.0)));
 
   example.run();

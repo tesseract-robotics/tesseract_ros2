@@ -8,6 +8,8 @@
     <arg name="box_x" default="0.15"/>
     <arg name="box_y" default="0.4"/>
     <arg name="rviz" default="true"/>
+    <arg name="ifopt" default="false"/>
+    <arg name="debug" default="false"/>
     <arg name="testing" default="false"/>
     
     <!-- Load Robot Model    -->
@@ -27,8 +29,10 @@
         <param name="plotting" type="bool" value="$(var plotting)"/>
         <param name="file_write_cb" value="$(var file_write_cb)" />
         <param name="rviz" type="bool" value="$(var rviz)"/>
+        <param name="ifopt" type="bool" value="$(var ifopt)"/>
+        <param name="debug" type="bool" value="$(var debug)"/>
         <param name="$(var robot_description)" value="$(var robot_description_file)" type="str"/>
-      <param name="$(var robot_description)_semantic" value="$(var robot_description_semantic_file)" type="str"/>
+        <param name="$(var robot_description)_semantic" value="$(var robot_description_semantic_file)" type="str"/>
       </node>
     
       <!-- Launch visualization -->

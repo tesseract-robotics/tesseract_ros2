@@ -355,6 +355,8 @@ void ROSPlotting::waitForInput(std::string message)
 
 const std::string& ROSPlotting::getRootLink() const { return root_link_; }
 
+void ROSPlotting::resetCounter() { marker_counter_ = 0; }
+
 visualization_msgs::msg::Marker ROSPlotting::getMarkerArrowMsg(int& id_counter,
                                                                const std::string& frame_id,
                                                                const std::string& ns,

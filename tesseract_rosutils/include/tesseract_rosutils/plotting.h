@@ -94,6 +94,8 @@ public:
 
   const std::string& getRootLink() const;
 
+  void resetCounter();
+
   static visualization_msgs::msg::MarkerArray getMarkerAxisMsg(int& id_counter,
                                                                const std::string& frame_id,
                                                                const std::string& ns,

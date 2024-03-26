@@ -746,14 +746,15 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
 
       for (unsigned i = 0; i < octree_depth; ++i)
       {
-        OctreeDataContainer data;
-        data.size = static_cast<float>(octree->getNodeSize(static_cast<unsigned>(i + 1)));
-        data.points = std::vector<rviz_rendering::PointCloud::Point>(pointBuf[i]);
-        data.point_cloud = createPointCloud(std::move(pointBuf[i]), entity_container, data.size, octomap.getSubType());
-        data.shape_type = octomap.getSubType();
+        auto data = std::make_shared<OctreeDataContainer>();
+        data->size = static_cast<float>(octree->getNodeSize(static_cast<unsigned>(i + 1)));
+        data->points = std::vector<rviz_rendering::PointCloud::Point>(pointBuf[i]);
+        data->point_cloud =
+            createPointCloud(std::move(pointBuf[i]), entity_container, data->size, octomap.getSubType());
+        data->shape_type = octomap.getSubType();
 
-        offset_node->attachObject(data.point_cloud.get());
-        entity_container.addUntrackedUnmanagedObject(tesseract_gui::EntityContainer::VISUAL_NS, data.point_cloud);
+        offset_node->attachObject(data->point_cloud.get());
+        entity_container.addUntrackedUnmanagedObject(tesseract_gui::EntityContainer::VISUAL_NS, data);
       }
 
       offset_node->setScale(ogre_scale);

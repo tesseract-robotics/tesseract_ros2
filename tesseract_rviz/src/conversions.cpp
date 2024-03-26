@@ -742,7 +742,8 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
         auto data = std::make_shared<OctreeDataContainer>();
         data->size = static_cast<float>(octree->getNodeSize(static_cast<unsigned>(i + 1)));
         data->points = std::vector<rviz_rendering::PointCloud::Point>(pointBuf[i]);
-        data->point_cloud = createPointCloud(std::move(pointBuf[i]), entity_container, data->size, octomap.getSubType());
+        data->point_cloud =
+            createPointCloud(std::move(pointBuf[i]), entity_container, data->size, octomap.getSubType());
         data->shape_type = octomap.getSubType();
 
         offset_node->attachObject(data->point_cloud.get());

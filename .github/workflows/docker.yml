@@ -64,7 +64,7 @@ jobs:
           context: .
           file: docker/Dockerfile
           build-args: |
-            TAG=${{ matrix.os }}-0.21
+            TAG=${{ steps.meta.outputs.version }}
             ROS_DISTRO=${{ matrix.distro }}
           push: ${{ env.PUSH_DOCKER_IMAGE }}
           tags: ${{ steps.meta.outputs.tags }}

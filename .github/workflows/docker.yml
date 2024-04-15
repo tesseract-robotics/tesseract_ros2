@@ -64,6 +64,8 @@ jobs:
           TAG="${{ steps.meta.outputs.tags }}"
           # Replace all occurrences of matrix.distro with matrix.os in the generated tags. e.g. humble->jammy
           TAG="${TAG//${{ matrix.distro }}/${{ matrix.os }}}"
+          # Export TAG to the environment variable for use in subsequent steps
+          echo "TAG=$TAG" >> $GITHUB_ENV
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5

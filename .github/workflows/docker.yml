@@ -54,8 +54,8 @@ jobs:
             prefix=
             suffix=
           tags: |
-            type=ref,event=branch,prefix=${{ matrix.distro }}-
-            type=ref,event=pr,prefix=${{ matrix.distro }}-
+            type=ref,event=branch,prefix=${{ matrix.distro }}-,value=${{ env.BRANCH_NAME }}
+            type=raw,event=pr,prefix=${{ matrix.distro }}-,value=master
             type=semver,pattern={{major}}.{{minor}},prefix=${{ matrix.distro }}-
 
       - name: Build and push Docker image

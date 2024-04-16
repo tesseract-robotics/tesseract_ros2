@@ -66,9 +66,6 @@
 #include <tesseract_common/filesystem.h>
 #include <tesseract_common/resource_locator.h>
 
-//#include <tesseract_qt/common/entity.h>
-//#include <tesseract_qt/common/events/scene_graph_events.h>
-
 const std::string USER_VISIBILITY = "user_visibility";
 
 namespace tesseract_rviz

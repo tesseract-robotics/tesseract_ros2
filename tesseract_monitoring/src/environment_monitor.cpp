@@ -36,11 +36,19 @@
 
 #include <tesseract_common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
+#include <boost/algorithm/string.hpp>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #ifdef BOOST_BIND_NO_PLACEHOLDERS
 BOOST_BIND_NO_PLACEHOLDERS
 #endif
+
+#include <tesseract_scene_graph/graph.h>
+
+#include <tesseract_environment/environment.h>
+#include <tesseract_environment/events.h>
+#include <tesseract_environment/command.h>
+#include <tesseract_environment/commands.h>
 
 #include <tesseract_monitoring/environment_monitor.h>
 #include <tesseract_rosutils/utils.h>

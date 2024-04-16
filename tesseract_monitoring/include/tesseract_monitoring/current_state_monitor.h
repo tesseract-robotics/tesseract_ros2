@@ -51,7 +51,10 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_monitoring/constants.h>
-#include <tesseract_environment/environment.h>
+
+#include <tesseract_scene_graph/scene_state.h>
+
+#include <tesseract_environment/fwd.h>
 
 namespace tesseract_monitoring
 {
@@ -72,14 +75,15 @@ public:
    * @param robot_model The current kinematic model to build on
    * @param tf A pointer to the tf transformer to use
    */
-  CurrentStateMonitor(const tesseract_environment::Environment::ConstPtr& env);
+  CurrentStateMonitor(const std::shared_ptr<const tesseract_environment::Environment>& env);
 
   /** @brief Constructor.
    *  @param robot_model The current kinematic model to build on
    *  @param tf A pointer to the tf transformer to use
    *  @param node A rclcpp::Node to access ROS info
    */
-  CurrentStateMonitor(const tesseract_environment::Environment::ConstPtr& env, rclcpp::Node::SharedPtr node);
+  CurrentStateMonitor(const std::shared_ptr<const tesseract_environment::Environment>& env,
+                      rclcpp::Node::SharedPtr node);
 
   ~CurrentStateMonitor();
   CurrentStateMonitor(const CurrentStateMonitor&) = delete;
@@ -188,7 +192,7 @@ private:
   bool isPassiveOrMimicDOF(const std::string& dof) const;
 
   rclcpp::Node::SharedPtr node_;
-  tesseract_environment::Environment::ConstPtr env_;
+  std::shared_ptr<const tesseract_environment::Environment> env_;
   tesseract_scene_graph::SceneState env_state_;
   int last_environment_revision_;
   std::map<std::string, rclcpp::Time> joint_time_;

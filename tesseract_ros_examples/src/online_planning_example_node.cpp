@@ -36,6 +36,9 @@
 #include <tesseract_rosutils/utils.h>
 #include <std_srvs/srv/set_bool.hpp>
 
+#include <tesseract_environment/environment.h>
+#include <tesseract_scene_graph/graph.h>
+
 using namespace tesseract_examples;
 using namespace tesseract_rosutils;
 

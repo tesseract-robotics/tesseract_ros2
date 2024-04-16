@@ -24,6 +24,10 @@
 
 #include <unordered_map>
 
+#include <tesseract_environment/environment.h>
+#include <tesseract_environment/command.h>
+#include <tesseract_environment/commands.h>
+
 namespace tesseract_rviz
 {
 static constexpr char MODE_URDF[] = "URDF";

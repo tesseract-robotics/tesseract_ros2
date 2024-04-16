@@ -31,6 +31,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_environment/environment.h>
 #include <tesseract_planning_server/tesseract_planning_server.h>
+#include <tesseract_task_composer/core/task_composer_node.h>
 
 using namespace tesseract_environment;
 using tesseract_planning_server::TesseractPlanningServer;

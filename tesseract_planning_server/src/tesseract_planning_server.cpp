@@ -60,12 +60,22 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_task_composer/planning/planning_task_composer_problem.h>
 
+#include <tesseract_environment/environment.h>
+
 #include <tesseract_common/any_poly.h>
 
 #include <tesseract_monitoring/environment_monitor.h>
 #include <tesseract_rosutils/utils.h>
 #include <tesseract_common/serialization.h>
 #include <tesseract_common/timer.h>
+
+#include <tesseract_task_composer/planning/planning_task_composer_problem.h>
+#include <tesseract_task_composer/core/task_composer_context.h>
+#include <tesseract_task_composer/core/task_composer_data_storage.h>
+#include <tesseract_task_composer/core/task_composer_future.h>
+#include <tesseract_task_composer/core/task_composer_executor.h>
+#include <tesseract_task_composer/core/task_composer_node.h>
+#include <tesseract_task_composer/core/task_composer_plugin_factory.h>
 
 using tesseract_common::Serialization;
 using tesseract_planning::InstructionPoly;

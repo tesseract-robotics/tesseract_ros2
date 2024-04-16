@@ -31,11 +31,15 @@
 
 #include <tesseract_qt/common/entity_manager.h>
 #include <tesseract_qt/common/entity_container.h>
-#include <tesseract_scene_graph/graph.h>
-#include <tesseract_scene_graph/link.h>
-#include <tesseract_geometry/geometry.h>
+//#include <tesseract_scene_graph/graph.h>
+//#include <tesseract_scene_graph/link.h>
+//#include <tesseract_geometry/geometry.h>
 #include <tesseract_rviz/types.h>
 #include <Eigen/Core>
+
+#include <tesseract_scene_graph/fwd.h>
+#include <tesseract_geometry/fwd.h>
+#include <tesseract_common/eigen_types.h>
 
 namespace Ogre
 {
@@ -66,18 +70,18 @@ std::vector<std::string> loadSceneGraph(Ogre::SceneManager& scene,
 Ogre::SceneNode* loadLink(Ogre::SceneManager& scene,
                           tesseract_gui::EntityContainer& entity_container,
                           const tesseract_scene_graph::Link& link,
-                          tesseract_scene_graph::Material::ConstPtr visual_material_override = nullptr,
-                          tesseract_scene_graph::Material::ConstPtr collision_material_override = nullptr);
+                          std::shared_ptr<const tesseract_scene_graph::Material> visual_material_override = nullptr,
+                          std::shared_ptr<const tesseract_scene_graph::Material> collision_material_override = nullptr);
 
 Ogre::SceneNode* loadLinkVisuals(Ogre::SceneManager& scene,
                                  tesseract_gui::EntityContainer& entity_container,
                                  const tesseract_scene_graph::Link& link,
-                                 tesseract_scene_graph::Material::ConstPtr material_override = nullptr);
+                                 std::shared_ptr<const tesseract_scene_graph::Material> material_override = nullptr);
 
 Ogre::SceneNode* loadLinkCollisions(Ogre::SceneManager& scene,
                                     tesseract_gui::EntityContainer& entity_container,
                                     const tesseract_scene_graph::Link& link,
-                                    tesseract_scene_graph::Material::ConstPtr material_override = nullptr);
+                                    std::shared_ptr<const tesseract_scene_graph::Material> material_override = nullptr);
 
 Ogre::SceneNode* loadLinkWireBox(Ogre::SceneManager& scene,
                                  tesseract_gui::EntityContainer& entity_container,
@@ -100,7 +104,7 @@ Ogre::MaterialPtr loadLinkMaterial(Ogre::SceneManager& scene,
                                    const tesseract_scene_graph::Link& link,
                                    const std::string& material_name);
 
-Ogre::MaterialPtr loadMaterial(const tesseract_scene_graph::Material::ConstPtr& material);
+Ogre::MaterialPtr loadMaterial(const std::shared_ptr<const tesseract_scene_graph::Material>& material);
 
 Ogre::Entity* createEntityForMeshData(Ogre::SceneManager& scene,
                                       tesseract_gui::EntityContainer& entity_container,
@@ -116,7 +120,7 @@ void setOctomapColor(double z_pos,
 std::shared_ptr<rviz_rendering::PointCloud> createPointCloud(std::vector<rviz_rendering::PointCloud::Point>&& points,
                                                              tesseract_gui::EntityContainer& entity_container,
                                                              float size,
-                                                             tesseract_geometry::Octree::SubType subtype);
+                                                             tesseract_geometry::OctreeSubType subtype);
 
 Ogre::AxisAlignedBox getAABB(Ogre::SceneNode& scene_node, bool visible_only = true);
 

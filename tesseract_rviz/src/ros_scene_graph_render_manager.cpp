@@ -18,6 +18,8 @@
 
 #include <boost/uuid/uuid_io.hpp>
 
+#include <tesseract_scene_graph/link.h>
+
 const std::string USER_VISIBILITY = "user_visibility";
 
 namespace tesseract_rviz

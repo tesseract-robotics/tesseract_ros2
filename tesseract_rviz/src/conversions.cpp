@@ -59,6 +59,16 @@
 
 #include <tesseract_geometry/geometries.h>
 
+#include <tesseract_scene_graph/graph.h>
+#include <tesseract_scene_graph/joint.h>
+#include <tesseract_scene_graph/link.h>
+
+#include <tesseract_common/filesystem.h>
+#include <tesseract_common/resource_locator.h>
+
+//#include <tesseract_qt/common/entity.h>
+//#include <tesseract_qt/common/events/scene_graph_events.h>
+
 const std::string USER_VISIBILITY = "user_visibility";
 
 namespace tesseract_rviz
@@ -202,7 +212,7 @@ Ogre::Entity* createEntityForMeshData(Ogre::SceneManager& scene,
 std::shared_ptr<rviz_rendering::PointCloud> createPointCloud(std::vector<rviz_rendering::PointCloud::Point>&& points,
                                                              tesseract_gui::EntityContainer& entity_container,
                                                              float size,
-                                                             tesseract_geometry::Octree::SubType subtype)
+                                                             tesseract_geometry::OctreeSubType subtype)
 {
   auto entity = entity_container.addUntrackedEntity(tesseract_gui::EntityContainer::RESOURCE_NS);
   auto cloud = std::make_shared<rviz_rendering::PointCloud>();
@@ -210,15 +220,15 @@ std::shared_ptr<rviz_rendering::PointCloud> createPointCloud(std::vector<rviz_re
   cloud->setName(entity.unique_name);
 
   float new_size = size;
-  if (subtype == tesseract_geometry::Octree::SubType::BOX)
+  if (subtype == tesseract_geometry::OctreeSubType::BOX)
   {
     cloud->setRenderMode(rviz_rendering::PointCloud::RM_BOXES);
   }
-  else if (subtype == tesseract_geometry::Octree::SubType::SPHERE_INSIDE)
+  else if (subtype == tesseract_geometry::OctreeSubType::SPHERE_INSIDE)
   {
     cloud->setRenderMode(rviz_rendering::PointCloud::RM_SPHERES);
   }
-  else if (subtype == tesseract_geometry::Octree::SubType::SPHERE_OUTSIDE)
+  else if (subtype == tesseract_geometry::OctreeSubType::SPHERE_OUTSIDE)
   {
     cloud->setRenderMode(rviz_rendering::PointCloud::RM_SPHERES);
     new_size = std::sqrt(float(2) * size * size);

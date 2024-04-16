@@ -39,6 +39,8 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <tesseract_visualization/markers/contact_results_marker.h>
 #include <tesseract_command_language/poly/instruction_poly.h>
 
+#include <tesseract_environment/fwd.h>
+
 namespace tesseract_rosutils
 {
 /** @brief The BasicPlotting class */
@@ -75,7 +77,7 @@ public:
                         std::string ns,
                         std::string description);
 
-  void plotTrajectory(const tesseract_environment::Commands& cmds,
+  void plotTrajectory(const std::vector<std::shared_ptr<const tesseract_environment::Command>>& cmds,
                       const tesseract_planning::InstructionPoly& instruction,
                       std::string = "",
                       std::string description = "");

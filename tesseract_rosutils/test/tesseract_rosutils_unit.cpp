@@ -16,6 +16,12 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <tesseract_common/types.h>
 #include <Eigen/Eigen>
 
+#include <tesseract_scene_graph/joint.h>
+#include <tesseract_scene_graph/link.h>
+
+#include <tesseract_environment/command.h>
+#include <tesseract_environment/commands.h>
+
 using namespace tesseract_environment;
 using namespace tesseract_scene_graph;
 using namespace tesseract_rosutils;

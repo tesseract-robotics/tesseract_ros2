@@ -69,13 +69,25 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <Eigen/Geometry>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
-#include <tesseract_environment/environment.h>
-#include <tesseract_scene_graph/link.h>
-#include <tesseract_geometry/geometries.h>
-#include <tesseract_collision/core/types.h>
+#include <fstream>
+
 #include <tesseract_common/resource_locator.h>
 #include <tesseract_motion_planners/core/types.h>
-#include <tesseract_task_composer/core/task_composer_node_info.h>
+#include <tesseract_common/eigen_types.h>
+#include <tesseract_common/plugin_info.h>
+
+#include <tesseract_common/fwd.h>
+#include <tesseract_geometry/fwd.h>
+#include <tesseract_scene_graph/fwd.h>
+#include <tesseract_state_solver/fwd.h>
+#include <tesseract_srdf/fwd.h>
+#include <tesseract_kinematics/core/fwd.h>
+#include <tesseract_collision/core/fwd.h>
+#include <tesseract_environment/fwd.h>
+#include <tesseract_task_composer/core/fwd.h>
+
+#include <tesseract_srdf/kinematics_information.h>  // For all the nested using
+#include <tesseract_collision/core/types.h>         // For all the nested using
 
 namespace tesseract_rosutils
 {
@@ -109,23 +121,29 @@ bool isIdentical(const tesseract_scene_graph::Link& link1, const tesseract_scene
 /** \brief Construct the message that corresponds to the shape. Return false on failure. */
 bool toMsg(tesseract_msgs::msg::Geometry& geometry_msgs, const tesseract_geometry::Geometry& geometry);
 
-bool fromMsg(tesseract_geometry::Geometry::Ptr& geometry, const tesseract_msgs::msg::Geometry& geometry_msg);
+bool fromMsg(std::shared_ptr<tesseract_geometry::Geometry>& geometry,
+             const tesseract_msgs::msg::Geometry& geometry_msg);
 
-bool toMsg(tesseract_msgs::msg::Material& material_msg, const tesseract_scene_graph::Material::Ptr& material);
+bool toMsg(tesseract_msgs::msg::Material& material_msg,
+           const std::shared_ptr<tesseract_scene_graph::Material>& material);
 
-bool fromMsg(tesseract_scene_graph::Material::Ptr& material, const tesseract_msgs::msg::Material& material_msg);
+bool fromMsg(std::shared_ptr<tesseract_scene_graph::Material>& material,
+             const tesseract_msgs::msg::Material& material_msg);
 
-bool toMsg(tesseract_msgs::msg::Inertial& inertial_msg, const tesseract_scene_graph::Inertial::Ptr& inertial);
+bool toMsg(tesseract_msgs::msg::Inertial& inertial_msg,
+           const std::shared_ptr<tesseract_scene_graph::Inertial>& inertial);
 
-bool fromMsg(tesseract_scene_graph::Inertial::Ptr& inertial, const tesseract_msgs::msg::Inertial& inertial_msg);
+bool fromMsg(std::shared_ptr<tesseract_scene_graph::Inertial>& inertial,
+             const tesseract_msgs::msg::Inertial& inertial_msg);
 
 bool toMsg(tesseract_msgs::msg::VisualGeometry& visual_msg, const tesseract_scene_graph::Visual& visual);
 
-bool fromMsg(tesseract_scene_graph::Visual::Ptr& visual, const tesseract_msgs::msg::VisualGeometry& visual_msg);
+bool fromMsg(std::shared_ptr<tesseract_scene_graph::Visual>& visual,
+             const tesseract_msgs::msg::VisualGeometry& visual_msg);
 
 bool toMsg(tesseract_msgs::msg::CollisionGeometry& collision_msg, const tesseract_scene_graph::Collision& collision);
 
-bool fromMsg(tesseract_scene_graph::Collision::Ptr& collision,
+bool fromMsg(std::shared_ptr<tesseract_scene_graph::Collision>& collision,
              const tesseract_msgs::msg::CollisionGeometry& collision_msg);
 
 bool toMsg(tesseract_msgs::msg::Link& link_msg, const tesseract_scene_graph::Link& link);
@@ -133,32 +151,33 @@ bool toMsg(tesseract_msgs::msg::Link& link_msg, const tesseract_scene_graph::Lin
 tesseract_scene_graph::Link fromMsg(const tesseract_msgs::msg::Link& link_msg);
 
 bool toMsg(tesseract_msgs::msg::JointCalibration& joint_calibration_msg,
-           const tesseract_scene_graph::JointCalibration::Ptr& joint_calibration);
+           const std::shared_ptr<tesseract_scene_graph::JointCalibration>& joint_calibration);
 
-bool fromMsg(tesseract_scene_graph::JointCalibration::Ptr& joint_calibration,
+bool fromMsg(std::shared_ptr<tesseract_scene_graph::JointCalibration>& joint_calibration,
              const tesseract_msgs::msg::JointCalibration& joint_calibration_msg);
 
 bool toMsg(tesseract_msgs::msg::JointDynamics& joint_dynamics_msg,
-           const tesseract_scene_graph::JointDynamics::Ptr& joint_dynamics);
+           const std::shared_ptr<tesseract_scene_graph::JointDynamics>& joint_dynamics);
 
-bool fromMsg(tesseract_scene_graph::JointDynamics::Ptr& joint_dynamics,
+bool fromMsg(std::shared_ptr<tesseract_scene_graph::JointDynamics>& joint_dynamics,
              const tesseract_msgs::msg::JointDynamics& joint_dynamics_msg);
 
 bool toMsg(tesseract_msgs::msg::JointLimits& joint_limits_msg,
-           const tesseract_scene_graph::JointLimits::Ptr& joint_limits);
+           const std::shared_ptr<tesseract_scene_graph::JointLimits>& joint_limits);
 
-bool fromMsg(tesseract_scene_graph::JointLimits::Ptr& joint_limits,
+bool fromMsg(std::shared_ptr<tesseract_scene_graph::JointLimits>& joint_limits,
              const tesseract_msgs::msg::JointLimits& joint_limits_msg);
 
-bool toMsg(tesseract_msgs::msg::JointMimic& joint_mimic_msg, const tesseract_scene_graph::JointMimic::Ptr& joint_mimic);
+bool toMsg(tesseract_msgs::msg::JointMimic& joint_mimic_msg,
+           const std::shared_ptr<tesseract_scene_graph::JointMimic>& joint_mimic);
 
-bool fromMsg(tesseract_scene_graph::JointMimic::Ptr& joint_mimic,
+bool fromMsg(std::shared_ptr<tesseract_scene_graph::JointMimic>& joint_mimic,
              const tesseract_msgs::msg::JointMimic& joint_mimic_msg);
 
 bool toMsg(tesseract_msgs::msg::JointSafety& joint_safety_msg,
-           const tesseract_scene_graph::JointSafety::Ptr& joint_safety);
+           const std::shared_ptr<tesseract_scene_graph::JointSafety>& joint_safety);
 
-bool fromMsg(tesseract_scene_graph::JointSafety::Ptr& joint_safety,
+bool fromMsg(std::shared_ptr<tesseract_scene_graph::JointSafety>& joint_safety,
              const tesseract_msgs::msg::JointSafety& joint_safety_msg);
 
 bool toMsg(tesseract_msgs::msg::Joint& joint_msg, const tesseract_scene_graph::Joint& joint);
@@ -198,12 +217,13 @@ tesseract_scene_graph::SceneGraph fromMsg(const tesseract_msgs::msg::SceneGraph&
 
 bool toMsg(tesseract_msgs::msg::EnvironmentCommand& command_msg, const tesseract_environment::Command& command);
 
-tesseract_environment::Commands fromMsg(const std::vector<tesseract_msgs::msg::EnvironmentCommand>& commands_msg);
+std::vector<std::shared_ptr<const tesseract_environment::Command>>
+fromMsg(const std::vector<tesseract_msgs::msg::EnvironmentCommand>& commands_msg);
 
-tesseract_environment::Command::Ptr fromMsg(const tesseract_msgs::msg::EnvironmentCommand& command_msg);
+std::shared_ptr<tesseract_environment::Command> fromMsg(const tesseract_msgs::msg::EnvironmentCommand& command_msg);
 
 bool toMsg(std::vector<tesseract_msgs::msg::EnvironmentCommand>& commands_msg,
-           const tesseract_environment::Commands& commands,
+           const std::vector<std::shared_ptr<const tesseract_environment::Command>>& commands,
            unsigned long past_revision);
 
 void toMsg(tesseract_msgs::msg::EnvironmentState& state_msg,
@@ -304,21 +324,21 @@ bool toMsg(geometry_msgs::msg::PoseArray& pose_array, const tesseract_common::Ve
  * @param group Chain group
  * @return Chain group message
  */
-tesseract_msgs::msg::ChainGroup toMsg(tesseract_srdf::ChainGroups::const_reference group);
+tesseract_msgs::msg::ChainGroup toMsg(std::vector<tesseract_srdf::ChainGroups>::const_reference group);
 
 /**
  * @brief Convert a group's joint state to message
  * @param group Group's joint states
  * @return Group's joint states message
  */
-tesseract_msgs::msg::GroupsJointStates toMsg(tesseract_srdf::GroupJointStates::const_reference group);
+tesseract_msgs::msg::GroupsJointStates toMsg(std::vector<tesseract_srdf::GroupJointStates>::const_reference group);
 
 /**
  * @brief Convert a group's tool center points to message
  * @param group Group's tool center points
  * @return Group's tool center points message
  */
-tesseract_msgs::msg::GroupsTCPs toMsg(tesseract_srdf::GroupTCPs::const_reference group);
+tesseract_msgs::msg::GroupsTCPs toMsg(std::vector<tesseract_srdf::GroupTCPs>::const_reference group);
 
 /**
  * @brief Convert manipulator managers data to message
@@ -435,7 +455,7 @@ bool toMsg(tesseract_msgs::msg::Environment& environment_msg,
  * @return True if successful, otherwise false
  */
 bool toMsg(tesseract_msgs::msg::Environment& environment_msg,
-           const tesseract_environment::Environment::ConstPtr& env,
+           const std::shared_ptr<const tesseract_environment::Environment>& env,
            bool include_joint_states = true);
 
 /**
@@ -443,7 +463,7 @@ bool toMsg(tesseract_msgs::msg::Environment& environment_msg,
  * @param tesseract_msg Input Tesseract msg
  * @return Resulting Tesseract Object if successful, nullptr otherwise
  */
-tesseract_environment::Environment::UPtr fromMsg(const tesseract_msgs::msg::Environment& environment_msg);
+std::unique_ptr<tesseract_environment::Environment> fromMsg(const tesseract_msgs::msg::Environment& environment_msg);
 
 /**
  * @brief Converts a TaskInfo object to a TaskInfo msg
@@ -459,7 +479,8 @@ bool toMsg(tesseract_msgs::msg::TaskComposerNodeInfo& node_info_msg,
  * @param task_info_msg Input TaskInfo msg
  * @return Resulting Tesseract Object if successful, nullptr otherwise
  */
-tesseract_planning::TaskComposerNodeInfo::Ptr fromMsg(const tesseract_msgs::msg::TaskComposerNodeInfo& node_info_msg);
+std::shared_ptr<tesseract_planning::TaskComposerNodeInfo>
+fromMsg(const tesseract_msgs::msg::TaskComposerNodeInfo& node_info_msg);
 
 /**
  * @brief Converts a tesseract_common::JointTrajectory msg to a trajectory_msgs::msg::JointTrajectory object

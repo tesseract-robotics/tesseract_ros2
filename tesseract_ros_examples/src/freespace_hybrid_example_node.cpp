@@ -30,6 +30,9 @@
 #include <tesseract_rosutils/plotting.h>
 #include <tesseract_rosutils/utils.h>
 
+#include <tesseract_environment/environment.h>
+#include <tesseract_scene_graph/graph.h>
+
 using namespace tesseract_examples;
 using namespace tesseract_rosutils;
 

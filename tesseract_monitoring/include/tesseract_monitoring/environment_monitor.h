@@ -83,7 +83,7 @@ public:
    * @param monitor_namespace A name identifying this monitor, must be unique
    */
   ROSEnvironmentMonitor(rclcpp::Node::SharedPtr node,
-                        tesseract_environment::Environment::Ptr env,
+                        std::shared_ptr<tesseract_environment::Environment> env,
                         std::string monitor_namespace);
 
   ~ROSEnvironmentMonitor() override;

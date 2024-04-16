@@ -52,7 +52,8 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <tesseract_msgs/srv/save_scene_graph.hpp>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
-#include <tesseract_environment/environment.h>
+#include <tesseract_environment/fwd.h>
+//#include <tesseract_environment/environment.h>
 #include <tesseract_environment/environment_monitor.h>
 #include <tesseract_monitoring/current_state_monitor.h>
 

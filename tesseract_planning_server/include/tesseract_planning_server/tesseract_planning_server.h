@@ -39,6 +39,8 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <tesseract_environment/environment_cache.h>
 #include <tesseract_task_composer/core/task_composer_server.h>
 #include <tesseract_command_language/profile_dictionary.h>
+#include <tesseract_common/eigen_types.h>
+#include <tesseract_common/fwd.h>
 
 namespace tesseract_planning_server
 {
@@ -51,7 +53,9 @@ public:
 
   TesseractPlanningServer(rclcpp::Node::SharedPtr node, const std::string& robot_description, std::string name);
 
-  TesseractPlanningServer(rclcpp::Node::SharedPtr node, tesseract_environment::Environment::UPtr env, std::string name);
+  TesseractPlanningServer(rclcpp::Node::SharedPtr node,
+                          std::unique_ptr<tesseract_environment::Environment> env,
+                          std::string name);
 
   ~TesseractPlanningServer() = default;
   TesseractPlanningServer(const TesseractPlanningServer&) = delete;

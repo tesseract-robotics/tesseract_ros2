@@ -40,6 +40,7 @@ target_link_libraries(${PROJECT_NAME}
     tesseract::tesseract_motion_planners_descartes
     tesseract::tesseract_task_composer
     tesseract::tesseract_task_composer_planning
+    tesseract::tesseract_task_composer_planning_nodes
 
     ${tesseract_msgs_TARGETS}
     tesseract_monitoring::tesseract_monitoring_environment
@@ -87,8 +88,8 @@ install(
 
 # Mark executables for installation
 install(
- TARGETS 
-   ${PROJECT_NAME}_node 
+ TARGETS
+   ${PROJECT_NAME}_node
   #  ${PROJECT_NAME}_raster_example
  RUNTIME DESTINATION lib/${PROJECT_NAME}
 )

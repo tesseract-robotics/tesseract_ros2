@@ -65,23 +65,7 @@ install(
 
 ament_package()
 
-if(BUILD_TESTING)
-  find_package(ament_cmake_gtest REQUIRED)
-  find_package(GTest REQUIRED)
-  find_package(std_msgs REQUIRED)
-  find_package(tesseract_support REQUIRED)
-
-  ament_add_gtest(${PROJECT_NAME}_unit test/tesseract_rosutils_unit.cpp)
-  target_link_libraries(${PROJECT_NAME}_unit
-    GTest::GTest
-    GTest::Main
-    tesseract::tesseract_support
-    ${PROJECT_NAME}
-  )
-  target_compile_options(${PROJECT_NAME}_unit PRIVATE ${TESSERACT_COMPILE_OPTIONS})
-  target_clang_tidy(${PROJECT_NAME}_unit ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS} ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
-  target_cxx_version(${PROJECT_NAME}_unit PUBLIC VERSION ${TESSERACT_CXX_VERSION})
-  target_include_directories(${PROJECT_NAME}_unit PRIVATE
-      "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-      "$<INSTALL_INTERFACE:include>")
+if(TESSERACT_ENABLE_TESTING)
+  enable_testing()
+  add_subdirectory(test)
 endif()

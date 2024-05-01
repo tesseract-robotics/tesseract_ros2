@@ -1,5 +1,5 @@
 /**
- * @file tesseract_monitor_interface.cpp
+ * @file environment_monitor_interface.cpp
  * @brief This is a utility class for applying changes to multiple tesseract monitors
  *
  * @author Levi Armstrong
@@ -31,6 +31,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <tesseract_msgs/msg/environment_command.hpp>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
+#include <tesseract_environment/environment.h>
 #include <tesseract_monitoring/environment_monitor_interface.h>
 #include <tesseract_rosutils/utils.h>
 #include <tesseract_monitoring/constants.h>
@@ -386,7 +387,7 @@ ROSEnvironmentMonitorInterface::setEnvironmentState(const std::vector<std::strin
   return failed_namespace;
 }
 
-tesseract_environment::Environment::UPtr
+std::unique_ptr<tesseract_environment::Environment>
 ROSEnvironmentMonitorInterface::getEnvironment(const std::string& monitor_namespace) const
 {
   auto req = std::make_shared<tesseract_msgs::srv::GetEnvironmentInformation::Request>();

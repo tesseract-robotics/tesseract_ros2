@@ -57,7 +57,7 @@ private Q_SLOTS:
   void onLegacyJointTrajectoryChanged();
   void onTesseractJointTrajectoryChanged();
 
-protected:
+private:
   struct Implementation;
   std::unique_ptr<Implementation> data_;
 };

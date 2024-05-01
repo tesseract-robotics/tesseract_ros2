@@ -32,7 +32,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <tesseract_msgs/msg/environment_command.hpp>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <tesseract_environment/commands.h>
-#include <tesseract_environment/environment.h>
+#include <tesseract_environment/fwd.h>
 #include <tesseract_environment/environment_monitor_interface.h>
 
 namespace tesseract_monitoring
@@ -92,7 +92,8 @@ public:
   setEnvironmentState(const std::vector<std::string>& joint_names,
                       const Eigen::Ref<const Eigen::VectorXd>& joint_values) const override final;
 
-  tesseract_environment::Environment::UPtr getEnvironment(const std::string& monitor_namespace) const override final;
+  std::unique_ptr<tesseract_environment::Environment>
+  getEnvironment(const std::string& monitor_namespace) const override final;
 
 protected:
   rclcpp::Node::SharedPtr node_;

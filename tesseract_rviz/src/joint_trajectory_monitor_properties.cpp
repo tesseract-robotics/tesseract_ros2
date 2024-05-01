@@ -21,6 +21,10 @@
 
 #include <QApplication>
 
+#include <tesseract_environment/environment.h>
+#include <tesseract_environment/command.h>
+#include <tesseract_environment/commands.h>
+
 namespace tesseract_rviz
 {
 struct JointTrajectoryMonitorProperties::Implementation

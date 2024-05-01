@@ -32,6 +32,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <tesseract_msgs/msg/string_limits_pair.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/lexical_cast.hpp>
+#include <console_bridge/console.h>
 #if __has_include(<tf2_eigen/tf2_eigen.hpp>)
 #include <tf2_eigen/tf2_eigen.hpp>
 #else
@@ -39,8 +40,36 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #endif
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
+#include <tesseract_geometry/geometries.h>
+
 #include <tesseract_common/resource_locator.h>
 #include <tesseract_rosutils/utils.h>
+#include <tesseract_environment/command.h>
+#include <tesseract_environment/commands.h>
+#include <tesseract_scene_graph/joint.h>
+#include <tesseract_srdf/kinematics_information.h>
+#include <tesseract_common/plugin_info.h>
+
+#include <tesseract_environment/utils.h>
+#include <tesseract_environment/events.h>
+#include <tesseract_environment/command.h>
+#include <tesseract_environment/commands.h>
+#include <tesseract_environment/environment.h>
+
+#include <tesseract_scene_graph/graph.h>
+#include <tesseract_scene_graph/link.h>
+#include <tesseract_scene_graph/joint.h>
+#include <tesseract_scene_graph/scene_state.h>
+
+#include <tesseract_srdf/srdf_model.h>
+#include <tesseract_srdf/utils.h>
+
+#include <tesseract_collision/core/common.h>
+#include <tesseract_collision/core/types.h>
+#include <tesseract_collision/core/discrete_contact_manager.h>
+#include <tesseract_collision/core/continuous_contact_manager.h>
+
+#include <tesseract_task_composer/core/task_composer_node_info.h>
 
 const std::string LOGGER_ID{ "tesseract_rosutils_utils" };
 namespace tesseract_rosutils
@@ -667,7 +696,7 @@ bool fromMsg(tesseract_geometry::Geometry::Ptr& geometry, const tesseract_msgs::
   else if (geometry_msg.type == tesseract_msgs::msg::Geometry::OCTREE)
   {
     std::shared_ptr<octomap::OcTree> om(static_cast<octomap::OcTree*>(octomap_msgs::msgToMap(geometry_msg.octomap)));
-    auto sub_type = static_cast<tesseract_geometry::Octree::SubType>(geometry_msg.octomap_sub_type.type);
+    auto sub_type = static_cast<tesseract_geometry::OctreeSubType>(geometry_msg.octomap_sub_type.type);
     geometry = std::make_shared<tesseract_geometry::Octree>(om, sub_type);
   }
 

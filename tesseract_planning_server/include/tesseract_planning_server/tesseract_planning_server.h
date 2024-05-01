@@ -28,6 +28,7 @@
 
 #include <tesseract_common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
+#include <Eigen/Geometry>
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_action/rclcpp_action.hpp>
 #include <tf2_ros/buffer.h>
@@ -35,10 +36,10 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <tesseract_msgs/action/get_motion_plan.hpp>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
-#include <tesseract_environment/environment_monitor.h>
-#include <tesseract_environment/environment_cache.h>
-#include <tesseract_task_composer/core/task_composer_server.h>
-#include <tesseract_command_language/profile_dictionary.h>
+#include <tesseract_environment/fwd.h>
+#include <tesseract_task_composer/core/fwd.h>
+#include <tesseract_command_language/fwd.h>
+#include <tesseract_common/fwd.h>
 
 namespace tesseract_planning_server
 {
@@ -51,7 +52,9 @@ public:
 
   TesseractPlanningServer(rclcpp::Node::SharedPtr node, const std::string& robot_description, std::string name);
 
-  TesseractPlanningServer(rclcpp::Node::SharedPtr node, tesseract_environment::Environment::UPtr env, std::string name);
+  TesseractPlanningServer(rclcpp::Node::SharedPtr node,
+                          std::unique_ptr<tesseract_environment::Environment> env,
+                          std::string name);
 
   ~TesseractPlanningServer() = default;
   TesseractPlanningServer(const TesseractPlanningServer&) = delete;
@@ -83,16 +86,16 @@ protected:
   rclcpp::Node::SharedPtr node_;
 
   /** @brief The environment monitor to keep the planning server updated with the latest */
-  tesseract_environment::EnvironmentMonitor::Ptr monitor_;
+  std::shared_ptr<tesseract_environment::EnvironmentMonitor> monitor_;
 
   /** @brief The environment cache being used by the process planning server */
-  tesseract_environment::EnvironmentCache::Ptr environment_cache_;
+  std::shared_ptr<tesseract_environment::EnvironmentCache> environment_cache_;
 
   /** @brief The task profiles */
-  tesseract_planning::ProfileDictionary::Ptr profiles_;
+  std::shared_ptr<tesseract_planning::ProfileDictionary> profiles_;
 
   /** @brief The task planning server */
-  tesseract_planning::TaskComposerServer::UPtr planning_server_;
+  std::unique_ptr<tesseract_planning::TaskComposerServer> planning_server_;
 
   /** @brief The motion planning action server */
   rclcpp_action::Server<tesseract_msgs::action::GetMotionPlan>::SharedPtr motion_plan_server_;

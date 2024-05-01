@@ -23,7 +23,7 @@ struct OctreeDataContainer
   std::shared_ptr<rviz_rendering::PointCloud> point_cloud;
   std::vector<rviz_rendering::PointCloud::Point> points;
   float size;
-  tesseract_geometry::Octree::SubType shape_type;
+  tesseract_geometry::OctreeSubType shape_type;
 };
 }  // namespace tesseract_rviz
 #endif  // TESSERACT_RVIZ_TYPES_H

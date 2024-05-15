@@ -54,9 +54,18 @@ jobs:
             prefix=
             suffix=
           tags: |
-            type=ref,event=branch,prefix=${{ matrix.distro }}-
-            type=ref,event=pr,prefix=${{ matrix.distro }}-
+            type=ref,event=branch,prefix=${{ matrix.distro }}-,value=${{ env.BRANCH_NAME }}
+            type=raw,event=pr,prefix=${{ matrix.distro }}-,value=master
             type=semver,pattern={{major}}.{{minor}},prefix=${{ matrix.distro }}-
+
+      - name: Set TAG environment variable based on metadata output
+        run: |
+          # All prior tesseract packages are on an OS level, being a ROS package, this is on a ROS distro level
+          TAG="${{ steps.meta.outputs.version }}"
+          # Replace all occurrences of matrix.distro with matrix.os in the generated tags. e.g. humble->jammy
+          TAG="${TAG//${{ matrix.distro }}/${{ matrix.os }}}"
+          # Export TAG to the environment variable for use in subsequent steps
+          echo "TAG=$TAG" >> $GITHUB_ENV
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
@@ -64,7 +73,7 @@ jobs:
           context: .
           file: docker/Dockerfile
           build-args: |
-            TAG=${{ matrix.os }}-0.21
+            TAG=${{ env.TAG }}
             ROS_DISTRO=${{ matrix.distro }}
           push: ${{ env.PUSH_DOCKER_IMAGE }}
           tags: ${{ steps.meta.outputs.tags }}

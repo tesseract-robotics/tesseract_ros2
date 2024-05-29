@@ -2350,7 +2350,8 @@ bool toMsg(tesseract_msgs::msg::TaskComposerNodeInfo& node_info_msg, tesseract_p
   node_info_msg.input_keys = node_info.input_keys;
   node_info_msg.output_keys = node_info.output_keys;
   node_info_msg.return_value = node_info.return_value;
-  node_info_msg.message = node_info.message;
+  node_info_msg.status_code = node_info_msg.status_code;
+  node_info_msg.status_message = node_info_msg.status_message;
   node_info_msg.elapsed_time = node_info.elapsed_time;
 
   return true;
@@ -2371,7 +2372,8 @@ tesseract_planning::TaskComposerNodeInfo::Ptr fromMsg(const tesseract_msgs::msg:
   node_info->input_keys = node_info_msg.input_keys;
   node_info->output_keys = node_info_msg.output_keys;
   node_info->return_value = node_info_msg.return_value;
-  node_info->message = node_info_msg.message;
+  node_info->status_code = node_info_msg.status_code;
+  node_info->status_message = node_info_msg.status_message;
   node_info->elapsed_time = node_info_msg.elapsed_time;
 
   return node_info;

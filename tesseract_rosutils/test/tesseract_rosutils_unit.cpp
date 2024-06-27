@@ -102,10 +102,10 @@ TEST_F(TesseractROSUtilsUnit, toFromMsgTesseract)  // NOLINT
 TEST_F(TesseractROSUtilsUnit, toFromFile)  // NOLINT
 {
   std_msgs::msg::ColorRGBA msg;
-  msg.r = 1.1f;
-  msg.g = 2.2f;
-  msg.b = 3.3f;
-  msg.a = 4.4f;
+  msg.r = 1.1F;
+  msg.g = 2.2F;
+  msg.b = 3.3F;
+  msg.a = 4.4F;
 
   std::string filepath = "/tmp/rgb_a_msg.bin";
   EXPECT_TRUE(toFile<std_msgs::msg::ColorRGBA>(filepath, msg));

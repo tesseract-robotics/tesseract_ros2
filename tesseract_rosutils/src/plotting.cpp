@@ -48,20 +48,20 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 namespace tesseract_rosutils
 {
-static const char NODE_ID[] = "tesseract_rosutils_plotting";
+static constexpr const char* NODE_ID = "tesseract_rosutils_plotting";
 
 ROSPlotting::ROSPlotting(std::string root_link, std::string topic_namespace)
-  : root_link_(root_link), topic_namespace_(topic_namespace)
+  : root_link_(std::move(root_link)), topic_namespace_(std::move(topic_namespace))
 {
   node_ = std::make_shared<rclcpp::Node>(NODE_ID);
   trajectory_pub_ =
-      node_->create_publisher<tesseract_msgs::msg::Trajectory>(topic_namespace + "/display_tesseract_trajectory", 1);
+      node_->create_publisher<tesseract_msgs::msg::Trajectory>(topic_namespace_ + "/display_tesseract_trajectory", 1);
   collisions_pub_ =
-      node_->create_publisher<visualization_msgs::msg::MarkerArray>(topic_namespace + "/display_collisions", 1);
-  arrows_pub_ = node_->create_publisher<visualization_msgs::msg::MarkerArray>(topic_namespace + "/display_arrows", 1);
-  axes_pub_ = node_->create_publisher<visualization_msgs::msg::MarkerArray>(topic_namespace + "/display_axes", 1);
+      node_->create_publisher<visualization_msgs::msg::MarkerArray>(topic_namespace_ + "/display_collisions", 1);
+  arrows_pub_ = node_->create_publisher<visualization_msgs::msg::MarkerArray>(topic_namespace_ + "/display_arrows", 1);
+  axes_pub_ = node_->create_publisher<visualization_msgs::msg::MarkerArray>(topic_namespace_ + "/display_axes", 1);
   tool_path_pub_ =
-      node_->create_publisher<visualization_msgs::msg::MarkerArray>(topic_namespace + "/display_tool_path", 1);
+      node_->create_publisher<visualization_msgs::msg::MarkerArray>(topic_namespace_ + "/display_tool_path", 1);
 
   internal_node_executor_ = std::make_shared<rclcpp::executors::MultiThreadedExecutor>();
   internal_node_spinner_ = std::make_shared<std::thread>([this]() {
@@ -83,7 +83,7 @@ bool ROSPlotting::isConnected() const { return true; }
 void ROSPlotting::waitForConnection(long seconds) const
 {
   const auto start_time = rclcpp::Clock{ RCL_STEADY_TIME }.now();
-  const auto wall_timeout = rclcpp::Duration::from_seconds(seconds);
+  const auto wall_timeout = rclcpp::Duration::from_seconds(static_cast<double>(seconds));
 
   while (rclcpp::ok())
   {
@@ -293,7 +293,7 @@ void ROSPlotting::plotToolpath(const tesseract_environment::Environment& env,
 {
   tesseract_common::Toolpath toolpath = toToolpath(instruction, env);
   tesseract_visualization::ToolpathMarker marker(toolpath);
-  plotMarker(marker, ns);
+  plotMarker(marker, std::move(ns));
 }
 
 visualization_msgs::msg::MarkerArray ROSPlotting::getMarkerAxisMsg(int& id_counter,
@@ -341,13 +341,13 @@ void ROSPlotting::clear(std::string ns)
   tool_path_pub_->publish(msg);
 }
 
-static void waitForInputAsync(std::string message)
+static void waitForInputAsync(const std::string& message)
 {
   RCLCPP_ERROR(rclcpp::get_logger(NODE_ID), "%s", message.c_str());
   std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 }
 
-void ROSPlotting::waitForInput(std::string message)
+void ROSPlotting::waitForInput(std::string /*message*/)
 {
   // std::chrono::microseconds timeout(1);
   // std::future<void> future = std::async(std::launch::async, [=]() { waitForInputAsync(message); });

@@ -52,13 +52,10 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_environment/utils.h>
 #include <tesseract_environment/events.h>
-#include <tesseract_environment/command.h>
-#include <tesseract_environment/commands.h>
 #include <tesseract_environment/environment.h>
 
 #include <tesseract_scene_graph/graph.h>
 #include <tesseract_scene_graph/link.h>
-#include <tesseract_scene_graph/joint.h>
 #include <tesseract_scene_graph/scene_state.h>
 
 #include <tesseract_srdf/srdf_model.h>
@@ -1191,7 +1188,7 @@ toMsg(const tesseract_common::PairsCollisionMarginData& contact_margin_pairs)
 tesseract_common::CollisionMarginData fromMsg(const tesseract_msgs::msg::CollisionMarginData& contact_margin_data_msg)
 {
   tesseract_common::PairsCollisionMarginData contact_margin_pairs = fromMsg(contact_margin_data_msg.margin_pairs);
-  return tesseract_common::CollisionMarginData(contact_margin_data_msg.default_margin, contact_margin_pairs);
+  return { contact_margin_data_msg.default_margin, contact_margin_pairs };
 }
 
 tesseract_msgs::msg::CollisionMarginData toMsg(const tesseract_common::CollisionMarginData& contact_margin_data)
@@ -1658,13 +1655,10 @@ tesseract_environment::Command::Ptr fromMsg(const tesseract_msgs::msg::Environme
         return std::make_shared<tesseract_environment::AddSceneGraphCommand>(fromMsg(command_msg.scene_graph),
                                                                              command_msg.scene_graph_prefix);
       }
-      else
-      {
-        tesseract_scene_graph::Joint j = fromMsg(command_msg.scene_graph_joint);
+      tesseract_scene_graph::Joint j = fromMsg(command_msg.scene_graph_joint);
 
-        return std::make_shared<tesseract_environment::AddSceneGraphCommand>(
-            fromMsg(command_msg.scene_graph), j, command_msg.scene_graph_prefix);
-      }
+      return std::make_shared<tesseract_environment::AddSceneGraphCommand>(
+          fromMsg(command_msg.scene_graph), j, command_msg.scene_graph_prefix);
     }
     case tesseract_msgs::msg::EnvironmentCommand::CHANGE_JOINT_POSITION_LIMITS:
     {
@@ -1814,7 +1808,7 @@ bool processMsg(tesseract_environment::Environment& env, const sensor_msgs::msg:
   if (!isMsgEmpty(joint_state_msg))
   {
     std::unordered_map<std::string, double> joints;
-    for (auto i = 0u; i < joint_state_msg.name.size(); ++i)
+    for (auto i = 0U; i < joint_state_msg.name.size(); ++i)
     {
       joints[joint_state_msg.name[i]] = joint_state_msg.position[i];
     }
@@ -2336,7 +2330,8 @@ tesseract_environment::Environment::UPtr fromMsg(const tesseract_msgs::msg::Envi
   return env;
 }
 
-bool toMsg(tesseract_msgs::msg::TaskComposerNodeInfo& node_info_msg, tesseract_planning::TaskComposerNodeInfo node_info)
+bool toMsg(tesseract_msgs::msg::TaskComposerNodeInfo& node_info_msg,
+           const tesseract_planning::TaskComposerNodeInfo& node_info)
 {
   using namespace tesseract_planning;
   node_info_msg.name = node_info.name;
@@ -2386,9 +2381,9 @@ trajectory_msgs::msg::JointTrajectory toMsg(const tesseract_common::JointTraject
   std::vector<std::string> joint_names;
   std::map<std::string, int> joint_names_indices;
   trajectory_msgs::msg::JointTrajectoryPoint last_point;
-  for (auto joint_state : joint_trajectory)
+  for (const auto& joint_state : joint_trajectory)
   {
-    for (auto joint : joint_state.joint_names)
+    for (const auto& joint : joint_state.joint_names)
     {
       if (std::find(joint_names.begin(), joint_names.end(), joint) == joint_names.end())
       {
@@ -2402,26 +2397,25 @@ trajectory_msgs::msg::JointTrajectory toMsg(const tesseract_common::JointTraject
       std::vector<double>(initial_points.data(), initial_points.data() + initial_points.rows() * initial_points.cols());
   result.joint_names = joint_names;
   std::vector<trajectory_msgs::msg::JointTrajectoryPoint> points;
-  for (unsigned long i = 0; i < joint_trajectory.size(); i++)
+  for (const auto& joint : joint_trajectory)
   {
     trajectory_msgs::msg::JointTrajectoryPoint current_point;
     current_point.positions = last_point.positions;
     current_point.velocities = std::vector<double>(joint_names.size(), 0);
     current_point.accelerations = std::vector<double>(joint_names.size(), 0);
     current_point.effort = std::vector<double>(joint_names.size(), 0);
-    current_point.time_from_start = rclcpp::Duration::from_seconds(joint_trajectory[i].time);
-    for (Eigen::Index j = 0; j < static_cast<Eigen::Index>(joint_trajectory[i].joint_names.size()); j++)
+    current_point.time_from_start = rclcpp::Duration::from_seconds(joint.time);
+    for (Eigen::Index j = 0; j < static_cast<Eigen::Index>(joint.joint_names.size()); j++)
     {
-      auto joint_index =
-          static_cast<std::size_t>(joint_names_indices[joint_trajectory[i].joint_names[static_cast<std::size_t>(j)]]);
-      if (joint_trajectory[i].position.size() > 0)
-        current_point.positions[joint_index] = joint_trajectory[i].position[j];
-      if (joint_trajectory[i].velocity.size() > 0)
-        current_point.velocities[joint_index] = joint_trajectory[i].velocity[j];
-      if (joint_trajectory[i].acceleration.size() > 0)
-        current_point.accelerations[joint_index] = joint_trajectory[i].acceleration[j];
-      if (joint_trajectory[i].effort.size() > j)
-        current_point.effort[joint_index] = joint_trajectory[i].effort[j];
+      auto joint_index = static_cast<std::size_t>(joint_names_indices[joint.joint_names[static_cast<std::size_t>(j)]]);
+      if (joint.position.size() > 0)
+        current_point.positions[joint_index] = joint.position[j];
+      if (joint.velocity.size() > 0)
+        current_point.velocities[joint_index] = joint.velocity[j];
+      if (joint.acceleration.size() > 0)
+        current_point.accelerations[joint_index] = joint.acceleration[j];
+      if (joint.effort.size() > j)
+        current_point.effort[joint_index] = joint.effort[j];
     }
     last_point = current_point;
     points.push_back(current_point);

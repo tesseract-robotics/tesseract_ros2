@@ -47,7 +47,7 @@ jobs:
           apt install -y clang-tidy ros-${{ matrix.distro }}-ros-base
 
       - name: Build and Tests
-        uses: tesseract-robotics/colcon-action@v5
+        uses: tesseract-robotics/colcon-action@v8
         with:
           before-script: apt install ros-${{ matrix.distro }}-ros-base && source /opt/tesseract_qt/install/setup.bash && source /opt/ros/${{ matrix.distro }}/setup.bash
           ccache-prefix: ${{ matrix.distro }}

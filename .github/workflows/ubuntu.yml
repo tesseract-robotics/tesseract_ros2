@@ -33,7 +33,7 @@ jobs:
             distro: rolling
             vcs-file: .github/workflows/dependencies.repos
     container:
-      image: ghcr.io/tesseract-robotics/tesseract_qt:${{ matrix.os }}-0.21
+      image: ghcr.io/tesseract-robotics/tesseract_qt:${{ matrix.os }}-0.22
       env:
         CCACHE_DIR: ${{ github.workspace }}/${{ matrix.distro }}/.ccache
         DEBIAN_FRONTEND: noninteractive

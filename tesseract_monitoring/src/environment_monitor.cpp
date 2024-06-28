@@ -93,6 +93,7 @@ ROSEnvironmentMonitor::ROSEnvironmentMonitor(const rclcpp::Node::SharedPtr& node
   internal_node_spinner_ = std::make_shared<std::thread>([this]() {
     internal_node_executor_->add_node(internal_node_);
     internal_node_executor_->spin();
+    internal_node_executor_->remove_node(internal_node_);
   });
 }
 
@@ -113,6 +114,7 @@ ROSEnvironmentMonitor::ROSEnvironmentMonitor(const rclcpp::Node::SharedPtr& node
   internal_node_spinner_ = std::make_shared<std::thread>([this]() {
     internal_node_executor_->add_node(internal_node_);
     internal_node_executor_->spin();
+    internal_node_executor_->remove_node(internal_node_);
   });
 }
 

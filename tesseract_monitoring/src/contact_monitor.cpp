@@ -41,7 +41,7 @@ namespace tesseract_monitoring
 {
 ContactMonitor::ContactMonitor(std::string monitor_namespace,
                                tesseract_environment::Environment::UPtr env,
-                               rclcpp::Node::SharedPtr node,
+                               rclcpp::Node::SharedPtr node,  // NOLINT
                                std::vector<std::string> monitored_link_names,
                                std::vector<std::string> disabled_link_names,
                                tesseract_collision::ContactTestType type,
@@ -74,7 +74,7 @@ ContactMonitor::ContactMonitor(std::string monitor_namespace,
   std::cout << ((disabled_link_names_.empty()) ? "Empty" : "Not Empty") << std::endl;
 
   joint_states_sub_ = internal_node_->create_subscription<sensor_msgs::msg::JointState>(
-      joint_state_topic, 1000, std::bind(&ContactMonitor::callbackJointState, this, std::placeholders::_1));
+      joint_state_topic, 1000, std::bind(&ContactMonitor::callbackJointState, this, std::placeholders::_1));  // NOLINT
   std::string contact_results_topic = R"(/)" + monitor_namespace_ + DEFAULT_PUBLISH_CONTACT_RESULTS_TOPIC;
   std::string compute_contact_results = R"(/)" + monitor_namespace_ + DEFAULT_COMPUTE_CONTACT_RESULTS_SERVICE;
 
@@ -82,8 +82,11 @@ ContactMonitor::ContactMonitor(std::string monitor_namespace,
       contact_results_topic, rclcpp::QoS(100));
   compute_contact_results_ = internal_node_->create_service<tesseract_msgs::srv::ComputeContactResultVector>(
       compute_contact_results,
-      std::bind(
-          &ContactMonitor::callbackComputeContactResultVector, this, std::placeholders::_1, std::placeholders::_2),
+      std::bind(  // NOLINT
+          &ContactMonitor::callbackComputeContactResultVector,
+          this,
+          std::placeholders::_1,
+          std::placeholders::_2),
       rmw_qos_profile_services_default);
 }
 
@@ -161,8 +164,9 @@ void ContactMonitor::computeCollisionReportThread()
       contacts_vector.clear();
       contacts_msg.contacts.clear();
 
-      monitor_->environment().setState(msg->name,
-                                       Eigen::Map<Eigen::VectorXd>(msg->position.data(), msg->position.size()));
+      monitor_->environment().setState(
+          msg->name,
+          Eigen::Map<Eigen::VectorXd>(msg->position.data(), static_cast<Eigen::Index>(msg->position.size())));
       tesseract_scene_graph::SceneState state = monitor_->environment().getState();
 
       manager_->setCollisionObjectsTransform(state.link_transforms);
@@ -173,10 +177,10 @@ void ContactMonitor::computeCollisionReportThread()
     {
       contacts.flattenCopyResults(contacts_vector);
       contacts_msg.contacts.reserve(contacts_vector.size());
-      for (std::size_t i = 0; i < contacts_vector.size(); ++i)
+      for (const auto& contact : contacts_vector)
       {
         tesseract_msgs::msg::ContactResult contact_msg;
-        tesseract_rosutils::toMsg(contact_msg, contacts_vector[i], msg->header.stamp);
+        tesseract_rosutils::toMsg(contact_msg, contact, msg->header.stamp);
         contacts_msg.contacts.push_back(contact_msg);
       }
 
@@ -203,8 +207,9 @@ void ContactMonitor::callbackJointState(std::shared_ptr<sensor_msgs::msg::JointS
   current_joint_states_evt_.notify_all();
 }
 
-void ContactMonitor::callbackModifyTesseractEnv(tesseract_msgs::srv::ModifyEnvironment::Request::SharedPtr request,
-                                                tesseract_msgs::srv::ModifyEnvironment::Response::SharedPtr response)
+void ContactMonitor::callbackModifyTesseractEnv(
+    tesseract_msgs::srv::ModifyEnvironment::Request::SharedPtr request,    // NOLINT
+    tesseract_msgs::srv::ModifyEnvironment::Response::SharedPtr response)  // NOLINT
 {
   std::scoped_lock lock(modify_mutex_);
 
@@ -246,8 +251,8 @@ void ContactMonitor::callbackModifyTesseractEnv(tesseract_msgs::srv::ModifyEnvir
 }
 
 void ContactMonitor::callbackComputeContactResultVector(
-    tesseract_msgs::srv::ComputeContactResultVector::Request::SharedPtr request,
-    tesseract_msgs::srv::ComputeContactResultVector::Response::SharedPtr response)
+    tesseract_msgs::srv::ComputeContactResultVector::Request::SharedPtr request,    // NOLINT
+    tesseract_msgs::srv::ComputeContactResultVector::Response::SharedPtr response)  // NOLINT
 {
   thread_local tesseract_collision::ContactResultMap contact_results;
   thread_local tesseract_collision::ContactResultVector contacts_vector;
@@ -256,7 +261,8 @@ void ContactMonitor::callbackComputeContactResultVector(
 
   monitor_->environment().setState(
       request->joint_states.name,
-      Eigen::Map<Eigen::VectorXd>(request->joint_states.position.data(), request->joint_states.position.size()));
+      Eigen::Map<Eigen::VectorXd>(request->joint_states.position.data(),
+                                  static_cast<Eigen::Index>(request->joint_states.position.size())));
   tesseract_scene_graph::SceneState state = monitor_->environment().getState();
 
   // Limit the lock

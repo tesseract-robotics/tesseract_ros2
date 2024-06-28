@@ -135,14 +135,14 @@ int main(int argc, char** argv)
 
   RCLCPP_INFO(node->get_logger(), "MONITORED_LINKS: %s", monitored_link_names_str.c_str());
 
-  int contact_test_type = node->declare_parameter("contact_test_type", 2);
+  auto contact_test_type = node->declare_parameter("contact_test_type", 2);
 
   if (contact_test_type < 0 || contact_test_type > 3)
   {
     RCLCPP_WARN(node->get_logger(), "Request type must be 0, 1, 2 or 3. Setting to 2(ALL)!");
     contact_test_type = 2;
   }
-  tesseract_collision::ContactTestType type = static_cast<tesseract_collision::ContactTestType>(contact_test_type);
+  auto type = static_cast<tesseract_collision::ContactTestType>(contact_test_type);
 
   tesseract_monitoring::ContactMonitor cm(monitor_namespace,
                                           std::move(env),

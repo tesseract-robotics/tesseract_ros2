@@ -55,7 +55,7 @@ BOOST_BIND_NO_PLACEHOLDERS
 
 namespace tesseract_monitoring
 {
-ROSEnvironmentMonitor::ROSEnvironmentMonitor(rclcpp::Node::SharedPtr node,
+ROSEnvironmentMonitor::ROSEnvironmentMonitor(const rclcpp::Node::SharedPtr& node,
                                              std::string robot_description,
                                              std::string monitor_namespace)
   : EnvironmentMonitor(std::move(monitor_namespace))
@@ -94,9 +94,11 @@ ROSEnvironmentMonitor::ROSEnvironmentMonitor(rclcpp::Node::SharedPtr node,
     internal_node_executor_->add_node(internal_node_);
     internal_node_executor_->spin();
   });
+
+  publish_environment_frequency_ = 30.0;
 }
 
-ROSEnvironmentMonitor::ROSEnvironmentMonitor(rclcpp::Node::SharedPtr node,
+ROSEnvironmentMonitor::ROSEnvironmentMonitor(const rclcpp::Node::SharedPtr& node,
                                              tesseract_environment::Environment::Ptr env,
                                              std::string monitor_namespace)
   : EnvironmentMonitor(std::move(env), std::move(monitor_namespace))
@@ -114,6 +116,8 @@ ROSEnvironmentMonitor::ROSEnvironmentMonitor(rclcpp::Node::SharedPtr node,
     internal_node_executor_->add_node(internal_node_);
     internal_node_executor_->spin();
   });
+
+  publish_environment_frequency_ = 30.0;
 }
 
 ROSEnvironmentMonitor::~ROSEnvironmentMonitor()
@@ -176,8 +180,6 @@ void ROSEnvironmentMonitor::shutdown()
 
 bool ROSEnvironmentMonitor::initialize()
 {
-  enforce_next_state_update_ = false;
-
   if (monitor_namespace_.empty())
   {
     throw std::runtime_error("The monitor namespace cannot be empty!");
@@ -189,8 +191,6 @@ bool ROSEnvironmentMonitor::initialize()
     return false;
   }
 
-  publish_environment_frequency_ = 30.0;
-
   last_update_time_ = last_robot_motion_time_ = node_->now();
   last_robot_state_update_wall_time_ = rclcpp::Clock().now();
 
@@ -201,7 +201,7 @@ bool ROSEnvironmentMonitor::initialize()
   const auto& _ph2 = std::placeholders::_2;
 
   env_->addEventCallback(std::hash<ROSEnvironmentMonitor*>()(this),
-                         std::bind(&ROSEnvironmentMonitor::sceneStateChangedCallback, this, _ph1));
+                         std::bind(&ROSEnvironmentMonitor::sceneStateChangedCallback, this, _ph1));  // NOLINT
 
   // Shutdown current services
   modify_environment_service_.reset();
@@ -218,25 +218,25 @@ bool ROSEnvironmentMonitor::initialize()
 
   modify_environment_service_ = internal_node_->create_service<tesseract_msgs::srv::ModifyEnvironment>(
       modify_environment_service,
-      std::bind(&ROSEnvironmentMonitor::modifyEnvironmentCallback, this, _ph1, _ph2),
+      std::bind(&ROSEnvironmentMonitor::modifyEnvironmentCallback, this, _ph1, _ph2),  // NOLINT
       rmw_qos_profile_services_default,
       cb_group_);
 
   get_environment_changes_service_ = internal_node_->create_service<tesseract_msgs::srv::GetEnvironmentChanges>(
       get_environment_changes_service,
-      std::bind(&ROSEnvironmentMonitor::getEnvironmentChangesCallback, this, _ph1, _ph2),
+      std::bind(&ROSEnvironmentMonitor::getEnvironmentChangesCallback, this, _ph1, _ph2),  // NOLINT
       rmw_qos_profile_services_default,
       cb_group_);
 
   get_environment_information_service_ = internal_node_->create_service<tesseract_msgs::srv::GetEnvironmentInformation>(
       get_environment_information_service,
-      std::bind(&ROSEnvironmentMonitor::getEnvironmentInformationCallback, this, _ph1, _ph2),
+      std::bind(&ROSEnvironmentMonitor::getEnvironmentInformationCallback, this, _ph1, _ph2),  // NOLINT
       rmw_qos_profile_services_default,
       cb_group_);
 
   save_scene_graph_service_ = internal_node_->create_service<tesseract_msgs::srv::SaveSceneGraph>(
       save_scene_graph_service,
-      std::bind(&ROSEnvironmentMonitor::saveSceneGraphCallback, this, _ph1, _ph2),
+      std::bind(&ROSEnvironmentMonitor::saveSceneGraphCallback, this, _ph1, _ph2),  // NOLINT
       rmw_qos_profile_services_default,
       cb_group_);
 
@@ -363,7 +363,7 @@ void ROSEnvironmentMonitor::startMonitoringEnvironment(const std::string& monito
   monitored_environment_subscriber_ = internal_node_->create_subscription<tesseract_msgs::msg::EnvironmentState>(
       monitored_environment_topic,
       1000,
-      std::bind(&ROSEnvironmentMonitor::newEnvironmentStateCallback, this, std::placeholders::_1));
+      std::bind(&ROSEnvironmentMonitor::newEnvironmentStateCallback, this, std::placeholders::_1));  // NOLINT
 
   RCLCPP_INFO(logger_, "Monitoring external environment on '%s'", monitored_environment_topic.c_str());
 }
@@ -376,7 +376,8 @@ double ROSEnvironmentMonitor::getStateUpdateFrequency() const
   return 0.0;
 }
 
-void ROSEnvironmentMonitor::newEnvironmentStateCallback(const tesseract_msgs::msg::EnvironmentState::ConstSharedPtr env)
+void ROSEnvironmentMonitor::newEnvironmentStateCallback(
+    const tesseract_msgs::msg::EnvironmentState::ConstSharedPtr env)  // NOLINT
 {
   last_update_time_ = node_->now();
 
@@ -565,8 +566,9 @@ bool ROSEnvironmentMonitor::applyEnvironmentCommandsMessage(
   return result;
 }
 
-void ROSEnvironmentMonitor::saveSceneGraphCallback(tesseract_msgs::srv::SaveSceneGraph::Request::SharedPtr req,
-                                                   tesseract_msgs::srv::SaveSceneGraph::Response::SharedPtr res)
+void ROSEnvironmentMonitor::saveSceneGraphCallback(
+    tesseract_msgs::srv::SaveSceneGraph::Request::SharedPtr req,   // NOLINT
+    tesseract_msgs::srv::SaveSceneGraph::Response::SharedPtr res)  // NOLINT
 {
   res->success = false;
   if (env_ != nullptr)
@@ -577,7 +579,6 @@ void ROSEnvironmentMonitor::saveSceneGraphCallback(tesseract_msgs::srv::SaveScen
     res->id = env_->getName();
     res->revision = static_cast<unsigned long>(env_->getRevision());
   }
-  return;
 }
 
 bool ROSEnvironmentMonitor::waitForCurrentState(std::chrono::duration<double> duration)
@@ -645,10 +646,10 @@ void ROSEnvironmentMonitor::startStateMonitor(const std::string& joint_states_to
   if (env_)
   {
     if (!current_state_monitor_)
-      current_state_monitor_.reset(new CurrentStateMonitor(env_, node_));
+      current_state_monitor_ = std::make_unique<CurrentStateMonitor>(env_, node_);
 
     current_state_monitor_->addUpdateCallback(
-        std::bind(&ROSEnvironmentMonitor::onJointStateUpdate, this, std::placeholders::_1));
+        std::bind(&ROSEnvironmentMonitor::onJointStateUpdate, this, std::placeholders::_1));  // NOLINT
     current_state_monitor_->startStateMonitor(joint_states_topic, publish_tf);
 
     {
@@ -679,7 +680,8 @@ void ROSEnvironmentMonitor::stopStateMonitor()
   }
 }
 
-void ROSEnvironmentMonitor::onJointStateUpdate(const sensor_msgs::msg::JointState::ConstSharedPtr /* joint_state */)
+void ROSEnvironmentMonitor::onJointStateUpdate(
+    const sensor_msgs::msg::JointState::ConstSharedPtr /* joint_state */)  // NOLINT
 {
   rclcpp::Time n = rclcpp::Clock().now();
   rclcpp::Duration dt = n - last_robot_state_update_wall_time_;
@@ -795,8 +797,9 @@ void ROSEnvironmentMonitor::setEnvironmentPublishingFrequency(double hz)
   RCLCPP_DEBUG(logger_, "Maximum frquency for publishing an environment is now %lf Hz", publish_environment_frequency_);
 }
 
-void ROSEnvironmentMonitor::modifyEnvironmentCallback(tesseract_msgs::srv::ModifyEnvironment::Request::SharedPtr req,
-                                                      tesseract_msgs::srv::ModifyEnvironment::Response::SharedPtr res)
+void ROSEnvironmentMonitor::modifyEnvironmentCallback(
+    tesseract_msgs::srv::ModifyEnvironment::Request::SharedPtr req,   // NOLINT
+    tesseract_msgs::srv::ModifyEnvironment::Response::SharedPtr res)  // NOLINT
 {
   if (req->append)
     res->success = applyEnvironmentCommandsMessage(req->id, env_->getRevision(), req->commands);
@@ -804,12 +807,11 @@ void ROSEnvironmentMonitor::modifyEnvironmentCallback(tesseract_msgs::srv::Modif
     res->success = applyEnvironmentCommandsMessage(req->id, static_cast<int>(req->revision), req->commands);
 
   res->revision = static_cast<unsigned long>(env_->getRevision());
-  return;
 }
 
 void ROSEnvironmentMonitor::getEnvironmentChangesCallback(
-    tesseract_msgs::srv::GetEnvironmentChanges::Request::SharedPtr req,
-    tesseract_msgs::srv::GetEnvironmentChanges::Response::SharedPtr res)
+    tesseract_msgs::srv::GetEnvironmentChanges::Request::SharedPtr req,   // NOLINT
+    tesseract_msgs::srv::GetEnvironmentChanges::Response::SharedPtr res)  // NOLINT
 {
   auto lock_read = env_->lockRead();
 
@@ -828,12 +830,11 @@ void ROSEnvironmentMonitor::getEnvironmentChangesCallback(
   }
 
   res->success = true;
-  return;
 }
 
 void ROSEnvironmentMonitor::getEnvironmentInformationCallback(
-    tesseract_msgs::srv::GetEnvironmentInformation::Request::SharedPtr req,
-    tesseract_msgs::srv::GetEnvironmentInformation::Response::SharedPtr res)
+    tesseract_msgs::srv::GetEnvironmentInformation::Request::SharedPtr req,   // NOLINT
+    tesseract_msgs::srv::GetEnvironmentInformation::Response::SharedPtr res)  // NOLINT
 {
   auto lock_read = env_->lockRead();
 
@@ -846,7 +847,7 @@ void ROSEnvironmentMonitor::getEnvironmentInformationCallback(
   res->id = env_->getName();
   res->revision = static_cast<unsigned long>(env_->getRevision());
 
-  if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::COMMAND_HISTORY)
+  if (req->flags == tesseract_msgs::srv::GetEnvironmentInformation::Request::COMMAND_HISTORY)
   {
     if (!tesseract_rosutils::toMsg(res->command_history, env_->getCommandHistory(), 0))
     {
@@ -855,7 +856,7 @@ void ROSEnvironmentMonitor::getEnvironmentInformationCallback(
     }
   }
 
-  if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::LINK_LIST)
+  if (req->flags == tesseract_msgs::srv::GetEnvironmentInformation::Request::LINK_LIST)
   {
     for (const auto& link : env_->getSceneGraph()->getLinks())
     {
@@ -869,7 +870,7 @@ void ROSEnvironmentMonitor::getEnvironmentInformationCallback(
     }
   }
 
-  if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::JOINT_LIST)
+  if (req->flags == tesseract_msgs::srv::GetEnvironmentInformation::Request::JOINT_LIST)
   {
     for (const auto& joint : env_->getSceneGraph()->getJoints())
     {
@@ -883,7 +884,7 @@ void ROSEnvironmentMonitor::getEnvironmentInformationCallback(
     }
   }
 
-  if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::LINK_NAMES)
+  if (req->flags == tesseract_msgs::srv::GetEnvironmentInformation::Request::LINK_NAMES)
   {
     for (const auto& link : env_->getLinkNames())
     {
@@ -891,7 +892,7 @@ void ROSEnvironmentMonitor::getEnvironmentInformationCallback(
     }
   }
 
-  if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::JOINT_NAMES)
+  if (req->flags == tesseract_msgs::srv::GetEnvironmentInformation::Request::JOINT_NAMES)
   {
     for (const auto& joint : env_->getJointNames())
     {
@@ -899,7 +900,7 @@ void ROSEnvironmentMonitor::getEnvironmentInformationCallback(
     }
   }
 
-  if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::ACTIVE_LINK_NAMES)
+  if (req->flags == tesseract_msgs::srv::GetEnvironmentInformation::Request::ACTIVE_LINK_NAMES)
   {
     for (const auto& link : env_->getActiveLinkNames())
     {
@@ -907,7 +908,7 @@ void ROSEnvironmentMonitor::getEnvironmentInformationCallback(
     }
   }
 
-  if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::ACTIVE_JOINT_NAMES)
+  if (req->flags == tesseract_msgs::srv::GetEnvironmentInformation::Request::ACTIVE_JOINT_NAMES)
   {
     for (const auto& joint : env_->getActiveJointNames())
     {
@@ -916,7 +917,7 @@ void ROSEnvironmentMonitor::getEnvironmentInformationCallback(
   }
 
   tesseract_scene_graph::SceneState state = env_->getState();
-  if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::LINK_TRANSFORMS)
+  if (req->flags == tesseract_msgs::srv::GetEnvironmentInformation::Request::LINK_TRANSFORMS)
   {
     for (const auto& link_pair : state.link_transforms)
     {
@@ -927,7 +928,7 @@ void ROSEnvironmentMonitor::getEnvironmentInformationCallback(
     }
   }
 
-  if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::JOINT_TRANSFORMS)
+  if (req->flags == tesseract_msgs::srv::GetEnvironmentInformation::Request::JOINT_TRANSFORMS)
   {
     for (const auto& joint_pair : state.joint_transforms)
     {
@@ -938,7 +939,7 @@ void ROSEnvironmentMonitor::getEnvironmentInformationCallback(
     }
   }
 
-  if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::ALLOWED_COLLISION_MATRIX)
+  if (req->flags == tesseract_msgs::srv::GetEnvironmentInformation::Request::ALLOWED_COLLISION_MATRIX)
   {
     if (!tesseract_rosutils::toMsg(res->allowed_collision_matrix, *env_->getAllowedCollisionMatrix()))
     {
@@ -947,7 +948,7 @@ void ROSEnvironmentMonitor::getEnvironmentInformationCallback(
     }
   }
 
-  if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::KINEMATICS_INFORMATION)
+  if (req->flags == tesseract_msgs::srv::GetEnvironmentInformation::Request::KINEMATICS_INFORMATION)
   {
     if (!tesseract_rosutils::toMsg(res->kinematics_information, env_->getKinematicsInformation()))
     {
@@ -956,7 +957,7 @@ void ROSEnvironmentMonitor::getEnvironmentInformationCallback(
     }
   }
 
-  if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::JOINT_STATES)
+  if (req->flags == tesseract_msgs::srv::GetEnvironmentInformation::Request::JOINT_STATES)
   {
     if (!tesseract_rosutils::toMsg(res->joint_states, state.joints))
     {
@@ -966,7 +967,6 @@ void ROSEnvironmentMonitor::getEnvironmentInformationCallback(
   }
 
   res->success = true;
-  return;
 }
 
 }  // namespace tesseract_monitoring

@@ -74,14 +74,16 @@ public:
    * @param robot_description The name of the ROS parameter that contains the URDF (in string format)
    * @param monitor_namespace A name identifying this monitor, must be unique
    */
-  ROSEnvironmentMonitor(rclcpp::Node::SharedPtr node, std::string robot_description, std::string monitor_namespace);
+  ROSEnvironmentMonitor(const rclcpp::Node::SharedPtr& node,
+                        std::string robot_description,
+                        std::string monitor_namespace);  // NOLINT
 
   /**
    * @brief Constructor
    * @param env The environment
    * @param monitor_namespace A name identifying this monitor, must be unique
    */
-  ROSEnvironmentMonitor(rclcpp::Node::SharedPtr node,
+  ROSEnvironmentMonitor(const rclcpp::Node::SharedPtr& node,  // NOLINT
                         std::shared_ptr<tesseract_environment::Environment> env,
                         std::string monitor_namespace);
 
@@ -137,9 +139,9 @@ protected:
    */
   bool initialize();
 
-  rclcpp::Time last_update_time_ = rclcpp::Time(0l, RCL_ROS_TIME);        /// Last time the state was updated
-  rclcpp::Time last_robot_motion_time_ = rclcpp::Time(0l, RCL_ROS_TIME);  /// Last time the robot has moved
-  bool enforce_next_state_update_;  /// flag to enforce immediate state update in onStateUpdate()
+  rclcpp::Time last_update_time_ = rclcpp::Time(0L, RCL_ROS_TIME);        /// Last time the state was updated
+  rclcpp::Time last_robot_motion_time_ = rclcpp::Time(0L, RCL_ROS_TIME);  /// Last time the robot has moved
+  bool enforce_next_state_update_{ false };  /// flag to enforce immediate state update in onStateUpdate()
 
   rclcpp::Node::SharedPtr node_;
   rclcpp::Node::SharedPtr internal_node_;
@@ -190,13 +192,13 @@ private:
   void environmentPublishingThread();
 
   // called by current_state_monitor_ when robot state (as monitored on joint state topic) changes
-  void onJointStateUpdate(const sensor_msgs::msg::JointState::ConstSharedPtr joint_state);
+  void onJointStateUpdate(const sensor_msgs::msg::JointState::ConstSharedPtr joint_state);  // NOLINT
 
   // called by state_update_timer_ when a state update is pending
   void updateJointStateTimerCallback();
 
   // Callback for a new state msg
-  void newEnvironmentStateCallback(const tesseract_msgs::msg::EnvironmentState::ConstSharedPtr env);
+  void newEnvironmentStateCallback(const tesseract_msgs::msg::EnvironmentState::ConstSharedPtr env);  // NOLINT
 
   /** @brief Callback for modifying the environment via service request */
   void modifyEnvironmentCallback(tesseract_msgs::srv::ModifyEnvironment::Request::SharedPtr req,
@@ -224,7 +226,7 @@ private:
 
   /// True when we need to update the RobotState from current_state_monitor_
   // This field is protected by state_pending_mutex_
-  volatile bool state_update_pending_;
+  volatile bool state_update_pending_{ false };
 
   /// the amount of time to wait in between updates to the robot state
   // This field is protected by state_pending_mutex_
@@ -237,7 +239,7 @@ private:
 
   /// Last time the state was updated from current_state_monitor_
   // Only access this from callback functions (and constructor)
-  rclcpp::Time last_robot_state_update_wall_time_ = rclcpp::Time(0l, RCL_SYSTEM_TIME);
+  rclcpp::Time last_robot_state_update_wall_time_ = rclcpp::Time(0L, RCL_SYSTEM_TIME);
 
   std::atomic<bool> publish_{ false };
 

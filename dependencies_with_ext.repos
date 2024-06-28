@@ -2,27 +2,31 @@ repositories:
   ros_industrial_cmake_boilerplate:
     type: git
     url: https://github.com/ros-industrial/ros_industrial_cmake_boilerplate.git
-    version: 0.5.4
+    version: 0.6.0
+  tesseract_ext:
+    type: git
+    url: https://github.com/tesseract-robotics/tesseract_ext.git
+    version: master
   tesseract:
     type: git
     url: https://github.com/tesseract-robotics/tesseract.git
-    version: 0.21.1
+    version: 0.22.2
   trajopt:
     type: git
     url: https://github.com/tesseract-robotics/trajopt.git
-    version: 0.7.0
+    version: 0.22.0
   tesseract_planning:
     type: git
     url: https://github.com/tesseract-robotics/tesseract_planning.git
-    version: 0.21.0
+    version: 0.22.0
   tesseract_qt:
     type: git
     url: https://github.com/tesseract-robotics/tesseract_qt.git
-    version: 0.21.0
+    version: 0.22.0
   descartes_light:
     type: git
     url: https://github.com/swri-robotics/descartes_light.git
-    version: 0.4.2
+    version: 0.4.3
   opw_kinematics:
     type: git
     url: https://github.com/Jmeyer1292/opw_kinematics.git
@@ -34,12 +38,4 @@ repositories:
   taskflow:
     type: git
     url: https://github.com/taskflow/taskflow.git
-    version: v3.4.0
-  fcl:
-    type: git
-    url: https://github.com/flexible-collision-library/fcl.git
-    version: 0.7.0
-  tesseract_ext:
-    type: git
-    url: https://github.com/tesseract-robotics/tesseract_ext.git
-    version: master
+    version: v3.5.0

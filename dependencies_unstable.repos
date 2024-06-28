@@ -34,8 +34,4 @@ repositories:
   taskflow:
     type: git
     url: https://github.com/taskflow/taskflow.git
-    version: v3.4.0
-  fcl:
-    type: git
-    url: https://github.com/flexible-collision-library/fcl.git
-    version: 0.7.0
+    version: v3.5.0

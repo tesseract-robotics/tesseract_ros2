@@ -59,7 +59,6 @@ ROSEnvironmentMonitor::ROSEnvironmentMonitor(const rclcpp::Node::SharedPtr& node
                                              std::string robot_description,
                                              std::string monitor_namespace)
   : EnvironmentMonitor(std::move(monitor_namespace))
-  , node_(node)
   , internal_node_(std::make_shared<rclcpp::Node>("ROSEnvironmentMonitor_internal", node->get_fully_qualified_name()))
   , robot_description_(std::move(robot_description))
   , cb_group_(internal_node_->create_callback_group(rclcpp::CallbackGroupType::Reentrant))
@@ -68,12 +67,12 @@ ROSEnvironmentMonitor::ROSEnvironmentMonitor(const rclcpp::Node::SharedPtr& node
   // Initial setup
   std::string urdf_xml_string;
   std::string srdf_xml_string;
-  if (!node_->get_parameter(robot_description_, urdf_xml_string))
+  if (!node->get_parameter(robot_description_, urdf_xml_string))
   {
     RCLCPP_ERROR(logger_, "Failed to find parameter: %s", robot_description_.c_str());
     return;
   }
-  if (!node_->get_parameter(robot_description_ + "_semantic", srdf_xml_string))
+  if (!node->get_parameter(robot_description_ + "_semantic", srdf_xml_string))
   {
     RCLCPP_ERROR(logger_, "Failed to find parameter: %s", (robot_description_ + "_semantic").c_str());
     return;
@@ -101,7 +100,6 @@ ROSEnvironmentMonitor::ROSEnvironmentMonitor(const rclcpp::Node::SharedPtr& node
                                              tesseract_environment::Environment::Ptr env,
                                              std::string monitor_namespace)
   : EnvironmentMonitor(std::move(env), std::move(monitor_namespace))
-  , node_(node)
   , internal_node_(std::make_shared<rclcpp::Node>("ROSEnvironmentMonitor_internal", node->get_fully_qualified_name()))
   , cb_group_(internal_node_->create_callback_group(rclcpp::CallbackGroupType::Reentrant))
   , logger_{ internal_node_->get_logger().get_child(monitor_namespace_ + "_monitor") }
@@ -246,7 +244,7 @@ void ROSEnvironmentMonitor::sceneStateChangedCallback(const tesseract_environmen
   if (!monitored_environment_subscriber_ && !current_state_monitor_ &&
       (typeid(event) == typeid(tesseract_environment::SceneStateChangedEvent)))
   {
-    last_update_time_ = last_robot_motion_time_ = node_->now();
+    last_update_time_ = last_robot_motion_time_ = internal_node_->now();
   }
 }
 
@@ -278,7 +276,7 @@ void ROSEnvironmentMonitor::startPublishingEnvironment()
 
   std::string environment_topic = R"(/)" + monitor_namespace_ + DEFAULT_PUBLISH_ENVIRONMENT_TOPIC;
   environment_publisher_ =
-      node_->create_publisher<tesseract_msgs::msg::EnvironmentState>(environment_topic, rclcpp::QoS(100));
+      internal_node_->create_publisher<tesseract_msgs::msg::EnvironmentState>(environment_topic, rclcpp::QoS(100));
   RCLCPP_INFO(logger_, "Publishing maintained environment on '%s'", environment_topic.c_str());
   publish_environment_ = std::make_unique<std::thread>([this]() { environmentPublishingThread(); });
 }
@@ -377,7 +375,7 @@ double ROSEnvironmentMonitor::getStateUpdateFrequency() const
 void ROSEnvironmentMonitor::newEnvironmentStateCallback(
     const tesseract_msgs::msg::EnvironmentState::ConstSharedPtr env)  // NOLINT
 {
-  last_update_time_ = node_->now();
+  last_update_time_ = internal_node_->now();
 
   if (!env_->isInitialized())
   {
@@ -551,7 +549,7 @@ bool ROSEnvironmentMonitor::applyEnvironmentCommandsMessage(
     {
       if (tesseract_rosutils::processMsg(*env_, cmd.joint_state))
       {
-        last_robot_motion_time_ = node_->now();
+        last_robot_motion_time_ = internal_node_->now();
       }
       else
       {
@@ -584,7 +582,7 @@ bool ROSEnvironmentMonitor::waitForCurrentState(std::chrono::duration<double> du
   if (std::chrono::duration_cast<std::chrono::seconds>(duration).count() == 0)
     return false;
 
-  rclcpp::Time t = node_->now();
+  rclcpp::Time t = internal_node_->now();
   rclcpp::Time start = rclcpp::Clock().now();
   auto timeout = rclcpp::Duration::from_seconds(duration.count());
 
@@ -745,8 +743,8 @@ void ROSEnvironmentMonitor::setStateUpdateFrequency(double hz)
   {
     std::scoped_lock lock(state_pending_mutex_);
     dt_state_update_ = rclcpp::Duration::from_seconds(1.0 / hz);
-    state_update_timer_ = node_->create_wall_timer(dt_state_update_.to_chrono<std::chrono::duration<double>>(),
-                                                   [this]() { updateJointStateTimerCallback(); });
+    state_update_timer_ = internal_node_->create_wall_timer(dt_state_update_.to_chrono<std::chrono::duration<double>>(),
+                                                            [this]() { updateJointStateTimerCallback(); });
     publish_ = true;
   }
   else
@@ -769,11 +767,11 @@ void ROSEnvironmentMonitor::updateEnvironmentWithCurrentState()
   {
     std::vector<std::string> missing;
     if (!current_state_monitor_->haveCompleteState(missing) &&
-        (node_->now() - current_state_monitor_->getMonitorStartTime()).seconds() > 1.0)
+        (internal_node_->now() - current_state_monitor_->getMonitorStartTime()).seconds() > 1.0)
     {
       std::string missing_str = boost::algorithm::join(missing, ", ");
       RCLCPP_WARN_THROTTLE(logger_,
-                           *node_->get_clock(),
+                           *internal_node_->get_clock(),
                            1.0,
                            "The complete state of the robot is not yet known.  Missing %s",
                            missing_str.c_str());
@@ -785,8 +783,10 @@ void ROSEnvironmentMonitor::updateEnvironmentWithCurrentState()
     env_->setState(current_state_monitor_->getCurrentState().joints);
   }
   else
-    RCLCPP_ERROR_THROTTLE(
-        logger_, *node_->get_clock(), 1.0, "State monitor is not active. Unable to set the planning scene state");
+    RCLCPP_ERROR_THROTTLE(logger_,
+                          *internal_node_->get_clock(),
+                          1.0,
+                          "State monitor is not active. Unable to set the planning scene state");
 }
 
 void ROSEnvironmentMonitor::setEnvironmentPublishingFrequency(double hz)

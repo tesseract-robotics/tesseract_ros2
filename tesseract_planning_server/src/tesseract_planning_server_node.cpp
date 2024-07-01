@@ -42,9 +42,10 @@ using tesseract_planning_server::TesseractPlanningServer;
 const std::string ROBOT_DESCRIPTION_PARAM = "robot_description"; /**< Default ROS parameter for robot description */
 const std::string ROBOT_DESCRIPTION_SEMANTIC_PARAM = "robot_description_semantic";
 
-static std::shared_ptr<tesseract_planning_server::TesseractPlanningServer> planning_server;
-
-void updateCacheCallback() { planning_server->getEnvironmentCache().refreshCache(); }
+void updateCacheCallback(std::shared_ptr<tesseract_planning_server::TesseractPlanningServer>& planning_server)
+{
+  planning_server->getEnvironmentCache().refreshCache();
+}
 
 int main(int argc, char** argv)
 {
@@ -80,7 +81,8 @@ int main(int argc, char** argv)
   cache_refresh_rate = node->declare_parameter("cache_refresh_rate", cache_refresh_rate);
   std::string task_composer_config = node->declare_parameter("task_composer_config", "");
 
-  planning_server = std::make_shared<TesseractPlanningServer>(node, ROBOT_DESCRIPTION_PARAM, monitor_namespace);
+  std::shared_ptr<tesseract_planning_server::TesseractPlanningServer> planning_server =
+      std::make_shared<TesseractPlanningServer>(node, ROBOT_DESCRIPTION_PARAM, monitor_namespace);
 
   planning_server->getEnvironmentCache().setCacheSize(cache_size);
 
@@ -97,8 +99,8 @@ int main(int argc, char** argv)
   }
 
   // TODO: Rate seems in seconds, whereas this should be in Hz (otherwise it should be called interval)
-  auto update_cache =
-      node->create_wall_timer(std::chrono::duration<double>(cache_refresh_rate), [] { updateCacheCallback(); });
+  auto update_cache = node->create_wall_timer(std::chrono::duration<double>(cache_refresh_rate),
+                                              [&] { updateCacheCallback(planning_server); });
 
   RCLCPP_INFO(node->get_logger(), "Planning Server Running!");
 

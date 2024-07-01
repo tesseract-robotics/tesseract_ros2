@@ -105,7 +105,7 @@ public:
   callbackComputeContactResultVector(tesseract_msgs::srv::ComputeContactResultVector::Request::SharedPtr request,
                                      tesseract_msgs::srv::ComputeContactResultVector::Response::SharedPtr response);
 
-  void callbackTesseractEnvDiff(const tesseract_msgs::msg::EnvironmentState::SharedPtr state);
+  void callbackTesseractEnvDiff(const tesseract_msgs::msg::EnvironmentState::SharedPtr state);  // NOLINT
 
 private:
   std::string monitor_namespace_;

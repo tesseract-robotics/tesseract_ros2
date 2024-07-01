@@ -19,7 +19,7 @@ int main(int argc, char** argv)
 
   std::string monitor_namespace = node->declare_parameter("monitor_namespace", "");
 
-  if (monitor_namespace == "")
+  if (monitor_namespace.empty())
   {
     RCLCPP_ERROR(node->get_logger(), "Missing required parameter monitor_namespace!");
     return 1;
@@ -27,13 +27,13 @@ int main(int argc, char** argv)
 
   std::string monitored_namespace = node->declare_parameter("monitored_namespace", "");
   std::string robot_description = node->declare_parameter(ROBOT_DESCRIPTION_PARAM, "");
-  if (robot_description == "")
+  if (robot_description.empty())
   {
     RCLCPP_ERROR(node->get_logger(), "Missing required parameter %s!", ROBOT_DESCRIPTION_PARAM.c_str());
     return 1;
   }
   std::string robot_description_semantic = node->declare_parameter(ROBOT_DESCRIPTION_SEMANTIC_PARAM, "");
-  if (robot_description_semantic == "")
+  if (robot_description_semantic.empty())
   {
     RCLCPP_ERROR(node->get_logger(), "Missing required parameter %s!", ROBOT_DESCRIPTION_SEMANTIC_PARAM.c_str());
     return 1;

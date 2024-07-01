@@ -470,7 +470,7 @@ std::unique_ptr<tesseract_environment::Environment> fromMsg(const tesseract_msgs
  * @return True if successful, otherwise false
  */
 bool toMsg(tesseract_msgs::msg::TaskComposerNodeInfo& node_info_msg,
-           tesseract_planning::TaskComposerNodeInfo& node_info);
+           const tesseract_planning::TaskComposerNodeInfo& node_info);
 
 /**
  * @brief Converts a TaskInfo msg to a TaskInfo object
@@ -505,7 +505,7 @@ inline bool toFile(const std::string& filepath, const MessageType& msg)
 
   serializer.serialize_message(&msg, &serialized_msg);
 
-  ofs.write(reinterpret_cast<char*>(serialized_msg.get_rcl_serialized_message().buffer),
+  ofs.write(static_cast<const char*>(static_cast<const void*>(serialized_msg.get_rcl_serialized_message().buffer)),
             static_cast<std::streamsize>(serialized_msg.size()));
 
   ofs.close();
@@ -526,8 +526,9 @@ inline MessageType fromFile(const std::string& filepath)
   rclcpp::Serialization<MessageType> serializer;
   rclcpp::SerializedMessage serialized_msg(file_size);
 
-  ifs.read(reinterpret_cast<char*>(serialized_msg.get_rcl_serialized_message().buffer),
+  ifs.read(static_cast<char*>(static_cast<void*>(serialized_msg.get_rcl_serialized_message().buffer)),
            static_cast<std::streamsize>(file_size));
+
   // Manually set the buffer length
   serialized_msg.get_rcl_serialized_message().buffer_length = file_size;
 

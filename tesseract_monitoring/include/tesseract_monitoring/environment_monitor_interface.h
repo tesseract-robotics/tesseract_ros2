@@ -45,8 +45,8 @@ public:
   using UPtr = std::unique_ptr<ROSEnvironmentMonitorInterface>;
   using ConstUPtr = std::unique_ptr<const ROSEnvironmentMonitorInterface>;
 
-  ROSEnvironmentMonitorInterface(rclcpp::Node::SharedPtr node, const std::string env_name);
-  virtual ~ROSEnvironmentMonitorInterface() override = default;
+  ROSEnvironmentMonitorInterface(rclcpp::Node::SharedPtr node, std::string env_name);
+  ~ROSEnvironmentMonitorInterface() override = default;
   ROSEnvironmentMonitorInterface(const ROSEnvironmentMonitorInterface&) = default;
   ROSEnvironmentMonitorInterface& operator=(const ROSEnvironmentMonitorInterface&) = default;
   ROSEnvironmentMonitorInterface(ROSEnvironmentMonitorInterface&&) = default;

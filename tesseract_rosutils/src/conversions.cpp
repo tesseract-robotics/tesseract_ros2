@@ -52,7 +52,7 @@ Eigen::VectorXd toEigen(const sensor_msgs::msg::JointState& joint_state, const s
   {
     auto it = std::find(joint_state.name.begin(), joint_state.name.end(), joint_name);
     assert(it != joint_state.name.end());
-    size_t index = static_cast<size_t>(std::distance(joint_state.name.begin(), it));
+    auto index = static_cast<size_t>(std::distance(joint_state.name.begin(), it));
     position[i] = joint_state.position[index];
     ++i;
   }

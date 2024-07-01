@@ -5,7 +5,7 @@ services:
       context: ..
       dockerfile: docker/Dockerfile
       args:
-        - TAG=focal-0.20
+        - TAG=focal-0.22
         - ROS_DISTRO=foxy
     environment:
       DISPLAY: $DISPLAY
@@ -13,7 +13,7 @@ services:
       NVIDIA_DRIVER_CAPABILITIES: all
       ROS_LOG_DIR: /tmp
     container_name: tesseract_ros2
-    image: ghcr.io/tesseract-robotics/tesseract_ros2:foxy-0.20
+    image: ghcr.io/tesseract-robotics/tesseract_ros2:foxy-0.22
     stdin_open: true
     tty: true
     network_mode: host

@@ -99,17 +99,17 @@ const std::string TesseractPlanningServer::DEFAULT_GET_MOTION_PLAN_ACTION = "tes
 TesseractPlanningServer::TesseractPlanningServer(rclcpp::Node::SharedPtr node,
                                                  const std::string& robot_description,
                                                  std::string name)
-  : node_(node)
-  , monitor_(std::make_shared<tesseract_monitoring::ROSEnvironmentMonitor>(node_, robot_description, name))
+  : node_(std::move(node))
+  , monitor_(std::make_shared<tesseract_monitoring::ROSEnvironmentMonitor>(node_, robot_description, std::move(name)))
   , environment_cache_(std::make_shared<tesseract_environment::DefaultEnvironmentCache>(monitor_->getEnvironment()))
   , profiles_(std::make_shared<tesseract_planning::ProfileDictionary>())
   , planning_server_(std::make_unique<tesseract_planning::TaskComposerServer>())
   , motion_plan_server_(rclcpp_action::create_server<tesseract_msgs::action::GetMotionPlan>(
         node_,
         DEFAULT_GET_MOTION_PLAN_ACTION,
-        std::bind(&TesseractPlanningServer::handle_goal, this, std::placeholders::_1, std::placeholders::_2),
-        std::bind(&TesseractPlanningServer::handle_cancel, this, std::placeholders::_1),
-        std::bind(&TesseractPlanningServer::onMotionPlanningCallback, this, std::placeholders::_1)))
+        std::bind(&TesseractPlanningServer::handle_goal, this, std::placeholders::_1, std::placeholders::_2),  // NOLINT
+        std::bind(&TesseractPlanningServer::handle_cancel, this, std::placeholders::_1),                       // NOLINT
+        std::bind(&TesseractPlanningServer::onMotionPlanningCallback, this, std::placeholders::_1)))           // NOLINT
   , tf_buffer_(std::make_shared<tf2_ros::Buffer>(node_->get_clock()))
   , tf_listener_(std::make_shared<tf2_ros::TransformListener>(*tf_buffer_))
 {
@@ -119,17 +119,17 @@ TesseractPlanningServer::TesseractPlanningServer(rclcpp::Node::SharedPtr node,
 TesseractPlanningServer::TesseractPlanningServer(rclcpp::Node::SharedPtr node,
                                                  tesseract_environment::Environment::UPtr env,
                                                  std::string name)
-  : node_(node)
-  , monitor_(std::make_shared<tesseract_monitoring::ROSEnvironmentMonitor>(node_, std::move(env), name))
+  : node_(std::move(node))
+  , monitor_(std::make_shared<tesseract_monitoring::ROSEnvironmentMonitor>(node_, std::move(env), std::move(name)))
   , environment_cache_(std::make_shared<tesseract_environment::DefaultEnvironmentCache>(monitor_->getEnvironment()))
   , profiles_(std::make_shared<tesseract_planning::ProfileDictionary>())
   , planning_server_(std::make_unique<tesseract_planning::TaskComposerServer>())
   , motion_plan_server_(rclcpp_action::create_server<tesseract_msgs::action::GetMotionPlan>(
         node_,
         DEFAULT_GET_MOTION_PLAN_ACTION,
-        std::bind(&TesseractPlanningServer::handle_goal, this, std::placeholders::_1, std::placeholders::_2),
-        std::bind(&TesseractPlanningServer::handle_cancel, this, std::placeholders::_1),
-        std::bind(&TesseractPlanningServer::onMotionPlanningCallback, this, std::placeholders::_1)))
+        std::bind(&TesseractPlanningServer::handle_goal, this, std::placeholders::_1, std::placeholders::_2),  // NOLINT
+        std::bind(&TesseractPlanningServer::handle_cancel, this, std::placeholders::_1),                       // NOLINT
+        std::bind(&TesseractPlanningServer::onMotionPlanningCallback, this, std::placeholders::_1)))           // NOLINT
   , tf_buffer_(std::make_shared<tf2_ros::Buffer>(node_->get_clock()))
   , tf_listener_(std::make_shared<tf2_ros::TransformListener>(*tf_buffer_))
 {
@@ -140,7 +140,7 @@ void TesseractPlanningServer::ctor()
 {
   loadDefaultPlannerProfiles();
   monitor_->environment().addFindTCPOffsetCallback(
-      std::bind(&TesseractPlanningServer::tfFindTCPOffset, this, std::placeholders::_1));
+      std::bind(&TesseractPlanningServer::tfFindTCPOffset, this, std::placeholders::_1));  // NOLINT
 }
 
 tesseract_environment::EnvironmentMonitor& TesseractPlanningServer::getEnvironmentMonitor() { return *monitor_; }
@@ -168,20 +168,21 @@ const tesseract_planning::ProfileDictionary& TesseractPlanningServer::getProfile
 }
 
 rclcpp_action::GoalResponse
-TesseractPlanningServer::handle_goal(const rclcpp_action::GoalUUID&,
-                                     std::shared_ptr<const tesseract_msgs::action::GetMotionPlan::Goal>)
+TesseractPlanningServer::handle_goal(const rclcpp_action::GoalUUID&,                                      // NOLINT
+                                     std::shared_ptr<const tesseract_msgs::action::GetMotionPlan::Goal>)  // NOLINT
 {
   return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
 }
 
-rclcpp_action::CancelResponse TesseractPlanningServer::handle_cancel(
-    const std::shared_ptr<rclcpp_action::ServerGoalHandle<tesseract_msgs::action::GetMotionPlan>>)
+rclcpp_action::CancelResponse TesseractPlanningServer::handle_cancel(                               // NOLINT
+    const std::shared_ptr<rclcpp_action::ServerGoalHandle<tesseract_msgs::action::GetMotionPlan>>)  // NOLINT
 {
   return rclcpp_action::CancelResponse::ACCEPT;
 }
 
 void TesseractPlanningServer::onMotionPlanningCallback(
-    const std::shared_ptr<rclcpp_action::ServerGoalHandle<tesseract_msgs::action::GetMotionPlan>> goal_handle)
+    const std::shared_ptr<rclcpp_action::ServerGoalHandle<tesseract_msgs::action::GetMotionPlan>>
+        goal_handle)  // NOLINT
 {
   RCLCPP_INFO(node_->get_logger(), "Tesseract Planning Server Received Request!");
   const auto goal = goal_handle->get_goal();

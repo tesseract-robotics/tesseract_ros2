@@ -152,7 +152,7 @@ protected:
   // variables for planning scene publishing
   rclcpp::Publisher<tesseract_msgs::msg::EnvironmentState>::SharedPtr environment_publisher_;
   std::unique_ptr<std::thread> publish_environment_;
-  double publish_environment_frequency_;
+  double publish_environment_frequency_{30.0};
 
   // variables for monitored environment
   rclcpp::Subscription<tesseract_msgs::msg::EnvironmentState>::SharedPtr monitored_environment_subscriber_;

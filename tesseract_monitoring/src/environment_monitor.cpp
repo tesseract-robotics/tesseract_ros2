@@ -94,8 +94,6 @@ ROSEnvironmentMonitor::ROSEnvironmentMonitor(const rclcpp::Node::SharedPtr& node
     internal_node_executor_->add_node(internal_node_);
     internal_node_executor_->spin();
   });
-
-  publish_environment_frequency_ = 30.0;
 }
 
 ROSEnvironmentMonitor::ROSEnvironmentMonitor(const rclcpp::Node::SharedPtr& node,
@@ -116,8 +114,6 @@ ROSEnvironmentMonitor::ROSEnvironmentMonitor(const rclcpp::Node::SharedPtr& node
     internal_node_executor_->add_node(internal_node_);
     internal_node_executor_->spin();
   });
-
-  publish_environment_frequency_ = 30.0;
 }
 
 ROSEnvironmentMonitor::~ROSEnvironmentMonitor()

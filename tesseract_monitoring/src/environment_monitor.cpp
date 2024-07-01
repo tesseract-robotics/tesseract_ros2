@@ -843,7 +843,7 @@ void ROSEnvironmentMonitor::getEnvironmentInformationCallback(
   res->id = env_->getName();
   res->revision = static_cast<unsigned long>(env_->getRevision());
 
-  if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::COMMAND_HISTORY) // NOLINT
+  if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::COMMAND_HISTORY)  // NOLINT
   {
     if (!tesseract_rosutils::toMsg(res->command_history, env_->getCommandHistory(), 0))
     {
@@ -852,7 +852,7 @@ void ROSEnvironmentMonitor::getEnvironmentInformationCallback(
     }
   }
 
-  if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::LINK_LIST) // NOLINT
+  if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::LINK_LIST)  // NOLINT
   {
     for (const auto& link : env_->getSceneGraph()->getLinks())
     {
@@ -866,7 +866,7 @@ void ROSEnvironmentMonitor::getEnvironmentInformationCallback(
     }
   }
 
-  if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::JOINT_LIST) // NOLINT
+  if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::JOINT_LIST)  // NOLINT
   {
     for (const auto& joint : env_->getSceneGraph()->getJoints())
     {
@@ -880,7 +880,7 @@ void ROSEnvironmentMonitor::getEnvironmentInformationCallback(
     }
   }
 
-  if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::LINK_NAMES) // NOLINT
+  if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::LINK_NAMES)  // NOLINT
   {
     for (const auto& link : env_->getLinkNames())
     {
@@ -888,7 +888,7 @@ void ROSEnvironmentMonitor::getEnvironmentInformationCallback(
     }
   }
 
-  if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::JOINT_NAMES) // NOLINT
+  if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::JOINT_NAMES)  // NOLINT
   {
     for (const auto& joint : env_->getJointNames())
     {
@@ -896,7 +896,7 @@ void ROSEnvironmentMonitor::getEnvironmentInformationCallback(
     }
   }
 
-  if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::ACTIVE_LINK_NAMES) // NOLINT
+  if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::ACTIVE_LINK_NAMES)  // NOLINT
   {
     for (const auto& link : env_->getActiveLinkNames())
     {
@@ -904,7 +904,7 @@ void ROSEnvironmentMonitor::getEnvironmentInformationCallback(
     }
   }
 
-  if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::ACTIVE_JOINT_NAMES) // NOLINT
+  if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::ACTIVE_JOINT_NAMES)  // NOLINT
   {
     for (const auto& joint : env_->getActiveJointNames())
     {
@@ -913,7 +913,7 @@ void ROSEnvironmentMonitor::getEnvironmentInformationCallback(
   }
 
   tesseract_scene_graph::SceneState state = env_->getState();
-  if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::LINK_TRANSFORMS) // NOLINT
+  if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::LINK_TRANSFORMS)  // NOLINT
   {
     for (const auto& link_pair : state.link_transforms)
     {
@@ -924,7 +924,7 @@ void ROSEnvironmentMonitor::getEnvironmentInformationCallback(
     }
   }
 
-  if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::JOINT_TRANSFORMS) // NOLINT
+  if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::JOINT_TRANSFORMS)  // NOLINT
   {
     for (const auto& joint_pair : state.joint_transforms)
     {
@@ -935,7 +935,7 @@ void ROSEnvironmentMonitor::getEnvironmentInformationCallback(
     }
   }
 
-  if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::ALLOWED_COLLISION_MATRIX) // NOLINT
+  if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::ALLOWED_COLLISION_MATRIX)  // NOLINT
   {
     if (!tesseract_rosutils::toMsg(res->allowed_collision_matrix, *env_->getAllowedCollisionMatrix()))
     {
@@ -944,7 +944,7 @@ void ROSEnvironmentMonitor::getEnvironmentInformationCallback(
     }
   }
 
-  if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::KINEMATICS_INFORMATION) // NOLINT
+  if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::KINEMATICS_INFORMATION)  // NOLINT
   {
     if (!tesseract_rosutils::toMsg(res->kinematics_information, env_->getKinematicsInformation()))
     {
@@ -953,7 +953,7 @@ void ROSEnvironmentMonitor::getEnvironmentInformationCallback(
     }
   }
 
-  if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::JOINT_STATES) // NOLINT
+  if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::JOINT_STATES)  // NOLINT
   {
     if (!tesseract_rosutils::toMsg(res->joint_states, state.joints))
     {

@@ -79,9 +79,9 @@ public:
   rclcpp_action::CancelResponse handle_cancel(
       const std::shared_ptr<rclcpp_action::ServerGoalHandle<tesseract_msgs::action::GetMotionPlan>>);  // NOLINT
 
-  void
-  onMotionPlanningCallback(const std::shared_ptr<rclcpp_action::ServerGoalHandle<tesseract_msgs::action::GetMotionPlan>>
-                               goal_handle);  // NOLINT
+  void onMotionPlanningCallback(
+      const std::shared_ptr<rclcpp_action::ServerGoalHandle<tesseract_msgs::action::GetMotionPlan>>  // NOLINT
+          goal_handle);
 
 protected:
   rclcpp::Node::SharedPtr node_;

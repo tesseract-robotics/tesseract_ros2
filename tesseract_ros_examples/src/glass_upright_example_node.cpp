@@ -56,7 +56,7 @@ int main(int argc, char** argv)
   bool rviz = node->declare_parameter("rviz", true);
   bool ifopt = node->declare_parameter("ifopt", false);
 
-  if (ifopt == true)
+  if (ifopt)
   {
     RCLCPP_INFO(node->get_logger(), "Using TrajOpt Ifopt!");
   }

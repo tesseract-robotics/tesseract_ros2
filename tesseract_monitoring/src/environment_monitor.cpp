@@ -61,7 +61,7 @@ ROSEnvironmentMonitor::ROSEnvironmentMonitor(const rclcpp::Node::SharedPtr& node
   : EnvironmentMonitor(std::move(monitor_namespace))
   , internal_node_(std::make_shared<rclcpp::Node>("ROSEnvironmentMonitor_internal", node->get_fully_qualified_name()))
   , robot_description_(std::move(robot_description))
-  , cb_group_(internal_node_->create_callback_group(rclcpp::CallbackGroupType::Reentrant))
+  , cb_group_(internal_node_->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive))
   , logger_{ internal_node_->get_logger().get_child(monitor_namespace_ + "_monitor") }
 {
   // Initial setup
@@ -101,7 +101,7 @@ ROSEnvironmentMonitor::ROSEnvironmentMonitor(const rclcpp::Node::SharedPtr& node
                                              std::string monitor_namespace)
   : EnvironmentMonitor(std::move(env), std::move(monitor_namespace))
   , internal_node_(std::make_shared<rclcpp::Node>("ROSEnvironmentMonitor_internal", node->get_fully_qualified_name()))
-  , cb_group_(internal_node_->create_callback_group(rclcpp::CallbackGroupType::Reentrant))
+  , cb_group_(internal_node_->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive))
   , logger_{ internal_node_->get_logger().get_child(monitor_namespace_ + "_monitor") }
 {
   if (!initialize())

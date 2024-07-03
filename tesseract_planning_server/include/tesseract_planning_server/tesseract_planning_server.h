@@ -76,11 +76,12 @@ public:
 
   rclcpp_action::GoalResponse handle_goal(const rclcpp_action::GoalUUID&,
                                           std::shared_ptr<const tesseract_msgs::action::GetMotionPlan::Goal>);
-  rclcpp_action::CancelResponse
-  handle_cancel(const std::shared_ptr<rclcpp_action::ServerGoalHandle<tesseract_msgs::action::GetMotionPlan>>);
+  rclcpp_action::CancelResponse handle_cancel(
+      const std::shared_ptr<rclcpp_action::ServerGoalHandle<tesseract_msgs::action::GetMotionPlan>>);  // NOLINT
 
   void onMotionPlanningCallback(
-      const std::shared_ptr<rclcpp_action::ServerGoalHandle<tesseract_msgs::action::GetMotionPlan>> goal_handle);
+      const std::shared_ptr<rclcpp_action::ServerGoalHandle<tesseract_msgs::action::GetMotionPlan>>  // NOLINT
+          goal_handle);
 
 protected:
   rclcpp::Node::SharedPtr node_;

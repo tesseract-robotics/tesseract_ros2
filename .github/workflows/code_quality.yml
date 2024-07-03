@@ -26,7 +26,7 @@ jobs:
               TARGET_CMAKE_ARGS: "-DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_BUILD_TYPE=Debug -DTESSERACT_ENABLE_CLANG_TIDY=ON -DTESSERACT_ENABLE_TESTING=ON"
 
     container:
-      image: ghcr.io/tesseract-robotics/tesseract_qt:${{ matrix.os }}-0.21
+      image: ghcr.io/tesseract-robotics/tesseract_qt:${{ matrix.os }}-0.22
       env:
         CCACHE_DIR: "${{ github.workspace }}/${{ matrix.os }}/.ccache"
         DEBIAN_FRONTEND: noninteractive
@@ -47,7 +47,7 @@ jobs:
           apt install -y clang-tidy ros-${{ matrix.distro }}-ros-base
 
       - name: Build and Tests
-        uses: tesseract-robotics/colcon-action@v5
+        uses: tesseract-robotics/colcon-action@v8
         with:
           before-script: apt install ros-${{ matrix.distro }}-ros-base && source /opt/tesseract_qt/install/setup.bash && source /opt/ros/${{ matrix.distro }}/setup.bash
           ccache-prefix: ${{ matrix.distro }}

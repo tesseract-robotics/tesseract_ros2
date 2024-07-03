@@ -49,7 +49,11 @@ class ROSPlotting : public tesseract_visualization::Visualization
 public:
   ROSPlotting(std::string root_link = "world", std::string topic_namespace = "tesseract");
 
-  ~ROSPlotting();
+  ~ROSPlotting() override;
+  ROSPlotting(const ROSPlotting&) = default;
+  ROSPlotting& operator=(const ROSPlotting&) = default;
+  ROSPlotting(ROSPlotting&&) = default;
+  ROSPlotting& operator=(ROSPlotting&&) = default;
 
   bool isConnected() const override;
 
@@ -130,7 +134,7 @@ public:
 private:
   std::string root_link_;       /**< Root link of markers */
   std::string topic_namespace_; /**< Namespace used when publishing markers */
-  int marker_counter_;          /**< Counter when plotting */
+  int marker_counter_{ 0 };     /**< Counter when plotting */
   rclcpp::Node::SharedPtr node_;
   rclcpp::executors::MultiThreadedExecutor::SharedPtr internal_node_executor_;
   std::shared_ptr<std::thread> internal_node_spinner_;

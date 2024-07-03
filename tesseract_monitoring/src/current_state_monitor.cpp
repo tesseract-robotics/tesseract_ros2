@@ -60,7 +60,7 @@ CurrentStateMonitor::CurrentStateMonitor(const tesseract_environment::Environmen
 
 CurrentStateMonitor::CurrentStateMonitor(const tesseract_environment::Environment::ConstPtr& env,
                                          rclcpp::Node::SharedPtr node)
-  : node_(node)
+  : node_(std::move(node))
   , env_(env)
   , env_state_(env->getState())
   , last_environment_revision_(env_->getRevision())
@@ -68,6 +68,7 @@ CurrentStateMonitor::CurrentStateMonitor(const tesseract_environment::Environmen
   , copy_dynamics_(false)
   , error_(std::numeric_limits<double>::epsilon())
   , tf_broadcaster_(node_)
+  , publish_tf_(true)
 {
 }
 
@@ -121,7 +122,7 @@ void CurrentStateMonitor::startStateMonitor(const std::string& joint_states_topi
       joint_state_subscriber_ = node_->create_subscription<sensor_msgs::msg::JointState>(
           joint_states_topic,
           rclcpp::SensorDataQoS(),
-          std::bind(&CurrentStateMonitor::jointStateCallback, this, std::placeholders::_1));
+          std::bind(&CurrentStateMonitor::jointStateCallback, this, std::placeholders::_1));  // NOLINT
     }
     state_monitor_started_ = true;
     monitor_start_time_ = node_->now();
@@ -149,7 +150,7 @@ std::string CurrentStateMonitor::getMonitoredTopic() const
   return "";
 }
 
-bool CurrentStateMonitor::isPassiveOrMimicDOF(const std::string& /*dof*/) const
+bool CurrentStateMonitor::isPassiveOrMimicDOF(const std::string& /*dof*/) const  // NOLINT
 {
   // TODO: Levi Need to implement
 
@@ -267,7 +268,7 @@ bool CurrentStateMonitor::haveCompleteState(const rclcpp::Duration& age, std::ve
   return result;
 }
 
-bool CurrentStateMonitor::waitForCurrentState(rclcpp::Time t, double wait_time) const
+bool CurrentStateMonitor::waitForCurrentState(const rclcpp::Time& t, double wait_time) const
 {
   rclcpp::Time start = rclcpp::Clock{ RCL_STEADY_TIME }.now();
   rclcpp::Duration elapsed(0, 0);
@@ -325,7 +326,7 @@ bool CurrentStateMonitor::waitForCompleteState(const std::string& manip, double 
   return ok;
 }
 
-void CurrentStateMonitor::jointStateCallback(const sensor_msgs::msg::JointState::ConstSharedPtr joint_state)
+void CurrentStateMonitor::jointStateCallback(const sensor_msgs::msg::JointState::ConstSharedPtr joint_state)  // NOLINT
 {
   if (!env_->isInitialized())
     return;

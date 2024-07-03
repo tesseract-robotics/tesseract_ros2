@@ -187,7 +187,7 @@ bool ROSEnvironmentMonitor::initialize()
     return false;
   }
 
-  last_update_time_ = last_robot_motion_time_ = node_->now();
+  last_update_time_ = last_robot_motion_time_ = internal_node_->now();
   last_robot_state_update_wall_time_ = rclcpp::Clock().now();
 
   state_update_pending_ = false;
@@ -642,7 +642,7 @@ void ROSEnvironmentMonitor::startStateMonitor(const std::string& joint_states_to
   if (env_)
   {
     if (!current_state_monitor_)
-      current_state_monitor_ = std::make_unique<CurrentStateMonitor>(env_, node_);
+      current_state_monitor_ = std::make_unique<CurrentStateMonitor>(env_, internal_node_);
 
     current_state_monitor_->addUpdateCallback(
         std::bind(&ROSEnvironmentMonitor::onJointStateUpdate, this, std::placeholders::_1));  // NOLINT

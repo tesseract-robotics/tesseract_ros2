@@ -53,15 +53,23 @@ static constexpr const char* NODE_ID = "tesseract_rosutils_plotting";
 ROSPlotting::ROSPlotting(std::string root_link, std::string topic_namespace)
   : root_link_(std::move(root_link)), topic_namespace_(std::move(topic_namespace))
 {
-  node_ = std::make_shared<rclcpp::Node>(NODE_ID);
-  trajectory_pub_ =
-      node_->create_publisher<tesseract_msgs::msg::Trajectory>(topic_namespace_ + "/display_tesseract_trajectory", 1);
-  collisions_pub_ =
-      node_->create_publisher<visualization_msgs::msg::MarkerArray>(topic_namespace_ + "/display_collisions", 1);
-  arrows_pub_ = node_->create_publisher<visualization_msgs::msg::MarkerArray>(topic_namespace_ + "/display_arrows", 1);
-  axes_pub_ = node_->create_publisher<visualization_msgs::msg::MarkerArray>(topic_namespace_ + "/display_axes", 1);
-  tool_path_pub_ =
-      node_->create_publisher<visualization_msgs::msg::MarkerArray>(topic_namespace_ + "/display_tool_path", 1);
+  internal_node_ = std::make_shared<rclcpp::Node>(NODE_ID);
+  trajectory_pub_ = internal_node_->create_publisher<tesseract_msgs::msg::Trajectory>(topic_namespace_ + "/display_"
+                                                                                                         "tesseract_"
+                                                                                                         "trajectory",
+                                                                                      1);
+  collisions_pub_ = internal_node_->create_publisher<visualization_msgs::msg::MarkerArray>(topic_namespace_ + "/display"
+                                                                                                              "_collisi"
+                                                                                                              "ons",
+                                                                                           1);
+  arrows_pub_ =
+      internal_node_->create_publisher<visualization_msgs::msg::MarkerArray>(topic_namespace_ + "/display_arrows", 1);
+  axes_pub_ =
+      internal_node_->create_publisher<visualization_msgs::msg::MarkerArray>(topic_namespace_ + "/display_axes", 1);
+  tool_path_pub_ = internal_node_->create_publisher<visualization_msgs::msg::MarkerArray>(topic_namespace_ + "/display_"
+                                                                                                             "tool_"
+                                                                                                             "path",
+                                                                                          1);
 
   internal_node_executor_ = std::make_shared<rclcpp::executors::MultiThreadedExecutor>();
   internal_node_spinner_ = std::make_shared<std::thread>([this]() {

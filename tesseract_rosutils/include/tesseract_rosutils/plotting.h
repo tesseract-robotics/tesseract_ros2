@@ -135,7 +135,7 @@ private:
   std::string root_link_;       /**< Root link of markers */
   std::string topic_namespace_; /**< Namespace used when publishing markers */
   int marker_counter_{ 0 };     /**< Counter when plotting */
-  rclcpp::Node::SharedPtr node_;
+  rclcpp::Node::SharedPtr internal_node_;
   rclcpp::executors::MultiThreadedExecutor::SharedPtr internal_node_executor_;
   std::shared_ptr<std::thread> internal_node_spinner_;
   rclcpp::Publisher<tesseract_msgs::msg::SceneGraph>::SharedPtr scene_pub_;           /**< Scene publisher */

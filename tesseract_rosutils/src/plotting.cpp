@@ -71,7 +71,7 @@ ROSPlotting::ROSPlotting(std::string root_link, std::string topic_namespace)
                                                                                                              "path",
                                                                                           1);
 
-  internal_node_executor_ = std::make_shared<rclcpp::executors::MultiThreadedExecutor>();
+  internal_node_executor_ = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
   internal_node_spinner_ = std::make_shared<std::thread>([this]() {
     internal_node_executor_->add_node(internal_node_);
     internal_node_executor_->spin();

@@ -2,6 +2,17 @@
 Changelog for package tesseract_planning_server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.22.0 (2024-07-11)
+-------------------
+* - Upgrade tesseract, ros_industrial_cmake_boilerplate and descartes version
+  - 0.22.0
+* Merge pull request `#104 <https://github.com/tesseract-robotics/tesseract_ros2/issues/104>`_ from marrts/update_stable_0-22
+* Fix clang tidy in tesseract_planning_server
+* Finish fwd for tesseract_planning_server
+* Fix build issues in tesseract_planning_server
+* Added additional profiles to match common pipelines
+* Contributors: Roelof Oomen, Tyler Marr
+
 0.21.2 (2024-01-03)
 -------------------
 

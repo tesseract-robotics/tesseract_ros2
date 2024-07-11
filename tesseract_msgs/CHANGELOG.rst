@@ -2,8 +2,8 @@
 Changelog for package tesseract_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.22.0 (2024-07-11)
+-------------------
 * - Upgrade tesseract, ros_industrial_cmake_boilerplate and descartes version
   - 0.22.0
 * Update to change in task composer node info

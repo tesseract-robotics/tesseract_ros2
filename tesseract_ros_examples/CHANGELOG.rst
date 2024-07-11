@@ -2,8 +2,8 @@
 Changelog for package tesseract_ros_examples
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.22.0 (2024-07-11)
+-------------------
 * - Upgrade tesseract, ros_industrial_cmake_boilerplate and descartes version
   - 0.22.0
 * Merge pull request `#104 <https://github.com/tesseract-robotics/tesseract_ros2/issues/104>`_ from marrts/update_stable_0-22

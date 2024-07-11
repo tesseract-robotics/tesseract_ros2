@@ -2,8 +2,8 @@
 Changelog for package tesseract_rviz
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.22.0 (2024-07-11)
+-------------------
 * - Upgrade tesseract, ros_industrial_cmake_boilerplate and descartes version
   - 0.22.0
 * Fix adding Octree to entity_container

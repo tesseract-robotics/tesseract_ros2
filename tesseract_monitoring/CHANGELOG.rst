@@ -2,6 +2,22 @@
 Changelog for package tesseract_monitoring
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* - Upgrade tesseract, ros_industrial_cmake_boilerplate and descartes version
+  - 0.22.0
+* Merge pull request `#104 <https://github.com/tesseract-robotics/tesseract_ros2/issues/104>`_ from marrts/update_stable_0-22
+* Switch to bitwise comparison
+* Move publish_environment_frequency\_ initialization to header
+* Fix code quality issues in tesseract_monitoring
+* Additional cleanups
+* Add fwd to environment_monitor_interface
+* Remove commented include
+* Fixed a missed fwd declaration bug in tesseract_monitoring
+* Fix build issues in tesseract_monitoring
+* Simplify thread construction
+* Contributors: Roelof Oomen, Tyler Marr
+
 0.21.2 (2024-01-03)
 -------------------
 

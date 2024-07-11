@@ -2,6 +2,14 @@
 Changelog for package tesseract_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* - Upgrade tesseract, ros_industrial_cmake_boilerplate and descartes version
+  - 0.22.0
+* Update to change in task composer node info
+* Add polygon mesh support
+* Contributors: Roelof Oomen, Tyler Marr
+
 0.21.2 (2024-01-03)
 -------------------
 

@@ -2,6 +2,16 @@
 Changelog for package tesseract_ros_examples
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* - Upgrade tesseract, ros_industrial_cmake_boilerplate and descartes version
+  - 0.22.0
+* Merge pull request `#104 <https://github.com/tesseract-robotics/tesseract_ros2/issues/104>`_ from marrts/update_stable_0-22
+* Fix clang tidy in tesseract_ros_examples
+* Adding Trajopt_Ifopt option to all examples
+* Fix build issues in tesseract_ros_examples
+* Contributors: Roelof Oomen, Tyler Marr
+
 0.21.2 (2024-01-03)
 -------------------
 

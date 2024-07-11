@@ -2,6 +2,20 @@
 Changelog for package tesseract_rviz
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* - Upgrade tesseract, ros_industrial_cmake_boilerplate and descartes version
+  - 0.22.0
+* Fix adding Octree to entity_container
+* Match tesseract_ros`#233 <https://github.com/tesseract-robotics/tesseract_ros2/issues/233>`_ for tesseract_rviz
+* Remove more commented includes
+* Fix build issues in tesseract_rviz
+* Merge pull request `#93 <https://github.com/tesseract-robotics/tesseract_ros2/issues/93>`_ from marrts/feat/configurable_trajectory_names
+  Pass description field to trajectory objects
+* Pass description field to trajectory objects
+* Simplify thread construction
+* Contributors: Roelof Oomen, Tyler Marr
+
 0.21.2 (2024-01-03)
 -------------------
 

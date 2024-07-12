@@ -53,21 +53,29 @@ static constexpr const char* NODE_ID = "tesseract_rosutils_plotting";
 ROSPlotting::ROSPlotting(std::string root_link, std::string topic_namespace)
   : root_link_(std::move(root_link)), topic_namespace_(std::move(topic_namespace))
 {
-  node_ = std::make_shared<rclcpp::Node>(NODE_ID);
-  trajectory_pub_ =
-      node_->create_publisher<tesseract_msgs::msg::Trajectory>(topic_namespace_ + "/display_tesseract_trajectory", 1);
-  collisions_pub_ =
-      node_->create_publisher<visualization_msgs::msg::MarkerArray>(topic_namespace_ + "/display_collisions", 1);
-  arrows_pub_ = node_->create_publisher<visualization_msgs::msg::MarkerArray>(topic_namespace_ + "/display_arrows", 1);
-  axes_pub_ = node_->create_publisher<visualization_msgs::msg::MarkerArray>(topic_namespace_ + "/display_axes", 1);
-  tool_path_pub_ =
-      node_->create_publisher<visualization_msgs::msg::MarkerArray>(topic_namespace_ + "/display_tool_path", 1);
+  internal_node_ = std::make_shared<rclcpp::Node>(NODE_ID);
+  trajectory_pub_ = internal_node_->create_publisher<tesseract_msgs::msg::Trajectory>(topic_namespace_ + "/display_"
+                                                                                                         "tesseract_"
+                                                                                                         "trajectory",
+                                                                                      1);
+  collisions_pub_ = internal_node_->create_publisher<visualization_msgs::msg::MarkerArray>(topic_namespace_ + "/display"
+                                                                                                              "_collisi"
+                                                                                                              "ons",
+                                                                                           1);
+  arrows_pub_ =
+      internal_node_->create_publisher<visualization_msgs::msg::MarkerArray>(topic_namespace_ + "/display_arrows", 1);
+  axes_pub_ =
+      internal_node_->create_publisher<visualization_msgs::msg::MarkerArray>(topic_namespace_ + "/display_axes", 1);
+  tool_path_pub_ = internal_node_->create_publisher<visualization_msgs::msg::MarkerArray>(topic_namespace_ + "/display_"
+                                                                                                             "tool_"
+                                                                                                             "path",
+                                                                                          1);
 
-  internal_node_executor_ = std::make_shared<rclcpp::executors::MultiThreadedExecutor>();
+  internal_node_executor_ = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
   internal_node_spinner_ = std::make_shared<std::thread>([this]() {
-    internal_node_executor_->add_node(node_);
+    internal_node_executor_->add_node(internal_node_);
     internal_node_executor_->spin();
-    internal_node_executor_->remove_node(node_);
+    internal_node_executor_->remove_node(internal_node_);
   });
 }
 
@@ -232,7 +240,8 @@ void ROSPlotting::plotMarker(const tesseract_visualization::Marker& marker, std:
     {
       const auto& m = dynamic_cast<const tesseract_visualization::ArrowMarker&>(marker);
       visualization_msgs::msg::MarkerArray msg;
-      auto arrow_marker_msg = getMarkerArrowMsg(marker_counter_, root_link_, topic_namespace_, node_->now(), m);
+      auto arrow_marker_msg =
+          getMarkerArrowMsg(marker_counter_, root_link_, topic_namespace_, internal_node_->now(), m);
       msg.markers.push_back(arrow_marker_msg);
       arrows_pub_->publish(msg);
       break;
@@ -241,7 +250,7 @@ void ROSPlotting::plotMarker(const tesseract_visualization::Marker& marker, std:
     {
       const auto& m = dynamic_cast<const tesseract_visualization::AxisMarker&>(marker);
       visualization_msgs::msg::MarkerArray msg =
-          getMarkerAxisMsg(marker_counter_, root_link_, topic_namespace_, node_->now(), m.axis, m.getScale());
+          getMarkerAxisMsg(marker_counter_, root_link_, topic_namespace_, internal_node_->now(), m.axis, m.getScale());
       axes_pub_->publish(msg);
       break;
     }
@@ -254,7 +263,7 @@ void ROSPlotting::plotMarker(const tesseract_visualization::Marker& marker, std:
 
       visualization_msgs::msg::MarkerArray msg;
       long cnt = 0;
-      auto time = node_->now();
+      auto time = internal_node_->now();
       for (const auto& s : m.toolpath)
       {
         std::string segment_ns = prefix_ns + "/segment_" + std::to_string(cnt++) + "/poses";
@@ -274,7 +283,7 @@ void ROSPlotting::plotMarker(const tesseract_visualization::Marker& marker, std:
       if (!m.dist_results.empty())
       {
         visualization_msgs::msg::MarkerArray msg =
-            getContactResultsMarkerArrayMsg(marker_counter_, root_link_, topic_namespace_, node_->now(), m);
+            getContactResultsMarkerArrayMsg(marker_counter_, root_link_, topic_namespace_, internal_node_->now(), m);
         collisions_pub_->publish(msg);
       }
       break;
@@ -284,7 +293,7 @@ void ROSPlotting::plotMarker(const tesseract_visualization::Marker& marker, std:
 
 void ROSPlotting::plotMarkers(const std::vector<tesseract_visualization::Marker::Ptr>& /*markers*/, std::string /*ns*/)
 {
-  RCLCPP_ERROR(node_->get_logger(), "ROSPlotting: Plotting vector of markers is currently not implemented!");
+  RCLCPP_ERROR(internal_node_->get_logger(), "ROSPlotting: Plotting vector of markers is currently not implemented!");
 }
 
 void ROSPlotting::plotToolpath(const tesseract_environment::Environment& env,

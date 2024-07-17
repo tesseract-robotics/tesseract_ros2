@@ -26,7 +26,7 @@ jobs:
               TARGET_CMAKE_ARGS: "-DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_BUILD_TYPE=Debug -DTESSERACT_ENABLE_CLANG_TIDY=ON -DTESSERACT_ENABLE_TESTING=ON"
 
     container:
-      image: ghcr.io/tesseract-robotics/tesseract_qt:${{ matrix.os }}-0.22
+      image: ghcr.io/tesseract-robotics/tesseract_qt:${{ matrix.os }}-master
       env:
         CCACHE_DIR: "${{ github.workspace }}/${{ matrix.os }}/.ccache"
         DEBIAN_FRONTEND: noninteractive

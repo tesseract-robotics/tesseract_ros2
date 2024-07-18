@@ -30,7 +30,7 @@
 namespace tesseract_monitoring
 {
 /// The name of the topic used by default for receiving joint states
-static const std::string DEFAULT_JOINT_STATES_TOPIC = "joint_states";
+static const std::string DEFAULT_JOINT_STATES_TOPIC = "/joint_states";
 
 /// The name of the service used by default for requesting tesseract environment change history
 static const std::string DEFAULT_GET_ENVIRONMENT_CHANGES_SERVICE = "/get_tesseract_changes";

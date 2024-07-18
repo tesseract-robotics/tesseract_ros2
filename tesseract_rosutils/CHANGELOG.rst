@@ -2,6 +2,30 @@
 Changelog for package tesseract_rosutils
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.22.0 (2024-07-11)
+-------------------
+* - Upgrade tesseract, ros_industrial_cmake_boilerplate and descartes version
+  - 0.22.0
+* Merge pull request `#104 <https://github.com/tesseract-robotics/tesseract_ros2/issues/104>`_ from marrts/update_stable_0-22
+* Fix clang tidy errors in rosutils
+* Update to change in task composer node info
+* Match tesseract_ros`#233 <https://github.com/tesseract-robotics/tesseract_ros2/issues/233>`_ for tesseract_rosutils/test
+* Remove unused deps
+* Fix build issues in tesseract_rosutils
+* Merge pull request `#95 <https://github.com/tesseract-robotics/tesseract_ros2/issues/95>`_ from marrts/reset_marker_counter
+  Add ability to reset marker counter without clearing
+* Add ability to reset marker counter without clearing
+* - Add description parameter to plotTrajectory functions
+  - Add a plotTrajectories function to plot multiple trajectories in one set
+  - Minor API change: removed parameter ns from one function, as it was unused but might give the false impression it would be used instead of traj.ns
+  - Fixed the clear() function, as it removed all markers except the tool markers
+* Merge pull request `#93 <https://github.com/tesseract-robotics/tesseract_ros2/issues/93>`_ from marrts/feat/configurable_trajectory_names
+  Pass description field to trajectory objects
+* Pass description field to trajectory objects
+* Add polygon mesh support
+* Simplify thread construction
+* Contributors: Roelof Oomen, Tyler Marr
+
 0.21.2 (2024-01-03)
 -------------------
 

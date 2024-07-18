@@ -143,7 +143,6 @@ protected:
   rclcpp::Time last_robot_motion_time_ = rclcpp::Time(0L, RCL_ROS_TIME);  /// Last time the robot has moved
   bool enforce_next_state_update_{ false };  /// flag to enforce immediate state update in onStateUpdate()
 
-  rclcpp::Node::SharedPtr node_;
   rclcpp::Node::SharedPtr internal_node_;
   rclcpp::executors::MultiThreadedExecutor::SharedPtr internal_node_executor_;
   std::shared_ptr<std::thread> internal_node_spinner_;

@@ -2,7 +2,7 @@ repositories:
   ros_industrial_cmake_boilerplate:
     type: git
     url: https://github.com/ros-industrial/ros_industrial_cmake_boilerplate.git
-    version: 0.6.0
+    version: 0.6.2
   tesseract_ext:
     type: git
     url: https://github.com/tesseract-robotics/tesseract_ext.git

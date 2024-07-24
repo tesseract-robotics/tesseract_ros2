@@ -24,8 +24,10 @@ jobs:
             os: focal
           - distro: humble
             os: jammy
+          - distro: jazzy
+            os: noble
           - distro: rolling
-            os: jammy
+            os: noble
     env:
       REGISTRY: ghcr.io
       IMAGE_NAME: ${{ github.repository }}

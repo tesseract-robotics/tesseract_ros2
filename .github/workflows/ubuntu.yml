@@ -29,7 +29,10 @@ jobs:
           - os: jammy
             distro: humble
             vcs-file: .github/workflows/dependencies.repos
-          - os: jammy
+          - os: noble
+            distro: jazzy
+            vcs-file: .github/workflows/dependencies.repos
+          - os: noble
             distro: rolling
             vcs-file: .github/workflows/dependencies.repos
     container:

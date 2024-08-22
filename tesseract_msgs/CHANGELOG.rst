@@ -2,8 +2,8 @@
 Changelog for package tesseract_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.23.0 (2024-08-21)
+-------------------
 * Update because TaskComposerProblem was removed
 * Contributors: Roelof Oomen
 

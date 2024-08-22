@@ -2,8 +2,8 @@
 Changelog for package tesseract_rviz
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.23.0 (2024-08-21)
+-------------------
 * Fixes for building on Ubuntu Noble
 * Contributors: Roelof Oomen
 

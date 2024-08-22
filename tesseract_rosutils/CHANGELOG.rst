@@ -2,8 +2,8 @@
 Changelog for package tesseract_rosutils
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.23.0 (2024-08-21)
+-------------------
 * Fixes for building on Ubuntu Noble
 * Update because TaskComposerProblem was removed
 * Node cleanup (`#109 <https://github.com/marip8/tesseract_ros2/issues/109>`_)

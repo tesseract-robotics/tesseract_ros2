@@ -2,8 +2,8 @@
 Changelog for package tesseract_planning_server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.23.0 (2024-08-21)
+-------------------
 * Add environment as const to data storage, update RICB to 0.6.2, fix dependencies for unstable
 * Fixes for building on Ubuntu Noble
 * Fix output key name

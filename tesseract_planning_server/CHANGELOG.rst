@@ -2,6 +2,15 @@
 Changelog for package tesseract_planning_server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Add environment as const to data storage, update RICB to 0.6.2, fix dependencies for unstable
+* Fixes for building on Ubuntu Noble
+* Fix output key name
+* Fix use-after-move
+* Update because TaskComposerProblem was removed
+* Contributors: Roelof Oomen
+
 0.22.0 (2024-07-11)
 -------------------
 * - Upgrade tesseract, ros_industrial_cmake_boilerplate and descartes version

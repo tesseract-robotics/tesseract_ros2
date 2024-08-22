@@ -2,6 +2,11 @@
 Changelog for package tesseract_rviz
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fixes for building on Ubuntu Noble
+* Contributors: Roelof Oomen
+
 0.22.0 (2024-07-11)
 -------------------
 * - Upgrade tesseract, ros_industrial_cmake_boilerplate and descartes version

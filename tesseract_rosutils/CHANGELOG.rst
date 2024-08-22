@@ -2,6 +2,20 @@
 Changelog for package tesseract_rosutils
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fixes for building on Ubuntu Noble
+* Update because TaskComposerProblem was removed
+* Node cleanup (`#109 <https://github.com/marip8/tesseract_ros2/issues/109>`_)
+  * Add forgotten remove_node calls
+  * Use internal_node\_ for all node calls (except parameters) and remove node\_ member
+  * Rename node\_ to internal_node\_ to be consistent with e.g. ROSEnvironmentMonitor
+  * Change callback group to MutuallyExclusive
+  * Fixup
+  * Change ROSPlotting to use a SingleThreadedExecutor
+  * Change DEFAULT_JOINT_STATES_TOPIC to start with /
+* Contributors: Roelof Oomen
+
 0.22.0 (2024-07-11)
 -------------------
 * - Upgrade tesseract, ros_industrial_cmake_boilerplate and descartes version

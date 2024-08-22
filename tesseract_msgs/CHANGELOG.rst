@@ -2,6 +2,11 @@
 Changelog for package tesseract_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Update because TaskComposerProblem was removed
+* Contributors: Roelof Oomen
+
 0.22.0 (2024-07-11)
 -------------------
 * - Upgrade tesseract, ros_industrial_cmake_boilerplate and descartes version

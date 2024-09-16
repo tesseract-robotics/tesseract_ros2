@@ -66,7 +66,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <tesseract_monitoring/environment_monitor.h>
 #include <tesseract_rosutils/utils.h>
 #include <tesseract_common/serialization.h>
-#include <tesseract_common/timer.h>
+#include <tesseract_common/stopwatch.h>
 
 #include <tesseract_task_composer/core/task_composer_context.h>
 #include <tesseract_task_composer/core/task_composer_data_storage.h>
@@ -260,12 +260,12 @@ void TesseractPlanningServer::onMotionPlanningCallback(
     data->setData("composite_profile_remapping", composite_profile_remapping);
 
   // Solve
-  tesseract_common::Timer timer;
-  timer.start();
+  tesseract_common::Stopwatch stopwatch;
+  stopwatch.start();
   tesseract_planning::TaskComposerFuture::UPtr plan_future =
       planning_server_->run(goal->request.name, std::move(data), goal->request.dotgraph, executor_name);
   plan_future->wait();  // Wait for results
-  timer.stop();
+  stopwatch.stop();
 
   // Generate DOT Graph if requested
   if (goal->request.dotgraph)
@@ -307,7 +307,8 @@ void TesseractPlanningServer::onMotionPlanningCallback(
   result->response.successful = plan_future->context->isSuccessful();
   plan_future->clear();
 
-  RCLCPP_INFO(node_->get_logger(), "Tesseract Planning Server Finished Request in %f seconds!", timer.elapsedSeconds());
+  RCLCPP_INFO(
+      node_->get_logger(), "Tesseract Planning Server Finished Request in %f seconds!", stopwatch.elapsedSeconds());
   goal_handle->succeed(result);
 }
 

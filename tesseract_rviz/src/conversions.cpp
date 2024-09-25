@@ -57,14 +57,13 @@
 #include <rviz_rendering/objects/shape.hpp>
 #include <rviz_rendering/objects/point_cloud.hpp>
 
-#include <tesseract_geometry/geometries.h>
-
 #include <tesseract_scene_graph/graph.h>
 #include <tesseract_scene_graph/joint.h>
 #include <tesseract_scene_graph/link.h>
 
 #include <tesseract_common/filesystem.h>
 #include <tesseract_common/resource_locator.h>
+#include <tesseract_geometry/geometries.h>
 
 const std::string USER_VISIBILITY = "user_visibility";
 
@@ -472,6 +471,47 @@ Ogre::SceneNode* loadLinkWireBox(Ogre::SceneManager& scene,
   return wire_box_node;
 }
 
+Ogre::Entity* loadMesh(Ogre::SceneManager& scene,
+                       Ogre::Vector3& ogre_scale,
+                       tesseract_gui::EntityContainer& entity_container,
+                       const tesseract_geometry::PolygonMesh& mesh,
+                       bool is_visual)
+{
+  if (mesh.getResource() && mesh.getResource()->isFile() && is_visual)
+  {
+    std::string model_name = "file://" + mesh.getResource()->getFilePath();
+
+    const Eigen::Vector3d& mesh_scale = mesh.getScale();
+    ogre_scale = Ogre::Vector3(
+        static_cast<float>(mesh_scale.x()), static_cast<float>(mesh_scale.y()), static_cast<float>(mesh_scale.z()));
+
+    try
+    {
+      rviz_rendering::loadMeshFromResource(model_name);
+      auto entity = entity_container.addUntrackedEntity(tesseract_gui::EntityContainer::RESOURCE_NS);
+      return scene.createEntity(entity.unique_name, model_name);
+    }
+    catch (Ogre::InvalidParametersException& e)
+    {
+      RCLCPP_ERROR(rclcpp::get_logger("tesseract_environment_plugin"),
+                   "Could not convert mesh resource '%s'. It might be an empty mesh: %s",
+                   model_name.c_str(),
+                   e.what());
+    }
+    catch (Ogre::Exception& e)
+    {
+      RCLCPP_ERROR(rclcpp::get_logger("tesseract_environment_plugin"),
+                   "Could not load model '%s': %s",
+                   model_name.c_str(),
+                   e.what());
+    }
+
+    return nullptr;
+  }
+
+  return createEntityForMeshData(scene, entity_container, mesh.getVertices(), mesh.getFaces());
+}
+
 Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
                                   tesseract_gui::EntityContainer& entity_container,
                                   const tesseract_geometry::Geometry& geometry,
@@ -480,7 +520,7 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
                                   const Ogre::MaterialPtr& material,
                                   bool is_visual)
 {
-  Ogre::Entity* ogre_entity = nullptr;  // default in case nothing works.
+  std::vector<Ogre::Entity*> ogre_entity;
   Ogre::Vector3 ogre_scale(Ogre::Vector3::UNIT_SCALE);
   Ogre::Vector3 offset_position(Ogre::Vector3::ZERO);
   Ogre::Quaternion offset_orientation(Ogre::Quaternion::IDENTITY);
@@ -506,7 +546,7 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
     {
       const auto& sphere = static_cast<const tesseract_geometry::Sphere&>(geometry);
       auto entity = entity_container.addUntrackedEntity(tesseract_gui::EntityContainer::RESOURCE_NS);
-      ogre_entity = scene.createEntity(entity.unique_name, "tesseract_sphere.mesh");
+      ogre_entity.push_back(scene.createEntity(entity.unique_name, "tesseract_sphere.mesh"));
       float diameter = static_cast<float>(sphere.getRadius()) * 2.0f;
       ogre_scale = Ogre::Vector3(diameter, diameter, diameter);
       break;
@@ -515,7 +555,7 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
     {
       const auto& box = static_cast<const tesseract_geometry::Box&>(geometry);
       auto entity = entity_container.addUntrackedEntity(tesseract_gui::EntityContainer::RESOURCE_NS);
-      ogre_entity = scene.createEntity(entity.unique_name, "tesseract_cube.mesh");
+      ogre_entity.push_back(scene.createEntity(entity.unique_name, "tesseract_cube.mesh"));
       ogre_scale =
           Ogre::Vector3(static_cast<float>(box.getX()), static_cast<float>(box.getY()), static_cast<float>(box.getZ()));
       break;
@@ -524,7 +564,7 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
     {
       const auto& cylinder = static_cast<const tesseract_geometry::Cylinder&>(geometry);
       auto entity = entity_container.addUntrackedEntity(tesseract_gui::EntityContainer::RESOURCE_NS);
-      ogre_entity = scene.createEntity(entity.unique_name, "tesseract_cylinder.mesh");
+      ogre_entity.push_back(scene.createEntity(entity.unique_name, "tesseract_cylinder.mesh"));
       ogre_scale = Ogre::Vector3(static_cast<float>(cylinder.getRadius() * 2),
                                  static_cast<float>(cylinder.getRadius() * 2),
                                  static_cast<float>(cylinder.getLength()));
@@ -534,7 +574,7 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
     {
       const auto& cone = static_cast<const tesseract_geometry::Cone&>(geometry);
       auto entity = entity_container.addUntrackedEntity(tesseract_gui::EntityContainer::RESOURCE_NS);
-      ogre_entity = scene.createEntity(entity.unique_name, "tesseract_cone.mesh");
+      ogre_entity.push_back(scene.createEntity(entity.unique_name, "tesseract_cone.mesh"));
       ogre_scale = Ogre::Vector3(static_cast<float>(cone.getRadius() * 2),
                                  static_cast<float>(cone.getRadius() * 2),
                                  static_cast<float>(cone.getLength()));
@@ -544,61 +584,27 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
     {
       const auto& capsule = static_cast<const tesseract_geometry::Capsule&>(geometry);
       auto entity = entity_container.addUntrackedEntity(tesseract_gui::EntityContainer::RESOURCE_NS);
-      ogre_entity = scene.createEntity(entity.unique_name, "tesseract_capsule.mesh");
+      ogre_entity.push_back(scene.createEntity(entity.unique_name, "tesseract_capsule.mesh"));
       ogre_scale = Ogre::Vector3(static_cast<float>(capsule.getRadius() * 2),
                                  static_cast<float>(capsule.getRadius() * 2),
                                  static_cast<float>((0.5 * capsule.getLength()) + capsule.getRadius()));
       break;
     }
     case tesseract_geometry::GeometryType::MESH:
-    {
-      const auto& mesh = static_cast<const tesseract_geometry::Mesh&>(geometry);
-
-      if (mesh.getResource() && mesh.getResource()->isFile() && is_visual)
-      {
-        std::string model_name = "file://" + mesh.getResource()->getFilePath();
-
-        const Eigen::Vector3d& mesh_scale = mesh.getScale();
-        ogre_scale = Ogre::Vector3(
-            static_cast<float>(mesh_scale.x()), static_cast<float>(mesh_scale.y()), static_cast<float>(mesh_scale.z()));
-
-        try
-        {
-          rviz_rendering::loadMeshFromResource(model_name);
-          auto entity = entity_container.addUntrackedEntity(tesseract_gui::EntityContainer::RESOURCE_NS);
-          ogre_entity = scene.createEntity(entity.unique_name, model_name);
-        }
-        catch (Ogre::InvalidParametersException& e)
-        {
-          RCLCPP_ERROR(rclcpp::get_logger("tesseract_environment_plugin"),
-                       "Could not convert mesh resource '%s'. It might be an empty mesh: %s",
-                       model_name.c_str(),
-                       e.what());
-        }
-        catch (Ogre::Exception& e)
-        {
-          RCLCPP_ERROR(rclcpp::get_logger("tesseract_environment_plugin"),
-                       "Could not load model '%s': %s",
-                       model_name.c_str(),
-                       e.what());
-        }
-      }
-      else
-      {
-        ogre_entity = createEntityForMeshData(scene, entity_container, mesh.getVertices(), mesh.getFaces());
-      }
-
-      break;
-    }
     case tesseract_geometry::GeometryType::CONVEX_MESH:
     {
-      const auto& mesh = static_cast<const tesseract_geometry::ConvexMesh&>(geometry);
-
-      if (mesh.getResource() && mesh.getResource()->isFile() && is_visual)
+      const auto& mesh = static_cast<const tesseract_geometry::PolygonMesh&>(geometry);
+      ogre_entity.push_back(loadMesh(scene, ogre_scale, entity_container, mesh, is_visual));
+      break;
+    }
+    case tesseract_geometry::GeometryType::COMPOUND_MESH:
+    {
+      const auto& compound_mesh = static_cast<const tesseract_geometry::CompoundMesh&>(geometry);
+      if (compound_mesh.getResource() && compound_mesh.getResource()->isFile() && is_visual)
       {
-        std::string model_name = "file://" + mesh.getResource()->getFilePath();
+        std::string model_name = "file://" + compound_mesh.getResource()->getFilePath();
 
-        const Eigen::Vector3d& mesh_scale = mesh.getScale();
+        const Eigen::Vector3d& mesh_scale = compound_mesh.getScale();
         ogre_scale = Ogre::Vector3(
             static_cast<float>(mesh_scale.x()), static_cast<float>(mesh_scale.y()), static_cast<float>(mesh_scale.z()));
 
@@ -606,7 +612,7 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
         {
           rviz_rendering::loadMeshFromResource(model_name);
           auto entity = entity_container.addUntrackedEntity(tesseract_gui::EntityContainer::RESOURCE_NS);
-          ogre_entity = scene.createEntity(entity.unique_name, model_name);
+          ogre_entity.push_back(scene.createEntity(entity.unique_name, model_name));
         }
         catch (Ogre::InvalidParametersException& e)
         {
@@ -625,7 +631,9 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
       }
       else
       {
-        ogre_entity = createEntityForMeshData(scene, entity_container, mesh.getVertices(), mesh.getFaces());
+        for (const auto& mesh : compound_mesh.getMeshes())
+          ogre_entity.push_back(
+              createEntityForMeshData(scene, entity_container, mesh->getVertices(), mesh->getFaces()));
       }
       break;
     }
@@ -770,38 +778,41 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
       break;
   }
 
-  if (ogre_entity)
+  if (!ogre_entity.empty())
   {
     auto entity = entity_container.addUntrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS);
     Ogre::SceneNode* offset_node = scene.createSceneNode(entity.unique_name);
-    //    std::vector<Ogre::Entity*>* meshes;
 
-    offset_node->attachObject(ogre_entity);
+    for (auto* obj : ogre_entity)
+      offset_node->attachObject(obj);
+
     offset_node->setScale(ogre_scale);
     offset_node->setPosition(offset_position);
     offset_node->setOrientation(offset_orientation);
 
-    for (uint32_t i = 0; i < ogre_entity->getNumSubEntities(); ++i)
+    for (auto* obj : ogre_entity)
     {
-      // Assign materials only if the submesh does not have one already
-      Ogre::SubEntity* sub = ogre_entity->getSubEntity(i);
-      const std::string& material_name = sub->getMaterialName();
+      for (uint32_t i = 0; i < obj->getNumSubEntities(); ++i)
+      {
+        // Assign materials only if the submesh does not have one already
+        Ogre::SubEntity* sub = obj->getSubEntity(i);
+        const std::string& material_name = sub->getMaterialName();
 
-      if (material_name == "BaseWhite" || material_name == "BaseWhiteNoLighting")
-      {
-        std::string cloned_name = material_name_generator.generate();
-        material->clone(cloned_name);
-        sub->setMaterialName(cloned_name);
-      }
-      else
-      {
-        std::string cloned_name = material_name_generator.generate();
-        sub->getMaterial()->clone(cloned_name);
-        sub->setMaterialName(cloned_name);
+        if (material_name == "BaseWhite" || material_name == "BaseWhiteNoLighting")
+        {
+          std::string cloned_name = material_name_generator.generate();
+          material->clone(cloned_name);
+          sub->setMaterialName(cloned_name);
+        }
+        else
+        {
+          std::string cloned_name = material_name_generator.generate();
+          sub->getMaterial()->clone(cloned_name);
+          sub->setMaterialName(cloned_name);
+        }
       }
     }
 
-    //    meshes->push_back(ogre_entity);
     return offset_node;
   }
 

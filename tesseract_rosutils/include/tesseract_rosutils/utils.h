@@ -275,12 +275,18 @@ bool fromMsg(Eigen::Isometry3d& pose, const geometry_msgs::msg::Pose& pose_msg);
 bool toMsg(geometry_msgs::msg::Pose& pose_msg, const Eigen::Isometry3d& pose);
 
 void toMsg(tesseract_msgs::msg::ContactResult& contact_result_msg,
+           const tesseract_collision::ContactResult& contact_result);
+
+void toMsg(tesseract_msgs::msg::ContactResult& contact_result_msg,
            const tesseract_collision::ContactResult& contact_result,
-           const rclcpp::Time& stamp = rclcpp::Clock{ RCL_ROS_TIME }.now());
+           const rclcpp::Time& stamp);
+
+void toMsg(const tesseract_msgs::msg::ContactResult::SharedPtr& contact_result_msg,
+           const tesseract_collision::ContactResult& contact_result);
 
 void toMsg(const tesseract_msgs::msg::ContactResult::SharedPtr& contact_result_msg,
            const tesseract_collision::ContactResult& contact_result,
-           const rclcpp::Time& stamp = rclcpp::Clock{ RCL_ROS_TIME }.now());
+           const rclcpp::Time& stamp);
 
 /**
  * @brief Convert kinematics plugin info to message

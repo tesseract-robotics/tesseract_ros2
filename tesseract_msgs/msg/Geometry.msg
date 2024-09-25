@@ -2,15 +2,16 @@
 
 uint8 SPHERE=1
 uint8 CYLINDER=2
-uint8 CAPSULE=10
 uint8 CONE=3
 uint8 BOX=4
 uint8 PLANE=5
 uint8 MESH=6
-uint8 POLYGON_MESH=11
 uint8 CONVEX_MESH=7
 uint8 SDF_MESH=8
 uint8 OCTREE=9
+uint8 CAPSULE=10
+uint8 POLYGON_MESH=11
+uint8 COMPOUND_MESH=12
 
 # The type of the geometry
 uint8 type
@@ -33,9 +34,13 @@ float64[3] box_dimensions
 # PLANE
 float64[4] plane_coeff
 
-# MESH, POLYGON_MESH, CONVEX_MESH, SDF_MESH
+# MESH, CONVEX_MESH, SDF_MESH, POLYGON_MESH
 tesseract_msgs/Mesh mesh
 
 # OCTREE
 octomap_msgs/Octomap octomap
 tesseract_msgs/OctreeSubType octomap_sub_type
+
+# COMPOUND_MESH (MESH, CONVEX_MESH, SDF_MESH, POLYGON_MESH)
+tesseract_msgs/Mesh[] compound_mesh
+uint8 compound_mesh_type #(MESH, CONVEX_MESH, SDF_MESH, POLYGON_MESH)

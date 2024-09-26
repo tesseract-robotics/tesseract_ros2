@@ -86,6 +86,8 @@ public:
                       std::string = "",
                       std::string description = "");
 
+  void plotToolpath(const tesseract_common::Toolpath& toolpath, std::string ns = "");
+
   void plotToolpath(const tesseract_environment::Environment& env,
                     const tesseract_planning::InstructionPoly& instruction,
                     std::string ns = "");

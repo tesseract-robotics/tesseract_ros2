@@ -296,13 +296,18 @@ void ROSPlotting::plotMarkers(const std::vector<tesseract_visualization::Marker:
   RCLCPP_ERROR(internal_node_->get_logger(), "ROSPlotting: Plotting vector of markers is currently not implemented!");
 }
 
+void ROSPlotting::plotToolpath(const tesseract_common::Toolpath& toolpath, std::string ns)
+{
+  tesseract_visualization::ToolpathMarker marker(toolpath);
+  plotMarker(marker, std::move(ns));
+}
+
 void ROSPlotting::plotToolpath(const tesseract_environment::Environment& env,
                                const tesseract_planning::InstructionPoly& instruction,
                                std::string ns)
 {
   tesseract_common::Toolpath toolpath = toToolpath(instruction, env);
-  tesseract_visualization::ToolpathMarker marker(toolpath);
-  plotMarker(marker, std::move(ns));
+  plotToolpath(toolpath, std::move(ns));
 }
 
 visualization_msgs::msg::MarkerArray ROSPlotting::getMarkerAxisMsg(int& id_counter,

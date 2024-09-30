@@ -2,6 +2,9 @@
 Changelog for package tesseract_monitoring
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.23.0 (2024-08-21)
 -------------------
 * Fixes for building on Ubuntu Noble

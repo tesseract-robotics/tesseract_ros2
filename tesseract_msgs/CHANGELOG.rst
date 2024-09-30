@@ -2,6 +2,11 @@
 Changelog for package tesseract_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Update to support Geometry Type CompoundMesh
+* Contributors: Roelof Oomen
+
 0.23.0 (2024-08-21)
 -------------------
 * Update because TaskComposerProblem was removed

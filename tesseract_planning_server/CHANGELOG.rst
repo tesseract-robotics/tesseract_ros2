@@ -2,6 +2,11 @@
 Changelog for package tesseract_planning_server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Change timer to stopwatch
+* Contributors: Roelof Oomen
+
 0.23.0 (2024-08-21)
 -------------------
 * Add environment as const to data storage, update RICB to 0.6.2, fix dependencies for unstable

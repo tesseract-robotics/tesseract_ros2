@@ -2,6 +2,12 @@
 Changelog for package tesseract_rosutils
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Add plotToolpath for ToolPath
+* Update to support Geometry Type CompoundMesh
+* Contributors: Roelof Oomen
+
 0.23.0 (2024-08-21)
 -------------------
 * Fixes for building on Ubuntu Noble

@@ -74,7 +74,9 @@ ContactMonitor::ContactMonitor(std::string monitor_namespace,
   std::cout << ((disabled_link_names_.empty()) ? "Empty" : "Not Empty") << std::endl;
 
   joint_states_sub_ = internal_node_->create_subscription<sensor_msgs::msg::JointState>(
-      joint_state_topic, 1000, std::bind(&ContactMonitor::callbackJointState, this, std::placeholders::_1));  // NOLINT
+      joint_state_topic,
+      rclcpp::SensorDataQoS(),
+      std::bind(&ContactMonitor::callbackJointState, this, std::placeholders::_1));  // NOLINT
   std::string contact_results_topic = R"(/)" + monitor_namespace_ + DEFAULT_PUBLISH_CONTACT_RESULTS_TOPIC;
   std::string compute_contact_results = R"(/)" + monitor_namespace_ + DEFAULT_COMPUTE_CONTACT_RESULTS_SERVICE;
 
@@ -87,7 +89,7 @@ ContactMonitor::ContactMonitor(std::string monitor_namespace,
           this,
           std::placeholders::_1,
           std::placeholders::_2),
-      rmw_qos_profile_services_default);
+      rclcpp::ServicesQoS());
 }
 
 ContactMonitor::~ContactMonitor() { current_joint_states_evt_.notify_all(); }

@@ -104,7 +104,7 @@ int main(int argc, char** argv)
 
   // Set up ROS interfaces
   auto joint_state_subscriber_ =
-      node->create_subscription<sensor_msgs::msg::JointState>(DYNAMIC_OBJECT_JOINT_STATE, rclcpp::QoS(25), fn2);
+      node->create_subscription<sensor_msgs::msg::JointState>(DYNAMIC_OBJECT_JOINT_STATE, rclcpp::SensorDataQoS(), fn2);
 
   auto toggle_realtime_service = node->create_service<std_srvs::srv::SetBool>("toggle_realtime", fn1);
 

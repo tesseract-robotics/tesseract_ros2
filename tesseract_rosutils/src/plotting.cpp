@@ -57,19 +57,20 @@ ROSPlotting::ROSPlotting(std::string root_link, std::string topic_namespace)
   trajectory_pub_ = internal_node_->create_publisher<tesseract_msgs::msg::Trajectory>(topic_namespace_ + "/display_"
                                                                                                          "tesseract_"
                                                                                                          "trajectory",
-                                                                                      1);
+                                                                                      rclcpp::QoS(100));
   collisions_pub_ = internal_node_->create_publisher<visualization_msgs::msg::MarkerArray>(topic_namespace_ + "/display"
                                                                                                               "_collisi"
                                                                                                               "ons",
-                                                                                           1);
-  arrows_pub_ =
-      internal_node_->create_publisher<visualization_msgs::msg::MarkerArray>(topic_namespace_ + "/display_arrows", 1);
-  axes_pub_ =
-      internal_node_->create_publisher<visualization_msgs::msg::MarkerArray>(topic_namespace_ + "/display_axes", 1);
+                                                                                           rclcpp::QoS(100));
+  arrows_pub_ = internal_node_->create_publisher<visualization_msgs::msg::MarkerArray>(topic_namespace_ + "/display_"
+                                                                                                          "arrows",
+                                                                                       rclcpp::QoS(100));
+  axes_pub_ = internal_node_->create_publisher<visualization_msgs::msg::MarkerArray>(topic_namespace_ + "/display_axes",
+                                                                                     rclcpp::QoS(100));
   tool_path_pub_ = internal_node_->create_publisher<visualization_msgs::msg::MarkerArray>(topic_namespace_ + "/display_"
                                                                                                              "tool_"
                                                                                                              "path",
-                                                                                          1);
+                                                                                          rclcpp::QoS(100));
 
   internal_node_executor_ = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
   internal_node_spinner_ = std::make_shared<std::thread>([this]() {

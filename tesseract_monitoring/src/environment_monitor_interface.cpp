@@ -50,7 +50,7 @@ typename SrvType::Response::SharedPtr call_service(const std::string& name,
                                                    rclcpp::CallbackGroup::SharedPtr cbg,
                                                    std::chrono::duration<double> timeout)
 {
-  auto client = node.create_client<SrvType>(name, ::rmw_qos_profile_services_default, cbg);
+  auto client = node.create_client<SrvType>(name, rclcpp::ServicesQoS(), cbg);
   if (!client->service_is_ready())
   {
     RCLCPP_ERROR_STREAM(node.get_logger(), "Service '" << name << "' not available!");

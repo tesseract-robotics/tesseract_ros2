@@ -228,7 +228,7 @@ void JointTrajectoryMonitorProperties::onLegacyJointTrajectoryTopicConnect()
 {
   data_->legacy_joint_trajectory_sub = data_->node->create_subscription<trajectory_msgs::msg::JointTrajectory>(
       data_->legacy_joint_trajectory_topic_property->getStdString(),
-      rclcpp::SensorDataQoS(),
+      rclcpp::QoS(20),
       std::bind(&JointTrajectoryMonitorProperties::Implementation::legacyJointTrajectoryCallback,
                 *data_,
                 std::placeholders::_1));
@@ -238,7 +238,7 @@ void JointTrajectoryMonitorProperties::onTesseractJointTrajectoryTopicConnect()
 {
   data_->tesseract_joint_trajectory_sub = data_->node->create_subscription<tesseract_msgs::msg::Trajectory>(
       data_->tesseract_joint_trajectory_topic_property->getStdString(),
-      rclcpp::SensorDataQoS(),
+      rclcpp::QoS(20),
       std::bind(&JointTrajectoryMonitorProperties::Implementation::tesseractJointTrajectoryCallback,
                 *data_,
                 std::placeholders::_1));

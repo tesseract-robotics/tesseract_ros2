@@ -75,7 +75,7 @@ ContactMonitor::ContactMonitor(std::string monitor_namespace,
 
   joint_states_sub_ = internal_node_->create_subscription<sensor_msgs::msg::JointState>(
       joint_state_topic,
-      rclcpp::SensorDataQoS(),
+      rclcpp::QoS(20),
       std::bind(&ContactMonitor::callbackJointState, this, std::placeholders::_1));  // NOLINT
   std::string contact_results_topic = R"(/)" + monitor_namespace_ + DEFAULT_PUBLISH_CONTACT_RESULTS_TOPIC;
   std::string compute_contact_results = R"(/)" + monitor_namespace_ + DEFAULT_COMPUTE_CONTACT_RESULTS_SERVICE;

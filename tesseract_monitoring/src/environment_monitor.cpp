@@ -215,25 +215,25 @@ bool ROSEnvironmentMonitor::initialize()
   modify_environment_service_ = internal_node_->create_service<tesseract_msgs::srv::ModifyEnvironment>(
       modify_environment_service,
       std::bind(&ROSEnvironmentMonitor::modifyEnvironmentCallback, this, _ph1, _ph2),  // NOLINT
-      rmw_qos_profile_services_default,
+      rclcpp::ServicesQoS(),
       cb_group_);
 
   get_environment_changes_service_ = internal_node_->create_service<tesseract_msgs::srv::GetEnvironmentChanges>(
       get_environment_changes_service,
       std::bind(&ROSEnvironmentMonitor::getEnvironmentChangesCallback, this, _ph1, _ph2),  // NOLINT
-      rmw_qos_profile_services_default,
+      rclcpp::ServicesQoS(),
       cb_group_);
 
   get_environment_information_service_ = internal_node_->create_service<tesseract_msgs::srv::GetEnvironmentInformation>(
       get_environment_information_service,
       std::bind(&ROSEnvironmentMonitor::getEnvironmentInformationCallback, this, _ph1, _ph2),  // NOLINT
-      rmw_qos_profile_services_default,
+      rclcpp::ServicesQoS(),
       cb_group_);
 
   save_scene_graph_service_ = internal_node_->create_service<tesseract_msgs::srv::SaveSceneGraph>(
       save_scene_graph_service,
       std::bind(&ROSEnvironmentMonitor::saveSceneGraphCallback, this, _ph1, _ph2),  // NOLINT
-      rmw_qos_profile_services_default,
+      rclcpp::ServicesQoS(),
       cb_group_);
 
   return true;
@@ -349,16 +349,16 @@ void ROSEnvironmentMonitor::startMonitoringEnvironment(const std::string& monito
   stopMonitoringEnvironment();
 
   get_monitored_environment_changes_client_ = internal_node_->create_client<tesseract_msgs::srv::GetEnvironmentChanges>(
-      monitored_environment_changes_service, rmw_qos_profile_services_default, cb_group_);
+      monitored_environment_changes_service, rclcpp::ServicesQoS(), cb_group_);
   modify_monitored_environment_client_ = internal_node_->create_client<tesseract_msgs::srv::ModifyEnvironment>(
-      monitored_environment_modify_service, rmw_qos_profile_services_default, cb_group_);
+      monitored_environment_modify_service, rclcpp::ServicesQoS(), cb_group_);
   get_monitored_environment_information_client_ =
       internal_node_->create_client<tesseract_msgs::srv::GetEnvironmentInformation>(
-          monitored_environment_information_service, rmw_qos_profile_services_default, cb_group_);
+          monitored_environment_information_service, rclcpp::ServicesQoS(), cb_group_);
 
   monitored_environment_subscriber_ = internal_node_->create_subscription<tesseract_msgs::msg::EnvironmentState>(
       monitored_environment_topic,
-      1000,
+      rclcpp::ParameterEventsQoS(),
       std::bind(&ROSEnvironmentMonitor::newEnvironmentStateCallback, this, std::placeholders::_1));  // NOLINT
 
   RCLCPP_INFO(logger_, "Monitoring external environment on '%s'", monitored_environment_topic.c_str());

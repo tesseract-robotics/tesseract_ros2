@@ -64,6 +64,9 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <geometry_msgs/msg/pose.hpp>
 #include <geometry_msgs/msg/pose_array.hpp>
 #include <trajectory_msgs/msg/joint_trajectory.hpp>
+#if __has_include(<rclcpp/version.h>)
+#include <rclcpp/version.h>
+#endif
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp/serialization.hpp>
 #include <boost/serialization/access.hpp>
@@ -87,6 +90,11 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_srdf/kinematics_information.h>  // For all the nested using
 #include <tesseract_collision/core/types.h>         // For all the nested using
+
+// Define rclcpp version macro for older ROS2 versions without <rclcpp/version.h>
+#ifndef RCLCPP_VERSION_GTE
+#define RCLCPP_VERSION_GTE(major, minor, patch) false
+#endif
 
 namespace tesseract_rosutils
 {

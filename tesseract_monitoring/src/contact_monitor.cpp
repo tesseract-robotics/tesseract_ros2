@@ -89,7 +89,11 @@ ContactMonitor::ContactMonitor(std::string monitor_namespace,
           this,
           std::placeholders::_1,
           std::placeholders::_2),
+#if RCLCPP_VERSION_GTE(28, 0, 0)
       rclcpp::ServicesQoS());
+#else
+      rmw_qos_profile_services_default);
+#endif
 }
 
 ContactMonitor::~ContactMonitor() { current_joint_states_evt_.notify_all(); }

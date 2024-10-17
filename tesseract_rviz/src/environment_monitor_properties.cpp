@@ -334,7 +334,11 @@ void EnvironmentMonitorProperties::onEnvironmentSnapshotTopicChanged()
   // Connect to new topic
   data_->snapshot = data_->node->create_subscription<tesseract_msgs::msg::Environment>(
       data_->environment_snapshot_topic_property->getTopicStd(),
+#if RCLCPP_VERSION_GTE(28, 0, 0)
       rclcpp::ServicesQoS(),
+#else
+      rmw_qos_profile_services_default,
+#endif
       std::bind(&EnvironmentMonitorProperties::snapshotCallback, this, std::placeholders::_1));
 }
 

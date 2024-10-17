@@ -50,7 +50,13 @@ typename SrvType::Response::SharedPtr call_service(const std::string& name,
                                                    rclcpp::CallbackGroup::SharedPtr cbg,
                                                    std::chrono::duration<double> timeout)
 {
-  auto client = node.create_client<SrvType>(name, rclcpp::ServicesQoS(), cbg);
+  auto client = node.create_client<SrvType>(name,
+#if RCLCPP_VERSION_GTE(28, 0, 0)  // ROS 2 Jazzy
+                                            rclcpp::ServicesQoS(),
+#else
+                                            rmw_qos_profile_services_default,
+#endif
+                                            cbg);
   if (!client->service_is_ready())
   {
     RCLCPP_ERROR_STREAM(node.get_logger(), "Service '" << name << "' not available!");
@@ -58,7 +64,7 @@ typename SrvType::Response::SharedPtr call_service(const std::string& name,
   }
 
   rclcpp::executors::SingleThreadedExecutor exec;
-#if __has_include(<rclcpp/version.h>)  // ROS 2 Humble
+#if RCLCPP_VERSION_GTE(16, 0, 0)  // ROS 2 Humble
   exec.add_callback_group(cbg, node.get_node_base_interface());
 #else  // ROS 2 Foxy
   exec.add_node(node.get_node_base_interface());
@@ -78,18 +84,15 @@ typename SrvType::Response::SharedPtr call_service(const std::string& name,
 ROSEnvironmentMonitorInterface::ROSEnvironmentMonitorInterface(rclcpp::Node::SharedPtr node, std::string env_name)
   : EnvironmentMonitorInterface(std::move(env_name))
   , node_(std::move(node))
-#if __has_include(<rclcpp/version.h>)  // ROS 2 Humble
-  , callback_group_
-{
-  node_->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive, false)
-}
+#if RCLCPP_VERSION_GTE(16, 0, 0)  // ROS 2 Humble
+  , callback_group_{ node_->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive, false) }
 #else  // ROS 2 Foxy
-  , callback_group_
-{
-  node_->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive)
-}
+  , callback_group_{ node_->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive) }
 #endif
-, logger_{ node_->get_logger().get_child(env_name + "_env_monitor") }, env_name_{ env_name } {}
+  , logger_{ node_->get_logger().get_child(env_name + "_env_monitor") }
+  , env_name_{ env_name }
+{
+}
 
 bool ROSEnvironmentMonitorInterface::wait(std::chrono::duration<double> duration) const
 {

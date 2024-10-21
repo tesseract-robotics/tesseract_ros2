@@ -269,22 +269,8 @@ void TesseractPlanningServer::onMotionPlanningCallback(
 
   // Generate DOT Graph if requested
   if (goal->request.dotgraph)
-  {
-    try
-    {
-      // Save dot graph
-      const tesseract_planning::TaskComposerNode& task = planning_server_->getTask(plan_future->context->name);
-      std::stringstream dotgraph;
-      task.dump(dotgraph, nullptr, plan_future->context->task_infos.getInfoMap());
-      result->response.dotgraph = dotgraph.str();
-    }
-    catch (const std::exception& e)
-    {
-      std::ostringstream oss;
-      oss << "Failed to generated DOT Graph: '" << e.what() << "'!" << std::endl;
-      RCLCPP_ERROR_STREAM(node_->get_logger(), oss.str());
-    }
-  }
+    result->response.dotgraph = planning_server_->getTask(plan_future->context->name)
+                                    .getDotgraph(plan_future->context->task_infos.getInfoMap());
 
   try
   {

@@ -53,7 +53,10 @@ static constexpr const char* NODE_ID = "tesseract_rosutils_plotting";
 ROSPlotting::ROSPlotting(std::string root_link, std::string topic_namespace)
   : root_link_(std::move(root_link)), topic_namespace_(std::move(topic_namespace))
 {
-  internal_node_ = std::make_shared<rclcpp::Node>(NODE_ID);
+  // Create a unique name for the node
+  char node_name[45];                                                                         // NOLINT
+  snprintf(node_name, sizeof(node_name), "%s_%zx", NODE_ID, reinterpret_cast<size_t>(this));  // NOLINT
+  internal_node_ = std::make_shared<rclcpp::Node>(node_name);
   trajectory_pub_ = internal_node_->create_publisher<tesseract_msgs::msg::Trajectory>(topic_namespace_ + "/display_"
                                                                                                          "tesseract_"
                                                                                                          "trajectory",

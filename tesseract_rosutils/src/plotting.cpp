@@ -27,12 +27,15 @@
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <thread>
 #include <Eigen/Geometry>
+#include <boost/uuid/random_generator.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <rclcpp/rclcpp.hpp>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_rosutils/plotting.h>
 #include <tesseract_rosutils/utils.h>
 
+#include <tesseract_common/serialization.h>
 #include <tesseract_command_language/utils.h>
 #include <tesseract_command_language/composite_instruction.h>
 #include <tesseract_motion_planners/core/utils.h>
@@ -128,6 +131,7 @@ void ROSPlotting::plotTrajectory(const tesseract_common::JointTrajectory& traj, 
 {
   tesseract_msgs::msg::Trajectory msg;
   msg.ns = std::move(ns);
+  msg.joint_trajectories_uuid = boost::uuids::to_string(traj.uuid);
   msg.description = std::move(description);
 
   if (!traj.empty())
@@ -167,6 +171,7 @@ void ROSPlotting::plotTrajectories(const tesseract_environment::Environment& env
 {
   tesseract_msgs::msg::Trajectory msg;
   msg.ns = std::move(ns);
+  msg.joint_trajectories_uuid = boost::uuids::to_string(boost::uuids::random_generator()());
   msg.description = std::move(description);
 
   // Set tesseract state information
@@ -181,6 +186,10 @@ void ROSPlotting::plotTrajectories(const tesseract_environment::Environment& env
     pair_msg.second = pair.second;
     msg.initial_state.push_back(pair_msg);
   }
+
+  msg.instructions =
+      tesseract_common::Serialization::toArchiveStringXML<tesseract_planning::InstructionPoly>(instructions[0]);
+  //.as<tesseract_planning::CompositeInstruction>()
 
   // Convert to joint trajectories
   for (const auto& instruction : instructions)
@@ -204,6 +213,7 @@ void ROSPlotting::plotTrajectory(const tesseract_environment::Commands& cmds,
 {
   tesseract_msgs::msg::Trajectory msg;
   msg.ns = std::move(ns);
+  msg.joint_trajectories_uuid = boost::uuids::to_string(instruction.getUUID());
   msg.description = std::move(description);
 
   // Set the commands message

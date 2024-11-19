@@ -2,10 +2,13 @@
 Changelog for package tesseract_rviz
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.26.0 (2024-11-19)
+-------------------
+
 0.25.0 (2024-09-30)
 -------------------
 * Update to support Geometry Type CompoundMesh
-* Contributors: Roelof Oomen
+* Contributors: Levi Armstrong, Roelof Oomen
 
 0.23.0 (2024-08-21)
 -------------------

@@ -2,6 +2,23 @@
 Changelog for package tesseract_qt_ros
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.26.0 (2024-11-19)
+-------------------
+
+0.25.0 (2024-09-29)
+-------------------
+
+0.24.0 (2024-08-15)
+-------------------
+
+0.23.0 (2024-07-25)
+-------------------
+
+0.22.0 (2024-06-11)
+-------------------
+* Leverage forward declarations (`#233 <https://github.com/tesseract-robotics/tesseract_ros/issues/233>`_)
+* Contributors: Levi Armstrong
+
 0.21.0 (2023-11-10)
 -------------------
 
@@ -16,6 +33,8 @@ Changelog for package tesseract_qt_ros
 
 0.18.1 (2023-07-10)
 -------------------
+* Add Tesseract Studio ROS executable
+* Contributors: Levi Armstrong
 
 0.18.0 (2023-07-03)
 -------------------

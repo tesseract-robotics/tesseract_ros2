@@ -2,6 +2,11 @@
 Changelog for package tesseract_planning_server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.26.0 (2024-11-19)
+-------------------
+* Update to latest tesseract
+* Contributors: Levi Armstrong, Roelof Oomen
+
 0.25.0 (2024-09-30)
 -------------------
 * Change timer to stopwatch

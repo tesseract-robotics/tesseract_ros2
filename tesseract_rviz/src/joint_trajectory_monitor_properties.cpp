@@ -18,12 +18,17 @@
 
 #include <unordered_map>
 #include <thread>
+#include <boost/lexical_cast.hpp>
+#include <boost/uuid/uuid_io.hpp>
 
 #include <QApplication>
 
+#include <tesseract_common/serialization.h>
 #include <tesseract_environment/environment.h>
 #include <tesseract_environment/command.h>
 #include <tesseract_environment/commands.h>
+#include <tesseract_command_language/composite_instruction.h>
+#include <tesseract_command_language/utils.h>
 
 namespace tesseract_rviz
 {
@@ -62,6 +67,8 @@ struct JointTrajectoryMonitorProperties::Implementation
 
     tesseract_common::JointTrajectorySet trajectory_set(initial_state);
     tesseract_common::JointTrajectory joint_trajectory = tesseract_rosutils::fromMsg(*msg);
+    trajectory_set.setUUID(joint_trajectory.uuid);
+    trajectory_set.setDescription(joint_trajectory.description);
     trajectory_set.appendJointTrajectory(joint_trajectory);
     tesseract_gui::events::JointTrajectoryAdd event(component_info, trajectory_set);
     QApplication::sendEvent(qApp, &event);
@@ -98,15 +105,44 @@ struct JointTrajectoryMonitorProperties::Implementation
       if (!msg->ns.empty())
         trajectory_set.setNamespace(msg->ns);
 
-      for (const auto& joint_trajectory_msg : msg->joint_trajectories)
+      if (!msg->instructions.empty())
       {
-        tesseract_common::JointTrajectory joint_trajectory = tesseract_rosutils::fromMsg(joint_trajectory_msg);
-        trajectory_set.appendJointTrajectory(joint_trajectory);
-      }
+        auto ci = tesseract_common::Serialization::fromArchiveStringXML<tesseract_planning::CompositeInstruction>(
+            msg->instructions);
+        trajectory_set.setUUID(ci.getUUID());
+        trajectory_set.setDescription(ci.getDescription());
+        if (!ci.empty() && ci.front().isCompositeInstruction())
+        {
+          for (const auto& entry : ci)
+          {
+            const auto& sub_ci = entry.as<tesseract_planning::CompositeInstruction>();
+            tesseract_common::JointTrajectory joint_trajectory = tesseract_planning::toJointTrajectory(sub_ci);
+            trajectory_set.appendJointTrajectory(joint_trajectory);
+          }
 
-      trajectory_set.setDescription(msg->description);
-      tesseract_gui::events::JointTrajectoryAdd event(component_info, trajectory_set);
-      QApplication::sendEvent(qApp, &event);
+          tesseract_gui::events::JointTrajectoryAdd event(component_info, trajectory_set);
+          QApplication::sendEvent(qApp, &event);
+        }
+        else
+        {
+          tesseract_common::JointTrajectory joint_trajectory = tesseract_planning::toJointTrajectory(ci);
+          trajectory_set.appendJointTrajectory(joint_trajectory);
+          tesseract_gui::events::JointTrajectoryAdd event(component_info, trajectory_set);
+          QApplication::sendEvent(qApp, &event);
+        }
+      }
+      else
+      {
+        trajectory_set.setUUID(boost::lexical_cast<boost::uuids::uuid>(msg->joint_trajectories_uuid));
+        trajectory_set.setDescription(msg->joint_trajectories_description);
+        for (const auto& joint_trajectory_msg : msg->joint_trajectories)
+        {
+          tesseract_common::JointTrajectory joint_trajectory = tesseract_rosutils::fromMsg(joint_trajectory_msg);
+          trajectory_set.appendJointTrajectory(joint_trajectory);
+          tesseract_gui::events::JointTrajectoryAdd event(component_info, trajectory_set);
+          QApplication::sendEvent(qApp, &event);
+        }
+      }
     }
     catch (...)
     {

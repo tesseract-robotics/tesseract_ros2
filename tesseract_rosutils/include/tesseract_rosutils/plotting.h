@@ -73,13 +73,12 @@ public:
 
   void plotTrajectory(const tesseract_environment::Environment& env,
                       const tesseract_planning::InstructionPoly& instruction,
-                      std::string ns = "",
-                      std::string description = "");
+                      std::string ns = "");
 
   void plotTrajectories(const tesseract_environment::Environment& env,
                         const std::vector<tesseract_planning::InstructionPoly>& instructions,
-                        std::string ns,
-                        std::string description);
+                        std::string ns = "",
+                        const std::string& description = "");
 
   void plotTrajectory(const std::vector<std::shared_ptr<const tesseract_environment::Command>>& cmds,
                       const tesseract_planning::InstructionPoly& instruction,

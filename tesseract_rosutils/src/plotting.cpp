@@ -158,21 +158,10 @@ void ROSPlotting::plotTrajectory(const tesseract_msgs::msg::Trajectory& traj) { 
 
 void ROSPlotting::plotTrajectory(const tesseract_environment::Environment& env,
                                  const tesseract_planning::InstructionPoly& instruction,
-                                 std::string ns,
-                                 std::string description)
-{
-  plotTrajectories(env, { instruction }, std::move(ns), std::move(description));
-}
-
-void ROSPlotting::plotTrajectories(const tesseract_environment::Environment& env,
-                                   const std::vector<tesseract_planning::InstructionPoly>& instructions,
-                                   std::string ns,
-                                   std::string description)
+                                 std::string ns)
 {
   tesseract_msgs::msg::Trajectory msg;
   msg.ns = std::move(ns);
-  msg.joint_trajectories_uuid = boost::uuids::to_string(boost::uuids::random_generator()());
-  msg.description = std::move(description);
 
   // Set tesseract state information
   toMsg(msg.environment, env);
@@ -187,23 +176,28 @@ void ROSPlotting::plotTrajectories(const tesseract_environment::Environment& env
     msg.initial_state.push_back(pair_msg);
   }
 
-  msg.instructions =
-      tesseract_common::Serialization::toArchiveStringXML<tesseract_planning::InstructionPoly>(instructions[0]);
-  //.as<tesseract_planning::CompositeInstruction>()
-
-  // Convert to joint trajectories
-  for (const auto& instruction : instructions)
-  {
-    assert(instruction.isCompositeInstruction());
-    const auto& ci = instruction.as<tesseract_planning::CompositeInstruction>();
-    tesseract_common::JointTrajectory traj = tesseract_planning::toJointTrajectory(ci);
-    // Set the joint trajectory message
-    tesseract_msgs::msg::JointTrajectory traj_msg;
-    toMsg(traj_msg, traj);
-    msg.joint_trajectories.push_back(traj_msg);
-  }
+  assert(instruction.isCompositeInstruction());
+  const auto& ci = instruction.as<tesseract_planning::CompositeInstruction>();
+  msg.instructions = tesseract_common::Serialization::toArchiveStringXML<tesseract_planning::CompositeInstruction>(ci);
 
   plotTrajectory(msg);
+}
+
+void ROSPlotting::plotTrajectories(const tesseract_environment::Environment& env,
+                                   const std::vector<tesseract_planning::InstructionPoly>& instructions,
+                                   std::string ns,
+                                   const std::string& description)
+{
+  tesseract_planning::CompositeInstruction ci;
+  ci.setDescription(description);
+
+  // Add all instructions to one composite instruction
+  for (const auto& instruction : instructions)
+  {
+    ci.emplace_back(instruction);
+  }
+
+  plotTrajectory(env, ci, std::move(ns));
 }
 
 void ROSPlotting::plotTrajectory(const tesseract_environment::Commands& cmds,

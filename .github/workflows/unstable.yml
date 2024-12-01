@@ -7,6 +7,7 @@ on:
   pull_request:
     paths:
       - 'tesseract**'
+      - 'dependencies**'
       - '.github/workflows/unstable.yml'
   schedule:
     - cron: '0 5 * * *'

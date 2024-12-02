@@ -7,8 +7,8 @@ Changelog for package tesseract_rosutils
 * Update to latest tesseract
 * Contributors: Levi Armstrong, Roelof Oomen
 
-Forthcoming
------------
+0.27.0 (2024-12-01)
+-------------------
 * Fix plotTrajectory with InstructionPoly
 * - Updates to support visualizing online planning example
   - 0.26.0

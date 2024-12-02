@@ -5,8 +5,8 @@ Changelog for package tesseract_ros_examples
 0.26.0 (2024-11-19)
 -------------------
 
-Forthcoming
------------
+0.27.0 (2024-12-01)
+-------------------
 * - Updates to support visualizing online planning example
   - 0.26.0
   - Update changelogs

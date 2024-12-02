@@ -7,6 +7,15 @@ Changelog for package tesseract_planning_server
 * Update to latest tesseract
 * Contributors: Levi Armstrong, Roelof Oomen
 
+Forthcoming
+-----------
+* - Updates to support visualizing online planning example
+  - 0.26.0
+  - Update changelogs
+  - Update rosinstall
+* Update to latest tesseract
+* Contributors: Roelof Oomen
+
 0.25.0 (2024-09-30)
 -------------------
 * Change timer to stopwatch

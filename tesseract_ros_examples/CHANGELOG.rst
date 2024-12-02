@@ -5,6 +5,16 @@ Changelog for package tesseract_ros_examples
 0.26.0 (2024-11-19)
 -------------------
 
+Forthcoming
+-----------
+* - Updates to support visualizing online planning example
+  - 0.26.0
+  - Update changelogs
+  - Update rosinstall
+* Revert SensorDataQoS and publisher queue sizes
+* Clean up QoS settings
+* Contributors: Roelof Oomen
+
 0.25.0 (2024-09-30)
 -------------------
 

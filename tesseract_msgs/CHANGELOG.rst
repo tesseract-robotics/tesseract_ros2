@@ -5,6 +5,14 @@ Changelog for package tesseract_msgs
 0.26.0 (2024-11-19)
 -------------------
 
+Forthcoming
+-----------
+* - Updates to support visualizing online planning example
+  - 0.26.0
+  - Update changelogs
+  - Update rosinstall
+* Contributors: Roelof Oomen
+
 0.25.0 (2024-09-30)
 -------------------
 * Update to support Geometry Type CompoundMesh

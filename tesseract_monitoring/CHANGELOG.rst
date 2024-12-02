@@ -5,6 +5,20 @@ Changelog for package tesseract_monitoring
 0.26.0 (2024-11-19)
 -------------------
 
+Forthcoming
+-----------
+* - Updates to support visualizing online planning example
+  - 0.26.0
+  - Update changelogs
+  - Update rosinstall
+* clang-format
+* - Fix ServicesQoS for older ROS2 versions
+  - Add RCLCPP_VERSION_GTE macro for older ROS versions
+  - Use RCLCPP_VERSION_GTE instead of header check to determine Humble
+* Revert SensorDataQoS and publisher queue sizes
+* Clean up QoS settings
+* Contributors: Roelof Oomen
+
 0.25.0 (2024-09-30)
 -------------------
 

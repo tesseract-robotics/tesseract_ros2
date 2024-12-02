@@ -7,6 +7,22 @@ Changelog for package tesseract_rosutils
 * Update to latest tesseract
 * Contributors: Levi Armstrong, Roelof Oomen
 
+Forthcoming
+-----------
+* Fix plotTrajectory with InstructionPoly
+* - Updates to support visualizing online planning example
+  - 0.26.0
+  - Update changelogs
+  - Update rosinstall
+* Generate unique node name for ROSPlotting
+* - Fix ServicesQoS for older ROS2 versions
+  - Add RCLCPP_VERSION_GTE macro for older ROS versions
+  - Use RCLCPP_VERSION_GTE instead of header check to determine Humble
+* Revert SensorDataQoS and publisher queue sizes
+* Clean up QoS settings
+* Update to latest tesseract
+* Contributors: Roelof Oomen
+
 0.25.0 (2024-09-30)
 -------------------
 * Add plotToolpath for ToolPath

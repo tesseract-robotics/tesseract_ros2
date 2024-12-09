@@ -58,7 +58,6 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <tesseract_msgs/msg/string_double_pair.hpp>
 #include <tesseract_msgs/msg/transform_map.hpp>
 #include <tesseract_msgs/msg/visual_geometry.hpp>
-#include <tesseract_msgs/msg/planner_profile_remapping.hpp>
 #include <tesseract_msgs/msg/task_composer_key.hpp>
 #include <tesseract_msgs/msg/task_composer_node_info.hpp>
 #include <geometry_msgs/msg/pose.hpp>
@@ -188,11 +187,6 @@ bool fromMsg(std::shared_ptr<tesseract_scene_graph::JointSafety>& joint_safety,
              const tesseract_msgs::msg::JointSafety& joint_safety_msg);
 
 bool toMsg(tesseract_msgs::msg::Joint& joint_msg, const tesseract_scene_graph::Joint& joint);
-
-tesseract_planning::PlannerProfileRemapping
-fromMsg(const tesseract_msgs::msg::PlannerProfileRemapping& profile_remapping_msg);
-tesseract_msgs::msg::PlannerProfileRemapping
-toMsg(const tesseract_planning::PlannerProfileRemapping& profile_remapping);
 
 tesseract_common::PairsCollisionMarginData
 fromMsg(const std::vector<tesseract_msgs::msg::ContactMarginPair>& contact_margin_pairs_msg);

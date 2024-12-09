@@ -15,6 +15,7 @@
   <depend>tf2_eigen</depend>
   <depend>trajectory_msgs</depend>
   <depend>visualization_msgs</depend>
+  <depend>octomap_msgs</depend>
 
   <depend>tesseract_task_composer</depend>
   

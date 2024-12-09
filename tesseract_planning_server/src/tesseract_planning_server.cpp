@@ -251,13 +251,6 @@ void TesseractPlanningServer::onMotionPlanningCallback(
   data->setData("planning_input", std::move(planning_input));
   data->setData("environment", std::shared_ptr<const tesseract_environment::Environment>(std::move(env)));
   data->setData("profiles", profiles_);
-  auto move_profile_remapping = tesseract_rosutils::fromMsg(goal->request.move_profile_remapping);
-  if (!move_profile_remapping.empty())
-    data->setData("move_profile_remapping", move_profile_remapping);
-
-  auto composite_profile_remapping = tesseract_rosutils::fromMsg(goal->request.composite_profile_remapping);
-  if (!composite_profile_remapping.empty())
-    data->setData("composite_profile_remapping", composite_profile_remapping);
 
   // Solve
   tesseract_common::Stopwatch stopwatch;
@@ -301,69 +294,58 @@ void TesseractPlanningServer::onMotionPlanningCallback(
 void TesseractPlanningServer::loadDefaultPlannerProfiles()
 {
   // Add TrajOpt Default Profiles
-  profiles_->addProfile<tesseract_planning::TrajOptPlanProfile>(
-      TRAJOPT_DEFAULT_NAMESPACE,
-      tesseract_planning::DEFAULT_PROFILE_KEY,
-      std::make_shared<tesseract_planning::TrajOptDefaultPlanProfile>());
-  profiles_->addProfile<tesseract_planning::TrajOptCompositeProfile>(
-      TRAJOPT_DEFAULT_NAMESPACE,
-      tesseract_planning::DEFAULT_PROFILE_KEY,
-      std::make_shared<tesseract_planning::TrajOptDefaultCompositeProfile>());
-  profiles_->addProfile<tesseract_planning::TrajOptSolverProfile>(
-      TRAJOPT_DEFAULT_NAMESPACE,
-      tesseract_planning::DEFAULT_PROFILE_KEY,
-      std::make_shared<tesseract_planning::TrajOptDefaultSolverProfile>());
+  profiles_->addProfile(TRAJOPT_DEFAULT_NAMESPACE,
+                        tesseract_planning::DEFAULT_PROFILE_KEY,
+                        std::make_shared<tesseract_planning::TrajOptDefaultPlanProfile>());
+  profiles_->addProfile(TRAJOPT_DEFAULT_NAMESPACE,
+                        tesseract_planning::DEFAULT_PROFILE_KEY,
+                        std::make_shared<tesseract_planning::TrajOptDefaultCompositeProfile>());
+  profiles_->addProfile(TRAJOPT_DEFAULT_NAMESPACE,
+                        tesseract_planning::DEFAULT_PROFILE_KEY,
+                        std::make_shared<tesseract_planning::TrajOptDefaultSolverProfile>());
 
   // Add TrajOpt IFOPT Default Profiles
 #ifdef TESSERACT_TASK_COMPOSER_HAS_TRAJOPT_IFOPT
-  profiles_->addProfile<tesseract_planning::TrajOptIfoptPlanProfile>(
-      TRAJOPT_IFOPT_DEFAULT_NAMESPACE,
-      tesseract_planning::DEFAULT_PROFILE_KEY,
-      std::make_shared<tesseract_planning::TrajOptIfoptDefaultPlanProfile>());
-  profiles_->addProfile<tesseract_planning::TrajOptIfoptCompositeProfile>(
-      TRAJOPT_IFOPT_DEFAULT_NAMESPACE,
-      tesseract_planning::DEFAULT_PROFILE_KEY,
-      std::make_shared<tesseract_planning::TrajOptIfoptDefaultCompositeProfile>());
-  profiles_->addProfile<tesseract_planning::TrajOptIfoptSolverProfile>(
-      TRAJOPT_IFOPT_DEFAULT_NAMESPACE,
-      tesseract_planning::DEFAULT_PROFILE_KEY,
-      std::make_shared<tesseract_planning::TrajOptIfoptDefaultSolverProfile>());
+  profiles_->addProfile(TRAJOPT_IFOPT_DEFAULT_NAMESPACE,
+                        tesseract_planning::DEFAULT_PROFILE_KEY,
+                        std::make_shared<tesseract_planning::TrajOptIfoptDefaultPlanProfile>());
+  profiles_->addProfile(TRAJOPT_IFOPT_DEFAULT_NAMESPACE,
+                        tesseract_planning::DEFAULT_PROFILE_KEY,
+                        std::make_shared<tesseract_planning::TrajOptIfoptDefaultCompositeProfile>());
+  profiles_->addProfile(TRAJOPT_IFOPT_DEFAULT_NAMESPACE,
+                        tesseract_planning::DEFAULT_PROFILE_KEY,
+                        std::make_shared<tesseract_planning::TrajOptIfoptDefaultSolverProfile>());
 #endif
 
   // Add Descartes Default Profiles
-  profiles_->addProfile<tesseract_planning::DescartesPlanProfile<double>>(
-      DESCARTES_DEFAULT_NAMESPACE,
-      tesseract_planning::DEFAULT_PROFILE_KEY,
-      std::make_shared<tesseract_planning::DescartesDefaultPlanProfile<double>>());
+  profiles_->addProfile(DESCARTES_DEFAULT_NAMESPACE,
+                        tesseract_planning::DEFAULT_PROFILE_KEY,
+                        std::make_shared<tesseract_planning::DescartesDefaultPlanProfile<double>>());
 
   // Add OMPL Default Profiles
-  profiles_->addProfile<tesseract_planning::OMPLPlanProfile>(
-      OMPL_DEFAULT_NAMESPACE,
-      tesseract_planning::DEFAULT_PROFILE_KEY,
-      std::make_shared<tesseract_planning::OMPLDefaultPlanProfile>());
+  profiles_->addProfile(OMPL_DEFAULT_NAMESPACE,
+                        tesseract_planning::DEFAULT_PROFILE_KEY,
+                        std::make_shared<tesseract_planning::OMPLDefaultPlanProfile>());
 
   // Add Simple Default Profiles
-  profiles_->addProfile<tesseract_planning::SimplePlannerPlanProfile>(
-      SIMPLE_DEFAULT_NAMESPACE,
-      tesseract_planning::DEFAULT_PROFILE_KEY,
-      std::make_shared<tesseract_planning::SimplePlannerLVSNoIKPlanProfile>());
+  profiles_->addProfile(SIMPLE_DEFAULT_NAMESPACE,
+                        tesseract_planning::DEFAULT_PROFILE_KEY,
+                        std::make_shared<tesseract_planning::SimplePlannerLVSNoIKPlanProfile>());
 
   // MinLengthTask calls the SimpleMotionPlanner to generate a seed path with waypoints interpolated in joint space
-  profiles_->addProfile<tesseract_planning::MinLengthProfile>(MLT_DEFAULT_NAMESPACE,
-                                                              tesseract_planning::DEFAULT_PROFILE_KEY,
-                                                              std::make_shared<tesseract_planning::MinLengthProfile>());
+  profiles_->addProfile(MLT_DEFAULT_NAMESPACE,
+                        tesseract_planning::DEFAULT_PROFILE_KEY,
+                        std::make_shared<tesseract_planning::MinLengthProfile>());
 
   // Post hoc collision checking
-  profiles_->addProfile<tesseract_planning::ContactCheckProfile>(
-      DCC_DEFAULT_NAMESPACE,
-      tesseract_planning::DEFAULT_PROFILE_KEY,
-      std::make_shared<tesseract_planning::ContactCheckProfile>());
+  profiles_->addProfile(DCC_DEFAULT_NAMESPACE,
+                        tesseract_planning::DEFAULT_PROFILE_KEY,
+                        std::make_shared<tesseract_planning::ContactCheckProfile>());
 
   // Time parameterization
-  profiles_->addProfile<tesseract_planning::IterativeSplineParameterizationProfile>(
-      ISP_DEFAULT_NAMESPACE,
-      tesseract_planning::DEFAULT_PROFILE_KEY,
-      std::make_shared<tesseract_planning::IterativeSplineParameterizationProfile>());
+  profiles_->addProfile(ISP_DEFAULT_NAMESPACE,
+                        tesseract_planning::DEFAULT_PROFILE_KEY,
+                        std::make_shared<tesseract_planning::IterativeSplineParameterizationProfile>());
 }
 
 Eigen::Isometry3d TesseractPlanningServer::tfFindTCPOffset(const tesseract_common::ManipulatorInfo& manip_info)

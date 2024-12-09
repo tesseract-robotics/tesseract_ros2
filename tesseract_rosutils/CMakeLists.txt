@@ -9,6 +9,7 @@ project(${pkg_extracted_name} VERSION ${pkg_extracted_version} LANGUAGES C CXX)
 find_package(ament_index_cpp REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(tf2_eigen REQUIRED)
+find_package(octomap_msgs REQUIRED)
 find_package(trajectory_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
 # tesseract
@@ -20,7 +21,6 @@ find_package(tesseract_msgs REQUIRED)
 
 # Load variable for clang tidy args, compiler options and cxx version
 tesseract_variables()
-
 add_library(${PROJECT_NAME} SHARED src/plotting.cpp src/conversions.cpp src/utils.cpp)
 target_link_libraries(${PROJECT_NAME}
   PUBLIC
@@ -34,6 +34,7 @@ target_link_libraries(${PROJECT_NAME}
   PRIVATE
     ament_index_cpp::ament_index_cpp
     ${tf2_eigen_TARGETS}
+    ${octomap_msgs_TARGETS}
 )
 target_compile_options(${PROJECT_NAME} PRIVATE ${TESSERACT_COMPILE_OPTIONS})
 target_clang_tidy(${PROJECT_NAME} ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS} ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})

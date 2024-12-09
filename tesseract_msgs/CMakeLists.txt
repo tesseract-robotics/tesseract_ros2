@@ -65,7 +65,6 @@ set(message_files
   "msg/Mesh.msg"
   "msg/ObjectColor.msg"
   "msg/OctreeSubType.msg"
-  "msg/PlannerProfileRemapping.msg"
   "msg/PlanningRequest.msg"
   "msg/PlanningResponse.msg"
   "msg/PluginInfo.msg"

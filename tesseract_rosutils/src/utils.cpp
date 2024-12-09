@@ -1040,41 +1040,6 @@ tesseract_scene_graph::Joint fromMsg(const tesseract_msgs::msg::Joint& joint_msg
   return joint;
 }
 
-tesseract_planning::PlannerProfileRemapping
-fromMsg(const tesseract_msgs::msg::PlannerProfileRemapping& profile_remapping_msg)
-{
-  tesseract_planning::PlannerProfileRemapping profile_remapping;
-  for (std::size_t i = 0; i < profile_remapping_msg.planner.size(); ++i)
-  {
-    std::unordered_map<std::string, std::string> mapping;
-    for (const auto& pair : profile_remapping_msg.mapping[i].pairs)
-      mapping.emplace(pair.first, pair.second);
-
-    profile_remapping[profile_remapping_msg.planner[i]] = mapping;
-  }
-
-  return profile_remapping;
-}
-
-tesseract_msgs::msg::PlannerProfileRemapping toMsg(const tesseract_planning::PlannerProfileRemapping& profile_remapping)
-{
-  tesseract_msgs::msg::PlannerProfileRemapping profile_remapping_msg;
-  for (const auto& planner_remapping : profile_remapping)
-  {
-    profile_remapping_msg.planner.push_back(planner_remapping.first);
-    tesseract_msgs::msg::ProfileMap mapping;
-    for (const auto& planner_pair : planner_remapping.second)
-    {
-      tesseract_msgs::msg::StringPair p;
-      p.first = planner_pair.first;
-      p.second = planner_pair.second;
-      mapping.pairs.push_back(p);
-    }
-    profile_remapping_msg.mapping.push_back(mapping);
-  }
-  return profile_remapping_msg;
-}
-
 tesseract_common::PairsCollisionMarginData
 fromMsg(const std::vector<tesseract_msgs::msg::ContactMarginPair>& contact_margin_pairs_msg)
 {

@@ -43,11 +43,11 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <tesseract_motion_planners/simple/profile/simple_planner_profile.h>
 
 #include <tesseract_motion_planners/simple/profile/simple_planner_lvs_no_ik_plan_profile.h>
-#include <tesseract_motion_planners/ompl/profile/ompl_default_plan_profile.h>
+#include <tesseract_motion_planners/ompl/profile/ompl_real_vector_plan_profile.h>
 #include <tesseract_motion_planners/descartes/profile/descartes_default_plan_profile.h>
 #include <tesseract_motion_planners/trajopt/profile/trajopt_default_composite_profile.h>
 #include <tesseract_motion_planners/trajopt/profile/trajopt_default_plan_profile.h>
-#include <tesseract_motion_planners/trajopt/profile/trajopt_default_solver_profile.h>
+#include <tesseract_motion_planners/trajopt/profile/trajopt_osqp_solver_profile.h>
 #include <tesseract_task_composer/planning/profiles/contact_check_profile.h>
 #include <tesseract_task_composer/planning/profiles/iterative_spline_parameterization_profile.h>
 #include <tesseract_task_composer/planning/profiles/min_length_profile.h>
@@ -302,7 +302,7 @@ void TesseractPlanningServer::loadDefaultPlannerProfiles()
                         std::make_shared<tesseract_planning::TrajOptDefaultCompositeProfile>());
   profiles_->addProfile(TRAJOPT_DEFAULT_NAMESPACE,
                         tesseract_planning::DEFAULT_PROFILE_KEY,
-                        std::make_shared<tesseract_planning::TrajOptDefaultSolverProfile>());
+                        std::make_shared<tesseract_planning::TrajOptOSQPSolverProfile>());
 
   // Add TrajOpt IFOPT Default Profiles
 #ifdef TESSERACT_TASK_COMPOSER_HAS_TRAJOPT_IFOPT
@@ -325,7 +325,7 @@ void TesseractPlanningServer::loadDefaultPlannerProfiles()
   // Add OMPL Default Profiles
   profiles_->addProfile(OMPL_DEFAULT_NAMESPACE,
                         tesseract_planning::DEFAULT_PROFILE_KEY,
-                        std::make_shared<tesseract_planning::OMPLDefaultPlanProfile>());
+                        std::make_shared<tesseract_planning::OMPLRealVectorPlanProfile>());
 
   // Add Simple Default Profiles
   profiles_->addProfile(SIMPLE_DEFAULT_NAMESPACE,

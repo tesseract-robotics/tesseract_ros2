@@ -310,7 +310,7 @@ bool CurrentStateMonitor::waitForCompleteState(const std::string& manip, double 
   std::vector<std::string> missing_joints;
   if (!haveCompleteState(missing_joints))
   {
-    tesseract_kinematics::JointGroup::UPtr jmg = env_->getJointGroup(manip);
+    tesseract_kinematics::JointGroup::ConstPtr jmg = env_->getJointGroup(manip);
     if (jmg)
     {
       std::set<std::string> mj;

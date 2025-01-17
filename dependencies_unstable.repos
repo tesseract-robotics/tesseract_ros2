@@ -2,7 +2,7 @@ repositories:
   ros_industrial_cmake_boilerplate:
     type: git
     url: https://github.com/ros-industrial/ros_industrial_cmake_boilerplate.git
-    version: 0.6.2
+    version: 0.7.1
   tesseract:
     type: git
     url: https://github.com/tesseract-robotics/tesseract.git
@@ -22,11 +22,11 @@ repositories:
   descartes_light:
     type: git
     url: https://github.com/swri-robotics/descartes_light.git
-    version: 0.4.3
+    version: 0.4.6
   opw_kinematics:
     type: git
     url: https://github.com/Jmeyer1292/opw_kinematics.git
-    version: 0.5.0
+    version: 0.5.2
   ifopt:
     type: git
     url: https://github.com/ethz-adrl/ifopt.git

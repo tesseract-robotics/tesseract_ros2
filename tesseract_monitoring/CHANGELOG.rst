@@ -5,8 +5,8 @@ Changelog for package tesseract_monitoring
 0.26.0 (2024-11-19)
 -------------------
 
-Forthcoming
------------
+0.28.0 (2025-01-17)
+-------------------
 * Update due to changes in tesseract and tesseract_planning repos
 * Contributors: Roelof Oomen
 

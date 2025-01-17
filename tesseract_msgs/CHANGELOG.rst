@@ -5,8 +5,8 @@ Changelog for package tesseract_msgs
 0.26.0 (2024-11-19)
 -------------------
 
-Forthcoming
------------
+0.28.0 (2025-01-17)
+-------------------
 * Update due to changes with profiles and overrides
 * Update to clang-format-12
 * Contributors: Levi Armstrong

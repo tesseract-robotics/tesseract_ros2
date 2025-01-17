@@ -7,8 +7,8 @@ Changelog for package tesseract_rosutils
 * Update to latest tesseract
 * Contributors: Levi Armstrong, Roelof Oomen
 
-Forthcoming
------------
+0.28.0 (2025-01-17)
+-------------------
 * Update due to changes with profiles and overrides
 * Contributors: Levi Armstrong
 

@@ -5,6 +5,12 @@ Changelog for package tesseract_msgs
 0.26.0 (2024-11-19)
 -------------------
 
+Forthcoming
+-----------
+* Update due to changes with profiles and overrides
+* Update to clang-format-12
+* Contributors: Levi Armstrong
+
 0.27.0 (2024-12-01)
 -------------------
 * - Updates to support visualizing online planning example

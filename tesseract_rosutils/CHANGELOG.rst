@@ -2,11 +2,6 @@
 Changelog for package tesseract_rosutils
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.26.0 (2024-11-19)
--------------------
-* Update to latest tesseract
-* Contributors: Levi Armstrong, Roelof Oomen
-
 0.28.0 (2025-01-17)
 -------------------
 * Update due to changes with profiles and overrides
@@ -27,6 +22,11 @@ Changelog for package tesseract_rosutils
 * Clean up QoS settings
 * Update to latest tesseract
 * Contributors: Roelof Oomen
+
+0.26.0 (2024-11-19)
+-------------------
+* Update to latest tesseract
+* Contributors: Levi Armstrong, Roelof Oomen
 
 0.25.0 (2024-09-30)
 -------------------

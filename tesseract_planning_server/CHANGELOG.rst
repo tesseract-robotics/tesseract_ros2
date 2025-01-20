@@ -2,11 +2,6 @@
 Changelog for package tesseract_planning_server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.26.0 (2024-11-19)
--------------------
-* Update to latest tesseract
-* Contributors: Levi Armstrong, Roelof Oomen
-
 0.28.0 (2025-01-17)
 -------------------
 * Update due to changes in tesseract and tesseract_planning repos
@@ -21,6 +16,11 @@ Changelog for package tesseract_planning_server
   - Update rosinstall
 * Update to latest tesseract
 * Contributors: Roelof Oomen
+
+0.26.0 (2024-11-19)
+-------------------
+* Update to latest tesseract
+* Contributors: Levi Armstrong, Roelof Oomen
 
 0.25.0 (2024-09-30)
 -------------------

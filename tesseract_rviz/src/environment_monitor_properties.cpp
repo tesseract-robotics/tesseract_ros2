@@ -289,13 +289,16 @@ void EnvironmentMonitorProperties::snapshotCallback(const tesseract_msgs::msg::E
 
   tesseract_environment::Commands commands = tesseract_rosutils::fromMsg(msg->command_history);
   std::unordered_map<std::string, double> jv;
+  tesseract_common::TransformMap fjv;
   tesseract_rosutils::fromMsg(jv, msg->joint_states);
+  tesseract_rosutils::fromMsg(fjv, msg->floating_joint_states);
   auto env = std::make_shared<tesseract_environment::Environment>();
   auto locator = std::make_shared<tesseract_rosutils::ROSResourceLocator>();
   env->setResourceLocator(locator);
   if (env->init(commands))
   {
     env->setState(jv);
+    env->setState(jv, fjv);
 
     data_->monitor = std::make_unique<tesseract_monitoring::ROSEnvironmentMonitor>(
         data_->node, env, data_->urdf_description_string_property->getStdString());

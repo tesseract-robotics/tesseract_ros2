@@ -2189,19 +2189,17 @@ bool toMsg(tesseract_msgs::msg::Environment& environment_msg,
            const tesseract_environment::Environment& env,
            bool include_joint_states)
 {
+  bool success = true;
   if (include_joint_states)
   {
     tesseract_scene_graph::SceneState env_state = env.getState();
-    toMsg(environment_msg.joint_states, env_state.joints);
-    toMsg(environment_msg.floating_joint_states, env_state.floating_joints);
+    success = success && toMsg(environment_msg.joint_states, env_state.joints);
+    success = success && toMsg(environment_msg.floating_joint_states, env_state.floating_joints);
   }
 
-  if (!tesseract_rosutils::toMsg(environment_msg.command_history, env.getCommandHistory(), 0))
-  {
-    return false;
-  }
+  success = success && tesseract_rosutils::toMsg(environment_msg.command_history, env.getCommandHistory(), 0);
 
-  return true;
+  return success;
 }
 
 bool toMsg(tesseract_msgs::msg::Environment& environment_msg,

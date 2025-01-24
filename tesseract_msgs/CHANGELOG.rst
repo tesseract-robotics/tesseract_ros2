@@ -2,9 +2,6 @@
 Changelog for package tesseract_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.26.0 (2024-11-19)
--------------------
-
 0.28.0 (2025-01-17)
 -------------------
 * Update due to changes with profiles and overrides
@@ -18,6 +15,9 @@ Changelog for package tesseract_msgs
   - Update changelogs
   - Update rosinstall
 * Contributors: Roelof Oomen
+
+0.26.0 (2024-11-19)
+-------------------
 
 0.25.0 (2024-09-30)
 -------------------

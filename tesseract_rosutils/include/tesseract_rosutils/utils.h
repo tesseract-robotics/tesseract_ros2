@@ -114,6 +114,7 @@ private:
 };
 
 bool isMsgEmpty(const sensor_msgs::msg::JointState& msg);
+bool isMsgEmpty(const tesseract_msgs::msg::TransformMap& msg);
 
 bool isIdentical(const tesseract_geometry::Geometry& shape1, const tesseract_geometry::Geometry& shape2);
 
@@ -249,7 +250,10 @@ void toMsg(tesseract_msgs::msg::JointTrajectory& traj_msg, const tesseract_commo
  */
 tesseract_common::JointTrajectory fromMsg(const tesseract_msgs::msg::JointTrajectory& traj_msg);
 
-bool processMsg(tesseract_environment::Environment& env, const sensor_msgs::msg::JointState& joint_state_msg);
+bool processMsg(
+    tesseract_environment::Environment& env,
+    const sensor_msgs::msg::JointState& joint_state_msg,
+    const tesseract_msgs::msg::TransformMap& floating_joint_state_msg = tesseract_msgs::msg::TransformMap());
 
 /**
  * @brief Apply the provided commands to the environment

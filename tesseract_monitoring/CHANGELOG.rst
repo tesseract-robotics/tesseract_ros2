@@ -2,9 +2,6 @@
 Changelog for package tesseract_monitoring
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.26.0 (2024-11-19)
--------------------
-
 0.28.0 (2025-01-17)
 -------------------
 * Update due to changes in tesseract and tesseract_planning repos
@@ -23,6 +20,9 @@ Changelog for package tesseract_monitoring
 * Revert SensorDataQoS and publisher queue sizes
 * Clean up QoS settings
 * Contributors: Roelof Oomen
+
+0.26.0 (2024-11-19)
+-------------------
 
 0.25.0 (2024-09-30)
 -------------------

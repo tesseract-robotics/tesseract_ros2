@@ -407,7 +407,7 @@ double ROSEnvironmentMonitor::getStateUpdateFrequency() const
 }
 
 void ROSEnvironmentMonitor::newEnvironmentStateCallback(
-    const tesseract_msgs::msg::EnvironmentState::ConstSharedPtr env)  // NOLINT
+    const tesseract_msgs::msg::EnvironmentState::ConstSharedPtr env_msg)  // NOLINT
 {
   last_update_time_ = internal_node_->now();
 
@@ -451,7 +451,7 @@ void ROSEnvironmentMonitor::newEnvironmentStateCallback(
   else
   {
     // If the monitored environment has changed then request the changes and apply
-    if (static_cast<int>(env->revision) > env_->getRevision())
+    if (static_cast<int>(env_msg->revision) > env_->getRevision())
     {
       auto get_env_changes_req = std::make_shared<tesseract_msgs::srv::GetEnvironmentChanges::Request>();
       get_env_changes_req->revision = static_cast<unsigned long>(env_->getRevision());
@@ -471,7 +471,7 @@ void ROSEnvironmentMonitor::newEnvironmentStateCallback(
         RCLCPP_ERROR_STREAM(logger_, "newEnvironmentStateCallback: Failed to get monitored environments changes.");
       }
     }
-    else if (static_cast<int>(env->revision) < env_->getRevision())
+    else if (static_cast<int>(env_msg->revision) < env_->getRevision())
     {
       if (mode_ == tesseract_environment::MonitoredEnvironmentMode::DEFAULT)
       {
@@ -479,7 +479,7 @@ void ROSEnvironmentMonitor::newEnvironmentStateCallback(
         // applied.
         if (env_->reset())
         {
-          if (static_cast<int>(env->revision) > env_->getRevision())
+          if (static_cast<int>(env_msg->revision) > env_->getRevision())
           {
             auto get_env_changes_req = std::make_shared<tesseract_msgs::srv::GetEnvironmentChanges::Request>();
             get_env_changes_req->revision = static_cast<unsigned long>(env_->getRevision());
@@ -513,8 +513,8 @@ void ROSEnvironmentMonitor::newEnvironmentStateCallback(
         // If this has been modified it will push the changes to the monitored environment to keep them in sync
         auto modify_env_req = std::make_shared<tesseract_msgs::srv::ModifyEnvironment::Request>();
         modify_env_req->id = env_->getName();
-        modify_env_req->revision = env->revision;
-        if (tesseract_rosutils::toMsg(modify_env_req->commands, env_->getCommandHistory(), env->revision))
+        modify_env_req->revision = env_msg->revision;
+        if (tesseract_rosutils::toMsg(modify_env_req->commands, env_->getCommandHistory(), env_msg->revision))
         {
           auto me_result_future = modify_monitored_environment_client_->async_send_request(modify_env_req);
           me_result_future.wait();
@@ -539,12 +539,13 @@ void ROSEnvironmentMonitor::newEnvironmentStateCallback(
     }
   }
 
-  if (!tesseract_rosutils::isMsgEmpty(env->joint_state))
+  if (!tesseract_rosutils::isMsgEmpty(env_msg->joint_state) ||
+      !tesseract_rosutils::isMsgEmpty(env_msg->floating_joint_states))
   {
-    if (last_robot_motion_time_ != env->joint_state.header.stamp)
+    if (last_robot_motion_time_ != env_msg->joint_state.header.stamp)
     {
-      tesseract_rosutils::processMsg(*env_, env->joint_state);
-      last_robot_motion_time_ = env->joint_state.header.stamp;
+      tesseract_rosutils::processMsg(*env_, env_msg->joint_state, env_msg->floating_joint_states);
+      last_robot_motion_time_ = env_msg->joint_state.header.stamp;
     }
   }
 
@@ -581,7 +582,7 @@ bool ROSEnvironmentMonitor::applyEnvironmentCommandsMessage(
   {
     for (const auto& cmd : update_joint_state_commands)
     {
-      if (tesseract_rosutils::processMsg(*env_, cmd.joint_state))
+      if (tesseract_rosutils::processMsg(*env_, cmd.joint_state, cmd.floating_joint_states))
       {
         last_robot_motion_time_ = internal_node_->now();
       }
@@ -814,7 +815,8 @@ void ROSEnvironmentMonitor::updateEnvironmentWithCurrentState()
     last_update_time_ = last_robot_motion_time_ = current_state_monitor_->getCurrentStateTime();
     RCLCPP_DEBUG_STREAM(logger_, "robot state update " << fmod(last_robot_motion_time_.seconds(), 10.));
 
-    env_->setState(current_state_monitor_->getCurrentState().joints);
+    auto env_state = current_state_monitor_->getCurrentState();
+    env_->setState(env_state.joints, env_state.floating_joints);
   }
   else
     RCLCPP_ERROR_THROTTLE(logger_,
@@ -992,6 +994,12 @@ void ROSEnvironmentMonitor::getEnvironmentInformationCallback(
   if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::JOINT_STATES)  // NOLINT
   {
     if (!tesseract_rosutils::toMsg(res->joint_states, state.joints))
+    {
+      res->success = false;
+      return;
+    }
+
+    if (!tesseract_rosutils::toMsg(res->floating_joint_states, state.floating_joints))
     {
       res->success = false;
       return;

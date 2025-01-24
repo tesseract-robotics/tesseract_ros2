@@ -197,7 +197,7 @@ private:
   void updateJointStateTimerCallback();
 
   // Callback for a new state msg
-  void newEnvironmentStateCallback(const tesseract_msgs::msg::EnvironmentState::ConstSharedPtr env);  // NOLINT
+  void newEnvironmentStateCallback(const tesseract_msgs::msg::EnvironmentState::ConstSharedPtr env_msg);  // NOLINT
 
   /** @brief Callback for modifying the environment via service request */
   void modifyEnvironmentCallback(tesseract_msgs::srv::ModifyEnvironment::Request::SharedPtr req,

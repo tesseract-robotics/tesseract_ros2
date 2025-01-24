@@ -2,8 +2,8 @@
 Changelog for package tesseract_monitoring
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.28.1 (2025-01-24)
+-------------------
 * Add missing floating joint components (`#137 <https://github.com/tesseract-robotics/tesseract_ros2/issues/137>`_)
 * Contributors: Roelof Oomen
 

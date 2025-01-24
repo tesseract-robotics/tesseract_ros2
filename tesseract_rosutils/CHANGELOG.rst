@@ -2,6 +2,11 @@
 Changelog for package tesseract_rosutils
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Add missing floating joint components (`#137 <https://github.com/tesseract-robotics/tesseract_ros2/issues/137>`_)
+* Contributors: Roelof Oomen
+
 0.28.0 (2025-01-17)
 -------------------
 * Update due to changes with profiles and overrides

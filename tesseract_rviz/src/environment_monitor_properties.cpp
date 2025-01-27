@@ -217,29 +217,47 @@ void EnvironmentMonitorProperties::onURDFDescriptionChanged()
 
   auto env = std::make_shared<tesseract_environment::Environment>();
   auto locator = std::make_shared<tesseract_rosutils::ROSResourceLocator>();
-  if (env->init(urdf_xml_string, srdf_xml_string, locator))
+  if (urdf_xml_string.empty())
   {
-    data_->monitor = std::make_unique<tesseract_monitoring::ROSEnvironmentMonitor>(
-        data_->node, env, data_->urdf_description_string_property->getStdString());
-    if (data_->monitor != nullptr)
+    data_->parent->setStatus(rviz_common::properties::StatusProperty::Error, "Tesseract", "URDF parameter is empty!");
+    return;
+  }
+
+  if (!srdf_xml_string.empty())
+  {
+    if (!env->init(urdf_xml_string, srdf_xml_string, locator))
     {
-      data_->render_manager =
-          std::make_shared<ROSSceneGraphRenderManager>(data_->component_info, data_->scene_manager, data_->scene_node);
-      data_->contact_results_render_manager = std::make_shared<ROSContactResultsRenderManager>(
-          data_->component_info, data_->scene_manager, data_->scene_node);
-
-      Q_EMIT componentInfoChanged(data_->component_info);
-
-      auto env_wrapper =
-          std::make_shared<tesseract_gui::MonitorEnvironmentWrapper>(data_->component_info, data_->monitor);
-      tesseract_gui::EnvironmentManager::set(env_wrapper);
-
-      onJointStateTopicChanged();
+      data_->parent->setStatus(
+          rviz_common::properties::StatusProperty::Error, "Tesseract", "URDF or SRDF file failed to parse");
+      return;
     }
   }
   else
   {
-    data_->parent->setStatus(rviz_common::properties::StatusProperty::Error, "Tesseract", "URDF file failed to parse");
+    if (!env->init(urdf_xml_string, locator))
+    {
+      data_->parent->setStatus(
+          rviz_common::properties::StatusProperty::Error, "Tesseract", "URDF file failed to parse");
+      return;
+    }
+  }
+
+  data_->monitor = std::make_unique<tesseract_monitoring::ROSEnvironmentMonitor>(
+      data_->node, env, data_->urdf_description_string_property->getStdString());
+  if (data_->monitor != nullptr)
+  {
+    data_->render_manager =
+        std::make_shared<ROSSceneGraphRenderManager>(data_->component_info, data_->scene_manager, data_->scene_node);
+    data_->contact_results_render_manager = std::make_shared<ROSContactResultsRenderManager>(
+        data_->component_info, data_->scene_manager, data_->scene_node);
+
+    Q_EMIT componentInfoChanged(data_->component_info);
+
+    auto env_wrapper =
+        std::make_shared<tesseract_gui::MonitorEnvironmentWrapper>(data_->component_info, data_->monitor);
+    tesseract_gui::EnvironmentManager::set(env_wrapper);
+
+    onJointStateTopicChanged();
   }
 }
 

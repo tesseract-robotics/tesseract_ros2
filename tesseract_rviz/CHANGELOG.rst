@@ -2,8 +2,8 @@
 Changelog for package tesseract_rviz
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.28.2 (2025-01-29)
+-------------------
 * Fix failed to parse urdf error message on launch
 * Contributors: Levi Armstrong
 

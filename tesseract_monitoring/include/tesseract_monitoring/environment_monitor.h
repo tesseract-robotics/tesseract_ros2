@@ -41,7 +41,6 @@
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <rclcpp/rclcpp.hpp>
 #include <memory>
-#include <shared_mutex>
 #include <mutex>
 #include <thread>
 #include <functional>
@@ -71,19 +70,42 @@ public:
 
   /**
    * @brief Constructor
+   * @param node The node
    * @param robot_description The name of the ROS parameter that contains the URDF (in string format)
    * @param monitor_namespace A name identifying this monitor, must be unique
    */
   ROSEnvironmentMonitor(const rclcpp::Node::SharedPtr& node,
                         std::string robot_description,
-                        std::string monitor_namespace);  // NOLINT
+                        std::string monitor_namespace);
 
   /**
    * @brief Constructor
+   * @param node_base_interface The node base interface
+   * @param robot_description The name of the ROS parameter that contains the URDF (in string format)
+   * @param monitor_namespace A name identifying this monitor, must be unique
+   */
+  ROSEnvironmentMonitor(const rclcpp::node_interfaces::NodeBaseInterface::SharedPtr& node_base_interface,
+                        const rclcpp::node_interfaces::NodeParametersInterface::SharedPtr& node_parameters_interface,
+                        std::string robot_description,
+                        std::string monitor_namespace);
+
+  /**
+   * @brief Constructor
+   * @param node The node
    * @param env The environment
    * @param monitor_namespace A name identifying this monitor, must be unique
    */
-  ROSEnvironmentMonitor(const rclcpp::Node::SharedPtr& node,  // NOLINT
+  ROSEnvironmentMonitor(const rclcpp::Node::SharedPtr& node,
+                        std::shared_ptr<tesseract_environment::Environment> env,
+                        std::string monitor_namespace);
+
+  /**
+   * @brief Constructor
+   * @param node_base_interface The node base interface
+   * @param env The environment
+   * @param monitor_namespace A name identifying this monitor, must be unique
+   */
+  ROSEnvironmentMonitor(const rclcpp::node_interfaces::NodeBaseInterface::SharedPtr& node_base_interface,
                         std::shared_ptr<tesseract_environment::Environment> env,
                         std::string monitor_namespace);
 

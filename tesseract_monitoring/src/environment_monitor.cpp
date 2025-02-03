@@ -37,6 +37,7 @@
 #include <tesseract_common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <boost/algorithm/string.hpp>
+#include <utility>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #ifdef BOOST_BIND_NO_PLACEHOLDERS
@@ -58,21 +59,34 @@ namespace tesseract_monitoring
 ROSEnvironmentMonitor::ROSEnvironmentMonitor(const rclcpp::Node::SharedPtr& node,
                                              std::string robot_description,
                                              std::string monitor_namespace)
+  : ROSEnvironmentMonitor(node->get_node_base_interface(),
+                          node->get_node_parameters_interface(),
+                          std::move(robot_description),
+                          std::move(monitor_namespace))
+{
+}
+
+ROSEnvironmentMonitor::ROSEnvironmentMonitor(
+    const rclcpp::node_interfaces::NodeBaseInterface::SharedPtr& node_base_interface,
+    const rclcpp::node_interfaces::NodeParametersInterface::SharedPtr& node_parameters_interface,
+    std::string robot_description,
+    std::string monitor_namespace)
   : EnvironmentMonitor(std::move(monitor_namespace))
-  , internal_node_(std::make_shared<rclcpp::Node>("ROSEnvironmentMonitor_internal", node->get_fully_qualified_name()))
+  , internal_node_(std::make_shared<rclcpp::Node>("ROSEnvironmentMonitor_internal",
+                                                  node_base_interface->get_fully_qualified_name()))
   , robot_description_(std::move(robot_description))
   , cb_group_(internal_node_->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive))
   , logger_{ internal_node_->get_logger().get_child(monitor_namespace_ + "_monitor") }
 {
   // Initial setup
-  std::string urdf_xml_string;
-  std::string srdf_xml_string;
-  if (!node->get_parameter(robot_description_, urdf_xml_string))
+  rclcpp::Parameter urdf_xml;
+  rclcpp::Parameter srdf_xml;
+  if (!node_parameters_interface->get_parameter(robot_description_, urdf_xml))
   {
     RCLCPP_ERROR(logger_, "Failed to find parameter: %s", robot_description_.c_str());
     return;
   }
-  if (!node->get_parameter(robot_description_ + "_semantic", srdf_xml_string))
+  if (!node_parameters_interface->get_parameter(robot_description_ + "_semantic", srdf_xml))
   {
     RCLCPP_ERROR(logger_, "Failed to find parameter: %s", (robot_description_ + "_semantic").c_str());
     return;
@@ -80,7 +94,7 @@ ROSEnvironmentMonitor::ROSEnvironmentMonitor(const rclcpp::Node::SharedPtr& node
 
   env_ = std::make_shared<tesseract_environment::Environment>();
   auto locator = std::make_shared<tesseract_rosutils::ROSResourceLocator>();
-  if (!env_->init(urdf_xml_string, srdf_xml_string, locator))
+  if (!env_->init(urdf_xml.as_string(), srdf_xml.as_string(), locator))
     return;
 
   if (!initialize())
@@ -97,10 +111,19 @@ ROSEnvironmentMonitor::ROSEnvironmentMonitor(const rclcpp::Node::SharedPtr& node
 }
 
 ROSEnvironmentMonitor::ROSEnvironmentMonitor(const rclcpp::Node::SharedPtr& node,
-                                             tesseract_environment::Environment::Ptr env,
+                                             std::shared_ptr<tesseract_environment::Environment> env,
                                              std::string monitor_namespace)
+  : ROSEnvironmentMonitor(node->get_node_base_interface(), std::move(env), std::move(monitor_namespace))
+{
+}
+
+ROSEnvironmentMonitor::ROSEnvironmentMonitor(
+    const rclcpp::node_interfaces::NodeBaseInterface::SharedPtr& node_base_interface,
+    std::shared_ptr<tesseract_environment::Environment> env,
+    std::string monitor_namespace)
   : EnvironmentMonitor(std::move(env), std::move(monitor_namespace))
-  , internal_node_(std::make_shared<rclcpp::Node>("ROSEnvironmentMonitor_internal", node->get_fully_qualified_name()))
+  , internal_node_(std::make_shared<rclcpp::Node>("ROSEnvironmentMonitor_internal",
+                                                  node_base_interface->get_fully_qualified_name()))
   , cb_group_(internal_node_->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive))
   , logger_{ internal_node_->get_logger().get_child(monitor_namespace_ + "_monitor") }
 {

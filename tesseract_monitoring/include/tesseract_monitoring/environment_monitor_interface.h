@@ -114,7 +114,6 @@ protected:
   rclcpp::Logger logger_;
 
   std::vector<std::string> ns_;
-  std::string env_name_;
 
   bool sendCommands(const std::string& ns, const std::vector<tesseract_msgs::msg::EnvironmentCommand>& commands) const;
 };

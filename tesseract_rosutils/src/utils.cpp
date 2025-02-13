@@ -1167,6 +1167,10 @@ toMsg(const tesseract_common::CollisionMarginOverrideType& contact_margin_overri
       contact_margin_override_type_msg.type = tesseract_msgs::msg::CollisionMarginOverrideType::NONE;
       break;
     }
+    default:
+    {
+      throw std::runtime_error("Unsupported CollisionMarginOverrideType");
+    }
   }
   return contact_margin_override_type_msg;
 }
@@ -1349,12 +1353,12 @@ bool toMsg(tesseract_msgs::msg::EnvironmentCommand& command_msg, const tesseract
     {
       command_msg.command = tesseract_msgs::msg::EnvironmentCommand::CHANGE_JOINT_POSITION_LIMITS;
       const auto& cmd = static_cast<const tesseract_environment::ChangeJointPositionLimitsCommand&>(command);
-      for (const auto& l : cmd.getLimits())
+      for (const auto& limits : cmd.getLimits())
       {
         tesseract_msgs::msg::StringLimitsPair pair;
-        pair.first = l.first;
-        pair.second[0] = l.second.first;
-        pair.second[1] = l.second.second;
+        pair.first = limits.first;
+        pair.second[0] = limits.second.first;
+        pair.second[1] = limits.second.second;
         command_msg.change_joint_position_limits.push_back(pair);
       }
 
@@ -1364,11 +1368,11 @@ bool toMsg(tesseract_msgs::msg::EnvironmentCommand& command_msg, const tesseract
     {
       command_msg.command = tesseract_msgs::msg::EnvironmentCommand::CHANGE_JOINT_VELOCITY_LIMITS;
       const auto& cmd = static_cast<const tesseract_environment::ChangeJointVelocityLimitsCommand&>(command);
-      for (const auto& l : cmd.getLimits())
+      for (const auto& limits : cmd.getLimits())
       {
         tesseract_msgs::msg::StringDoublePair pair;
-        pair.first = l.first;
-        pair.second = l.second;
+        pair.first = limits.first;
+        pair.second = limits.second;
         command_msg.change_joint_velocity_limits.push_back(pair);
       }
 
@@ -1378,11 +1382,11 @@ bool toMsg(tesseract_msgs::msg::EnvironmentCommand& command_msg, const tesseract
     {
       command_msg.command = tesseract_msgs::msg::EnvironmentCommand::CHANGE_JOINT_ACCELERATION_LIMITS;
       const auto& cmd = static_cast<const tesseract_environment::ChangeJointAccelerationLimitsCommand&>(command);
-      for (const auto& l : cmd.getLimits())
+      for (const auto& limits : cmd.getLimits())
       {
         tesseract_msgs::msg::StringDoublePair pair;
-        pair.first = l.first;
-        pair.second = l.second;
+        pair.first = limits.first;
+        pair.second = limits.second;
         command_msg.change_joint_acceleration_limits.push_back(pair);
       }
 
@@ -1474,12 +1478,12 @@ tesseract_environment::Command::Ptr fromMsg(const tesseract_msgs::msg::Environme
   {
     case tesseract_msgs::msg::EnvironmentCommand::ADD_LINK:
     {
-      tesseract_scene_graph::Link l = fromMsg(command_msg.add_link);
+      tesseract_scene_graph::Link link = fromMsg(command_msg.add_link);
       if (command_msg.add_joint.name.empty() || command_msg.add_joint.type == 0)
-        return std::make_shared<tesseract_environment::AddLinkCommand>(l, command_msg.add_replace_allowed);
+        return std::make_shared<tesseract_environment::AddLinkCommand>(link, command_msg.add_replace_allowed);
 
-      tesseract_scene_graph::Joint j = fromMsg(command_msg.add_joint);
-      return std::make_shared<tesseract_environment::AddLinkCommand>(l, j, command_msg.add_replace_allowed);
+      tesseract_scene_graph::Joint joint = fromMsg(command_msg.add_joint);
+      return std::make_shared<tesseract_environment::AddLinkCommand>(link, joint, command_msg.add_replace_allowed);
     }
     case tesseract_msgs::msg::EnvironmentCommand::MOVE_LINK:
     {
@@ -1552,24 +1556,24 @@ tesseract_environment::Command::Ptr fromMsg(const tesseract_msgs::msg::Environme
     case tesseract_msgs::msg::EnvironmentCommand::CHANGE_JOINT_POSITION_LIMITS:
     {
       std::unordered_map<std::string, std::pair<double, double>> limits_map;
-      for (const auto& l : command_msg.change_joint_position_limits)
-        limits_map[l.first] = std::make_pair(l.second[0], l.second[1]);
+      for (const auto& limits : command_msg.change_joint_position_limits)
+        limits_map[limits.first] = std::make_pair(limits.second[0], limits.second[1]);
 
       return std::make_shared<tesseract_environment::ChangeJointPositionLimitsCommand>(limits_map);
     }
     case tesseract_msgs::msg::EnvironmentCommand::CHANGE_JOINT_VELOCITY_LIMITS:
     {
       std::unordered_map<std::string, double> limits_map;
-      for (const auto& l : command_msg.change_joint_velocity_limits)
-        limits_map[l.first] = l.second;
+      for (const auto& limits : command_msg.change_joint_velocity_limits)
+        limits_map[limits.first] = limits.second;
 
       return std::make_shared<tesseract_environment::ChangeJointVelocityLimitsCommand>(limits_map);
     }
     case tesseract_msgs::msg::EnvironmentCommand::CHANGE_JOINT_ACCELERATION_LIMITS:
     {
       std::unordered_map<std::string, double> limits_map;
-      for (const auto& l : command_msg.change_joint_acceleration_limits)
-        limits_map[l.first] = l.second;
+      for (const auto& limits : command_msg.change_joint_acceleration_limits)
+        limits_map[limits.first] = limits.second;
 
       return std::make_shared<tesseract_environment::ChangeJointAccelerationLimitsCommand>(limits_map);
     }
@@ -2305,39 +2309,39 @@ bool toMsg(tesseract_msgs::msg::TaskComposerNodeInfo& node_info_msg,
   return true;
 }
 
-tesseract_planning::TaskComposerNodeInfo::Ptr fromMsg(const tesseract_msgs::msg::TaskComposerNodeInfo& node_info_msg)
+tesseract_planning::TaskComposerNodeInfo fromMsg(const tesseract_msgs::msg::TaskComposerNodeInfo& node_info_msg)
 {
   using namespace tesseract_planning;
-  auto node_info = std::make_unique<tesseract_planning::TaskComposerNodeInfo>();
-  node_info->name = node_info_msg.name;
-  node_info->uuid = boost::lexical_cast<boost::uuids::uuid>(node_info_msg.uuid);
-  node_info->inbound_edges.reserve(node_info_msg.inbound_edges.size());
+  tesseract_planning::TaskComposerNodeInfo node_info;
+  node_info.name = node_info_msg.name;
+  node_info.uuid = boost::lexical_cast<boost::uuids::uuid>(node_info_msg.uuid);
+  node_info.inbound_edges.reserve(node_info_msg.inbound_edges.size());
   for (const auto& edge : node_info_msg.inbound_edges)
-    node_info->inbound_edges.push_back(boost::lexical_cast<boost::uuids::uuid>(edge));
-  node_info->outbound_edges.reserve(node_info_msg.outbound_edges.size());
+    node_info.inbound_edges.push_back(boost::lexical_cast<boost::uuids::uuid>(edge));
+  node_info.outbound_edges.reserve(node_info_msg.outbound_edges.size());
   for (const auto& edge : node_info_msg.outbound_edges)
-    node_info->outbound_edges.push_back(boost::lexical_cast<boost::uuids::uuid>(edge));
+    node_info.outbound_edges.push_back(boost::lexical_cast<boost::uuids::uuid>(edge));
 
   for (const auto& key_msg : node_info_msg.input_keys)
   {
     if (key_msg.type_index == 0)
-      node_info->input_keys.add(key_msg.port, key_msg.keys.front());
+      node_info.input_keys.add(key_msg.port, key_msg.keys.front());
     else
-      node_info->input_keys.add(key_msg.port, key_msg.keys);
+      node_info.input_keys.add(key_msg.port, key_msg.keys);
   }
 
   for (const auto& key_msg : node_info_msg.output_keys)
   {
     if (key_msg.type_index == 0)
-      node_info->output_keys.add(key_msg.port, key_msg.keys.front());
+      node_info.output_keys.add(key_msg.port, key_msg.keys.front());
     else
-      node_info->output_keys.add(key_msg.port, key_msg.keys);
+      node_info.output_keys.add(key_msg.port, key_msg.keys);
   }
 
-  node_info->return_value = node_info_msg.return_value;
-  node_info->status_code = node_info_msg.status_code;
-  node_info->status_message = node_info_msg.status_message;
-  node_info->elapsed_time = node_info_msg.elapsed_time;
+  node_info.return_value = node_info_msg.return_value;
+  node_info.status_code = node_info_msg.status_code;
+  node_info.status_message = node_info_msg.status_message;
+  node_info.elapsed_time = node_info_msg.elapsed_time;
 
   return node_info;
 }

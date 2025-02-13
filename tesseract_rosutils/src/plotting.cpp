@@ -296,6 +296,10 @@ void ROSPlotting::plotMarker(const tesseract_visualization::Marker& marker, std:
       }
       break;
     }
+    default:
+    {
+      RCLCPP_ERROR(internal_node_->get_logger(), "ROSPlotting: Unsupported marker type!");
+    }
   }
 }
 

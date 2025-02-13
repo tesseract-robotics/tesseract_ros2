@@ -347,6 +347,7 @@ inline bool toMsg(tesseract_msgs::msg::Mesh& mesh_msgs, const tesseract_geometry
 /** \brief Construct the message that corresponds to the shape. Return false on failure. */
 bool toMsg(tesseract_msgs::msg::Geometry& geometry_msgs, const tesseract_geometry::Geometry& geometry)
 {
+  geometry_msgs.uuid = boost::uuids::to_string(geometry.getUUID());
   switch (geometry.getType())
   {
     case tesseract_geometry::GeometryType::SPHERE:
@@ -628,6 +629,8 @@ bool fromMsg(tesseract_geometry::Geometry::Ptr& geometry, const tesseract_msgs::
                  static_cast<int>(geometry_msg.type));
     return false;
   }
+
+  geometry->setUUID(boost::lexical_cast<boost::uuids::uuid>(geometry_msg.uuid));
 
   return true;
 }

@@ -336,7 +336,7 @@ void ROSEnvironmentMonitor::environmentPublishingThread()
 
   RCLCPP_INFO(logger_, "Published the Tesseract Environment State for: '%s'", start_msg.id.c_str());
 
-  do
+  do  // NOLINT(cppcoreguidelines-avoid-do-while)
   {
     tesseract_msgs::msg::EnvironmentState msg;
     bool publish_msg = false;

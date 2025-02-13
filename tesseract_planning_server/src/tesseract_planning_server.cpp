@@ -190,10 +190,10 @@ void TesseractPlanningServer::onMotionPlanningCallback(
   {
     result->response.successful = false;
     std::ostringstream oss;
-    oss << "Requested task '" << goal->request.name << "' is not supported!" << std::endl;
-    oss << "   Available Tasks:" << std::endl;
+    oss << "Requested task '" << goal->request.name << "' is not supported!\n";
+    oss << "   Available Tasks:\n";
     for (const auto& planner : planning_server_->getAvailableTasks())
-      oss << "      - " << planner << std::endl;
+      oss << "      - " << planner << "\n";
     RCLCPP_ERROR_STREAM(node_->get_logger(), oss.str());
     goal_handle->succeed(result);
     return;
@@ -209,10 +209,10 @@ void TesseractPlanningServer::onMotionPlanningCallback(
   {
     result->response.successful = false;
     std::ostringstream oss;
-    oss << "Requested executor '" << executor_name << "' is not supported!" << std::endl;
-    oss << "   Available Executors:" << std::endl;
+    oss << "Requested executor '" << executor_name << "' is not supported!\n";
+    oss << "   Available Executors:\n";
     for (const auto& executor : available_executors)
-      oss << "      - " << executor << std::endl;
+      oss << "      - " << executor << "\n";
     RCLCPP_ERROR_STREAM(node_->get_logger(), oss.str());
     goal_handle->succeed(result);
     return;
@@ -227,8 +227,8 @@ void TesseractPlanningServer::onMotionPlanningCallback(
   {
     result->response.successful = false;
     std::ostringstream oss;
-    oss << "Failed to deserialize planning input instruction with error: '" << e.what() << "'!" << std::endl;
-    oss << " Make sure the program was serialized from an AnyPoly type." << std::endl;
+    oss << "Failed to deserialize planning input instruction with error: '" << e.what() << "'!\n";
+    oss << " Make sure the program was serialized from an AnyPoly type.\n";
     RCLCPP_ERROR_STREAM(node_->get_logger(), oss.str());
     goal_handle->succeed(result);
     return;
@@ -277,7 +277,7 @@ void TesseractPlanningServer::onMotionPlanningCallback(
   {
     result->response.successful = false;
     std::ostringstream oss;
-    oss << "Failed to get output results from task with error: '" << e.what() << "'!" << std::endl;
+    oss << "Failed to get output results from task with error: '" << e.what() << "'!\n";
     RCLCPP_ERROR_STREAM(node_->get_logger(), oss.str());
     goal_handle->succeed(result);
     return;

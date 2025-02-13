@@ -95,7 +95,7 @@ ROSEnvironmentMonitorInterface::ROSEnvironmentMonitorInterface(rclcpp::Node::Sha
   node_->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive)
 }
 #endif
-, logger_{ node_->get_logger().get_child(env_name + "_env_monitor") }, env_name_{ env_name } {}
+, logger_{ node_->get_logger().get_child(env_name_ + "_env_monitor") } {}
 
 bool ROSEnvironmentMonitorInterface::wait(std::chrono::duration<double> duration) const
 {
@@ -149,7 +149,7 @@ bool ROSEnvironmentMonitorInterface::waitForNamespace(const std::string& monitor
     }
     catch (std::runtime_error& ex)
     {
-      // RCLCPP_ERROR_STREAM(logger_, ex.what());
+      RCLCPP_ERROR_STREAM(logger_, ex.what());
     }
     if (wall_timeout >= rclcpp::Duration::from_seconds(0))
     {

@@ -490,8 +490,7 @@ bool toMsg(tesseract_msgs::msg::TaskComposerNodeInfo& node_info_msg,
  * @param task_info_msg Input TaskInfo msg
  * @return Resulting Tesseract Object if successful, nullptr otherwise
  */
-std::shared_ptr<tesseract_planning::TaskComposerNodeInfo>
-fromMsg(const tesseract_msgs::msg::TaskComposerNodeInfo& node_info_msg);
+tesseract_planning::TaskComposerNodeInfo fromMsg(const tesseract_msgs::msg::TaskComposerNodeInfo& node_info_msg);
 
 /**
  * @brief Converts a tesseract_common::JointTrajectory msg to a trajectory_msgs::msg::JointTrajectory object

@@ -72,7 +72,7 @@ ContactMonitor::ContactMonitor(std::string monitor_namespace,
   for (const auto& disabled_link_name : disabled_link_names_)
     manager_->disableCollisionObject(disabled_link_name);
 
-  std::cout << ((disabled_link_names_.empty()) ? "Empty" : "Not Empty") << std::endl;
+  std::cout << ((disabled_link_names_.empty()) ? "Empty" : "Not Empty") << "\n";
 
   joint_states_sub_ = internal_node_->create_subscription<sensor_msgs::msg::JointState>(
       joint_state_topic,

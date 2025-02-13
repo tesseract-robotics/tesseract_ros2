@@ -23,7 +23,7 @@ jobs:
           - os: jammy
             distro: humble
             env:
-              TARGET_CMAKE_ARGS: "-DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_BUILD_TYPE=Debug -DTESSERACT_ENABLE_CLANG_TIDY=ON -DTESSERACT_ENABLE_TESTING=ON"
+              TARGET_CMAKE_ARGS: "-DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_BUILD_TYPE=Debug -DTESSERACT_ENABLE_CLANG_TIDY=ON -DTESSERACT_ENABLE_TESTING=ON -DCLANG_TIDY_NAMES=clang-tidy-17"
 
     container:
       image: ghcr.io/tesseract-robotics/tesseract_qt:${{ matrix.os }}-master
@@ -44,14 +44,20 @@ jobs:
           echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | tee /etc/apt/sources.list.d/ros2.list > /dev/null
           apt update -qq
           apt upgrade -y
-          apt install -y clang-tidy ros-${{ matrix.distro }}-ros-base
+          apt install -y wget ros-${{ matrix.distro }}-ros-base
+          echo "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-17 main" | tee /etc/apt/sources.list.d/llvm-toolchain.list
+          echo "deb-src http://apt.llvm.org/jammy/ llvm-toolchain-jammy-17 main" | tee -a /etc/apt/sources.list.d/llvm-toolchain.list
+          wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | tee /etc/apt/trusted.gpg.d/llvm.asc
+          apt update -y
+          apt install -y clang-tidy-17 libomp-17-dev
 
       - name: Build and Tests
-        uses: tesseract-robotics/colcon-action@v8
+        uses: tesseract-robotics/colcon-action@v11
         with:
           before-script: apt install ros-${{ matrix.distro }}-ros-base && source /opt/tesseract_qt/install/setup.bash && source /opt/ros/${{ matrix.distro }}/setup.bash
           ccache-prefix: ${{ matrix.distro }}
           vcs-file: .github/workflows/dependencies.repos
           run-tests: false
+          rosdep-install-args: -iry --skip-keys=libomp-dev
           target-path: target_ws/src
           target-args: --cmake-args ${{ matrix.env.TARGET_CMAKE_ARGS }}

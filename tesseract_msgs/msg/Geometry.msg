@@ -16,6 +16,9 @@ uint8 COMPOUND_MESH=12
 # The type of the geometry
 uint8 type
 
+# The UUID of the geometry
+string uuid
+
 # Sphere
 float64 sphere_radius
 

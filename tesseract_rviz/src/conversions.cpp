@@ -61,7 +61,7 @@
 #include <tesseract_scene_graph/joint.h>
 #include <tesseract_scene_graph/link.h>
 
-#include <tesseract_common/filesystem.h>
+#include <filesystem>
 #include <tesseract_common/resource_locator.h>
 #include <tesseract_geometry/geometries.h>
 
@@ -876,7 +876,7 @@ Ogre::MaterialPtr loadLinkMaterial(Ogre::SceneManager& scene,
       {
         Ogre::DataStreamPtr stream(new Ogre::MemoryDataStream(res.data.get(), res.size));
         Ogre::Image image;
-        std::string extension = tesseract_common::fs::extension(tesseract_common::fs::path(filename));
+        std::string extension = std::filesystem::path(filename).extension();
 
         if (extension[0] == '.')
         {

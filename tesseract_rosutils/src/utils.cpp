@@ -33,6 +33,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/lexical_cast.hpp>
 #include <console_bridge/console.h>
+#include <filesystem>
 #if __has_include(<tf2_eigen/tf2_eigen.hpp>)
 #include <tf2_eigen/tf2_eigen.hpp>
 #else
@@ -105,7 +106,8 @@ std::shared_ptr<tesseract_common::Resource> ROSResourceLocator::locateResource(c
     }
   }
 
-  if (!tesseract_common::fs::path(mod_url).is_complete())
+  std::filesystem::path mod_url_path(mod_url);
+  if (!(mod_url_path.is_absolute() && mod_url_path.has_root_directory()))
     return nullptr;
 
   return std::make_shared<tesseract_common::SimpleLocatedResource>(

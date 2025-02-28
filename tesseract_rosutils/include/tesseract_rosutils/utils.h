@@ -62,6 +62,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <tesseract_msgs/msg/task_composer_node_info.hpp>
 #include <geometry_msgs/msg/pose.hpp>
 #include <geometry_msgs/msg/pose_array.hpp>
+#include <geometry_msgs/msg/transform_stamped.hpp>
 #include <trajectory_msgs/msg/joint_trajectory.hpp>
 #if __has_include(<rclcpp/version.h>)
 #include <rclcpp/version.h>
@@ -506,6 +507,18 @@ trajectory_msgs::msg::JointTrajectory toMsg(const tesseract_common::JointTraject
  * @return A tesseract joint trajectory
  */
 tesseract_common::JointTrajectory fromMsg(const trajectory_msgs::msg::JointTrajectory& joint_trajectory_msg);
+
+/**
+ * @brief Generate tf messages from the current state of the environment
+ * @param env The environment
+ * @param stamp The time stamp to apply to the transforms
+ * @param transforms The output vector of tf messages
+ * @param static_transforms The output vector of static tf messages
+ */
+void toTransformMsgs(const std::shared_ptr<tesseract_environment::Environment>& env,
+                     const rclcpp::Time& stamp,
+                     std::vector<geometry_msgs::msg::TransformStamped>& transforms,
+                     std::vector<geometry_msgs::msg::TransformStamped>& static_transforms);
 
 template <typename MessageType>
 inline bool toFile(const std::string& filepath, const MessageType& msg)

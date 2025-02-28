@@ -365,7 +365,7 @@ void EnvironmentMonitorProperties::onJointStateTopicChanged()
     return;
 
   if (data_->monitor != nullptr)
-    data_->monitor->startStateMonitor(data_->joint_state_topic_property->getTopicStd(), false);
+    data_->monitor->startStateMonitor(data_->joint_state_topic_property->getTopicStd());
 }
 
 }  // namespace tesseract_rviz

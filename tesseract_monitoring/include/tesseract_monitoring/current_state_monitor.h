@@ -93,11 +93,8 @@ public:
 
   /** @brief Start monitoring joint states on a particular topic
    *  @param joint_states_topic The topic name for joint states (defaults to "joint_states")
-   *  @param publish_tf If true, TFs will be published for each joint (similar to robot description publisher). Default:
-   * true
    */
-  void startStateMonitor(const std::string& joint_states_topic = tesseract_monitoring::DEFAULT_JOINT_STATES_TOPIC,
-                         bool publish_tf = true);
+  void startStateMonitor(const std::string& joint_states_topic = tesseract_monitoring::DEFAULT_JOINT_STATES_TOPIC);
 
   /** @brief Stop monitoring the "joint_states" topic
    */
@@ -202,10 +199,8 @@ private:
   double error_;
 
   rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_state_subscriber_;
-  tf2_ros::TransformBroadcaster tf_broadcaster_;
   rclcpp::Time current_state_time_;
   rclcpp::Time last_tf_update_;
-  bool publish_tf_;
 
   mutable std::mutex state_update_lock_;
   mutable std::condition_variable state_update_condition_;

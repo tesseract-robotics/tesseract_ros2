@@ -67,8 +67,6 @@ CurrentStateMonitor::CurrentStateMonitor(const tesseract_environment::Environmen
   , state_monitor_started_(false)
   , copy_dynamics_(false)
   , error_(std::numeric_limits<double>::epsilon())
-  , tf_broadcaster_(node_)
-  , publish_tf_(true)
 {
 }
 
@@ -107,23 +105,22 @@ void CurrentStateMonitor::addUpdateCallback(const JointStateUpdateCallback& fn)
 }
 
 void CurrentStateMonitor::clearUpdateCallbacks() { update_callbacks_.clear(); }
-void CurrentStateMonitor::startStateMonitor(const std::string& joint_states_topic, bool publish_tf)
+void CurrentStateMonitor::startStateMonitor(const std::string& joint_states_topic)
 {
-  publish_tf_ = publish_tf;
   if (!state_monitor_started_ && env_)
   {
     joint_time_.clear();
     if (joint_states_topic.empty())
     {
       RCLCPP_ERROR(node_->get_logger(), "The joint states topic cannot be an empty string");
+      return;
     }
-    else
-    {
-      joint_state_subscriber_ = node_->create_subscription<sensor_msgs::msg::JointState>(
-          joint_states_topic,
-          rclcpp::QoS(20),
-          std::bind(&CurrentStateMonitor::jointStateCallback, this, std::placeholders::_1));  // NOLINT
-    }
+
+    joint_state_subscriber_ = node_->create_subscription<sensor_msgs::msg::JointState>(
+        joint_states_topic,
+        rclcpp::QoS(20),
+        std::bind(&CurrentStateMonitor::jointStateCallback, this, std::placeholders::_1));  // NOLINT
+
     state_monitor_started_ = true;
     monitor_start_time_ = node_->now();
     RCLCPP_DEBUG(node_->get_logger(), "Listening to joint states on topic '%s'", joint_states_topic.c_str());
@@ -370,25 +367,6 @@ void CurrentStateMonitor::jointStateCallback(const sensor_msgs::msg::JointState:
 
     if (update)
       env_state_ = env_->getState(env_state_.joints);
-
-    if (publish_tf_)
-    {
-      std::string base_link = env_->getRootLinkName();
-      std::vector<geometry_msgs::msg::TransformStamped> transforms;
-      transforms.reserve(env_state_.joints.size());
-      for (const auto& pose : env_state_.link_transforms)
-      {
-        if (pose.first != base_link)
-        {
-          geometry_msgs::msg::TransformStamped tf = tf2::eigenToTransform(pose.second);
-          tf.header.stamp = current_state_time_;
-          tf.header.frame_id = base_link;
-          tf.child_frame_id = pose.first;
-          transforms.push_back(tf);
-        }
-      }
-      tf_broadcaster_.sendTransform(transforms);
-    }
   }
 
   // callbacks, if needed

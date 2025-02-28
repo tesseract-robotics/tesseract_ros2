@@ -129,8 +129,7 @@ public:
 
   double getEnvironmentPublishingFrequency() const override final;
 
-  void startStateMonitor(const std::string& joint_states_topic = DEFAULT_JOINT_STATES_TOPIC,
-                         bool publish_tf = true) override final;
+  void startStateMonitor(const std::string& joint_states_topic = DEFAULT_JOINT_STATES_TOPIC) override final;
 
   void stopStateMonitor() override final;
 

@@ -694,7 +694,7 @@ bool ROSEnvironmentMonitor::waitForCurrentState(std::chrono::duration<double> du
   return success;
 }
 
-void ROSEnvironmentMonitor::startStateMonitor(const std::string& joint_states_topic, bool publish_tf)
+void ROSEnvironmentMonitor::startStateMonitor(const std::string& joint_states_topic)
 {
   stopStateMonitor();
   if (env_)
@@ -704,7 +704,7 @@ void ROSEnvironmentMonitor::startStateMonitor(const std::string& joint_states_to
 
     current_state_monitor_->addUpdateCallback(
         std::bind(&ROSEnvironmentMonitor::onJointStateUpdate, this, std::placeholders::_1));  // NOLINT
-    current_state_monitor_->startStateMonitor(joint_states_topic, publish_tf);
+    current_state_monitor_->startStateMonitor(joint_states_topic);
 
     {
       std::scoped_lock lock(state_pending_mutex_);

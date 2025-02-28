@@ -49,11 +49,10 @@ int main(int argc, char** argv)
   if (!monitored_namespace.empty())
     monitor.startMonitoringEnvironment(monitored_namespace);
 
-  bool publish_tf = monitored_namespace.empty();
   if (joint_state_topic.empty())
-    monitor.startStateMonitor(DEFAULT_JOINT_STATES_TOPIC, publish_tf);
+    monitor.startStateMonitor(DEFAULT_JOINT_STATES_TOPIC);
   else
-    monitor.startStateMonitor(joint_state_topic, publish_tf);
+    monitor.startStateMonitor(joint_state_topic);
 
   RCLCPP_INFO(node->get_logger(), "Environment Monitor Running!");
 

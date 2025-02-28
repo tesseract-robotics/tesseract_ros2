@@ -310,7 +310,7 @@ void EnvironmentMonitorWidget::onJointStateTopicChanged()
     return;
 
   if (data_->monitor != nullptr)
-    data_->monitor->startStateMonitor(ui->joint_state_topic_combo_box->currentText().toStdString(), false);
+    data_->monitor->startStateMonitor(ui->joint_state_topic_combo_box->currentText().toStdString());
 }
 
 void EnvironmentMonitorWidget::onStatus(bool connected)

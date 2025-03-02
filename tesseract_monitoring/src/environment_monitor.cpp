@@ -300,8 +300,12 @@ void ROSEnvironmentMonitor::stopPublishingEnvironment()
   }
 }
 
-void ROSEnvironmentMonitor::startPublishingEnvironment()
+void ROSEnvironmentMonitor::startPublishingEnvironment() { startPublishingEnvironment(false); }
+
+void ROSEnvironmentMonitor::startPublishingEnvironment(bool publish_tf)
 {
+  publish_tf_ = publish_tf;
+
   if (publish_environment_)
   {
     RCLCPP_ERROR(logger_, "Environment publishing thread already exists!");
@@ -313,6 +317,11 @@ void ROSEnvironmentMonitor::startPublishingEnvironment()
     return;
   }
 
+  if (publish_tf_)
+  {
+    tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(internal_node_);
+    static_tf_broadcaster_ = std::make_unique<tf2_ros::StaticTransformBroadcaster>(internal_node_);
+  }
   std::string environment_topic = R"(/)" + monitor_namespace_ + DEFAULT_PUBLISH_ENVIRONMENT_TOPIC;
   environment_publisher_ =
       internal_node_->create_publisher<tesseract_msgs::msg::EnvironmentState>(environment_topic, rclcpp::QoS(100));
@@ -324,7 +333,7 @@ double ROSEnvironmentMonitor::getEnvironmentPublishingFrequency() const { return
 
 void ROSEnvironmentMonitor::environmentPublishingThread()
 {
-  RCLCPP_INFO(logger_, "Started environment state publishing thread ...");
+  RCLCPP_INFO(logger_, "Starting environment state publishing thread.");
 
   // publish the full planning scene
   tesseract_msgs::msg::EnvironmentState start_msg;
@@ -338,27 +347,42 @@ void ROSEnvironmentMonitor::environmentPublishingThread()
 
   do  // NOLINT(cppcoreguidelines-avoid-do-while)
   {
-    tesseract_msgs::msg::EnvironmentState msg;
-    bool publish_msg = false;
     rclcpp::Rate rate(publish_environment_frequency_);
+
+    tesseract_msgs::msg::EnvironmentState msg;
+    std::vector<geometry_msgs::msg::TransformStamped> transforms;
+    std::vector<geometry_msgs::msg::TransformStamped> static_transforms;
+
     {
       auto lock_read = env_->lockRead();
+
       tesseract_rosutils::toMsg(msg, *env_);
-
-      // also publish timestamp of this robot_state
+      // Also publish timestamp of this robot_state
       msg.joint_state.header.stamp = last_robot_motion_time_;
-      publish_msg = true;
+
+      if (publish_tf_)
+      {
+        tesseract_rosutils::toTransformMsgs(env_, last_robot_motion_time_, transforms, static_transforms);
+      }
     }
 
-    if (publish_msg)
+    environment_publisher_->publish(msg);
+
+    // Publish transforms using the broadcasters
+    if (!transforms.empty())
     {
-      rate.reset();
-      environment_publisher_->publish(msg);
-      rate.sleep();
+      tf_broadcaster_->sendTransform(transforms);
     }
+    if (!static_transforms.empty())
+    {
+      static_tf_broadcaster_->sendTransform(static_transforms);
+    }
+
+    rate.sleep();
+
   } while (publish_environment_);
 
-  RCLCPP_INFO(logger_, "Stopping env publishing thread");
+  RCLCPP_INFO(logger_, "Stopped environment state publishing thread.");
 }
 
 void ROSEnvironmentMonitor::stopMonitoringEnvironment()
@@ -694,7 +718,7 @@ bool ROSEnvironmentMonitor::waitForCurrentState(std::chrono::duration<double> du
   return success;
 }
 
-void ROSEnvironmentMonitor::startStateMonitor(const std::string& joint_states_topic, bool publish_tf)
+void ROSEnvironmentMonitor::startStateMonitor(const std::string& joint_states_topic, bool /*publish_tf*/)
 {
   stopStateMonitor();
   if (env_)
@@ -704,7 +728,7 @@ void ROSEnvironmentMonitor::startStateMonitor(const std::string& joint_states_to
 
     current_state_monitor_->addUpdateCallback(
         std::bind(&ROSEnvironmentMonitor::onJointStateUpdate, this, std::placeholders::_1));  // NOLINT
-    current_state_monitor_->startStateMonitor(joint_states_topic, publish_tf);
+    current_state_monitor_->startStateMonitor(joint_states_topic);
 
     {
       std::scoped_lock lock(state_pending_mutex_);
@@ -831,7 +855,7 @@ void ROSEnvironmentMonitor::updateEnvironmentWithCurrentState()
       RCLCPP_WARN_THROTTLE(logger_,
                            *internal_node_->get_clock(),
                            1.0,
-                           "The complete state of the robot is not yet known.  Missing %s",
+                           "The complete state of the robot is not yet known. Missing %s",
                            missing_str.c_str());
     }
 
@@ -851,7 +875,8 @@ void ROSEnvironmentMonitor::updateEnvironmentWithCurrentState()
 void ROSEnvironmentMonitor::setEnvironmentPublishingFrequency(double hz)
 {
   publish_environment_frequency_ = hz;
-  RCLCPP_DEBUG(logger_, "Maximum frquency for publishing an environment is now %lf Hz", publish_environment_frequency_);
+  RCLCPP_DEBUG(
+      logger_, "Maximum frequency for publishing an environment is now %lf Hz", publish_environment_frequency_);
 }
 
 void ROSEnvironmentMonitor::modifyEnvironmentCallback(

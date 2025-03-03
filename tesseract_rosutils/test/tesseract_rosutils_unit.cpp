@@ -1,7 +1,6 @@
 #include <tesseract_common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <gtest/gtest.h>
-#include <algorithm>
 #include <memory>
 #include <Eigen/Eigen>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
@@ -99,6 +98,79 @@ TEST_F(TesseractROSUtilsUnit, toFromMsgTesseract)  // NOLINT
 
   auto new_tesseract = fromMsg(tesseract_msg);
   EXPECT_TRUE(new_tesseract);
+}
+
+TEST_F(TesseractROSUtilsUnit, toTransformMsgs)  // NOLINT
+{
+  // Create timestamp for the transforms
+  auto sec = 1234;
+  auto nanosec = 5678;
+  rclcpp::Time stamp(sec, nanosec);
+
+  // Call the function to generate transform messages
+  std::vector<geometry_msgs::msg::TransformStamped> transforms;
+  std::vector<geometry_msgs::msg::TransformStamped> static_transforms;
+  toTransformMsgs(env_, stamp, transforms, static_transforms);
+
+  // Verify that transforms were generated
+  EXPECT_FALSE(transforms.empty());
+  EXPECT_FALSE(static_transforms.empty());
+
+  // The environment loaded from abb_irb2400.urdf and abb_irb2400.srdf should have several transforms
+  // Check some attributes of the transforms
+  for (const auto& transform : transforms)
+  {
+    // All transforms should have the correct timestamp
+    EXPECT_EQ(transform.header.stamp.sec, sec);
+    EXPECT_EQ(transform.header.stamp.nanosec, nanosec);
+
+    // Frame IDs should not be empty
+    EXPECT_FALSE(transform.header.frame_id.empty());
+    EXPECT_FALSE(transform.child_frame_id.empty());
+  }
+
+  for (const auto& transform : static_transforms)
+  {
+    // All static transforms should have the correct timestamp
+    EXPECT_EQ(transform.header.stamp.sec, sec);
+    EXPECT_EQ(transform.header.stamp.nanosec, nanosec);
+
+    // Frame IDs should not be empty
+    EXPECT_FALSE(transform.header.frame_id.empty());
+    EXPECT_FALSE(transform.child_frame_id.empty());
+  }
+
+  // Since the ABB IRB2400 is a 6-DOF robot, we expect 6 non-static transforms
+  EXPECT_EQ(transforms.size(), 6);
+  // The URDF also has two fixed joints
+  EXPECT_EQ(static_transforms.size(), 2);
+
+  // Verify that the static and dynamic transforms are properly categorized
+  // by checking specific known joints in the ABB IRB2400 model
+  bool found_joint_1 = false;
+  bool found_link_6_to_tool0 = false;
+
+  for (const auto& transform : transforms)
+  {
+    if (transform.child_frame_id == "link_1")
+    {
+      found_joint_1 = true;
+    }
+  }
+
+  for (const auto& transform : static_transforms)
+  {
+    if (transform.header.frame_id == "link_6" && transform.child_frame_id == "tool0")
+    {
+      found_link_6_to_tool0 = true;
+    }
+  }
+
+  // Joint 1 should be a moving joint, so it should be in the transforms array
+  EXPECT_TRUE(found_joint_1);
+
+  // The tool0 frame is typically attached via a fixed joint to link_6, so should be static
+  EXPECT_TRUE(found_link_6_to_tool0);
 }
 
 TEST_F(TesseractROSUtilsUnit, toFromFile)  // NOLINT

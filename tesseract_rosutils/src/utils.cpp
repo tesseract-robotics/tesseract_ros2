@@ -2423,6 +2423,35 @@ tesseract_common::JointTrajectory fromMsg(const trajectory_msgs::msg::JointTraje
   return joint_trajectory;
 }
 
+void toTransformMsgs(const std::shared_ptr<tesseract_environment::Environment>& env,
+                     const rclcpp::Time& stamp,
+                     std::vector<geometry_msgs::msg::TransformStamped>& transforms,
+                     std::vector<geometry_msgs::msg::TransformStamped>& static_transforms)
+{
+  const auto& scene_graph = env->getSceneGraph();
+  const auto& active_joints = env->getActiveJointNames();
+
+  for (const auto& joint : scene_graph->getJoints())
+  {
+    const auto& tf = env->getRelativeLinkTransform(joint->parent_link_name, joint->child_link_name);
+    // Convert link transform to TransformStamped message
+    auto transform_msg = tf2::eigenToTransform(tf);
+    transform_msg.header.stamp = stamp;
+    transform_msg.header.frame_id = joint->parent_link_name;
+    transform_msg.child_frame_id = joint->child_link_name;
+
+    // Add to appropriate collection based on whether it's static (connected by a fixed joint) or dynamic
+    if ((std::find(active_joints.begin(), active_joints.end(), joint->getName()) == active_joints.end()))
+    {
+      static_transforms.push_back(transform_msg);
+    }
+    else
+    {
+      transforms.push_back(transform_msg);
+    }
+  }
+}
+
 }  // namespace tesseract_rosutils
 
 #include <tesseract_common/serialization.h>

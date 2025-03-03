@@ -39,11 +39,15 @@
 
 #include <tesseract_common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
-#include <rclcpp/rclcpp.hpp>
 #include <memory>
 #include <mutex>
 #include <thread>
 #include <functional>
+
+#include <rclcpp/rclcpp.hpp>
+#include <tf2_ros/transform_broadcaster.h>
+#include <tf2_ros/static_transform_broadcaster.h>
+
 #include <tesseract_msgs/msg/environment_state.hpp>
 #include <tesseract_msgs/srv/modify_environment.hpp>
 #include <tesseract_msgs/srv/get_environment_changes.hpp>
@@ -123,12 +127,15 @@ public:
 
   void startPublishingEnvironment() override final;
 
+  void startPublishingEnvironment(bool publish_tf);
+
   void stopPublishingEnvironment() override final;
 
   void setEnvironmentPublishingFrequency(double hz) override final;
 
   double getEnvironmentPublishingFrequency() const override final;
 
+  // TODO: publish_tf does nothing anymore, remove from signature in tesseract_environment::EnvironmentMonitor
   void startStateMonitor(const std::string& joint_states_topic = DEFAULT_JOINT_STATES_TOPIC,
                          bool publish_tf = true) override final;
 
@@ -174,6 +181,9 @@ protected:
   rclcpp::Publisher<tesseract_msgs::msg::EnvironmentState>::SharedPtr environment_publisher_;
   std::unique_ptr<std::thread> publish_environment_;
   double publish_environment_frequency_{ 30.0 };
+  std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
+  std::unique_ptr<tf2_ros::StaticTransformBroadcaster> static_tf_broadcaster_;
+  bool publish_tf_{};
 
   // variables for monitored environment
   rclcpp::Subscription<tesseract_msgs::msg::EnvironmentState>::SharedPtr monitored_environment_subscriber_;

@@ -2431,29 +2431,23 @@ void toTransformMsgs(const std::shared_ptr<tesseract_environment::Environment>& 
   const auto& scene_graph = env->getSceneGraph();
   const auto& active_joints = env->getActiveJointNames();
 
-  // Convert link transforms to TransformStamped messages
-  for (const auto& link_name : env->getLinkNames())
+  for (const auto& joint : scene_graph->getJoints())
   {
-    // Find the parent links for this link in the scene graph
-    for (const auto& inbound_joint : scene_graph->getInboundJoints(link_name))
-    {
-      const auto& parent_link_name = inbound_joint->parent_link_name;
-      const auto& tf = env->getRelativeLinkTransform(parent_link_name, link_name);
-      // Convert Eigen transform to geometry_msgs transform
-      auto transform_msg = tf2::eigenToTransform(tf);
-      transform_msg.header.stamp = stamp;
-      transform_msg.header.frame_id = parent_link_name;
-      transform_msg.child_frame_id = link_name;
+    const auto& tf = env->getRelativeLinkTransform(joint->parent_link_name, joint->child_link_name);
+    // Convert link transform to TransformStamped message
+    auto transform_msg = tf2::eigenToTransform(tf);
+    transform_msg.header.stamp = stamp;
+    transform_msg.header.frame_id = joint->parent_link_name;
+    transform_msg.child_frame_id = joint->child_link_name;
 
-      // Add to appropriate collection based on whether it's static (connected by a fixed joint) or dynamic
-      if ((std::find(active_joints.begin(), active_joints.end(), inbound_joint->getName()) == active_joints.end()))
-      {
-        static_transforms.push_back(transform_msg);
-      }
-      else
-      {
-        transforms.push_back(transform_msg);
-      }
+    // Add to appropriate collection based on whether it's static (connected by a fixed joint) or dynamic
+    if ((std::find(active_joints.begin(), active_joints.end(), joint->getName()) == active_joints.end()))
+    {
+      static_transforms.push_back(transform_msg);
+    }
+    else
+    {
+      transforms.push_back(transform_msg);
     }
   }
 }

@@ -27,7 +27,6 @@
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <thread>
 #include <Eigen/Geometry>
-#include <boost/uuid/random_generator.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <rclcpp/rclcpp.hpp>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
@@ -132,7 +131,7 @@ void ROSPlotting::plotTrajectory(const tesseract_common::JointTrajectory& traj, 
   tesseract_msgs::msg::Trajectory msg;
   msg.ns = std::move(ns);
   msg.joint_trajectories_uuid = boost::uuids::to_string(traj.uuid);
-  msg.description = std::move(description);
+  msg.joint_trajectories_description = std::move(description);
 
   if (!traj.empty())
   {
@@ -168,13 +167,7 @@ void ROSPlotting::plotTrajectory(const tesseract_environment::Environment& env,
 
   // Set the initial state
   tesseract_scene_graph::SceneState initial_state = env.getState();
-  for (const auto& pair : initial_state.joints)
-  {
-    tesseract_msgs::msg::StringDoublePair pair_msg;
-    pair_msg.first = pair.first;
-    pair_msg.second = pair.second;
-    msg.initial_state.push_back(pair_msg);
-  }
+  tesseract_rosutils::toMsg(msg.initial_state, initial_state.joints);
 
   assert(instruction.isCompositeInstruction());
   const auto& ci = instruction.as<tesseract_planning::CompositeInstruction>();
@@ -186,10 +179,12 @@ void ROSPlotting::plotTrajectory(const tesseract_environment::Environment& env,
 void ROSPlotting::plotTrajectories(const tesseract_environment::Environment& env,
                                    const std::vector<tesseract_planning::InstructionPoly>& instructions,
                                    std::string ns,
-                                   const std::string& description)
+                                   const std::string& description,
+                                   const boost::uuids::uuid& uuid)
 {
   tesseract_planning::CompositeInstruction ci;
   ci.setDescription(description);
+  ci.setUUID(uuid);
 
   // Add all instructions to one composite instruction
   for (const auto& instruction : instructions)
@@ -202,13 +197,11 @@ void ROSPlotting::plotTrajectories(const tesseract_environment::Environment& env
 
 void ROSPlotting::plotTrajectory(const tesseract_environment::Commands& cmds,
                                  const tesseract_planning::InstructionPoly& instruction,
-                                 std::string ns,
-                                 std::string description)
+                                 std::string ns)
 {
   tesseract_msgs::msg::Trajectory msg;
   msg.ns = std::move(ns);
   msg.joint_trajectories_uuid = boost::uuids::to_string(instruction.getUUID());
-  msg.description = std::move(description);
 
   // Set the commands message
   std::vector<tesseract_msgs::msg::EnvironmentCommand> env_cmds;
@@ -218,6 +211,7 @@ void ROSPlotting::plotTrajectory(const tesseract_environment::Commands& cmds,
   // Convert to joint trajectory
   assert(instruction.isCompositeInstruction());
   const auto& ci = instruction.as<tesseract_planning::CompositeInstruction>();
+  msg.joint_trajectories_description = ci.getDescription();
   tesseract_common::JointTrajectory traj = tesseract_planning::toJointTrajectory(ci);
 
   if (!traj.empty())
@@ -236,6 +230,55 @@ void ROSPlotting::plotTrajectory(const tesseract_environment::Commands& cmds,
   tesseract_msgs::msg::JointTrajectory traj_msg;
   toMsg(traj_msg, traj);
   msg.joint_trajectories.push_back(traj_msg);
+
+  plotTrajectory(msg);
+}
+
+void ROSPlotting::plotTrajectories(const tesseract_environment::Commands& cmds,
+                                   const std::vector<tesseract_planning::InstructionPoly>& instructions,
+                                   std::string ns,
+                                   const std::string& description,
+                                   const boost::uuids::uuid& uuid)
+{
+  tesseract_msgs::msg::Trajectory msg;
+  msg.ns = std::move(ns);
+  msg.joint_trajectories_description = description;
+  msg.joint_trajectories_uuid = boost::uuids::to_string(uuid);
+
+  // Set the commands message
+  std::vector<tesseract_msgs::msg::EnvironmentCommand> env_cmds;
+  tesseract_rosutils::toMsg(env_cmds, cmds, 0);
+  msg.commands = env_cmds;
+
+  bool first = true;
+  for (const auto& instruction : instructions)
+  {
+    // Convert to joint trajectory
+    assert(instruction.isCompositeInstruction());
+    const auto& ci = instruction.as<tesseract_planning::CompositeInstruction>();
+    tesseract_common::JointTrajectory traj = tesseract_planning::toJointTrajectory(ci);
+
+    // Set the joint trajectory message
+    tesseract_msgs::msg::JointTrajectory traj_msg;
+    toMsg(traj_msg, traj);
+    msg.joint_trajectories.push_back(traj_msg);
+
+    if (first)
+    {
+      if (!traj.empty())
+      {
+        // Set the initial state
+        for (std::size_t i = 0; i < traj[0].joint_names.size(); ++i)
+        {
+          tesseract_msgs::msg::StringDoublePair pair;
+          pair.first = traj[0].joint_names[i];
+          pair.second = traj[0].position[static_cast<Eigen::Index>(i)];
+          msg.initial_state.push_back(pair);
+        }
+        first = false;
+      }
+    }
+  }
 
   plotTrajectory(msg);
 }

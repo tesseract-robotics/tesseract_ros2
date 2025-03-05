@@ -5,16 +5,13 @@ std_msgs/Header header
 # This is mostly used by visualization tools
 string ns
 
-# A description of the trajectory
-string description
-
 # (Optional) Override the existing Tesseract Environment
 Environment environment
 
-# (Optional) Additional Commands to be applied to environment prior to trajectory visualization (ignored if environment is provided)
+# (Optional, ignored if environment is provided) Additional Commands to be applied to environment prior to trajectory visualization
 tesseract_msgs/EnvironmentCommand[] commands
 
-# (Required) Initial Environment Joint State
+# (Required if no environment provided, otherwise ignored) Initial Environment Joint State
 tesseract_msgs/StringDoublePair[] initial_state
 
 ############################################
@@ -24,7 +21,7 @@ tesseract_msgs/StringDoublePair[] initial_state
 # Tesseract Command Language Instructions
 string instructions
 
-# If instructions are provided this will be ignored
+# (Ignored if instructions are provided) Joint Trajectory
 string joint_trajectories_uuid
 string joint_trajectories_description
 tesseract_msgs/JointTrajectory[] joint_trajectories

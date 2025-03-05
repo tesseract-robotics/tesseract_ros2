@@ -28,6 +28,7 @@
 
 #include <tesseract_common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
+#include <boost/uuid/random_generator.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <tesseract_msgs/msg/trajectory.hpp>
 #include <visualization_msgs/msg/marker.hpp>
@@ -39,6 +40,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <tesseract_visualization/markers/contact_results_marker.h>
 #include <tesseract_command_language/poly/instruction_poly.h>
 
+#include <tesseract_environment/commands.h>
 #include <tesseract_environment/fwd.h>
 
 namespace tesseract_rosutils
@@ -78,12 +80,18 @@ public:
   void plotTrajectories(const tesseract_environment::Environment& env,
                         const std::vector<tesseract_planning::InstructionPoly>& instructions,
                         std::string ns = "",
-                        const std::string& description = "");
+                        const std::string& description = "",
+                        const boost::uuids::uuid& uuid = boost::uuids::random_generator()());
 
   void plotTrajectory(const std::vector<std::shared_ptr<const tesseract_environment::Command>>& cmds,
                       const tesseract_planning::InstructionPoly& instruction,
-                      std::string = "",
-                      std::string description = "");
+                      std::string ns = "");
+
+  void plotTrajectories(const tesseract_environment::Commands& cmds,
+                        const std::vector<tesseract_planning::InstructionPoly>& instructions,
+                        std::string ns = "",
+                        const std::string& description = "",
+                        const boost::uuids::uuid& uuid = boost::uuids::random_generator()());
 
   void plotToolpath(const tesseract_common::Toolpath& toolpath, std::string ns = "");
 

@@ -2,6 +2,21 @@
 Changelog for package tesseract_rosutils
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* - Improve documentation of Trajectory.msg
+  - Simplify initial state conversion in plotTrajectory()
+  - Remove unused description from Trajectory.msg (replaced by the description of the CompositeInstruction or by joint_trajectories_description)
+  - Fix use of description in plotTrajectory()
+  - Add uuid to plotTrajectories() function
+  - Add plotTrajectories() with Commands
+  - Fix tesseractJointTrajectoryCallback for joint_trajectories
+* Remove TransformBroadcaster from CurrentStateMonitor and reintroduce in ROSEnvironmentMonitor (`#144 <https://github.com/tesseract-robotics/tesseract_ros2/issues/144>`_)
+* Update to leverage std::filesystem
+* Add missing uuid to Geometry message along with conversion utils
+* Update to clang-tid-17
+* Contributors: Levi Armstrong, Roelof Oomen
+
 0.28.2 (2025-01-29)
 -------------------
 

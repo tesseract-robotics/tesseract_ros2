@@ -2,6 +2,18 @@
 Changelog for package tesseract_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* - Improve documentation of Trajectory.msg
+  - Simplify initial state conversion in plotTrajectory()
+  - Remove unused description from Trajectory.msg (replaced by the description of the CompositeInstruction or by joint_trajectories_description)
+  - Fix use of description in plotTrajectory()
+  - Add uuid to plotTrajectories() function
+  - Add plotTrajectories() with Commands
+  - Fix tesseractJointTrajectoryCallback for joint_trajectories
+* Add missing uuid to Geometry message along with conversion utils
+* Contributors: Levi Armstrong, Roelof Oomen
+
 0.28.2 (2025-01-29)
 -------------------
 

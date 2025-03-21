@@ -2,8 +2,8 @@
 Changelog for package tesseract_planning_server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.29.0 (2025-03-21)
+-------------------
 * Update to leverage std::filesystem
 * Update to clang-tid-17
 * Contributors: Levi Armstrong

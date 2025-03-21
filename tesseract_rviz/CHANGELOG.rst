@@ -2,8 +2,8 @@
 Changelog for package tesseract_rviz
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.29.0 (2025-03-21)
+-------------------
 * - Improve documentation of Trajectory.msg
   - Simplify initial state conversion in plotTrajectory()
   - Remove unused description from Trajectory.msg (replaced by the description of the CompositeInstruction or by joint_trajectories_description)

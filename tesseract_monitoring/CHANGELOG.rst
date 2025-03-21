@@ -2,8 +2,8 @@
 Changelog for package tesseract_monitoring
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.29.0 (2025-03-21)
+-------------------
 * Remove TransformBroadcaster from CurrentStateMonitor and reintroduce in ROSEnvironmentMonitor (`#144 <https://github.com/tesseract-robotics/tesseract_ros2/issues/144>`_)
 * Thix implements the isPassiveOrMimicDOF function.
   Closes https://github.com/tesseract-robotics/tesseract_ros/issues/79

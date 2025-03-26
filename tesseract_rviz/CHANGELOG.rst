@@ -2,8 +2,8 @@
 Changelog for package tesseract_rviz
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.29.2 (2025-03-26)
+-------------------
 * Update component info usage
 * Contributors: Levi Armstrong
 

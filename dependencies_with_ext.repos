@@ -10,7 +10,7 @@ repositories:
   tesseract:
     type: git
     url: https://github.com/tesseract-robotics/tesseract.git
-    version: 0.29.0
+    version: 0.29.1
   trajopt:
     type: git
     url: https://github.com/tesseract-robotics/trajopt.git
@@ -18,11 +18,11 @@ repositories:
   tesseract_planning:
     type: git
     url: https://github.com/tesseract-robotics/tesseract_planning.git
-    version: 0.29.0
+    version: 0.29.1
   tesseract_qt:
     type: git
     url: https://github.com/tesseract-robotics/tesseract_qt.git
-    version: 0.29.0
+    version: 0.29.1
   descartes_light:
     type: git
     url: https://github.com/swri-robotics/descartes_light.git

@@ -66,7 +66,9 @@ EnvironmentMonitorProperties::EnvironmentMonitorProperties(rviz_common::Display*
 {
   data_->parent = parent;
   data_->monitor_namespace = monitor_namespace;
-  data_->component_info = tesseract_gui::ComponentInfoManager::create("rviz_scene");
+  auto component_info = tesseract_gui::ComponentInfoManager::create("rviz_scene");
+  component_info->setDescription("Environment monitor");
+  data_->component_info = component_info;
 
   data_->main_property = main_property;
   if (data_->main_property == nullptr)

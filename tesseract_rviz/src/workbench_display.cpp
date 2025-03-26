@@ -173,6 +173,7 @@ void WorkbenchDisplay::onComponentInfoChanged(std::shared_ptr<const tesseract_gu
 {
   data_->widget->setComponentInfo(std::move(component_info));
   data_->joint_trajectory_properties->setComponentInfo(data_->widget->getJointTrajectoryWidget().getComponentInfo());
+  tesseract_gui::ComponentInfoManager::removeUnused();
 }
 
 }  // namespace tesseract_rviz

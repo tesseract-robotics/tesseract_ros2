@@ -158,7 +158,9 @@ JointTrajectoryMonitorProperties::JointTrajectoryMonitorProperties(rviz_common::
   : data_(std::make_unique<Implementation>())
 {
   data_->parent = parent;
-  data_->component_info = tesseract_gui::ComponentInfoManager::create("rviz_scene");
+  auto component_info = tesseract_gui::ComponentInfoManager::create("rviz_scene");
+  component_info->setDescription("Joint trajectory monitor");
+  data_->component_info = component_info;
 
   data_->main_property = main_property;
   if (data_->main_property == nullptr)

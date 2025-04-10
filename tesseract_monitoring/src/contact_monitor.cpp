@@ -68,7 +68,7 @@ ContactMonitor::ContactMonitor(std::string monitor_namespace,
     throw std::runtime_error("Contact monitor failed to get discrete contact manager from environment!");
 
   manager_->setActiveCollisionObjects(monitored_link_names_);
-  manager_->setDefaultCollisionMarginData(contact_distance_);
+  manager_->setDefaultCollisionMargin(contact_distance_);
   for (const auto& disabled_link_name : disabled_link_names_)
     manager_->disableCollisionObject(disabled_link_name);
 

@@ -33,7 +33,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <tesseract_msgs/msg/chain_group.hpp>
 #include <tesseract_msgs/msg/collision_geometry.hpp>
 #include <tesseract_msgs/msg/collision_margin_data.hpp>
-#include <tesseract_msgs/msg/collision_margin_override_type.hpp>
+#include <tesseract_msgs/msg/collision_margin_pair_override_type.hpp>
 #include <tesseract_msgs/msg/contact_margin_pair.hpp>
 #include <tesseract_msgs/msg/contact_result.hpp>
 #include <tesseract_msgs/msg/contact_managers_plugin_info.hpp>
@@ -198,10 +198,10 @@ toMsg(const tesseract_common::PairsCollisionMarginData& contact_margin_pairs);
 tesseract_common::CollisionMarginData fromMsg(const tesseract_msgs::msg::CollisionMarginData& contact_margin_data_msg);
 tesseract_msgs::msg::CollisionMarginData toMsg(const tesseract_common::CollisionMarginData& contact_margin_data);
 
-tesseract_common::CollisionMarginOverrideType
-fromMsg(const tesseract_msgs::msg::CollisionMarginOverrideType& contact_margin_override_type_msg);
-tesseract_msgs::msg::CollisionMarginOverrideType
-toMsg(const tesseract_common::CollisionMarginOverrideType& contact_margin_override_type);
+tesseract_common::CollisionMarginPairOverrideType
+fromMsg(const tesseract_msgs::msg::CollisionMarginPairOverrideType& contact_margin_pair_override_type_msg);
+tesseract_msgs::msg::CollisionMarginPairOverrideType
+toMsg(const tesseract_common::CollisionMarginPairOverrideType& contact_margin_pair_override_type);
 
 tesseract_scene_graph::Joint fromMsg(const tesseract_msgs::msg::Joint& joint_msg);
 

@@ -33,7 +33,7 @@ set(message_files
   "msg/ChainGroup.msg"
   "msg/CollisionGeometry.msg"
   "msg/CollisionMarginData.msg"
-  "msg/CollisionMarginOverrideType.msg"
+  "msg/CollisionMarginPairOverrideType.msg"
   "msg/ContactManagersPluginInfo.msg"
   "msg/ContactMarginPair.msg"
   "msg/ContactResult.msg"

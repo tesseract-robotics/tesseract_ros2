@@ -3,6 +3,10 @@ repositories:
     type: git
     url: https://github.com/ros-industrial/ros_industrial_cmake_boilerplate.git
     version: 0.7.3
+  boost_plugin_loader:
+    type: git
+    url: https://github.com/tesseract-robotics/boost_plugin_loader.git
+    version: main
   tesseract:
     type: git
     url: https://github.com/tesseract-robotics/tesseract.git

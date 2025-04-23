@@ -42,20 +42,18 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <tesseract_motion_planners/ompl/profile/ompl_profile.h>
 #include <tesseract_motion_planners/simple/profile/simple_planner_profile.h>
 
-#include <tesseract_motion_planners/simple/profile/simple_planner_lvs_no_ik_plan_profile.h>
-#include <tesseract_motion_planners/ompl/profile/ompl_real_vector_plan_profile.h>
-#include <tesseract_motion_planners/descartes/profile/descartes_default_plan_profile.h>
+#include <tesseract_motion_planners/simple/profile/simple_planner_lvs_no_ik_move_profile.h>
+#include <tesseract_motion_planners/ompl/profile/ompl_real_vector_move_profile.h>
+#include <tesseract_motion_planners/descartes/profile/descartes_default_move_profile.h>
 #include <tesseract_motion_planners/trajopt/profile/trajopt_default_composite_profile.h>
-#include <tesseract_motion_planners/trajopt/profile/trajopt_default_plan_profile.h>
+#include <tesseract_motion_planners/trajopt/profile/trajopt_default_move_profile.h>
 #include <tesseract_motion_planners/trajopt/profile/trajopt_osqp_solver_profile.h>
 #include <tesseract_task_composer/planning/profiles/contact_check_profile.h>
 #include <tesseract_task_composer/planning/profiles/iterative_spline_parameterization_profile.h>
 #include <tesseract_task_composer/planning/profiles/min_length_profile.h>
-#ifdef TESSERACT_TASK_COMPOSER_HAS_TRAJOPT_IFOPT
 #include <tesseract_motion_planners/trajopt_ifopt/profile/trajopt_ifopt_default_composite_profile.h>
-#include <tesseract_motion_planners/trajopt_ifopt/profile/trajopt_ifopt_default_plan_profile.h>
-#include <tesseract_motion_planners/trajopt_ifopt/profile/trajopt_ifopt_default_solver_profile.h>
-#endif
+#include <tesseract_motion_planners/trajopt_ifopt/profile/trajopt_ifopt_default_move_profile.h>
+#include <tesseract_motion_planners/trajopt_ifopt/profile/trajopt_ifopt_osqp_solver_profile.h>
 
 #include <tesseract_environment/environment.h>
 #include <tesseract_environment/environment_cache.h>
@@ -296,7 +294,7 @@ void TesseractPlanningServer::loadDefaultPlannerProfiles()
   // Add TrajOpt Default Profiles
   profiles_->addProfile(TRAJOPT_DEFAULT_NAMESPACE,
                         tesseract_planning::DEFAULT_PROFILE_KEY,
-                        std::make_shared<tesseract_planning::TrajOptDefaultPlanProfile>());
+                        std::make_shared<tesseract_planning::TrajOptDefaultMoveProfile>());
   profiles_->addProfile(TRAJOPT_DEFAULT_NAMESPACE,
                         tesseract_planning::DEFAULT_PROFILE_KEY,
                         std::make_shared<tesseract_planning::TrajOptDefaultCompositeProfile>());
@@ -305,32 +303,30 @@ void TesseractPlanningServer::loadDefaultPlannerProfiles()
                         std::make_shared<tesseract_planning::TrajOptOSQPSolverProfile>());
 
   // Add TrajOpt IFOPT Default Profiles
-#ifdef TESSERACT_TASK_COMPOSER_HAS_TRAJOPT_IFOPT
   profiles_->addProfile(TRAJOPT_IFOPT_DEFAULT_NAMESPACE,
                         tesseract_planning::DEFAULT_PROFILE_KEY,
-                        std::make_shared<tesseract_planning::TrajOptIfoptDefaultPlanProfile>());
+                        std::make_shared<tesseract_planning::TrajOptIfoptDefaultMoveProfile>());
   profiles_->addProfile(TRAJOPT_IFOPT_DEFAULT_NAMESPACE,
                         tesseract_planning::DEFAULT_PROFILE_KEY,
                         std::make_shared<tesseract_planning::TrajOptIfoptDefaultCompositeProfile>());
   profiles_->addProfile(TRAJOPT_IFOPT_DEFAULT_NAMESPACE,
                         tesseract_planning::DEFAULT_PROFILE_KEY,
-                        std::make_shared<tesseract_planning::TrajOptIfoptDefaultSolverProfile>());
-#endif
+                        std::make_shared<tesseract_planning::TrajOptIfoptOSQPSolverProfile>());
 
   // Add Descartes Default Profiles
   profiles_->addProfile(DESCARTES_DEFAULT_NAMESPACE,
                         tesseract_planning::DEFAULT_PROFILE_KEY,
-                        std::make_shared<tesseract_planning::DescartesDefaultPlanProfile<double>>());
+                        std::make_shared<tesseract_planning::DescartesDefaultMoveProfile<double>>());
 
   // Add OMPL Default Profiles
   profiles_->addProfile(OMPL_DEFAULT_NAMESPACE,
                         tesseract_planning::DEFAULT_PROFILE_KEY,
-                        std::make_shared<tesseract_planning::OMPLRealVectorPlanProfile>());
+                        std::make_shared<tesseract_planning::OMPLRealVectorMoveProfile>());
 
   // Add Simple Default Profiles
   profiles_->addProfile(SIMPLE_DEFAULT_NAMESPACE,
                         tesseract_planning::DEFAULT_PROFILE_KEY,
-                        std::make_shared<tesseract_planning::SimplePlannerLVSNoIKPlanProfile>());
+                        std::make_shared<tesseract_planning::SimplePlannerLVSNoIKMoveProfile>());
 
   // MinLengthTask calls the SimpleMotionPlanner to generate a seed path with waypoints interpolated in joint space
   profiles_->addProfile(MLT_DEFAULT_NAMESPACE,

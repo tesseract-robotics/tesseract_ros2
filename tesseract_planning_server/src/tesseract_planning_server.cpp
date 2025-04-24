@@ -57,14 +57,14 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_environment/environment.h>
 #include <tesseract_environment/environment_cache.h>
-#include <tesseract_command_language/profile_dictionary.h>
 
 #include <tesseract_common/any_poly.h>
+#include <tesseract_common/profile_dictionary.h>
+#include <tesseract_common/serialization.h>
+#include <tesseract_common/stopwatch.h>
 
 #include <tesseract_monitoring/environment_monitor.h>
 #include <tesseract_rosutils/utils.h>
-#include <tesseract_common/serialization.h>
-#include <tesseract_common/stopwatch.h>
 
 #include <tesseract_task_composer/core/task_composer_context.h>
 #include <tesseract_task_composer/core/task_composer_data_storage.h>
@@ -97,7 +97,7 @@ TesseractPlanningServer::TesseractPlanningServer(rclcpp::Node::SharedPtr node,
   : node_(std::move(node))
   , monitor_(std::make_shared<tesseract_monitoring::ROSEnvironmentMonitor>(node_, robot_description, std::move(name)))
   , environment_cache_(std::make_shared<tesseract_environment::DefaultEnvironmentCache>(monitor_->getEnvironment()))
-  , profiles_(std::make_shared<tesseract_planning::ProfileDictionary>())
+  , profiles_(std::make_shared<tesseract_common::ProfileDictionary>())
   , planning_server_(std::make_unique<tesseract_planning::TaskComposerServer>())
   , motion_plan_server_(rclcpp_action::create_server<tesseract_msgs::action::GetMotionPlan>(
         node_,
@@ -117,7 +117,7 @@ TesseractPlanningServer::TesseractPlanningServer(rclcpp::Node::SharedPtr node,
   : node_(std::move(node))
   , monitor_(std::make_shared<tesseract_monitoring::ROSEnvironmentMonitor>(node_, std::move(env), std::move(name)))
   , environment_cache_(std::make_shared<tesseract_environment::DefaultEnvironmentCache>(monitor_->getEnvironment()))
-  , profiles_(std::make_shared<tesseract_planning::ProfileDictionary>())
+  , profiles_(std::make_shared<tesseract_common::ProfileDictionary>())
   , planning_server_(std::make_unique<tesseract_planning::TaskComposerServer>())
   , motion_plan_server_(rclcpp_action::create_server<tesseract_msgs::action::GetMotionPlan>(
         node_,
@@ -156,11 +156,8 @@ const tesseract_environment::EnvironmentCache& TesseractPlanningServer::getEnvir
   return *environment_cache_;
 }
 
-tesseract_planning::ProfileDictionary& TesseractPlanningServer::getProfileDictionary() { return *profiles_; }
-const tesseract_planning::ProfileDictionary& TesseractPlanningServer::getProfileDictionary() const
-{
-  return *profiles_;
-}
+tesseract_common::ProfileDictionary& TesseractPlanningServer::getProfileDictionary() { return *profiles_; }
+const tesseract_common::ProfileDictionary& TesseractPlanningServer::getProfileDictionary() const { return *profiles_; }
 
 rclcpp_action::GoalResponse
 TesseractPlanningServer::handle_goal(const rclcpp_action::GoalUUID&,                                      // NOLINT

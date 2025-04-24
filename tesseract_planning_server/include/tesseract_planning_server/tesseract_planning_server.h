@@ -38,7 +38,6 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_environment/fwd.h>
 #include <tesseract_task_composer/core/fwd.h>
-#include <tesseract_command_language/fwd.h>
 #include <tesseract_common/fwd.h>
 
 namespace tesseract_planning_server
@@ -71,8 +70,8 @@ public:
   tesseract_environment::EnvironmentCache& getEnvironmentCache();
   const tesseract_environment::EnvironmentCache& getEnvironmentCache() const;
 
-  tesseract_planning::ProfileDictionary& getProfileDictionary();
-  const tesseract_planning::ProfileDictionary& getProfileDictionary() const;
+  tesseract_common::ProfileDictionary& getProfileDictionary();
+  const tesseract_common::ProfileDictionary& getProfileDictionary() const;
 
   rclcpp_action::GoalResponse handle_goal(const rclcpp_action::GoalUUID&,
                                           std::shared_ptr<const tesseract_msgs::action::GetMotionPlan::Goal>);
@@ -93,7 +92,7 @@ protected:
   std::shared_ptr<tesseract_environment::EnvironmentCache> environment_cache_;
 
   /** @brief The task profiles */
-  std::shared_ptr<tesseract_planning::ProfileDictionary> profiles_;
+  std::shared_ptr<tesseract_common::ProfileDictionary> profiles_;
 
   /** @brief The task planning server */
   std::unique_ptr<tesseract_planning::TaskComposerServer> planning_server_;

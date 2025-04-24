@@ -2,6 +2,11 @@
 Changelog for package tesseract_monitoring
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Update required because item related to collision margin data changed
+* Contributors: Levi Armstrong
+
 0.29.2 (2025-03-26)
 -------------------
 

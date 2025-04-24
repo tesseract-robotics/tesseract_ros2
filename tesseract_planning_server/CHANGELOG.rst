@@ -2,8 +2,8 @@
 Changelog for package tesseract_planning_server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.30.0 (2025-04-23)
+-------------------
 * Update because profile dictionary moved to tesseract_common
 * Update required: plan profile renamed to move profile
 * Contributors: Levi Armstrong, Roelof Oomen

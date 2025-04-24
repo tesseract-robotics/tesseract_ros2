@@ -6,7 +6,7 @@ repositories:
   boost_plugin_loader:
     type: git
     url: https://github.com/tesseract-robotics/boost_plugin_loader.git
-    version: main
+    version: 0.3.0
   tesseract_ext:
     type: git
     url: https://github.com/tesseract-robotics/tesseract_ext.git

@@ -540,13 +540,18 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
     offset_orientation = orientation;
   }
 
+  auto entity = entity_container.addUntrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS);
+  Ogre::SceneNode* offset_node = scene.createSceneNode(entity.unique_name);
+
   switch (geometry.getType())
   {
     case tesseract_geometry::GeometryType::SPHERE:
     {
       const auto& sphere = static_cast<const tesseract_geometry::Sphere&>(geometry);
       auto entity = entity_container.addUntrackedEntity(tesseract_gui::EntityContainer::RESOURCE_NS);
-      ogre_entity.push_back(scene.createEntity(entity.unique_name, "tesseract_sphere.mesh"));
+      auto* sphere_entity = scene.createEntity(entity.unique_name, "tesseract_sphere.mesh");
+      ogre_entity.push_back(sphere_entity);
+      offset_node->attachObject(sphere_entity);
       float diameter = static_cast<float>(sphere.getRadius()) * 2.0f;
       ogre_scale = Ogre::Vector3(diameter, diameter, diameter);
       break;
@@ -555,7 +560,9 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
     {
       const auto& box = static_cast<const tesseract_geometry::Box&>(geometry);
       auto entity = entity_container.addUntrackedEntity(tesseract_gui::EntityContainer::RESOURCE_NS);
-      ogre_entity.push_back(scene.createEntity(entity.unique_name, "tesseract_cube.mesh"));
+      auto* box_entity = scene.createEntity(entity.unique_name, "tesseract_cube.mesh");
+      ogre_entity.push_back(box_entity);
+      offset_node->attachObject(box_entity);
       ogre_scale =
           Ogre::Vector3(static_cast<float>(box.getX()), static_cast<float>(box.getY()), static_cast<float>(box.getZ()));
       break;
@@ -564,7 +571,9 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
     {
       const auto& cylinder = static_cast<const tesseract_geometry::Cylinder&>(geometry);
       auto entity = entity_container.addUntrackedEntity(tesseract_gui::EntityContainer::RESOURCE_NS);
-      ogre_entity.push_back(scene.createEntity(entity.unique_name, "tesseract_cylinder.mesh"));
+      auto* cylinder_entity = scene.createEntity(entity.unique_name, "tesseract_cylinder.mesh");
+      ogre_entity.push_back(cylinder_entity);
+      offset_node->attachObject(cylinder_entity);
       ogre_scale = Ogre::Vector3(static_cast<float>(cylinder.getRadius() * 2),
                                  static_cast<float>(cylinder.getRadius() * 2),
                                  static_cast<float>(cylinder.getLength()));
@@ -574,7 +583,9 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
     {
       const auto& cone = static_cast<const tesseract_geometry::Cone&>(geometry);
       auto entity = entity_container.addUntrackedEntity(tesseract_gui::EntityContainer::RESOURCE_NS);
-      ogre_entity.push_back(scene.createEntity(entity.unique_name, "tesseract_cone.mesh"));
+      auto* cone_entity = scene.createEntity(entity.unique_name, "tesseract_cone.mesh");
+      ogre_entity.push_back(cone_entity);
+      offset_node->attachObject(cone_entity);
       ogre_scale = Ogre::Vector3(static_cast<float>(cone.getRadius() * 2),
                                  static_cast<float>(cone.getRadius() * 2),
                                  static_cast<float>(cone.getLength()));
@@ -583,18 +594,57 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
     case tesseract_geometry::GeometryType::CAPSULE:
     {
       const auto& capsule = static_cast<const tesseract_geometry::Capsule&>(geometry);
-      auto entity = entity_container.addUntrackedEntity(tesseract_gui::EntityContainer::RESOURCE_NS);
-      ogre_entity.push_back(scene.createEntity(entity.unique_name, "tesseract_capsule.mesh"));
-      ogre_scale = Ogre::Vector3(static_cast<float>(capsule.getRadius() * 2),
-                                 static_cast<float>(capsule.getRadius() * 2),
-                                 static_cast<float>((0.5 * capsule.getLength()) + capsule.getRadius()));
+      const auto length = static_cast<float>(capsule.getLength());
+      const auto radius = static_cast<float>(capsule.getRadius());
+      float diameter = radius * 2.0F;
+
+      // Create cylinder for the middle section
+      auto cylinder_container = entity_container.addUntrackedEntity(tesseract_gui::EntityContainer::RESOURCE_NS);
+      Ogre::Entity* cylinder_entity = scene.createEntity(cylinder_container.unique_name, "tesseract_cylinder.mesh");
+      Ogre::SceneNode* cylinder_node = scene.createSceneNode(cylinder_container.unique_name + "_node");
+      cylinder_node->attachObject(cylinder_entity);
+
+      // Scale the cylinder to match capsule dimensions
+      cylinder_node->setScale(diameter, diameter, length);
+
+      // Create the two sphere caps
+      auto sphere1_container = entity_container.addUntrackedEntity(tesseract_gui::EntityContainer::RESOURCE_NS);
+      Ogre::Entity* sphere1_entity = scene.createEntity(sphere1_container.unique_name, "tesseract_sphere.mesh");
+      Ogre::SceneNode* sphere1_node = scene.createSceneNode(sphere1_container.unique_name + "_node");
+      sphere1_node->attachObject(sphere1_entity);
+
+      auto sphere2_container = entity_container.addUntrackedEntity(tesseract_gui::EntityContainer::RESOURCE_NS);
+      Ogre::Entity* sphere2_entity = scene.createEntity(sphere2_container.unique_name, "tesseract_sphere.mesh");
+      Ogre::SceneNode* sphere2_node = scene.createSceneNode(sphere2_container.unique_name + "_node");
+      sphere2_node->attachObject(sphere2_entity);
+
+      // Scale the spheres to match the radius
+      sphere1_node->setScale(diameter, diameter, diameter);
+      sphere2_node->setScale(diameter, diameter, diameter);
+
+      // Position the spheres at the ends of the cylinder
+      sphere1_node->setPosition(0.0F, 0.0F, length / 2.0F);
+      sphere2_node->setPosition(0.0F, 0.0F, -length / 2.0F);
+
+      // Store the entities for material application
+      ogre_entity.push_back(cylinder_entity);
+      ogre_entity.push_back(sphere1_entity);
+      ogre_entity.push_back(sphere2_entity);
+
+      // Add all components to the parent node
+      offset_node->addChild(cylinder_node);
+      offset_node->addChild(sphere1_node);
+      offset_node->addChild(sphere2_node);
+
       break;
     }
     case tesseract_geometry::GeometryType::MESH:
     case tesseract_geometry::GeometryType::CONVEX_MESH:
     {
       const auto& mesh = static_cast<const tesseract_geometry::PolygonMesh&>(geometry);
-      ogre_entity.push_back(loadMesh(scene, ogre_scale, entity_container, mesh, is_visual));
+      auto* mesh_entity = loadMesh(scene, ogre_scale, entity_container, mesh, is_visual);
+      ogre_entity.push_back(mesh_entity);
+      offset_node->attachObject(mesh_entity);
       break;
     }
     case tesseract_geometry::GeometryType::COMPOUND_MESH:
@@ -612,7 +662,9 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
         {
           rviz_rendering::loadMeshFromResource(model_name);
           auto entity = entity_container.addUntrackedEntity(tesseract_gui::EntityContainer::RESOURCE_NS);
-          ogre_entity.push_back(scene.createEntity(entity.unique_name, model_name));
+          auto* mesh_entity = scene.createEntity(entity.unique_name, model_name);
+          ogre_entity.push_back(mesh_entity);
+          offset_node->attachObject(mesh_entity);
         }
         catch (Ogre::InvalidParametersException& e)
         {
@@ -632,8 +684,11 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
       else
       {
         for (const auto& mesh : compound_mesh.getMeshes())
-          ogre_entity.push_back(
-              createEntityForMeshData(scene, entity_container, mesh->getVertices(), mesh->getFaces()));
+        {
+          auto* mesh_entity = createEntityForMeshData(scene, entity_container, mesh->getVertices(), mesh->getFaces());
+          ogre_entity.push_back(mesh_entity);
+          offset_node->attachObject(mesh_entity);
+        }
       }
       break;
     }
@@ -644,8 +699,6 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
       OctreeVoxelRenderMode octree_voxel_rendering = OCTOMAP_OCCUPIED_VOXELS;
       OctreeVoxelColorMode octree_color_mode = OCTOMAP_Z_AXIS_COLOR;
       std::size_t octree_depth;
-      auto entity = entity_container.addUntrackedEntity(tesseract_gui::EntityContainer::RESOURCE_NS);
-      Ogre::SceneNode* offset_node = scene.createSceneNode(entity.unique_name);
 
       const auto& octomap = static_cast<const tesseract_geometry::Octree&>(geometry);
       const std::shared_ptr<const octomap::OcTree>& octree = octomap.getOctree();
@@ -765,11 +818,7 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
         entity_container.addUntrackedUnmanagedObject(tesseract_gui::EntityContainer::VISUAL_NS, data);
       }
 
-      offset_node->setScale(ogre_scale);
-      offset_node->setPosition(offset_position);
-      offset_node->setOrientation(offset_orientation);
-
-      return offset_node;
+      break;
     }
     default:
       RCLCPP_WARN(rclcpp::get_logger("tesseract_environment_plugin"),
@@ -778,18 +827,13 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
       break;
   }
 
-  if (!ogre_entity.empty())
+  if ((offset_node->numAttachedObjects() > 0) || (offset_node->numChildren() > 0))
   {
-    auto entity = entity_container.addUntrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS);
-    Ogre::SceneNode* offset_node = scene.createSceneNode(entity.unique_name);
-
-    for (auto* obj : ogre_entity)
-      offset_node->attachObject(obj);
-
     offset_node->setScale(ogre_scale);
     offset_node->setPosition(offset_position);
     offset_node->setOrientation(offset_orientation);
 
+    // Apply material
     for (auto* obj : ogre_entity)
     {
       for (uint32_t i = 0; i < obj->getNumSubEntities(); ++i)

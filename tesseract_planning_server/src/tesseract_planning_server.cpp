@@ -49,11 +49,11 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <tesseract_motion_planners/trajopt/profile/trajopt_default_move_profile.h>
 #include <tesseract_motion_planners/trajopt/profile/trajopt_osqp_solver_profile.h>
 #include <tesseract_task_composer/planning/profiles/contact_check_profile.h>
-#include <tesseract_task_composer/planning/profiles/iterative_spline_parameterization_profile.h>
 #include <tesseract_task_composer/planning/profiles/min_length_profile.h>
 #include <tesseract_motion_planners/trajopt_ifopt/profile/trajopt_ifopt_default_composite_profile.h>
 #include <tesseract_motion_planners/trajopt_ifopt/profile/trajopt_ifopt_default_move_profile.h>
 #include <tesseract_motion_planners/trajopt_ifopt/profile/trajopt_ifopt_osqp_solver_profile.h>
+#include <tesseract_time_parameterization/isp/iterative_spline_parameterization_profiles.h>
 
 #include <tesseract_environment/environment.h>
 #include <tesseract_environment/environment_cache.h>
@@ -338,7 +338,7 @@ void TesseractPlanningServer::loadDefaultPlannerProfiles()
   // Time parameterization
   profiles_->addProfile(ISP_DEFAULT_NAMESPACE,
                         tesseract_planning::DEFAULT_PROFILE_KEY,
-                        std::make_shared<tesseract_planning::IterativeSplineParameterizationProfile>());
+                        std::make_shared<tesseract_planning::IterativeSplineParameterizationMoveProfile>());
 }
 
 Eigen::Isometry3d TesseractPlanningServer::tfFindTCPOffset(const tesseract_common::ManipulatorInfo& manip_info)

@@ -15,6 +15,7 @@ find_package(tesseract_command_language REQUIRED)
 find_package(tesseract_common REQUIRED)
 find_package(tesseract_motion_planners REQUIRED)
 find_package(tesseract_task_composer REQUIRED)
+find_package(tesseract_time_parameterization REQUIRED)
 # tesseract_ros2
 find_package(tesseract_monitoring REQUIRED)
 find_package(tesseract_msgs REQUIRED)
@@ -40,6 +41,8 @@ target_link_libraries(${PROJECT_NAME}
     tesseract::tesseract_motion_planners_descartes
     tesseract::tesseract_task_composer
     tesseract::tesseract_task_composer_planning_nodes
+    tesseract::tesseract_time_parameterization_core
+    tesseract::tesseract_time_parameterization_isp
 
     ${tesseract_msgs_TARGETS}
     tesseract_monitoring::tesseract_monitoring_environment

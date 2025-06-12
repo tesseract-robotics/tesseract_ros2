@@ -7,13 +7,13 @@ project(${pkg_extracted_name} VERSION ${pkg_extracted_version} LANGUAGES C CXX)
 
 # ROS
 find_package(resource_retriever REQUIRED)
-find_package(rviz_common REQUIRED)
 find_package(rviz_default_plugins REQUIRED)
-find_package(rviz_ogre_vendor REQUIRED)
+find_package(rviz_common REQUIRED)
 find_package(rviz_rendering REQUIRED)
 # tesseract
 find_package(tesseract_qt REQUIRED)
 # tesseract_ros2
+find_package(tesseract_msgs REQUIRED)
 find_package(tesseract_monitoring REQUIRED)
 
 # Ogre
@@ -47,10 +47,10 @@ add_library(${PROJECT_NAME}_markers SHARED
   src/markers/text_view_facing_marker.cpp
 )
 target_link_libraries(${PROJECT_NAME}_markers PUBLIC
-  rviz_ogre_vendor::OgreMain
-  rviz_ogre_vendor::OgreOverlay
   rviz_common::rviz_common
   rviz_rendering::rviz_rendering
+)
+target_link_libraries(${PROJECT_NAME}_markers PRIVATE
   rviz_default_plugins::rviz_default_plugins
 )
 target_compile_options(${PROJECT_NAME}_markers PUBLIC ${TESSERACT_COMPILE_OPTIONS})
@@ -73,8 +73,6 @@ add_library(${PROJECT_NAME}_interactive_marker SHARED
 target_link_libraries(${PROJECT_NAME}_interactive_marker PUBLIC
   ${PROJECT_NAME}_markers
   tesseract::tesseract_qt_common
-  rviz_ogre_vendor::OgreMain
-  rviz_ogre_vendor::OgreOverlay
   rviz_common::rviz_common
   rviz_rendering::rviz_rendering
   ${QT_LIBRARIES}
@@ -114,9 +112,6 @@ add_library(${PROJECT_NAME} SHARED
   src/set_theme_tool.cpp
   ${${PROJECT_NAME}_cpp_MOCS})
 target_link_libraries(${PROJECT_NAME} PUBLIC
-  resource_retriever::resource_retriever
-  rviz_ogre_vendor::OgreMain
-  rviz_ogre_vendor::OgreOverlay
   rviz_common::rviz_common
   rviz_rendering::rviz_rendering
 
@@ -130,6 +125,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
   ${PROJECT_NAME}_interactive_marker
   ${QT_LIBRARIES}
 )
+target_link_libraries(${PROJECT_NAME} PRIVATE resource_retriever::resource_retriever)
 target_compile_options(${PROJECT_NAME} PUBLIC ${TESSERACT_COMPILE_OPTIONS})
 target_cxx_version(${PROJECT_NAME} PUBLIC VERSION ${TESSERACT_CXX_VERSION})
 target_include_directories(${PROJECT_NAME} PUBLIC
@@ -172,8 +168,6 @@ target_include_directories(${PROJECT_NAME}_workbench_plugin PRIVATE
 #...
 #")
 
-ament_export_targets(${PACKAGE_NAME}-targets)
-
 # Mark cpp header files for installation
 install(DIRECTORY include/${PROJECT_NAME} DESTINATION include)
 
@@ -184,7 +178,7 @@ install(TARGETS
     ${PROJECT_NAME}_interactive_marker
     ${PROJECT_NAME}_environment_plugin
     ${PROJECT_NAME}_workbench_plugin
-  EXPORT ${PACKAGE_NAME}-targets
+  EXPORT ${PROJECT_NAME}-targets
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
   RUNTIME DESTINATION bin
@@ -203,5 +197,13 @@ install(
 )
 pluginlib_export_plugin_description_file(rviz_common tesseract_rviz_environment_plugin_description.xml)
 pluginlib_export_plugin_description_file(rviz_common tesseract_rviz_workbench_plugin_description.xml)
+
+ament_export_targets(${PROJECT_NAME}-targets HAS_LIBRARY_TARGET)
+ament_export_dependencies(
+  rviz_common
+  rviz_rendering
+  tesseract_msgs
+  tesseract_monitoring
+)
 
 ament_package()

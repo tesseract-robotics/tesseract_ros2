@@ -21,6 +21,7 @@
 
 #include <QApplication>
 #include <QLayout>
+#include <QDebug>
 
 namespace tesseract_rviz
 {

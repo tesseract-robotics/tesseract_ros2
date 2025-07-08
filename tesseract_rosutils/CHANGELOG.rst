@@ -2,8 +2,8 @@
 Changelog for package tesseract_rosutils
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.31.0 (2025-07-08)
+-------------------
 * Fix ROSResourceLocator serialization
 * Contributors: Levi Armstrong
 

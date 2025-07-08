@@ -2,6 +2,9 @@
 Changelog for package tesseract_monitoring
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.30.0 (2025-04-23)
 -------------------
 * Update required because item related to collision margin data changed

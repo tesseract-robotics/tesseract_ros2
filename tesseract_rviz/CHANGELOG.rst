@@ -2,6 +2,13 @@
 Changelog for package tesseract_rviz
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fix tesseract_rviz to export targets and depends
+* Use new tesseract_qt EventType
+* Fix scaling issue of capsule visualization
+* Contributors: Levi Armstrong, Roelof Oomen
+
 0.30.0 (2025-04-23)
 -------------------
 

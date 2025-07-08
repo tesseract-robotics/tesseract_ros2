@@ -2,6 +2,12 @@
 Changelog for package tesseract_planning_server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Add missing ISP composite profile
+* Updated header and required package for iterative spline parameterization profiles
+* Contributors: David Spielman, Levi Armstrong
+
 0.30.0 (2025-04-23)
 -------------------
 * Update because profile dictionary moved to tesseract_common

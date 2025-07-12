@@ -80,7 +80,14 @@ int main(int argc, char** argv)
   FreespaceOMPLExample example(env, plotter, range, planning_time);
   rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(5.0)));
 
-  example.run();
+  if (!example.run())
+  {
+    RCLCPP_ERROR(node->get_logger(), "FreespaceOMPLExample failed");
+  }
+  else
+  {
+    RCLCPP_INFO(node->get_logger(), "FreespaceOMPLExample successful");
+  }
 
   spinner.join();
 }

@@ -87,7 +87,14 @@ int main(int argc, char** argv)
   FreespaceHybridExample example(env, plotter, ifopt, debug, range, planning_time);
   rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(5.0)));
 
-  example.run();
+  if (!example.run())
+  {
+    RCLCPP_ERROR(node->get_logger(), "FreespaceHybridExample failed");
+  }
+  else
+  {
+    RCLCPP_INFO(node->get_logger(), "FreespaceHybridExample successful");
+  }
 
   spinner.join();
 }

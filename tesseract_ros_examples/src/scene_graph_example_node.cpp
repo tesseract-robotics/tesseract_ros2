@@ -78,7 +78,14 @@ int main(int argc, char** argv)
   SceneGraphExample example(env, plotter);
   rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(5.0)));
 
-  example.run();
+  if (!example.run())
+  {
+    RCLCPP_ERROR(node->get_logger(), "SceneGraphExample failed");
+  }
+  else
+  {
+    RCLCPP_INFO(node->get_logger(), "SceneGraphExample successful");
+  }
 
   spinner.join();
 }

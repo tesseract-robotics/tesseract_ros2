@@ -2,6 +2,9 @@
 Changelog for package tesseract_planning_server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.31.0 (2025-07-08)
 -------------------
 * Add missing ISP composite profile

@@ -2,6 +2,9 @@
 Changelog for package tesseract_rviz
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.31.0 (2025-07-08)
 -------------------
 * Fix tesseract_rviz to export targets and depends

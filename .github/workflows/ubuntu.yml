@@ -51,9 +51,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: focal
-            distro: foxy
-            vcs-file:
           - os: jammy
             distro: humble
             vcs-file: .github/workflows/dependencies.repos

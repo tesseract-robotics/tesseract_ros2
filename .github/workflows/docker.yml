@@ -21,8 +21,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - distro: foxy
-            os: focal
           - distro: humble
             os: jammy
           - distro: jazzy

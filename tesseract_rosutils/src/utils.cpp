@@ -2050,8 +2050,9 @@ bool fromMsg(tesseract_srdf::KinematicsInformation& kin_info,
 tesseract_common::KinematicsPluginInfo fromMsg(const tesseract_msgs::msg::KinematicsPluginInfo& info_msg)
 {
   tesseract_common::KinematicsPluginInfo info;
-  info.search_paths.insert(info_msg.search_paths.begin(), info_msg.search_paths.end());
-  info.search_libraries.insert(info_msg.search_libraries.begin(), info_msg.search_libraries.end());
+  info.search_paths.insert(info.search_paths.end(), info_msg.search_paths.begin(), info_msg.search_paths.end());
+  info.search_libraries.insert(
+      info.search_libraries.end(), info_msg.search_libraries.begin(), info_msg.search_libraries.end());
 
   for (const auto& pair : info_msg.group_fwd_plugins)
   {
@@ -2075,8 +2076,9 @@ tesseract_common::KinematicsPluginInfo fromMsg(const tesseract_msgs::msg::Kinema
 tesseract_common::ContactManagersPluginInfo fromMsg(const tesseract_msgs::msg::ContactManagersPluginInfo& info_msg)
 {
   tesseract_common::ContactManagersPluginInfo info;
-  info.search_paths.insert(info_msg.search_paths.begin(), info_msg.search_paths.end());
-  info.search_libraries.insert(info_msg.search_libraries.begin(), info_msg.search_libraries.end());
+  info.search_paths.insert(info.search_paths.end(), info_msg.search_paths.begin(), info_msg.search_paths.end());
+  info.search_libraries.insert(
+      info.search_libraries.end(), info_msg.search_libraries.begin(), info_msg.search_libraries.end());
   info.discrete_plugin_infos.default_plugin = info_msg.discrete_plugin_container.default_plugin;
   info.discrete_plugin_infos.plugins = fromMsg(info_msg.discrete_plugin_container.plugins);
   info.continuous_plugin_infos.default_plugin = info_msg.continuous_plugin_container.default_plugin;

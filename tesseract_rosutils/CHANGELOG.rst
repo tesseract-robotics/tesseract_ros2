@@ -2,8 +2,8 @@
 Changelog for package tesseract_rosutils
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.33.0 (2025-10-28)
+-------------------
 * Update based on changes in boost plugin loader
 * Contributors: Levi Armstrong
 

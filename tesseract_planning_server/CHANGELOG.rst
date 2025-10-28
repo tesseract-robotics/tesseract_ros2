@@ -2,6 +2,11 @@
 Changelog for package tesseract_planning_server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Update due to nested data storage changes
+* Contributors: Levi Armstrong
+
 0.32.0 (2025-09-10)
 -------------------
 

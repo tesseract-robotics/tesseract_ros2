@@ -17,6 +17,7 @@
   <depend>visualization_msgs</depend>
   <depend>octomap_msgs</depend>
 
+  <depend>tesseract_common</depend>
   <depend>tesseract_task_composer</depend>
   
   <depend>tesseract_msgs</depend>

@@ -30,6 +30,7 @@
 #include <tesseract_rosutils/plotting.h>
 #include <tesseract_rosutils/utils.h>
 
+#include <tesseract_common/resource_locator.h>
 #include <tesseract_environment/environment.h>
 #include <tesseract_scene_graph/graph.h>
 
@@ -68,7 +69,7 @@ int main(int argc, char** argv)
   std::string srdf_xml_string = node->declare_parameter(ROBOT_SEMANTIC_PARAM, "");
 
   auto env = std::make_shared<tesseract_environment::Environment>();
-  auto locator = std::make_shared<tesseract_rosutils::ROSResourceLocator>();
+  auto locator = std::make_shared<tesseract_common::GeneralResourceLocator>();
   if (!env->init(urdf_xml_string, srdf_xml_string, locator))
     exit(1);
 

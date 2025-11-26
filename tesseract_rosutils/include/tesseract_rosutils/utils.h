@@ -69,13 +69,11 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #endif
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp/serialization.hpp>
-#include <boost/serialization/access.hpp>
 #include <Eigen/Geometry>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <fstream>
 
-#include <tesseract_common/resource_locator.h>
 #include <tesseract_motion_planners/core/types.h>
 
 #include <tesseract_common/fwd.h>
@@ -98,22 +96,6 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 namespace tesseract_rosutils
 {
-std::string locateResource(const std::string& url);
-
-class ROSResourceLocator : public tesseract_common::ResourceLocator
-{
-public:
-  using Ptr = std::shared_ptr<ROSResourceLocator>;
-  using ConstPtr = std::shared_ptr<const ROSResourceLocator>;
-
-  std::shared_ptr<tesseract_common::Resource> locateResource(const std::string& url) const override final;
-
-private:
-  friend class boost::serialization::access;
-  template <class Archive>
-  void serialize(Archive& ar, const unsigned int version);  // NOLINT
-};
-
 bool isMsgEmpty(const sensor_msgs::msg::JointState& msg);
 bool isMsgEmpty(const tesseract_msgs::msg::TransformMap& msg);
 
@@ -565,9 +547,5 @@ inline MessageType fromFile(const std::string& filepath)
 }
 
 }  // namespace tesseract_rosutils
-
-#include <boost/serialization/export.hpp>
-#include <boost/serialization/tracking.hpp>
-BOOST_CLASS_EXPORT_KEY2(tesseract_rosutils::ROSResourceLocator, "ROSResourceLocator")
 
 #endif

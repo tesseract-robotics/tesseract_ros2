@@ -44,6 +44,8 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 BOOST_BIND_NO_PLACEHOLDERS
 #endif
 
+#include <tesseract_common/resource_locator.h>
+
 #include <tesseract_scene_graph/graph.h>
 
 #include <tesseract_environment/environment.h>
@@ -93,7 +95,7 @@ ROSEnvironmentMonitor::ROSEnvironmentMonitor(
   }
 
   env_ = std::make_shared<tesseract_environment::Environment>();
-  auto locator = std::make_shared<tesseract_rosutils::ROSResourceLocator>();
+  auto locator = std::make_shared<tesseract_common::GeneralResourceLocator>();
   if (!env_->init(urdf_xml.as_string(), srdf_xml.as_string(), locator))
     return;
 

@@ -13,6 +13,7 @@ find_package(octomap_msgs REQUIRED)
 find_package(trajectory_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
 # tesseract
+find_package(tesseract_common REQUIRED)
 find_package(tesseract_motion_planners REQUIRED)
 find_package(tesseract_task_composer REQUIRED)
 find_package(tesseract_visualization REQUIRED)
@@ -28,6 +29,7 @@ target_link_libraries(${PROJECT_NAME}
     ${trajectory_msgs_TARGETS}
     ${visualization_msgs_TARGETS}
     ${tesseract_msgs_TARGETS}
+    tesseract::tesseract_common
     tesseract::tesseract_task_composer
     tesseract::tesseract_visualization
     tesseract::tesseract_motion_planners_core

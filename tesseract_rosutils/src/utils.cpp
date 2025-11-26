@@ -44,13 +44,13 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <tesseract_geometry/geometries.h>
 #include <tesseract_geometry/utils.h>
 
-#include <tesseract_common/resource_locator.h>
 #include <tesseract_rosutils/utils.h>
 #include <tesseract_environment/command.h>
 #include <tesseract_environment/commands.h>
 #include <tesseract_scene_graph/joint.h>
 #include <tesseract_srdf/kinematics_information.h>
 #include <tesseract_common/plugin_info.h>
+#include <tesseract_common/resource_locator.h>
 
 #include <tesseract_environment/utils.h>
 #include <tesseract_environment/events.h>
@@ -73,54 +73,6 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 const std::string LOGGER_ID{ "tesseract_rosutils_utils" };
 namespace tesseract_rosutils
 {
-std::shared_ptr<tesseract_common::Resource> ROSResourceLocator::locateResource(const std::string& url) const
-{
-  std::string mod_url = url;
-  if (url.find("package://") == 0)
-  {
-    mod_url.erase(0, strlen("package://"));
-    size_t pos = mod_url.find('/');
-    if (pos == std::string::npos)
-    {
-      return nullptr;
-    }
-
-    std::string package = mod_url.substr(0, pos);
-    mod_url.erase(0, pos);
-    std::string package_path = ament_index_cpp::get_package_share_directory(package);
-
-    if (package_path.empty())
-    {
-      return nullptr;
-    }
-
-    mod_url = package_path + mod_url;
-  }
-  else if (url.find("file://") == 0)
-  {
-    mod_url.erase(0, strlen("file://"));
-    size_t pos = mod_url.find('/');
-    if (pos == std::string::npos)
-    {
-      return nullptr;
-    }
-  }
-
-  std::filesystem::path mod_url_path(mod_url);
-  if (!(mod_url_path.is_absolute() && mod_url_path.has_root_directory()))
-    return nullptr;
-
-  return std::make_shared<tesseract_common::SimpleLocatedResource>(
-      url, mod_url, std::make_shared<ROSResourceLocator>(*this));
-}
-
-template <class Archive>
-void ROSResourceLocator::serialize(Archive& ar, const unsigned int /*version*/)
-{
-  ar& boost::serialization::make_nvp("ResourceLocator",
-                                     boost::serialization::base_object<tesseract_common::ResourceLocator>(*this));
-}
-
 bool isMsgEmpty(const sensor_msgs::msg::JointState& msg)
 {
   return msg.name.empty() && msg.position.empty() && msg.velocity.empty() && msg.effort.empty();
@@ -2445,7 +2397,3 @@ void toTransformMsgs(const std::shared_ptr<tesseract_environment::Environment>& 
 }
 
 }  // namespace tesseract_rosutils
-
-#include <tesseract_common/serialization.h>
-TESSERACT_SERIALIZE_ARCHIVES_INSTANTIATE(tesseract_rosutils::ROSResourceLocator)
-BOOST_CLASS_EXPORT_IMPLEMENT(tesseract_rosutils::ROSResourceLocator)

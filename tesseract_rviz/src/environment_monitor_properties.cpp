@@ -24,6 +24,7 @@
 
 #include <unordered_map>
 
+#include <tesseract_common/resource_locator.h>
 #include <tesseract_environment/environment.h>
 #include <tesseract_environment/command.h>
 #include <tesseract_environment/commands.h>
@@ -218,7 +219,7 @@ void EnvironmentMonitorProperties::onURDFDescriptionChanged()
         data_->rviz_node->declare_parameter(data_->urdf_description_string_property->getStdString() + "_semantic", "");
 
   auto env = std::make_shared<tesseract_environment::Environment>();
-  auto locator = std::make_shared<tesseract_rosutils::ROSResourceLocator>();
+  auto locator = std::make_shared<tesseract_common::GeneralResourceLocator>();
   if (urdf_xml_string.empty())
   {
     data_->parent->setStatus(rviz_common::properties::StatusProperty::Error, "Tesseract", "URDF parameter is empty!");
@@ -313,7 +314,7 @@ void EnvironmentMonitorProperties::snapshotCallback(const tesseract_msgs::msg::E
   tesseract_rosutils::fromMsg(jv, msg->joint_states);
   tesseract_rosutils::fromMsg(fjv, msg->floating_joint_states);
   auto env = std::make_shared<tesseract_environment::Environment>();
-  auto locator = std::make_shared<tesseract_rosutils::ROSResourceLocator>();
+  auto locator = std::make_shared<tesseract_common::GeneralResourceLocator>();
   env->setResourceLocator(locator);
   if (env->init(commands))
   {

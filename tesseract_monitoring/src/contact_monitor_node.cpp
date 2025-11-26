@@ -31,6 +31,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <boost/algorithm/string.hpp>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
+#include <tesseract_common/resource_locator.h>
 #include <tesseract_environment/environment.h>
 #include <tesseract_scene_graph/graph.h>
 #include <tesseract_srdf/srdf_model.h>
@@ -82,7 +83,7 @@ int main(int argc, char** argv)
   }
 
   auto env = std::make_unique<tesseract_environment::Environment>();
-  auto locator = std::make_shared<tesseract_rosutils::ROSResourceLocator>();
+  auto locator = std::make_shared<tesseract_common::GeneralResourceLocator>();
   if (!env->init(robot_description, robot_description_semantic, locator))
   {
     RCLCPP_ERROR(node->get_logger(), "Failed to initialize environment.");

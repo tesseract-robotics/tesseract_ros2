@@ -832,6 +832,7 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
       auto* plane_entity = scene.createEntity(entity.unique_name, Ogre::SceneManager::PrefabType::PT_PLANE);
       ogre_entity.push_back(plane_entity);
       offset_node->attachObject(plane_entity);
+      // Note: ogre_scale is already initialized to UNIT_SCALE, which is appropriate for planes
       break;
     }
     default:

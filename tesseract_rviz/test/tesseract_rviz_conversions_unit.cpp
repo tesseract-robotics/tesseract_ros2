@@ -32,19 +32,24 @@ protected:
   void SetUp() override
   {
     // Initialize Ogre without rendering window
+    // Note: LogManager is a singleton and will be cleaned up by Ogre::Root
     Ogre::LogManager* log_manager = new Ogre::LogManager();
     log_manager->createLog("OgreTest.log", true, false, true);
     
     ogre_root_ = new Ogre::Root("", "", "");
     
     // Load render system plugin - try different possible names
+    bool plugin_loaded = false;
     try {
       ogre_root_->loadPlugin("RenderSystem_GL");
-    } catch (...) {
+      plugin_loaded = true;
+    } catch (const Ogre::Exception& e) {
+      // GL plugin not available, try GL3Plus
       try {
         ogre_root_->loadPlugin("RenderSystem_GL3Plus");
-      } catch (...) {
-        // If no GL available, we'll handle it gracefully in tests
+        plugin_loaded = true;
+      } catch (const Ogre::Exception& e2) {
+        // No GL render system available - tests will be skipped
       }
     }
     
@@ -69,13 +74,9 @@ protected:
     
     if (ogre_root_)
     {
+      // Ogre::Root destructor will handle cleanup of LogManager
       delete ogre_root_;
       ogre_root_ = nullptr;
-    }
-    
-    if (Ogre::LogManager::getSingletonPtr())
-    {
-      delete Ogre::LogManager::getSingletonPtr();
     }
   }
   

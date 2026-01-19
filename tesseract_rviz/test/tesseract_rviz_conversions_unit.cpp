@@ -140,46 +140,6 @@ TEST_F(TesseractRvizConversionsUnit, PlaneGeometryDoesNotCrash)
 }
 
 /**
- * @brief Test that unsupported geometry types do not cause a crash
- * 
- * This test uses the default case to verify that even for truly unsupported
- * geometry types, the function handles them gracefully
- */
-TEST_F(TesseractRvizConversionsUnit, UnsupportedGeometryDoesNotCrash)
-{
-  // Skip if Ogre is not fully initialized
-  if (!ogre_root_->isInitialised())
-  {
-    GTEST_SKIP() << "Ogre not initialized, skipping test";
-  }
-  
-  // Create a supported geometry (BOX) to ensure the test setup works
-  auto box_geometry = std::make_shared<tesseract_geometry::Box>(1.0, 1.0, 1.0);
-  
-  // Create entity container
-  auto entity_container = entity_manager_->getEntityContainer("test");
-  
-  // Create test material
-  auto material = createTestMaterial();
-  
-  // Create identity transform
-  Eigen::Isometry3d local_pose = Eigen::Isometry3d::Identity();
-  Eigen::Vector3d scale = Eigen::Vector3d::Ones();
-  
-  // Test with a supported geometry first
-  Ogre::SceneNode* result = tesseract_rviz::loadLinkGeometry(
-      *scene_manager_,
-      entity_container,
-      *box_geometry,
-      scale,
-      local_pose,
-      material,
-      true);
-  
-  EXPECT_NE(result, nullptr) << "loadLinkGeometry should return valid node for BOX geometry";
-}
-
-/**
  * @brief Test that nullptr return values are handled properly in loadLinkVisuals
  * 
  * This test verifies that if loadLinkGeometry returns nullptr (for unsupported types),

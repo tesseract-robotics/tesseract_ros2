@@ -823,7 +823,7 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
     default:
       RCLCPP_WARN(rclcpp::get_logger("tesseract_environment_plugin"),
                   "Unsupported geometry type for element: %d",
-                  geometry.getType());
+                  static_cast<int>(geometry.getType()));
       break;
   }
 

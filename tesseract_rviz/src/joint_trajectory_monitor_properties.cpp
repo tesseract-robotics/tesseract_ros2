@@ -22,6 +22,7 @@
 #include <boost/uuid/uuid_io.hpp>
 
 #include <QApplication>
+#include <QMetaObject>
 
 #include <tesseract_common/serialization.h>
 #include <tesseract_environment/environment.h>
@@ -70,8 +71,14 @@ struct JointTrajectoryMonitorProperties::Implementation
     trajectory_set.setUUID(joint_trajectory.uuid);
     trajectory_set.setDescription(joint_trajectory.description);
     trajectory_set.appendJointTrajectory(joint_trajectory);
-    tesseract_gui::events::JointTrajectoryAdd event(component_info, trajectory_set);
-    QApplication::sendEvent(qApp, &event);
+
+    QMetaObject::invokeMethod(
+        qApp,
+        [component_info_copy = component_info, trajectory_set]() {
+          tesseract_gui::events::JointTrajectoryAdd event(component_info_copy, trajectory_set);
+          QApplication::sendEvent(qApp, &event);
+        },
+        Qt::QueuedConnection);
   }
 
   void tesseractJointTrajectoryCallback(const tesseract_msgs::msg::Trajectory::ConstSharedPtr msg)
@@ -120,15 +127,26 @@ struct JointTrajectoryMonitorProperties::Implementation
             trajectory_set.appendJointTrajectory(joint_trajectory);
           }
 
-          tesseract_gui::events::JointTrajectoryAdd event(component_info, trajectory_set);
-          QApplication::sendEvent(qApp, &event);
+          QMetaObject::invokeMethod(
+              qApp,
+              [component_info_copy = component_info, trajectory_set]() {
+                tesseract_gui::events::JointTrajectoryAdd event(component_info_copy, trajectory_set);
+                QApplication::sendEvent(qApp, &event);
+              },
+              Qt::QueuedConnection);
         }
         else
         {
           tesseract_common::JointTrajectory joint_trajectory = tesseract_planning::toJointTrajectory(ci);
           trajectory_set.appendJointTrajectory(joint_trajectory);
-          tesseract_gui::events::JointTrajectoryAdd event(component_info, trajectory_set);
-          QApplication::sendEvent(qApp, &event);
+
+          QMetaObject::invokeMethod(
+              qApp,
+              [component_info_copy = component_info, trajectory_set]() {
+                tesseract_gui::events::JointTrajectoryAdd event(component_info_copy, trajectory_set);
+                QApplication::sendEvent(qApp, &event);
+              },
+              Qt::QueuedConnection);
         }
       }
       else
@@ -141,8 +159,13 @@ struct JointTrajectoryMonitorProperties::Implementation
           trajectory_set.appendJointTrajectory(joint_trajectory);
         }
 
-        tesseract_gui::events::JointTrajectoryAdd event(component_info, trajectory_set);
-        QApplication::sendEvent(qApp, &event);
+        QMetaObject::invokeMethod(
+            qApp,
+            [component_info_copy = component_info, trajectory_set]() {
+              tesseract_gui::events::JointTrajectoryAdd event(component_info_copy, trajectory_set);
+              QApplication::sendEvent(qApp, &event);
+            },
+            Qt::QueuedConnection);
       }
     }
     catch (...)

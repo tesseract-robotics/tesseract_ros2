@@ -6,7 +6,7 @@ repositories:
   boost_plugin_loader:
     type: git
     url: https://github.com/tesseract-robotics/boost_plugin_loader.git
-    version: 0.4.2
+    version: 0.4.3
   tesseract:
     type: git
     url: https://github.com/tesseract-robotics/tesseract.git
@@ -31,11 +31,11 @@ repositories:
     type: git
     url: https://github.com/Jmeyer1292/opw_kinematics.git
     version: 0.5.2
-  ifopt:
-    type: git
-    url: https://github.com/ethz-adrl/ifopt.git
-    version: 2.1.4
   taskflow:
     type: git
     url: https://github.com/taskflow/taskflow.git
     version: v3.5.0
+  cereal
+    type: git
+    url: https://github.com/Levi-Armstrong/cereal.git
+    version: catkin

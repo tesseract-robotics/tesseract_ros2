@@ -23,29 +23,23 @@ RUN apt install -y \
   ros-${ROS_DISTRO}-launch-xml \
   ros-${ROS_DISTRO}-launch-yaml
 
+# Install the dependency repositories
+# Use a tmpfs mount for the workspace so as not to unnecessarily copy files into the final image
 # Bind mount the source directory so as not to unnecessarily copy source code into the docker image
-ARG WORKSPACE_DIR=/opt/tesseract_ros2
+ARG WORKSPACE_DIR=/tmpfs/tesseract_ros2
+ARG INSTALL_DIR=/opt/tesseract_ros2
+RUN mkdir -p ${INSTALL_DIR}
 
-# Install the latest version of octomap_msgs for Humble and beyond
-RUN --mount=type=bind,target=${WORKSPACE_DIR}/src/tesseract_ros2 \
-  if [[ "${ROS_DISTRO}" > "foxy" ]]; then \
+RUN --mount=type=tmpfs,target=${WORKSPACE_DIR} --mount=type=bind,target=${WORKSPACE_DIR}/src/tesseract_ros2 \
   cd ${WORKSPACE_DIR} \
-  && vcs import src < src/tesseract_ros2/.github/workflows/dependencies.repos --shallow ; \
-  fi
-
-RUN --mount=type=bind,target=${WORKSPACE_DIR}/src/tesseract_ros2 \
-  source /opt/ros/${ROS_DISTRO}/setup.bash \
+  && if [[ "${ROS_DISTRO}" > "foxy" ]]; then \
+       vcs import src < src/tesseract_ros2/.github/workflows/dependencies.repos --shallow ; \
+     fi \
+  && source /opt/ros/${ROS_DISTRO}/setup.bash \
   && source /opt/tesseract_qt/install/setup.bash \
   && rosdep update --include-eol-distros \
   && rosdep install \
     --from-paths ${WORKSPACE_DIR}/src \
-    -iry
-
-# Build the repository
-# Bind mount the source directory so as not to unnecessarily copy source code into the docker image
-RUN --mount=type=bind,target=${WORKSPACE_DIR}/src/tesseract_ros2 \
-  source /opt/tesseract_qt/install/setup.bash \
-  && source /opt/ros/${ROS_DISTRO}/setup.bash \
-  && cd ${WORKSPACE_DIR} \ 
+    -iry \
   && colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release \
-  && rm -rf build log
+  && cp -r ${WORKSPACE_DIR}/install ${INSTALL_DIR}

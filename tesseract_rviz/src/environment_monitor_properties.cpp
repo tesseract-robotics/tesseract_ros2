@@ -168,6 +168,7 @@ void EnvironmentMonitorProperties::resetMonitor()
 
   if (data_->monitor != nullptr)
     data_->monitor->shutdown();
+  data_->monitor.reset();
 
   tesseract_gui::EnvironmentManager::remove(data_->component_info);
   data_->render_manager = nullptr;

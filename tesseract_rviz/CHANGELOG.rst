@@ -2,6 +2,18 @@
 Changelog for package tesseract_rviz
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Reset environment monitor after shutdown
+  This fixes this error:
+  ```
+  [rviz2-7] [WARN] [2026-02-16 09:00:35.673] [rcl.logging_rosout]: Publisher already registered for node name: 'ROSEnvironmentMonitor_internal'. If this is due to multiple nodes with the same name then all logs for the logger named 'rviz.TesseractWorkbench_EnvMonitor_Node.ROSEnvironmentMonitor_internal' will go out over the existing publisher. As soon as any node with that name is destructed it will unregister the publisher, preventing any further logs for that name from being published on the rosout topic.
+  ```
+* Fix compilation warning
+* Fix crash in workbench when removing trajectories while new ones are being published
+* Switch to Cereal for serialization (`#176 <https://github.com/tesseract-robotics/tesseract_ros2/issues/176>`_)
+* Contributors: Levi Armstrong, Roelof Oomen
+
 0.33.0 (2025-10-28)
 -------------------
 

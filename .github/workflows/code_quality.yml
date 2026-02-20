@@ -33,7 +33,7 @@ jobs:
         TZ: Etc/UTC
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           path: target_ws/src
 
@@ -52,12 +52,12 @@ jobs:
           apt install -y clang-tidy-17 libomp-17-dev
 
       - name: Build and Tests
-        uses: tesseract-robotics/colcon-action@v11
+        uses: tesseract-robotics/colcon-action@v14
         with:
           before-script: apt install ros-${{ matrix.distro }}-ros-base && source /opt/tesseract_qt/install/setup.bash && source /opt/ros/${{ matrix.distro }}/setup.bash
           ccache-prefix: ${{ matrix.distro }}
           vcs-file: .github/workflows/dependencies.repos
           run-tests: false
-          rosdep-install-args: -iry --skip-keys=libomp-dev
+          rosdep-install-args: -iry --skip-keys=libomp-dev, osqp-eigen
           target-path: target_ws/src
           target-args: --cmake-args ${{ matrix.env.TARGET_CMAKE_ARGS }}

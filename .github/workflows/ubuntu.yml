@@ -68,7 +68,7 @@ jobs:
         TZ: Etc/UTC
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           path: target_ws/src
 
@@ -81,10 +81,11 @@ jobs:
           apt install -y ros-${{ matrix.distro }}-ros-base
 
       - name: Build and Tests
-        uses: tesseract-robotics/colcon-action@v11
+        uses: tesseract-robotics/colcon-action@v14
         with:
           before-script: source /opt/tesseract_qt/install/setup.bash && source /opt/ros/${{ matrix.distro }}/setup.bash
           ccache-prefix: ${{ matrix.distro }}
           vcs-file: ${{ matrix.vcs-file }}
+          rosdep-install-args: -iry --skip-keys osqp-eigen
           target-path: target_ws/src
           target-args: --cmake-args -DCMAKE_BUILD_TYPE=Debug -DTESSERACT_ENABLE_TESTING=ON

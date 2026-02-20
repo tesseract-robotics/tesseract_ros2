@@ -206,4 +206,10 @@ ament_export_dependencies(
   tesseract_monitoring
 )
 
+# Tests
+if(TESSERACT_ENABLE_TESTING)
+  enable_testing()
+  add_subdirectory(test)
+endif()
+
 ament_package()

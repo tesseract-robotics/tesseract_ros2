@@ -58,6 +58,6 @@ jobs:
           ccache-prefix: ${{ matrix.distro }}
           vcs-file: .github/workflows/dependencies.repos
           run-tests: false
-          rosdep-install-args: -iry --skip-keys=libomp-dev, osqp-eigen
+          rosdep-install-args: -iry --skip-keys='libomp-dev osqp-eigen'
           target-path: target_ws/src
           target-args: --cmake-args ${{ matrix.env.TARGET_CMAKE_ARGS }}

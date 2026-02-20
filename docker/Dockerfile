@@ -39,7 +39,8 @@ RUN --mount=type=bind,target=${WORKSPACE_DIR}/src/tesseract_ros2 \
   && rosdep update --include-eol-distros \
   && rosdep install \
     --from-paths ${WORKSPACE_DIR}/src \
-    -iry --skip-keys=osqp-eigen
+    -iry \
+    --skip-keys=osqp-eigen
 
 # Build the repository
 # Bind mount the source directory so as not to unnecessarily copy source code into the docker image

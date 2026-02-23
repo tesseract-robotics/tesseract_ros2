@@ -74,14 +74,14 @@ public:
    * @param robot_model The current kinematic model to build on
    * @param tf A pointer to the tf transformer to use
    */
-  CurrentStateMonitor(const std::shared_ptr<const tesseract_environment::Environment>& env);
+  CurrentStateMonitor(const std::shared_ptr<const tesseract::environment::Environment>& env);
 
   /** @brief Constructor.
    *  @param robot_model The current kinematic model to build on
    *  @param tf A pointer to the tf transformer to use
    *  @param node A rclcpp::Node to access ROS info
    */
-  CurrentStateMonitor(const std::shared_ptr<const tesseract_environment::Environment>& env,
+  CurrentStateMonitor(const std::shared_ptr<const tesseract::environment::Environment>& env,
                       rclcpp::Node::SharedPtr node);
 
   ~CurrentStateMonitor();
@@ -103,7 +103,7 @@ public:
   bool isActive() const;
 
   /** @brief Get the RobotModel for which we are monitoring state */
-  const tesseract_environment::Environment& getEnvironment() const;
+  const tesseract::environment::Environment& getEnvironment() const;
 
   /** @brief Get the name of the topic being monitored. Returns an empty string if the monitor is inactive. */
   std::string getMonitoredTopic() const;
@@ -134,14 +134,14 @@ public:
 
   /** @brief Get the current state
    *  @return Returns the current state */
-  tesseract_scene_graph::SceneState getCurrentState() const;
+  tesseract::scene_graph::SceneState getCurrentState() const;
 
   /** @brief Get the time stamp for the current state */
   rclcpp::Time getCurrentStateTime() const;
 
   /** @brief Get the current state and its time stamp
    *  @return Returns a pair of the current state and its time stamp */
-  std::pair<tesseract_scene_graph::SceneState, rclcpp::Time> getCurrentStateAndTime() const;
+  std::pair<tesseract::scene_graph::SceneState, rclcpp::Time> getCurrentStateAndTime() const;
 
   /** @brief Get the current state values as a map from joint names to joint state values
    *  @return Returns the map from joint names to joint state values*/
@@ -188,8 +188,8 @@ private:
   bool isPassiveOrMimicDOF(const std::string& dof) const;
 
   rclcpp::Node::SharedPtr node_;
-  std::shared_ptr<const tesseract_environment::Environment> env_;
-  tesseract_scene_graph::SceneState env_state_;
+  std::shared_ptr<const tesseract::environment::Environment> env_;
+  tesseract::scene_graph::SceneState env_state_;
   int last_environment_revision_;
   std::map<std::string, rclcpp::Time> joint_time_;
   bool state_monitor_started_;

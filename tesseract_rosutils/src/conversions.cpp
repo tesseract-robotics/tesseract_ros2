@@ -94,12 +94,12 @@ std::vector<tesseract_msgs::msg::JointState> trajectoryFromCSVFile(const std::st
     std::vector<std::string> tokens;
     boost::split(tokens, line, boost::is_any_of(std::string(&separator)), boost::token_compress_on);
 
-    if (!tesseract_common::isNumeric(tokens[0]))
+    if (!tesseract::common::isNumeric(tokens[0]))
       throw std::runtime_error("jointTrajectoryFromCSVFile: Invalid format");
 
     std::size_t num_vals{ 0 };
     std::size_t cnt{ 0 };
-    tesseract_common::toNumeric<std::size_t>(tokens[cnt++], num_vals);
+    tesseract::common::toNumeric<std::size_t>(tokens[cnt++], num_vals);
 
     tesseract_msgs::msg::JointState js;
     js.joint_names.reserve(num_vals);
@@ -109,26 +109,26 @@ std::vector<tesseract_msgs::msg::JointState> trajectoryFromCSVFile(const std::st
     for (std::size_t i = 0; i < num_vals; ++i)
     {
       std::string jn = tokens[cnt++];
-      tesseract_common::trim(jn);
+      tesseract::common::trim(jn);
       js.joint_names.push_back(jn);
     }
 
     // Get Positions
     for (std::size_t i = 0; i < num_vals; ++i)
     {
-      if (!tesseract_common::isNumeric(tokens[cnt++]))
+      if (!tesseract::common::isNumeric(tokens[cnt++]))
         throw std::runtime_error("jointTrajectoryFromCSVFile: Invalid format");
 
       double val = 0;
-      tesseract_common::toNumeric<double>(tokens[cnt], val);
+      tesseract::common::toNumeric<double>(tokens[cnt], val);
       js.position.push_back(val);
     }
 
-    if (!tesseract_common::isNumeric(tokens[cnt++]))
+    if (!tesseract::common::isNumeric(tokens[cnt++]))
       throw std::runtime_error("jointTrajectoryFromCSVFile: Invalid format");
 
     double val = 0;
-    tesseract_common::toNumeric<double>(tokens[cnt], val);
+    tesseract::common::toNumeric<double>(tokens[cnt], val);
     js.time_from_start = rclcpp::Duration::from_seconds(val);
 
     trajectory.push_back(js);

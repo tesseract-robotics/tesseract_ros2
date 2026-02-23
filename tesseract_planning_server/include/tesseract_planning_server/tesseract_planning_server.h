@@ -52,7 +52,7 @@ public:
   TesseractPlanningServer(rclcpp::Node::SharedPtr node, const std::string& robot_description, std::string name);
 
   TesseractPlanningServer(rclcpp::Node::SharedPtr node,
-                          std::unique_ptr<tesseract_environment::Environment> env,
+                          std::unique_ptr<tesseract::environment::Environment> env,
                           std::string name);
 
   ~TesseractPlanningServer() = default;
@@ -61,17 +61,17 @@ public:
   TesseractPlanningServer(TesseractPlanningServer&&) = delete;
   TesseractPlanningServer& operator=(TesseractPlanningServer&&) = delete;
 
-  tesseract_environment::EnvironmentMonitor& getEnvironmentMonitor();
-  const tesseract_environment::EnvironmentMonitor& getEnvironmentMonitor() const;
+  tesseract::environment::EnvironmentMonitor& getEnvironmentMonitor();
+  const tesseract::environment::EnvironmentMonitor& getEnvironmentMonitor() const;
 
-  tesseract_planning::TaskComposerServer& getTaskComposerServer();
-  const tesseract_planning::TaskComposerServer& getTaskComposerServer() const;
+  tesseract::task_composer::TaskComposerServer& getTaskComposerServer();
+  const tesseract::task_composer::TaskComposerServer& getTaskComposerServer() const;
 
-  tesseract_environment::EnvironmentCache& getEnvironmentCache();
-  const tesseract_environment::EnvironmentCache& getEnvironmentCache() const;
+  tesseract::environment::EnvironmentCache& getEnvironmentCache();
+  const tesseract::environment::EnvironmentCache& getEnvironmentCache() const;
 
-  tesseract_common::ProfileDictionary& getProfileDictionary();
-  const tesseract_common::ProfileDictionary& getProfileDictionary() const;
+  tesseract::common::ProfileDictionary& getProfileDictionary();
+  const tesseract::common::ProfileDictionary& getProfileDictionary() const;
 
   rclcpp_action::GoalResponse handle_goal(const rclcpp_action::GoalUUID&,
                                           std::shared_ptr<const tesseract_msgs::action::GetMotionPlan::Goal>);
@@ -86,16 +86,16 @@ protected:
   rclcpp::Node::SharedPtr node_;
 
   /** @brief The environment monitor to keep the planning server updated with the latest */
-  std::shared_ptr<tesseract_environment::EnvironmentMonitor> monitor_;
+  std::shared_ptr<tesseract::environment::EnvironmentMonitor> monitor_;
 
   /** @brief The environment cache being used by the process planning server */
-  std::shared_ptr<tesseract_environment::EnvironmentCache> environment_cache_;
+  std::shared_ptr<tesseract::environment::EnvironmentCache> environment_cache_;
 
   /** @brief The task profiles */
-  std::shared_ptr<tesseract_common::ProfileDictionary> profiles_;
+  std::shared_ptr<tesseract::common::ProfileDictionary> profiles_;
 
   /** @brief The task planning server */
-  std::unique_ptr<tesseract_planning::TaskComposerServer> planning_server_;
+  std::unique_ptr<tesseract::task_composer::TaskComposerServer> planning_server_;
 
   /** @brief The motion planning action server */
   rclcpp_action::Server<tesseract_msgs::action::GetMotionPlan>::SharedPtr motion_plan_server_;
@@ -110,7 +110,7 @@ protected:
 
   void loadDefaultPlannerProfiles();
 
-  Eigen::Isometry3d tfFindTCPOffset(const tesseract_common::ManipulatorInfo& manip_info);
+  Eigen::Isometry3d tfFindTCPOffset(const tesseract::common::ManipulatorInfo& manip_info);
 };
 }  // namespace tesseract_planning_server
 #endif  // TESSERACT_ROS_TESSERACT_PLANNING_SERVER_H

@@ -1,4 +1,4 @@
-# This message corresponds to tesseract_planning::TaskComposerNodeInfo
+# This message corresponds to tesseract::task_composer::TaskComposerNodeInfo
 
 # Name of the Task
 string name

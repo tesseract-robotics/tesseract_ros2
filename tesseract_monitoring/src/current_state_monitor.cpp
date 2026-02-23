@@ -53,12 +53,12 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 namespace tesseract_monitoring
 {
-CurrentStateMonitor::CurrentStateMonitor(const tesseract_environment::Environment::ConstPtr& env)
+CurrentStateMonitor::CurrentStateMonitor(const tesseract::environment::Environment::ConstPtr& env)
   : CurrentStateMonitor(env, std::make_shared<rclcpp::Node>("current_state_monitor"))
 {
 }
 
-CurrentStateMonitor::CurrentStateMonitor(const tesseract_environment::Environment::ConstPtr& env,
+CurrentStateMonitor::CurrentStateMonitor(const tesseract::environment::Environment::ConstPtr& env,
                                          rclcpp::Node::SharedPtr node)
   : node_(std::move(node))
   , env_(env)
@@ -70,11 +70,11 @@ CurrentStateMonitor::CurrentStateMonitor(const tesseract_environment::Environmen
 {
 }
 
-const tesseract_environment::Environment& CurrentStateMonitor::getEnvironment() const { return *env_; }
+const tesseract::environment::Environment& CurrentStateMonitor::getEnvironment() const { return *env_; }
 
 CurrentStateMonitor::~CurrentStateMonitor() { stopStateMonitor(); }
 
-tesseract_scene_graph::SceneState CurrentStateMonitor::getCurrentState() const
+tesseract::scene_graph::SceneState CurrentStateMonitor::getCurrentState() const
 {
   std::scoped_lock slock(state_update_lock_);
   return env_state_;
@@ -86,7 +86,7 @@ rclcpp::Time CurrentStateMonitor::getCurrentStateTime() const
   return current_state_time_;
 }
 
-std::pair<tesseract_scene_graph::SceneState, rclcpp::Time> CurrentStateMonitor::getCurrentStateAndTime() const
+std::pair<tesseract::scene_graph::SceneState, rclcpp::Time> CurrentStateMonitor::getCurrentStateAndTime() const
 {
   std::scoped_lock slock(state_update_lock_);
   return std::make_pair(env_state_, current_state_time_);
@@ -291,7 +291,7 @@ bool CurrentStateMonitor::waitForCompleteState(const std::string& manip, double 
   std::vector<std::string> missing_joints;
   if (!haveCompleteState(missing_joints))
   {
-    tesseract_kinematics::JointGroup::ConstPtr jmg = env_->getJointGroup(manip);
+    tesseract::kinematics::JointGroup::ConstPtr jmg = env_->getJointGroup(manip);
     if (jmg)
     {
       std::set<std::string> mj;

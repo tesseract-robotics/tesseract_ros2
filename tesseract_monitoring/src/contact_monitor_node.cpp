@@ -51,8 +51,8 @@ int main(int argc, char** argv)
   rclcpp::init(argc, argv);
   auto node = std::make_shared<rclcpp::Node>("tesseract_contact_monitoring");
 
-  tesseract_scene_graph::SceneGraph::Ptr scene_graph;
-  tesseract_srdf::SRDFModel::Ptr srdf_model;
+  tesseract::scene_graph::SceneGraph::Ptr scene_graph;
+  tesseract::srdf::SRDFModel::Ptr srdf_model;
 
   std::string monitor_namespace = node->declare_parameter("monitor_namespace", "");
   if (monitor_namespace.empty())
@@ -82,8 +82,8 @@ int main(int argc, char** argv)
     return -1;
   }
 
-  auto env = std::make_unique<tesseract_environment::Environment>();
-  auto locator = std::make_shared<tesseract_common::GeneralResourceLocator>();
+  auto env = std::make_unique<tesseract::environment::Environment>();
+  auto locator = std::make_shared<tesseract::common::GeneralResourceLocator>();
   if (!env->init(robot_description, robot_description_semantic, locator))
   {
     RCLCPP_ERROR(node->get_logger(), "Failed to initialize environment.");
@@ -143,7 +143,7 @@ int main(int argc, char** argv)
     RCLCPP_WARN(node->get_logger(), "Request type must be 0, 1, 2 or 3. Setting to 2(ALL)!");
     contact_test_type = 2;
   }
-  auto type = static_cast<tesseract_collision::ContactTestType>(contact_test_type);
+  auto type = static_cast<tesseract::collision::ContactTestType>(contact_test_type);
 
   tesseract_monitoring::ContactMonitor cm(monitor_namespace,
                                           std::move(env),

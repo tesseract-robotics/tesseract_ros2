@@ -3,7 +3,7 @@ tesseract_msgs/EnvironmentCommand[] commands # Additional Commands to be applied
 
 string name # The name of the taskflow to use
 string executor # The executor to leverage, if empty default one is used.
-string input # This should be an xml string of tesseract_common::AnyPoly
+string input # This should be an xml string of tesseract::common::AnyPoly
 bool dotgraph # Enable if DOT Graph should be generated and returned
 bool debug # Enable debug content
 bool save_io # Enable saving of input and output for task infos

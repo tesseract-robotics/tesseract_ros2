@@ -128,6 +128,6 @@ Example Explanation
 
    Octree support multiple shape types to represent a cell in the octree.
 
-   * BOX **tesseract_geometry::Octree::SubType::BOX**
-   * SPHERE_INSIDE **tesseract_geometry::Octree::SubType::SPHERE_INSIDE**
-   * SPHERE_OUTSIDE **tesseract_geometry::Octree::SubType::SPHERE_OUTSIDE**
+   * BOX **tesseract::geometry::Octree::SubType::BOX**
+   * SPHERE_INSIDE **tesseract::geometry::Octree::SubType::SPHERE_INSIDE**
+   * SPHERE_OUTSIDE **tesseract::geometry::Octree::SubType::SPHERE_OUTSIDE**

@@ -51,11 +51,11 @@ class ContactMonitor
 {
 public:
   ContactMonitor(std::string monitor_namespace,
-                 tesseract_environment::Environment::UPtr env,
+                 tesseract::environment::Environment::UPtr env,
                  rclcpp::Node::SharedPtr node,
                  std::vector<std::string> monitored_link_names,
                  std::vector<std::string> disabled_link_names,
-                 tesseract_collision::ContactTestType type,
+                 tesseract::collision::ContactTestType type,
                  double contact_distance = 0.1,
                  const std::string& joint_state_topic = DEFAULT_JOINT_STATES_TOPIC);
   ~ContactMonitor();
@@ -111,14 +111,14 @@ private:
   std::string monitor_namespace_;
   std::string monitored_namespace_;
   int env_revision_{ 0 };
-  tesseract_environment::EnvironmentMonitor::UPtr monitor_;
+  tesseract::environment::EnvironmentMonitor::UPtr monitor_;
   rclcpp::Node::SharedPtr node_;
   rclcpp::Node::SharedPtr internal_node_;
   std::vector<std::string> monitored_link_names_;
   std::vector<std::string> disabled_link_names_;
-  tesseract_collision::ContactTestType type_;
+  tesseract::collision::ContactTestType type_;
   double contact_distance_;
-  tesseract_collision::DiscreteContactManager::UPtr manager_;
+  tesseract::collision::DiscreteContactManager::UPtr manager_;
   bool publish_contact_markers_{ false };
   rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_states_sub_;
   rclcpp::Publisher<tesseract_msgs::msg::ContactResultVector>::SharedPtr contact_results_pub_;

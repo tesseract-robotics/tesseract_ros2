@@ -64,7 +64,7 @@ namespace tesseract_monitoring
 /**
  * @brief TesseractMonitor
  * Subscribes to the topic \e tesseract_environment */
-class ROSEnvironmentMonitor : public tesseract_environment::EnvironmentMonitor
+class ROSEnvironmentMonitor : public tesseract::environment::EnvironmentMonitor
 {
 public:
   using Ptr = std::shared_ptr<ROSEnvironmentMonitor>;
@@ -100,7 +100,7 @@ public:
    * @param monitor_namespace A name identifying this monitor, must be unique
    */
   ROSEnvironmentMonitor(const rclcpp::Node::SharedPtr& node,
-                        std::shared_ptr<tesseract_environment::Environment> env,
+                        std::shared_ptr<tesseract::environment::Environment> env,
                         std::string monitor_namespace);
 
   /**
@@ -110,7 +110,7 @@ public:
    * @param monitor_namespace A name identifying this monitor, must be unique
    */
   ROSEnvironmentMonitor(const rclcpp::node_interfaces::NodeBaseInterface::SharedPtr& node_base_interface,
-                        std::shared_ptr<tesseract_environment::Environment> env,
+                        std::shared_ptr<tesseract::environment::Environment> env,
                         std::string monitor_namespace);
 
   ~ROSEnvironmentMonitor() override;
@@ -135,7 +135,7 @@ public:
 
   double getEnvironmentPublishingFrequency() const override final;
 
-  // TODO: publish_tf does nothing anymore, remove from signature in tesseract_environment::EnvironmentMonitor
+  // TODO: publish_tf does nothing anymore, remove from signature in tesseract::environment::EnvironmentMonitor
   void startStateMonitor(const std::string& joint_states_topic = DEFAULT_JOINT_STATES_TOPIC,
                          bool publish_tf = true) override final;
 
@@ -148,8 +148,8 @@ public:
   void updateEnvironmentWithCurrentState() override final;
 
   void startMonitoringEnvironment(const std::string& monitored_namespace,
-                                  tesseract_environment::MonitoredEnvironmentMode mode =
-                                      tesseract_environment::MonitoredEnvironmentMode::DEFAULT) override final;
+                                  tesseract::environment::MonitoredEnvironmentMode mode =
+                                      tesseract::environment::MonitoredEnvironmentMode::DEFAULT) override final;
 
   void stopMonitoringEnvironment() override final;
 
@@ -217,7 +217,7 @@ protected:
 
 private:
   /** @brief Handle state changes (when not monitoring) */
-  void sceneStateChangedCallback(const tesseract_environment::Event& event);
+  void sceneStateChangedCallback(const tesseract::environment::Event& event);
 
   // publish environment update diffs (runs in its own thread)
   void environmentPublishingThread();

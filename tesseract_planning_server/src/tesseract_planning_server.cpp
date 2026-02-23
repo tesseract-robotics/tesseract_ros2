@@ -77,9 +77,9 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <tesseract_task_composer/core/task_composer_plugin_factory.h>
 #include <tesseract_task_composer/core/task_composer_server.h>
 
-using tesseract_common::Serialization;
-using tesseract_planning::InstructionPoly;
-using tesseract_planning::TaskComposerDataStorage;
+using tesseract::command_language::InstructionPoly;
+using tesseract::common::Serialization;
+using tesseract::task_composer::TaskComposerDataStorage;
 
 static const std::string TRAJOPT_DEFAULT_NAMESPACE = "TrajOptMotionPlannerTask";
 static const std::string TRAJOPT_IFOPT_DEFAULT_NAMESPACE = "TrajOptIfoptMotionPlannerTask";
@@ -99,9 +99,9 @@ TesseractPlanningServer::TesseractPlanningServer(rclcpp::Node::SharedPtr node,
                                                  std::string name)
   : node_(std::move(node))
   , monitor_(std::make_shared<tesseract_monitoring::ROSEnvironmentMonitor>(node_, robot_description, std::move(name)))
-  , environment_cache_(std::make_shared<tesseract_environment::DefaultEnvironmentCache>(monitor_->getEnvironment()))
-  , profiles_(std::make_shared<tesseract_common::ProfileDictionary>())
-  , planning_server_(std::make_unique<tesseract_planning::TaskComposerServer>())
+  , environment_cache_(std::make_shared<tesseract::environment::DefaultEnvironmentCache>(monitor_->getEnvironment()))
+  , profiles_(std::make_shared<tesseract::common::ProfileDictionary>())
+  , planning_server_(std::make_unique<tesseract::task_composer::TaskComposerServer>())
   , motion_plan_server_(rclcpp_action::create_server<tesseract_msgs::action::GetMotionPlan>(
         node_,
         DEFAULT_GET_MOTION_PLAN_ACTION,
@@ -115,13 +115,13 @@ TesseractPlanningServer::TesseractPlanningServer(rclcpp::Node::SharedPtr node,
 }
 
 TesseractPlanningServer::TesseractPlanningServer(rclcpp::Node::SharedPtr node,
-                                                 tesseract_environment::Environment::UPtr env,
+                                                 tesseract::environment::Environment::UPtr env,
                                                  std::string name)
   : node_(std::move(node))
   , monitor_(std::make_shared<tesseract_monitoring::ROSEnvironmentMonitor>(node_, std::move(env), std::move(name)))
-  , environment_cache_(std::make_shared<tesseract_environment::DefaultEnvironmentCache>(monitor_->getEnvironment()))
-  , profiles_(std::make_shared<tesseract_common::ProfileDictionary>())
-  , planning_server_(std::make_unique<tesseract_planning::TaskComposerServer>())
+  , environment_cache_(std::make_shared<tesseract::environment::DefaultEnvironmentCache>(monitor_->getEnvironment()))
+  , profiles_(std::make_shared<tesseract::common::ProfileDictionary>())
+  , planning_server_(std::make_unique<tesseract::task_composer::TaskComposerServer>())
   , motion_plan_server_(rclcpp_action::create_server<tesseract_msgs::action::GetMotionPlan>(
         node_,
         DEFAULT_GET_MOTION_PLAN_ACTION,
@@ -141,26 +141,29 @@ void TesseractPlanningServer::ctor()
       std::bind(&TesseractPlanningServer::tfFindTCPOffset, this, std::placeholders::_1));  // NOLINT
 }
 
-tesseract_environment::EnvironmentMonitor& TesseractPlanningServer::getEnvironmentMonitor() { return *monitor_; }
-const tesseract_environment::EnvironmentMonitor& TesseractPlanningServer::getEnvironmentMonitor() const
+tesseract::environment::EnvironmentMonitor& TesseractPlanningServer::getEnvironmentMonitor() { return *monitor_; }
+const tesseract::environment::EnvironmentMonitor& TesseractPlanningServer::getEnvironmentMonitor() const
 {
   return *monitor_;
 }
 
-tesseract_planning::TaskComposerServer& TesseractPlanningServer::getTaskComposerServer() { return *planning_server_; }
-const tesseract_planning::TaskComposerServer& TesseractPlanningServer::getTaskComposerServer() const
+tesseract::task_composer::TaskComposerServer& TesseractPlanningServer::getTaskComposerServer()
+{
+  return *planning_server_;
+}
+const tesseract::task_composer::TaskComposerServer& TesseractPlanningServer::getTaskComposerServer() const
 {
   return *planning_server_;
 }
 
-tesseract_environment::EnvironmentCache& TesseractPlanningServer::getEnvironmentCache() { return *environment_cache_; }
-const tesseract_environment::EnvironmentCache& TesseractPlanningServer::getEnvironmentCache() const
+tesseract::environment::EnvironmentCache& TesseractPlanningServer::getEnvironmentCache() { return *environment_cache_; }
+const tesseract::environment::EnvironmentCache& TesseractPlanningServer::getEnvironmentCache() const
 {
   return *environment_cache_;
 }
 
-tesseract_common::ProfileDictionary& TesseractPlanningServer::getProfileDictionary() { return *profiles_; }
-const tesseract_common::ProfileDictionary& TesseractPlanningServer::getProfileDictionary() const { return *profiles_; }
+tesseract::common::ProfileDictionary& TesseractPlanningServer::getProfileDictionary() { return *profiles_; }
+const tesseract::common::ProfileDictionary& TesseractPlanningServer::getProfileDictionary() const { return *profiles_; }
 
 rclcpp_action::GoalResponse
 TesseractPlanningServer::handle_goal(const rclcpp_action::GoalUUID&,                                      // NOLINT
@@ -216,10 +219,10 @@ void TesseractPlanningServer::onMotionPlanningCallback(
     return;
   }
 
-  tesseract_common::AnyPoly planning_input;
+  tesseract::common::AnyPoly planning_input;
   try
   {
-    planning_input = Serialization::fromArchiveStringXML<tesseract_common::AnyPoly>(goal->request.input);
+    planning_input = Serialization::fromArchiveStringXML<tesseract::common::AnyPoly>(goal->request.input);
   }
   catch (const std::exception& e)
   {
@@ -232,28 +235,28 @@ void TesseractPlanningServer::onMotionPlanningCallback(
     return;
   }
 
-  tesseract_environment::Environment::Ptr env = environment_cache_->getCachedEnvironment();
+  tesseract::environment::Environment::Ptr env = environment_cache_->getCachedEnvironment();
 
-  tesseract_scene_graph::SceneState env_state;
+  tesseract::scene_graph::SceneState env_state;
   tesseract_rosutils::fromMsg(env_state.joints, goal->request.environment_state.joint_state);
 
   env->applyCommands(tesseract_rosutils::fromMsg(goal->request.commands));
   env->setState(env_state.joints);
 
   // Store the initial state in the response for publishing trajectories
-  tesseract_scene_graph::SceneState initial_state = env->getState();
+  tesseract::scene_graph::SceneState initial_state = env->getState();
   tesseract_rosutils::toMsg(result->response.initial_state, initial_state.joints);
 
   // Create solve data storage
   auto data = std::make_unique<TaskComposerDataStorage>();
   data->setData("planning_input", std::move(planning_input));
-  data->setData("environment", std::shared_ptr<const tesseract_environment::Environment>(std::move(env)));
+  data->setData("environment", std::shared_ptr<const tesseract::environment::Environment>(std::move(env)));
   data->setData("profiles", profiles_);
 
   // Solve
-  tesseract_common::Stopwatch stopwatch;
+  tesseract::common::Stopwatch stopwatch;
   stopwatch.start();
-  tesseract_planning::TaskComposerFuture::UPtr plan_future =
+  tesseract::task_composer::TaskComposerFuture::UPtr plan_future =
       planning_server_->run(goal->request.name, std::move(data), goal->request.dotgraph, executor_name);
   plan_future->wait();  // Wait for results
   stopwatch.stop();
@@ -265,11 +268,11 @@ void TesseractPlanningServer::onMotionPlanningCallback(
 
   try
   {
-    const tesseract_planning::TaskComposerNode& task = planning_server_->getTask(plan_future->context->name);
-    tesseract_common::AnyPoly results = plan_future->context->data_storage->getData(task.getOutputKeys().get("progra"
-                                                                                                             "m"));
-    result->response.results = Serialization::toArchiveStringXML<tesseract_planning::InstructionPoly>(
-        results.as<tesseract_planning::CompositeInstruction>());
+    const tesseract::task_composer::TaskComposerNode& task = planning_server_->getTask(plan_future->context->name);
+    tesseract::common::AnyPoly results = plan_future->context->data_storage->getData(task.getOutputKeys().get("progra"
+                                                                                                              "m"));
+    result->response.results = Serialization::toArchiveStringXML<tesseract::command_language::InstructionPoly>(
+        results.as<tesseract::command_language::CompositeInstruction>());
   }
   catch (const std::exception& e)
   {
@@ -293,61 +296,63 @@ void TesseractPlanningServer::loadDefaultPlannerProfiles()
 {
   // Add TrajOpt Default Profiles
   profiles_->addProfile(TRAJOPT_DEFAULT_NAMESPACE,
-                        tesseract_planning::DEFAULT_PROFILE_KEY,
-                        std::make_shared<tesseract_planning::TrajOptDefaultMoveProfile>());
+                        tesseract::command_language::DEFAULT_PROFILE_KEY,
+                        std::make_shared<tesseract::motion_planners::TrajOptDefaultMoveProfile>());
   profiles_->addProfile(TRAJOPT_DEFAULT_NAMESPACE,
-                        tesseract_planning::DEFAULT_PROFILE_KEY,
-                        std::make_shared<tesseract_planning::TrajOptDefaultCompositeProfile>());
+                        tesseract::command_language::DEFAULT_PROFILE_KEY,
+                        std::make_shared<tesseract::motion_planners::TrajOptDefaultCompositeProfile>());
   profiles_->addProfile(TRAJOPT_DEFAULT_NAMESPACE,
-                        tesseract_planning::DEFAULT_PROFILE_KEY,
-                        std::make_shared<tesseract_planning::TrajOptOSQPSolverProfile>());
+                        tesseract::command_language::DEFAULT_PROFILE_KEY,
+                        std::make_shared<tesseract::motion_planners::TrajOptOSQPSolverProfile>());
 
   // Add TrajOpt IFOPT Default Profiles
   profiles_->addProfile(TRAJOPT_IFOPT_DEFAULT_NAMESPACE,
-                        tesseract_planning::DEFAULT_PROFILE_KEY,
-                        std::make_shared<tesseract_planning::TrajOptIfoptDefaultMoveProfile>());
+                        tesseract::command_language::DEFAULT_PROFILE_KEY,
+                        std::make_shared<tesseract::motion_planners::TrajOptIfoptDefaultMoveProfile>());
   profiles_->addProfile(TRAJOPT_IFOPT_DEFAULT_NAMESPACE,
-                        tesseract_planning::DEFAULT_PROFILE_KEY,
-                        std::make_shared<tesseract_planning::TrajOptIfoptDefaultCompositeProfile>());
+                        tesseract::command_language::DEFAULT_PROFILE_KEY,
+                        std::make_shared<tesseract::motion_planners::TrajOptIfoptDefaultCompositeProfile>());
   profiles_->addProfile(TRAJOPT_IFOPT_DEFAULT_NAMESPACE,
-                        tesseract_planning::DEFAULT_PROFILE_KEY,
-                        std::make_shared<tesseract_planning::TrajOptIfoptOSQPSolverProfile>());
+                        tesseract::command_language::DEFAULT_PROFILE_KEY,
+                        std::make_shared<tesseract::motion_planners::TrajOptIfoptOSQPSolverProfile>());
 
   // Add Descartes Default Profiles
   profiles_->addProfile(DESCARTES_DEFAULT_NAMESPACE,
-                        tesseract_planning::DEFAULT_PROFILE_KEY,
-                        std::make_shared<tesseract_planning::DescartesDefaultMoveProfile<double>>());
+                        tesseract::command_language::DEFAULT_PROFILE_KEY,
+                        std::make_shared<tesseract::motion_planners::DescartesDefaultMoveProfile<double>>());
 
   // Add OMPL Default Profiles
   profiles_->addProfile(OMPL_DEFAULT_NAMESPACE,
-                        tesseract_planning::DEFAULT_PROFILE_KEY,
-                        std::make_shared<tesseract_planning::OMPLRealVectorMoveProfile>());
+                        tesseract::command_language::DEFAULT_PROFILE_KEY,
+                        std::make_shared<tesseract::motion_planners::OMPLRealVectorMoveProfile>());
 
   // Add Simple Default Profiles
   profiles_->addProfile(SIMPLE_DEFAULT_NAMESPACE,
-                        tesseract_planning::DEFAULT_PROFILE_KEY,
-                        std::make_shared<tesseract_planning::SimplePlannerLVSNoIKMoveProfile>());
+                        tesseract::command_language::DEFAULT_PROFILE_KEY,
+                        std::make_shared<tesseract::motion_planners::SimplePlannerLVSNoIKMoveProfile>());
 
   // MinLengthTask calls the SimpleMotionPlanner to generate a seed path with waypoints interpolated in joint space
   profiles_->addProfile(MLT_DEFAULT_NAMESPACE,
-                        tesseract_planning::DEFAULT_PROFILE_KEY,
-                        std::make_shared<tesseract_planning::MinLengthProfile>());
+                        tesseract::command_language::DEFAULT_PROFILE_KEY,
+                        std::make_shared<tesseract::task_composer::MinLengthProfile>());
 
   // Post hoc collision checking
   profiles_->addProfile(DCC_DEFAULT_NAMESPACE,
-                        tesseract_planning::DEFAULT_PROFILE_KEY,
-                        std::make_shared<tesseract_planning::ContactCheckProfile>());
+                        tesseract::command_language::DEFAULT_PROFILE_KEY,
+                        std::make_shared<tesseract::task_composer::ContactCheckProfile>());
 
   // Time parameterization
-  profiles_->addProfile(ISP_DEFAULT_NAMESPACE,
-                        tesseract_planning::DEFAULT_PROFILE_KEY,
-                        std::make_shared<tesseract_planning::IterativeSplineParameterizationCompositeProfile>());
-  profiles_->addProfile(ISP_DEFAULT_NAMESPACE,
-                        tesseract_planning::DEFAULT_PROFILE_KEY,
-                        std::make_shared<tesseract_planning::IterativeSplineParameterizationMoveProfile>());
+  profiles_->addProfile(
+      ISP_DEFAULT_NAMESPACE,
+      tesseract::command_language::DEFAULT_PROFILE_KEY,
+      std::make_shared<tesseract::time_parameterization::IterativeSplineParameterizationCompositeProfile>());
+  profiles_->addProfile(
+      ISP_DEFAULT_NAMESPACE,
+      tesseract::command_language::DEFAULT_PROFILE_KEY,
+      std::make_shared<tesseract::time_parameterization::IterativeSplineParameterizationMoveProfile>());
 }
 
-Eigen::Isometry3d TesseractPlanningServer::tfFindTCPOffset(const tesseract_common::ManipulatorInfo& manip_info)
+Eigen::Isometry3d TesseractPlanningServer::tfFindTCPOffset(const tesseract::common::ManipulatorInfo& manip_info)
 {
   if (manip_info.tcp_offset.index() == 1)
     throw std::runtime_error("tfFindTCPOffset: TCP offset is not a string!");

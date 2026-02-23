@@ -20,12 +20,12 @@ struct ROSManipulationWidgetPrivate
 {
   ROSManipulationWidgetPrivate()
     : entity_managers(
-          { std::make_shared<tesseract_gui::EntityManager>(), std::make_shared<tesseract_gui::EntityManager>() }){};
+          { std::make_shared<tesseract::gui::EntityManager>(), std::make_shared<tesseract::gui::EntityManager>() }){};
 
   rviz_common::DisplayContext* context;
   Ogre::SceneNode* scene_node;
 
-  std::array<tesseract_gui::EntityManager::Ptr, 2> entity_managers;
+  std::array<tesseract::gui::EntityManager::Ptr, 2> entity_managers;
 
   /** @brief The current render group */
   QString render_group;
@@ -38,9 +38,9 @@ struct ROSManipulationWidgetPrivate
 
   /** @brief Update visualization current state from environment message */
   std::vector<bool> render_states_dirty;
-  std::vector<tesseract_scene_graph::SceneState> render_states;
-  std::vector<tesseract_scene_graph::Material::ConstPtr> render_states_visual_material;
-  std::vector<tesseract_scene_graph::Material::ConstPtr> render_states_collision_material;
+  std::vector<tesseract::scene_graph::SceneState> render_states;
+  std::vector<tesseract::scene_graph::Material::ConstPtr> render_states_visual_material;
+  std::vector<tesseract::scene_graph::Material::ConstPtr> render_states_collision_material;
 
   /** @brief The links with changed visibility properties */
   std::set<std::string> link_visibility_properties_changed;
@@ -71,13 +71,13 @@ ROSManipulationWidget::ROSManipulationWidget(rviz_common::DisplayContext* contex
 
   addOgreResourceLocation();
 
-  auto red = std::make_shared<tesseract_scene_graph::Material>("manipulation_red");
+  auto red = std::make_shared<tesseract::scene_graph::Material>("manipulation_red");
   red->color = Eigen::Vector4d(1, 0, 0, 0.75);
 
-  auto green = std::make_shared<tesseract_scene_graph::Material>("manipulation_green");
+  auto green = std::make_shared<tesseract::scene_graph::Material>("manipulation_green");
   green->color = Eigen::Vector4d(0, 1, 0, 0.75);
 
-  auto blue = std::make_shared<tesseract_scene_graph::Material>("manipulation_blue");
+  auto blue = std::make_shared<tesseract::scene_graph::Material>("manipulation_blue");
   blue->color = Eigen::Vector4d(0, 0, 1, 0.75);
 
   data_->render_states_visual_material[0] = red;
@@ -86,16 +86,16 @@ ROSManipulationWidget::ROSManipulationWidget(rviz_common::DisplayContext* contex
   //  data_->render_states_collision_material[1] = blue;
 
   connect(this,
-          SIGNAL(environmentSet(std::shared_ptr<const tesseract_environment::Environment>)),
+          SIGNAL(environmentSet(std::shared_ptr<const tesseract::environment::Environment>)),
           this,
-          SLOT(onEnvironmentSet(std::shared_ptr<const tesseract_environment::Environment>)));
+          SLOT(onEnvironmentSet(std::shared_ptr<const tesseract::environment::Environment>)));
 
   connect(this, SIGNAL(groupNameChanged(QString)), this, SLOT(onGroupNameChanged(QString)));
 
   connect(this,
-          SIGNAL(manipulationStateChanged(tesseract_scene_graph::SceneState, int)),
+          SIGNAL(manipulationStateChanged(tesseract::scene_graph::SceneState, int)),
           this,
-          SLOT(onManipulationStateChanged(tesseract_scene_graph::SceneState, int)));
+          SLOT(onManipulationStateChanged(tesseract::scene_graph::SceneState, int)));
 
   connect(this,
           SIGNAL(linkVisibilityChanged(std::vector<std::string>)),
@@ -128,7 +128,7 @@ void ROSManipulationWidget::clear()
   }
 }
 
-void ROSManipulationWidget::clearContainer(const tesseract_gui::EntityContainer& container)
+void ROSManipulationWidget::clearContainer(const tesseract::gui::EntityContainer& container)
 {
   // Destroy Resources
   for (const auto& ns : container.getUntrackedEntities())
@@ -160,7 +160,7 @@ void ROSManipulationWidget::clearContainer(const tesseract_gui::EntityContainer&
   }
 }
 
-void ROSManipulationWidget::onEnvironmentSet(const std::shared_ptr<const tesseract_environment::Environment>& /*env*/)
+void ROSManipulationWidget::onEnvironmentSet(const std::shared_ptr<const tesseract::environment::Environment>& /*env*/)
 {
   data_->render_group.clear();
   data_->render_dirty = true;
@@ -169,7 +169,7 @@ void ROSManipulationWidget::onEnvironmentSet(const std::shared_ptr<const tessera
     data_->render_states_dirty[i] = true;
 
   for (std::size_t i = 0; i < data_->render_states.size(); ++i)
-    data_->render_states[i] = tesseract_scene_graph::SceneState();
+    data_->render_states[i] = tesseract::scene_graph::SceneState();
 
   data_->render_mode_dirty = true;
   data_->render_mode_reset = true;
@@ -191,13 +191,13 @@ void ROSManipulationWidget::onGroupNameChanged(const QString& group_name)
     data_->render_states_dirty[i] = true;
 
   for (std::size_t i = 0; i < data_->render_states.size(); ++i)
-    data_->render_states[i] = tesseract_scene_graph::SceneState();
+    data_->render_states[i] = tesseract::scene_graph::SceneState();
 
   data_->render_mode_dirty = true;
   data_->render_mode_reset = true;
 }
 
-void ROSManipulationWidget::onManipulationStateChanged(const tesseract_scene_graph::SceneState& state, int state_index)
+void ROSManipulationWidget::onManipulationStateChanged(const tesseract::scene_graph::SceneState& state, int state_index)
 {
   data_->render_dirty = true;
   data_->render_states_dirty[state_index] = true;
@@ -226,8 +226,8 @@ void ROSManipulationWidget::onTCPChanged()
 void ROSManipulationWidget::addInteractiveMarker()
 {
   auto lock = environment().lockRead();
-  tesseract_scene_graph::SceneState state = getActiveState();
-  tesseract_kinematics::KinematicGroup kin_group = kinematicGroup();
+  tesseract::scene_graph::SceneState state = getActiveState();
+  tesseract::kinematics::KinematicGroup kin_group = kinematicGroup();
   std::string tcp_name = getTCPName().toStdString();
   int state_index = getActiveStateIndex();
   int mode = getMode();
@@ -267,7 +267,7 @@ void ROSManipulationWidget::addInteractiveMarker()
 
     switch (joint->type)
     {
-      case tesseract_scene_graph::JointType::PRISMATIC:
+      case tesseract::scene_graph::JointType::PRISMATIC:
       {
         Eigen::Vector3d disc_axis(1, 0, 0);
         Eigen::Quaternionf q = Eigen::Quaterniond::FromTwoVectors(disc_axis, joint->axis).cast<float>();
@@ -284,7 +284,7 @@ void ROSManipulationWidget::addInteractiveMarker()
         data_->joint_interactive_markers[joint_name] = interactive_marker;
         break;
       }
-      case tesseract_scene_graph::JointType::REVOLUTE:
+      case tesseract::scene_graph::JointType::REVOLUTE:
       {
         Eigen::Vector3d disc_axis(1, 0, 0);
         Eigen::Quaternionf q = Eigen::Quaterniond::FromTwoVectors(disc_axis, joint->axis).cast<float>();
@@ -299,7 +299,7 @@ void ROSManipulationWidget::addInteractiveMarker()
         data_->joint_interactive_markers[joint_name] = interactive_marker;
         break;
       }
-      case tesseract_scene_graph::JointType::CONTINUOUS:
+      case tesseract::scene_graph::JointType::CONTINUOUS:
       {
         Eigen::Vector3d disc_axis(1, 0, 0);
         Eigen::Quaternionf q = Eigen::Quaterniond::FromTwoVectors(disc_axis, joint->axis).cast<float>();
@@ -346,8 +346,8 @@ void ROSManipulationWidget::markerFeedback(const std::string& reference_frame,
                                            const Eigen::Vector3d& /*mouse_point*/,
                                            bool /*mouse_point_valid*/)
 {
-  const tesseract_kinematics::KinematicGroup& kin_group = kinematicGroup();
-  const tesseract_scene_graph::SceneState& state = getActiveState();
+  const tesseract::kinematics::KinematicGroup& kin_group = kinematicGroup();
+  const tesseract::scene_graph::SceneState& state = getActiveState();
   const std::string working_frame = getWorkingFrame().toStdString();
 
   Eigen::Isometry3d tf_world{ transform };
@@ -365,11 +365,11 @@ void ROSManipulationWidget::jointMarkerFeedback(const std::string& joint_name,
                                                 const Eigen::Vector3d& /*mouse_point*/,
                                                 bool /*mouse_point_valid*/)
 {
-  const tesseract_kinematics::KinematicGroup& kin_group = kinematicGroup();
-  tesseract_scene_graph::SceneState scene_state = getActiveState();
+  const tesseract::kinematics::KinematicGroup& kin_group = kinematicGroup();
+  tesseract::scene_graph::SceneState scene_state = getActiveState();
   int current_state_index = getActiveStateIndex();
 
-  tesseract_scene_graph::Joint::ConstPtr joint = environment().getJoint(joint_name);
+  tesseract::scene_graph::Joint::ConstPtr joint = environment().getJoint(joint_name);
   double current_joint_value = scene_state.joints.at(joint_name);
   Eigen::Isometry3d child_pose =
       scene_state.link_transforms.at(data_->joint_interactive_marker_link_names.at(joint_name));
@@ -379,13 +379,13 @@ void ROSManipulationWidget::jointMarkerFeedback(const std::string& joint_name,
   double delta_joint_value = 0;
   switch (joint->type)
   {
-    case tesseract_scene_graph::JointType::PRISMATIC:
+    case tesseract::scene_graph::JointType::PRISMATIC:
     {
       delta_axis = delta_pose.translation().normalized();
       delta_joint_value = delta_pose.translation().norm();
       break;
     }
-    case tesseract_scene_graph::JointType::REVOLUTE:
+    case tesseract::scene_graph::JointType::REVOLUTE:
     {
       Eigen::AngleAxisd delta_rotation;
       delta_rotation.fromRotationMatrix(delta_pose.rotation());
@@ -394,7 +394,7 @@ void ROSManipulationWidget::jointMarkerFeedback(const std::string& joint_name,
       delta_joint_value = delta_rotation.angle();
       break;
     }
-    case tesseract_scene_graph::JointType::CONTINUOUS:
+    case tesseract::scene_graph::JointType::CONTINUOUS:
     {
       Eigen::AngleAxisd delta_rotation;
       delta_rotation.fromRotationMatrix(delta_pose.rotation());
@@ -477,7 +477,7 @@ void ROSManipulationWidget::onRender(float dt)
                                            data_->render_states_collision_material[i]);
             data_->scene_node->addChild(sn);
             if (i == 0)
-              link_vis_props[link_name] = tesseract_gui::LinkVisibilityProperties();
+              link_vis_props[link_name] = tesseract::gui::LinkVisibilityProperties();
           }
         }
       }
@@ -492,7 +492,7 @@ void ROSManipulationWidget::onRender(float dt)
       // Update start state visualization
       if (data_->render_states_dirty[i])
       {
-        const tesseract_scene_graph::SceneState& render_state = data_->render_states[i];
+        const tesseract::scene_graph::SceneState& render_state = data_->render_states[i];
         for (const auto& pair : render_state.link_transforms)
         {
           if (entity_manager->hasEntityContainer(pair.first))
@@ -502,7 +502,7 @@ void ROSManipulationWidget::onRender(float dt)
             Ogre::Quaternion orientation;
             toOgre(position, orientation, pair.second);
 
-            auto entity = container->getTrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS, pair.first);
+            auto entity = container->getTrackedEntity(tesseract::gui::EntityContainer::VISUAL_NS, pair.first);
             Ogre::SceneNode* sn = data_->context->getSceneManager()->getSceneNode(entity.unique_name);
             sn->setPosition(position);
             sn->setOrientation(orientation);
@@ -554,9 +554,9 @@ void ROSManipulationWidget::onRender(float dt)
             auto entity_container = entity_manager->getEntityContainer(l);
 
             {  // Link Property
-              if (entity_container->hasTrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS, l))
+              if (entity_container->hasTrackedEntity(tesseract::gui::EntityContainer::VISUAL_NS, l))
               {
-                auto entity = entity_container->getTrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS, l);
+                auto entity = entity_container->getTrackedEntity(tesseract::gui::EntityContainer::VISUAL_NS, l);
                 Ogre::SceneNode* sn = data_->context->getSceneManager()->getSceneNode(entity.unique_name);
                 sn->setVisible(link_visibility_property.link, true);
               }
@@ -564,9 +564,10 @@ void ROSManipulationWidget::onRender(float dt)
 
             {  // Link Visual Property
               std::string visual_key = l + "::Visuals";
-              if (entity_container->hasTrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS, visual_key))
+              if (entity_container->hasTrackedEntity(tesseract::gui::EntityContainer::VISUAL_NS, visual_key))
               {
-                auto entity = entity_container->getTrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS, visual_key);
+                auto entity =
+                    entity_container->getTrackedEntity(tesseract::gui::EntityContainer::VISUAL_NS, visual_key);
                 Ogre::SceneNode* sn = data_->context->getSceneManager()->getSceneNode(entity.unique_name);
                 sn->setVisible(link_visibility_property.link && link_visibility_property.visual, true);
               }
@@ -574,9 +575,10 @@ void ROSManipulationWidget::onRender(float dt)
 
             {  // Link Collision Property
               std::string visual_key = l + "::Collisions";
-              if (entity_container->hasTrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS, visual_key))
+              if (entity_container->hasTrackedEntity(tesseract::gui::EntityContainer::VISUAL_NS, visual_key))
               {
-                auto entity = entity_container->getTrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS, visual_key);
+                auto entity =
+                    entity_container->getTrackedEntity(tesseract::gui::EntityContainer::VISUAL_NS, visual_key);
                 Ogre::SceneNode* sn = data_->context->getSceneManager()->getSceneNode(entity.unique_name);
                 sn->setVisible(link_visibility_property.link && link_visibility_property.collision, true);
               }
@@ -584,9 +586,10 @@ void ROSManipulationWidget::onRender(float dt)
 
             {  // Link WireBox Property
               std::string visual_key = l + "::WireBox";
-              if (entity_container->hasTrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS, visual_key))
+              if (entity_container->hasTrackedEntity(tesseract::gui::EntityContainer::VISUAL_NS, visual_key))
               {
-                auto entity = entity_container->getTrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS, visual_key);
+                auto entity =
+                    entity_container->getTrackedEntity(tesseract::gui::EntityContainer::VISUAL_NS, visual_key);
                 Ogre::SceneNode* sn = data_->context->getSceneManager()->getSceneNode(entity.unique_name);
                 sn->setVisible(link_visibility_property.link && link_visibility_property.wirebox, true);
               }
@@ -594,9 +597,10 @@ void ROSManipulationWidget::onRender(float dt)
 
             {  // Link Axis Property
               std::string visual_key = l + "::Axis";
-              if (entity_container->hasTrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS, visual_key))
+              if (entity_container->hasTrackedEntity(tesseract::gui::EntityContainer::VISUAL_NS, visual_key))
               {
-                auto entity = entity_container->getTrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS, visual_key);
+                auto entity =
+                    entity_container->getTrackedEntity(tesseract::gui::EntityContainer::VISUAL_NS, visual_key);
                 Ogre::SceneNode* sn = data_->context->getSceneManager()->getSceneNode(entity.unique_name);
                 sn->setVisible(link_visibility_property.link && link_visibility_property.axis, true);
               }

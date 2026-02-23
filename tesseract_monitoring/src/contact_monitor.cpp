@@ -41,11 +41,11 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 namespace tesseract_monitoring
 {
 ContactMonitor::ContactMonitor(std::string monitor_namespace,
-                               tesseract_environment::Environment::UPtr env,
+                               tesseract::environment::Environment::UPtr env,
                                rclcpp::Node::SharedPtr node,  // NOLINT
                                std::vector<std::string> monitored_link_names,
                                std::vector<std::string> disabled_link_names,
-                               tesseract_collision::ContactTestType type,
+                               tesseract::collision::ContactTestType type,
                                double contact_distance,
                                const std::string& joint_state_topic)
   : monitor_namespace_(std::move(monitor_namespace))
@@ -124,8 +124,8 @@ void ContactMonitor::computeCollisionReportThread()
   while (rclcpp::ok())
   {
     std::shared_ptr<sensor_msgs::msg::JointState> msg = nullptr;
-    tesseract_collision::ContactResultMap contacts;
-    tesseract_collision::ContactResultVector contacts_vector;
+    tesseract::collision::ContactResultMap contacts;
+    tesseract::collision::ContactResultVector contacts_vector;
     tesseract_msgs::msg::ContactResultVector contacts_msg;
     std::string root_link;
     // Limit the lock
@@ -136,8 +136,8 @@ void ContactMonitor::computeCollisionReportThread()
       {
         // Create a new manager
         std::vector<std::string> active;
-        tesseract_collision::CollisionMarginData contact_margin_data;
-        tesseract_common::ContactAllowedValidator::ConstPtr fn;
+        tesseract::collision::CollisionMarginData contact_margin_data;
+        tesseract::common::ContactAllowedValidator::ConstPtr fn;
 
         {
           auto lock_read = monitor_->environment().lockRead();
@@ -174,7 +174,7 @@ void ContactMonitor::computeCollisionReportThread()
       monitor_->environment().setState(
           msg->name,
           Eigen::Map<Eigen::VectorXd>(msg->position.data(), static_cast<Eigen::Index>(msg->position.size())));
-      tesseract_scene_graph::SceneState state = monitor_->environment().getState();
+      tesseract::scene_graph::SceneState state = monitor_->environment().getState();
 
       manager_->setCollisionObjectsTransform(state.link_transforms);
       manager_->contactTest(contacts, type_);
@@ -196,7 +196,7 @@ void ContactMonitor::computeCollisionReportThread()
       if (publish_contact_markers_)
       {
         int id_counter = 0;
-        tesseract_visualization::ContactResultsMarker marker(
+        tesseract::visualization::ContactResultsMarker marker(
             monitored_link_names_, contacts_vector, manager_->getCollisionMarginData());
         visualization_msgs::msg::MarkerArray marker_msg =
             tesseract_rosutils::ROSPlotting::getContactResultsMarkerArrayMsg(
@@ -239,8 +239,8 @@ void ContactMonitor::callbackModifyTesseractEnv(
 
   // Create a new manager
   std::vector<std::string> active;
-  tesseract_collision::CollisionMarginData contact_margin_data;
-  tesseract_common::ContactAllowedValidator::ConstPtr fn;
+  tesseract::collision::CollisionMarginData contact_margin_data;
+  tesseract::common::ContactAllowedValidator::ConstPtr fn;
 
   {
     auto lock_read = monitor_->environment().lockRead();
@@ -261,8 +261,8 @@ void ContactMonitor::callbackComputeContactResultVector(
     tesseract_msgs::srv::ComputeContactResultVector::Request::SharedPtr request,    // NOLINT
     tesseract_msgs::srv::ComputeContactResultVector::Response::SharedPtr response)  // NOLINT
 {
-  thread_local tesseract_collision::ContactResultMap contact_results;
-  thread_local tesseract_collision::ContactResultVector contacts_vector;
+  thread_local tesseract::collision::ContactResultMap contact_results;
+  thread_local tesseract::collision::ContactResultVector contacts_vector;
   contact_results.clear();
   contacts_vector.clear();
 
@@ -270,7 +270,7 @@ void ContactMonitor::callbackComputeContactResultVector(
       request->joint_states.name,
       Eigen::Map<Eigen::VectorXd>(request->joint_states.position.data(),
                                   static_cast<Eigen::Index>(request->joint_states.position.size())));
-  tesseract_scene_graph::SceneState state = monitor_->environment().getState();
+  tesseract::scene_graph::SceneState state = monitor_->environment().getState();
 
   // Limit the lock
   {

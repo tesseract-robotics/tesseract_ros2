@@ -46,7 +46,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 namespace tesseract_rosutils
 {
 /** @brief The BasicPlotting class */
-class ROSPlotting : public tesseract_visualization::Visualization
+class ROSPlotting : public tesseract::visualization::Visualization
 {
 public:
   ROSPlotting(std::string root_link = "world", std::string topic_namespace = "tesseract");
@@ -61,47 +61,49 @@ public:
 
   void waitForConnection(long seconds = 0) const override;
 
-  void plotEnvironment(const tesseract_environment::Environment& env, std::string ns = "") override;
+  void plotEnvironment(const tesseract::environment::Environment& env, std::string ns = "") override;
 
-  void plotEnvironmentState(const tesseract_scene_graph::SceneState& state, std::string ns = "") override;
+  void plotEnvironmentState(const tesseract::scene_graph::SceneState& state, std::string ns = "") override;
 
-  void plotTrajectory(const tesseract_common::JointTrajectory& traj,
-                      const tesseract_scene_graph::StateSolver& state_solver,
+  void plotTrajectory(const tesseract::common::JointTrajectory& traj,
+                      const tesseract::scene_graph::StateSolver& state_solver,
                       std::string ns = "") override;
 
-  void plotTrajectory(const tesseract_common::JointTrajectory& traj, std::string ns = "", std::string description = "");
+  void plotTrajectory(const tesseract::common::JointTrajectory& traj,
+                      std::string ns = "",
+                      std::string description = "");
 
   void plotTrajectory(const tesseract_msgs::msg::Trajectory& traj);
 
-  void plotTrajectory(const tesseract_environment::Environment& env,
-                      const tesseract_planning::InstructionPoly& instruction,
+  void plotTrajectory(const tesseract::environment::Environment& env,
+                      const tesseract::command_language::InstructionPoly& instruction,
                       std::string ns = "");
 
-  void plotTrajectories(const tesseract_environment::Environment& env,
-                        const std::vector<tesseract_planning::InstructionPoly>& instructions,
+  void plotTrajectories(const tesseract::environment::Environment& env,
+                        const std::vector<tesseract::command_language::InstructionPoly>& instructions,
                         std::string ns = "",
                         const std::string& description = "",
                         const boost::uuids::uuid& uuid = boost::uuids::random_generator()());
 
-  void plotTrajectory(const std::vector<std::shared_ptr<const tesseract_environment::Command>>& cmds,
-                      const tesseract_planning::InstructionPoly& instruction,
+  void plotTrajectory(const std::vector<std::shared_ptr<const tesseract::environment::Command>>& cmds,
+                      const tesseract::command_language::InstructionPoly& instruction,
                       std::string ns = "");
 
-  void plotTrajectories(const tesseract_environment::Commands& cmds,
-                        const std::vector<tesseract_planning::InstructionPoly>& instructions,
+  void plotTrajectories(const tesseract::environment::Commands& cmds,
+                        const std::vector<tesseract::command_language::InstructionPoly>& instructions,
                         std::string ns = "",
                         const std::string& description = "",
                         const boost::uuids::uuid& uuid = boost::uuids::random_generator()());
 
-  void plotToolpath(const tesseract_common::Toolpath& toolpath, std::string ns = "");
+  void plotToolpath(const tesseract::common::Toolpath& toolpath, std::string ns = "");
 
-  void plotToolpath(const tesseract_environment::Environment& env,
-                    const tesseract_planning::InstructionPoly& instruction,
+  void plotToolpath(const tesseract::environment::Environment& env,
+                    const tesseract::command_language::InstructionPoly& instruction,
                     std::string ns = "");
 
-  void plotMarker(const tesseract_visualization::Marker& marker, std::string ns = "") override;
+  void plotMarker(const tesseract::visualization::Marker& marker, std::string ns = "") override;
 
-  void plotMarkers(const std::vector<tesseract_visualization::Marker::Ptr>& markers, std::string ns = "") override;
+  void plotMarkers(const std::vector<tesseract::visualization::Marker::Ptr>& markers, std::string ns = "") override;
 
   void clear(std::string ns = "") override;
 
@@ -122,7 +124,7 @@ public:
                                                            const std::string& frame_id,
                                                            const std::string& ns,
                                                            const rclcpp::Time& time_stamp,
-                                                           const tesseract_visualization::ArrowMarker& marker);
+                                                           const tesseract::visualization::ArrowMarker& marker);
 
   static visualization_msgs::msg::Marker getMarkerCylinderMsg(int& id_counter,
                                                               const std::string& frame_id,
@@ -138,7 +140,7 @@ public:
                                   const std::string& frame_id,
                                   const std::string& ns,
                                   const rclcpp::Time& time_stamp,
-                                  const tesseract_visualization::ContactResultsMarker& marker);
+                                  const tesseract::visualization::ContactResultsMarker& marker);
 
 private:
   std::string root_link_;       /**< Root link of markers */

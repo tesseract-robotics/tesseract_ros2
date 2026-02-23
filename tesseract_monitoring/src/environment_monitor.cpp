@@ -94,8 +94,8 @@ ROSEnvironmentMonitor::ROSEnvironmentMonitor(
     return;
   }
 
-  env_ = std::make_shared<tesseract_environment::Environment>();
-  auto locator = std::make_shared<tesseract_common::GeneralResourceLocator>();
+  env_ = std::make_shared<tesseract::environment::Environment>();
+  auto locator = std::make_shared<tesseract::common::GeneralResourceLocator>();
   if (!env_->init(urdf_xml.as_string(), srdf_xml.as_string(), locator))
     return;
 
@@ -113,7 +113,7 @@ ROSEnvironmentMonitor::ROSEnvironmentMonitor(
 }
 
 ROSEnvironmentMonitor::ROSEnvironmentMonitor(const rclcpp::Node::SharedPtr& node,
-                                             std::shared_ptr<tesseract_environment::Environment> env,
+                                             std::shared_ptr<tesseract::environment::Environment> env,
                                              std::string monitor_namespace)
   : ROSEnvironmentMonitor(node->get_node_base_interface(), std::move(env), std::move(monitor_namespace))
 {
@@ -121,7 +121,7 @@ ROSEnvironmentMonitor::ROSEnvironmentMonitor(const rclcpp::Node::SharedPtr& node
 
 ROSEnvironmentMonitor::ROSEnvironmentMonitor(
     const rclcpp::node_interfaces::NodeBaseInterface::SharedPtr& node_base_interface,
-    std::shared_ptr<tesseract_environment::Environment> env,
+    std::shared_ptr<tesseract::environment::Environment> env,
     std::string monitor_namespace)
   : EnvironmentMonitor(std::move(env), std::move(monitor_namespace))
   , internal_node_(std::make_shared<rclcpp::Node>("ROSEnvironmentMonitor_internal",
@@ -280,10 +280,10 @@ bool ROSEnvironmentMonitor::initialize()
   return true;
 }
 
-void ROSEnvironmentMonitor::sceneStateChangedCallback(const tesseract_environment::Event& event)
+void ROSEnvironmentMonitor::sceneStateChangedCallback(const tesseract::environment::Event& event)
 {
   if (!monitored_environment_subscriber_ && !current_state_monitor_ &&
-      (typeid(event) == typeid(tesseract_environment::SceneStateChangedEvent)))
+      (typeid(event) == typeid(tesseract::environment::SceneStateChangedEvent)))
   {
     last_update_time_ = last_robot_motion_time_ = internal_node_->now();
   }
@@ -401,7 +401,7 @@ const CurrentStateMonitor& ROSEnvironmentMonitor::getStateMonitor() const { retu
 CurrentStateMonitor& ROSEnvironmentMonitor::getStateMonitor() { return *current_state_monitor_; }
 
 void ROSEnvironmentMonitor::startMonitoringEnvironment(const std::string& monitored_namespace,
-                                                       tesseract_environment::MonitoredEnvironmentMode mode)
+                                                       tesseract::environment::MonitoredEnvironmentMode mode)
 {
   mode_ = mode;
   std::string monitored_environment_topic = R"(/)" + monitored_namespace + DEFAULT_PUBLISH_ENVIRONMENT_TOPIC;
@@ -475,7 +475,7 @@ void ROSEnvironmentMonitor::newEnvironmentStateCallback(
       return;
     }
 
-    tesseract_environment::Commands commands;
+    tesseract::environment::Commands commands;
     try
     {
       commands = tesseract_rosutils::fromMsg(gei_res->command_history);
@@ -522,7 +522,7 @@ void ROSEnvironmentMonitor::newEnvironmentStateCallback(
     }
     else if (static_cast<int>(env_msg->revision) < env_->getRevision())
     {
-      if (mode_ == tesseract_environment::MonitoredEnvironmentMode::DEFAULT)
+      if (mode_ == tesseract::environment::MonitoredEnvironmentMode::DEFAULT)
       {
         // If the monitored environment has a lower revision it is reset and additional changes are requested and
         // applied.
@@ -557,7 +557,7 @@ void ROSEnvironmentMonitor::newEnvironmentStateCallback(
           RCLCPP_ERROR_STREAM(logger_, "newEnvironmentStateCallback: Failed to reset the tesseract object!");
         }
       }
-      else if (mode_ == tesseract_environment::MonitoredEnvironmentMode::SYNCHRONIZED)
+      else if (mode_ == tesseract::environment::MonitoredEnvironmentMode::SYNCHRONIZED)
       {
         // If this has been modified it will push the changes to the monitored environment to keep them in sync
         auto modify_env_req = std::make_shared<tesseract_msgs::srv::ModifyEnvironment::Request>();
@@ -1000,7 +1000,7 @@ void ROSEnvironmentMonitor::getEnvironmentInformationCallback(
     }
   }
 
-  tesseract_scene_graph::SceneState state = env_->getState();
+  tesseract::scene_graph::SceneState state = env_->getState();
   if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::LINK_TRANSFORMS)  // NOLINT
   {
     for (const auto& link_pair : state.link_transforms)

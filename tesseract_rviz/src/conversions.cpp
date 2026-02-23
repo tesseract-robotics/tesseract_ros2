@@ -122,8 +122,8 @@ std::string getEnvNamespaceFromTopic(const std::string& topic)
 }
 
 Ogre::Entity* createEntityForMeshData(Ogre::SceneManager& scene,
-                                      tesseract_gui::EntityContainer& entity_container,
-                                      const std::shared_ptr<const tesseract_common::VectorVector3d>& mesh_vertices,
+                                      tesseract::gui::EntityContainer& entity_container,
+                                      const std::shared_ptr<const tesseract::common::VectorVector3d>& mesh_vertices,
                                       const std::shared_ptr<const Eigen::VectorXi>& mesh_faces)
 {
   Ogre::ManualObject* object = new Ogre::ManualObject("the one and only");
@@ -193,7 +193,7 @@ Ogre::Entity* createEntityForMeshData(Ogre::SceneManager& scene,
 
   object->end();
 
-  auto entity = entity_container.addUntrackedEntity(tesseract_gui::EntityContainer::RESOURCE_NS);
+  auto entity = entity_container.addUntrackedEntity(tesseract::gui::EntityContainer::RESOURCE_NS);
   std::string mesh_name = entity.unique_name + "::mesh";
   Ogre::MeshPtr ogre_mesh = object->convertToMesh(mesh_name, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
   ogre_mesh->buildEdgeList();
@@ -206,25 +206,25 @@ Ogre::Entity* createEntityForMeshData(Ogre::SceneManager& scene,
 }
 
 std::shared_ptr<rviz_rendering::PointCloud> createPointCloud(std::vector<rviz_rendering::PointCloud::Point>&& points,
-                                                             tesseract_gui::EntityContainer& entity_container,
+                                                             tesseract::gui::EntityContainer& entity_container,
                                                              float size,
-                                                             tesseract_geometry::OctreeSubType subtype)
+                                                             tesseract::geometry::OctreeSubType subtype)
 {
-  auto entity = entity_container.addUntrackedEntity(tesseract_gui::EntityContainer::RESOURCE_NS);
+  auto entity = entity_container.addUntrackedEntity(tesseract::gui::EntityContainer::RESOURCE_NS);
   auto cloud = std::make_shared<rviz_rendering::PointCloud>();
   cloud->clear();
   cloud->setName(entity.unique_name);
 
   float new_size = size;
-  if (subtype == tesseract_geometry::OctreeSubType::BOX)
+  if (subtype == tesseract::geometry::OctreeSubType::BOX)
   {
     cloud->setRenderMode(rviz_rendering::PointCloud::RM_BOXES);
   }
-  else if (subtype == tesseract_geometry::OctreeSubType::SPHERE_INSIDE)
+  else if (subtype == tesseract::geometry::OctreeSubType::SPHERE_INSIDE)
   {
     cloud->setRenderMode(rviz_rendering::PointCloud::RM_SPHERES);
   }
-  else if (subtype == tesseract_geometry::OctreeSubType::SPHERE_OUTSIDE)
+  else if (subtype == tesseract::geometry::OctreeSubType::SPHERE_OUTSIDE)
   {
     cloud->setRenderMode(rviz_rendering::PointCloud::RM_SPHERES);
     new_size = std::sqrt(float(2) * size * size);
@@ -238,8 +238,8 @@ std::shared_ptr<rviz_rendering::PointCloud> createPointCloud(std::vector<rviz_re
 
 std::vector<std::string> loadSceneGraph(Ogre::SceneManager& scene,
                                         Ogre::SceneNode& parent_node,
-                                        tesseract_gui::EntityManager& entity_manager,
-                                        const tesseract_scene_graph::SceneGraph& scene_graph,
+                                        tesseract::gui::EntityManager& entity_manager,
+                                        const tesseract::scene_graph::SceneGraph& scene_graph,
                                         const std::string& prefix)
 {
   std::vector<std::string> link_names;
@@ -266,12 +266,12 @@ std::vector<std::string> loadSceneGraph(Ogre::SceneManager& scene,
 }
 
 Ogre::SceneNode* loadLink(Ogre::SceneManager& scene,
-                          tesseract_gui::EntityContainer& entity_container,
-                          const tesseract_scene_graph::Link& link,
-                          tesseract_scene_graph::Material::ConstPtr visual_material_override,
-                          tesseract_scene_graph::Material::ConstPtr collision_material_override)
+                          tesseract::gui::EntityContainer& entity_container,
+                          const tesseract::scene_graph::Link& link,
+                          tesseract::scene_graph::Material::ConstPtr visual_material_override,
+                          tesseract::scene_graph::Material::ConstPtr collision_material_override)
 {
-  auto entity = entity_container.addTrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS, link.getName());
+  auto entity = entity_container.addTrackedEntity(tesseract::gui::EntityContainer::VISUAL_NS, link.getName());
   Ogre::SceneNode* scene_node = scene.createSceneNode(entity.unique_name);
   scene_node->getUserObjectBindings().setUserAny(USER_VISIBILITY, Ogre::Any(true));
 
@@ -303,19 +303,19 @@ Ogre::SceneNode* loadLink(Ogre::SceneManager& scene,
 }
 
 Ogre::SceneNode* loadLinkVisuals(Ogre::SceneManager& scene,
-                                 tesseract_gui::EntityContainer& entity_container,
-                                 const tesseract_scene_graph::Link& link,
-                                 tesseract_scene_graph::Material::ConstPtr material_override)
+                                 tesseract::gui::EntityContainer& entity_container,
+                                 const tesseract::scene_graph::Link& link,
+                                 tesseract::scene_graph::Material::ConstPtr material_override)
 {
   std::string name = link.getName() + "::Visuals";
-  auto entity = entity_container.addTrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS, name);
+  auto entity = entity_container.addTrackedEntity(tesseract::gui::EntityContainer::VISUAL_NS, name);
 
   Ogre::SceneNode* scene_node = scene.createSceneNode(entity.unique_name);
 
-  std::vector<tesseract_scene_graph::Visual::Ptr>::const_iterator vi;
+  std::vector<tesseract::scene_graph::Visual::Ptr>::const_iterator vi;
   for (vi = link.visual.begin(); vi != link.visual.end(); vi++)
   {
-    tesseract_scene_graph::Visual::Ptr visual = *vi;
+    tesseract::scene_graph::Visual::Ptr visual = *vi;
     if (visual && visual->geometry)
     {
       Ogre::MaterialPtr material;
@@ -334,19 +334,19 @@ Ogre::SceneNode* loadLinkVisuals(Ogre::SceneManager& scene,
 }
 
 Ogre::SceneNode* loadLinkCollisions(Ogre::SceneManager& scene,
-                                    tesseract_gui::EntityContainer& entity_container,
-                                    const tesseract_scene_graph::Link& link,
-                                    tesseract_scene_graph::Material::ConstPtr material_override)
+                                    tesseract::gui::EntityContainer& entity_container,
+                                    const tesseract::scene_graph::Link& link,
+                                    tesseract::scene_graph::Material::ConstPtr material_override)
 {
   std::string name = link.getName() + "::Collisions";
-  auto entity = entity_container.addTrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS, name);
+  auto entity = entity_container.addTrackedEntity(tesseract::gui::EntityContainer::VISUAL_NS, name);
 
   Ogre::SceneNode* scene_node = scene.createSceneNode(entity.unique_name);
 
-  std::vector<tesseract_scene_graph::Collision::Ptr>::const_iterator vi;
+  std::vector<tesseract::scene_graph::Collision::Ptr>::const_iterator vi;
   for (vi = link.collision.begin(); vi != link.collision.end(); vi++)
   {
-    tesseract_scene_graph::Collision::Ptr collision = *vi;
+    tesseract::scene_graph::Collision::Ptr collision = *vi;
     if (collision && collision->geometry)
     {
       Ogre::MaterialPtr material;
@@ -366,26 +366,26 @@ Ogre::SceneNode* loadLinkCollisions(Ogre::SceneManager& scene,
 }
 
 Ogre::SceneNode* loadLinkAxis(Ogre::SceneManager& scene,
-                              tesseract_gui::EntityContainer& entity_container,
-                              const tesseract_scene_graph::Link& link)
+                              tesseract::gui::EntityContainer& entity_container,
+                              const tesseract::scene_graph::Link& link)
 {
   std::string name = link.getName() + "::Axis";
-  auto entity = entity_container.addTrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS, name);
+  auto entity = entity_container.addTrackedEntity(tesseract::gui::EntityContainer::VISUAL_NS, name);
 
   Ogre::SceneNode* scene_node = scene.createSceneNode(entity.unique_name);
 
   /** @todo Does this need to be manually deleted */
   auto axis = std::make_shared<rviz_rendering::Axes>(&scene, scene_node);
   axis->setScale(Ogre::Vector3(0.1f, 0.1f, 0.1f));
-  entity_container.addUntrackedUnmanagedObject(tesseract_gui::EntityContainer::VISUAL_NS, axis);
+  entity_container.addUntrackedUnmanagedObject(tesseract::gui::EntityContainer::VISUAL_NS, axis);
 
   scene_node->setVisible(false, true);
   return scene_node;
 }
 
 Ogre::SceneNode* loadLinkWireBox(Ogre::SceneManager& scene,
-                                 tesseract_gui::EntityContainer& entity_container,
-                                 const tesseract_scene_graph::Link& link,
+                                 tesseract::gui::EntityContainer& entity_container,
+                                 const tesseract::scene_graph::Link& link,
                                  const Ogre::AxisAlignedBox& aabb)
 {
   Ogre::MaterialPtr mat = Ogre::MaterialManager::getSingleton().getByName(
@@ -402,10 +402,10 @@ Ogre::SceneNode* loadLinkWireBox(Ogre::SceneManager& scene,
   }
 
   std::string name = link.getName() + "::WireBox";
-  auto entity = entity_container.addTrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS, name);
+  auto entity = entity_container.addTrackedEntity(tesseract::gui::EntityContainer::VISUAL_NS, name);
   Ogre::SceneNode* wire_box_node = scene.createSceneNode(entity.unique_name);
 
-  auto untracked_entity = entity_container.addUntrackedEntity(tesseract_gui::EntityContainer::RESOURCE_NS);
+  auto untracked_entity = entity_container.addUntrackedEntity(tesseract::gui::EntityContainer::RESOURCE_NS);
   Ogre::ManualObject* wire_box = scene.createManualObject(untracked_entity.unique_name);
   wire_box->clear();
   wire_box->setCastShadows(false);
@@ -473,8 +473,8 @@ Ogre::SceneNode* loadLinkWireBox(Ogre::SceneManager& scene,
 
 Ogre::Entity* loadMesh(Ogre::SceneManager& scene,
                        Ogre::Vector3& ogre_scale,
-                       tesseract_gui::EntityContainer& entity_container,
-                       const tesseract_geometry::PolygonMesh& mesh,
+                       tesseract::gui::EntityContainer& entity_container,
+                       const tesseract::geometry::PolygonMesh& mesh,
                        bool is_visual)
 {
   if (mesh.getResource() && mesh.getResource()->isFile() && is_visual)
@@ -488,7 +488,7 @@ Ogre::Entity* loadMesh(Ogre::SceneManager& scene,
     try
     {
       rviz_rendering::loadMeshFromResource(model_name);
-      auto entity = entity_container.addUntrackedEntity(tesseract_gui::EntityContainer::RESOURCE_NS);
+      auto entity = entity_container.addUntrackedEntity(tesseract::gui::EntityContainer::RESOURCE_NS);
       return scene.createEntity(entity.unique_name, model_name);
     }
     catch (Ogre::InvalidParametersException& e)
@@ -513,8 +513,8 @@ Ogre::Entity* loadMesh(Ogre::SceneManager& scene,
 }
 
 Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
-                                  tesseract_gui::EntityContainer& entity_container,
-                                  const tesseract_geometry::Geometry& geometry,
+                                  tesseract::gui::EntityContainer& entity_container,
+                                  const tesseract::geometry::Geometry& geometry,
                                   const Eigen::Vector3d& scale,
                                   const Eigen::Isometry3d& local_pose,
                                   const Ogre::MaterialPtr& material,
@@ -540,15 +540,15 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
     offset_orientation = orientation;
   }
 
-  auto entity = entity_container.addUntrackedEntity(tesseract_gui::EntityContainer::VISUAL_NS);
+  auto entity = entity_container.addUntrackedEntity(tesseract::gui::EntityContainer::VISUAL_NS);
   Ogre::SceneNode* offset_node = scene.createSceneNode(entity.unique_name);
 
   switch (geometry.getType())
   {
-    case tesseract_geometry::GeometryType::SPHERE:
+    case tesseract::geometry::GeometryType::SPHERE:
     {
-      const auto& sphere = static_cast<const tesseract_geometry::Sphere&>(geometry);
-      auto entity = entity_container.addUntrackedEntity(tesseract_gui::EntityContainer::RESOURCE_NS);
+      const auto& sphere = static_cast<const tesseract::geometry::Sphere&>(geometry);
+      auto entity = entity_container.addUntrackedEntity(tesseract::gui::EntityContainer::RESOURCE_NS);
       auto* sphere_entity = scene.createEntity(entity.unique_name, "tesseract_sphere.mesh");
       ogre_entity.push_back(sphere_entity);
       offset_node->attachObject(sphere_entity);
@@ -556,10 +556,10 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
       ogre_scale = Ogre::Vector3(diameter, diameter, diameter);
       break;
     }
-    case tesseract_geometry::GeometryType::BOX:
+    case tesseract::geometry::GeometryType::BOX:
     {
-      const auto& box = static_cast<const tesseract_geometry::Box&>(geometry);
-      auto entity = entity_container.addUntrackedEntity(tesseract_gui::EntityContainer::RESOURCE_NS);
+      const auto& box = static_cast<const tesseract::geometry::Box&>(geometry);
+      auto entity = entity_container.addUntrackedEntity(tesseract::gui::EntityContainer::RESOURCE_NS);
       auto* box_entity = scene.createEntity(entity.unique_name, "tesseract_cube.mesh");
       ogre_entity.push_back(box_entity);
       offset_node->attachObject(box_entity);
@@ -567,10 +567,10 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
           Ogre::Vector3(static_cast<float>(box.getX()), static_cast<float>(box.getY()), static_cast<float>(box.getZ()));
       break;
     }
-    case tesseract_geometry::GeometryType::CYLINDER:
+    case tesseract::geometry::GeometryType::CYLINDER:
     {
-      const auto& cylinder = static_cast<const tesseract_geometry::Cylinder&>(geometry);
-      auto entity = entity_container.addUntrackedEntity(tesseract_gui::EntityContainer::RESOURCE_NS);
+      const auto& cylinder = static_cast<const tesseract::geometry::Cylinder&>(geometry);
+      auto entity = entity_container.addUntrackedEntity(tesseract::gui::EntityContainer::RESOURCE_NS);
       auto* cylinder_entity = scene.createEntity(entity.unique_name, "tesseract_cylinder.mesh");
       ogre_entity.push_back(cylinder_entity);
       offset_node->attachObject(cylinder_entity);
@@ -579,10 +579,10 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
                                  static_cast<float>(cylinder.getLength()));
       break;
     }
-    case tesseract_geometry::GeometryType::CONE:
+    case tesseract::geometry::GeometryType::CONE:
     {
-      const auto& cone = static_cast<const tesseract_geometry::Cone&>(geometry);
-      auto entity = entity_container.addUntrackedEntity(tesseract_gui::EntityContainer::RESOURCE_NS);
+      const auto& cone = static_cast<const tesseract::geometry::Cone&>(geometry);
+      auto entity = entity_container.addUntrackedEntity(tesseract::gui::EntityContainer::RESOURCE_NS);
       auto* cone_entity = scene.createEntity(entity.unique_name, "tesseract_cone.mesh");
       ogre_entity.push_back(cone_entity);
       offset_node->attachObject(cone_entity);
@@ -591,15 +591,15 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
                                  static_cast<float>(cone.getLength()));
       break;
     }
-    case tesseract_geometry::GeometryType::CAPSULE:
+    case tesseract::geometry::GeometryType::CAPSULE:
     {
-      const auto& capsule = static_cast<const tesseract_geometry::Capsule&>(geometry);
+      const auto& capsule = static_cast<const tesseract::geometry::Capsule&>(geometry);
       const auto length = static_cast<float>(capsule.getLength());
       const auto radius = static_cast<float>(capsule.getRadius());
       float diameter = radius * 2.0F;
 
       // Create cylinder for the middle section
-      auto cylinder_container = entity_container.addUntrackedEntity(tesseract_gui::EntityContainer::RESOURCE_NS);
+      auto cylinder_container = entity_container.addUntrackedEntity(tesseract::gui::EntityContainer::RESOURCE_NS);
       Ogre::Entity* cylinder_entity = scene.createEntity(cylinder_container.unique_name, "tesseract_cylinder.mesh");
       Ogre::SceneNode* cylinder_node = scene.createSceneNode(cylinder_container.unique_name + "_node");
       cylinder_node->attachObject(cylinder_entity);
@@ -608,12 +608,12 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
       cylinder_node->setScale(diameter, diameter, length);
 
       // Create the two sphere caps
-      auto sphere1_container = entity_container.addUntrackedEntity(tesseract_gui::EntityContainer::RESOURCE_NS);
+      auto sphere1_container = entity_container.addUntrackedEntity(tesseract::gui::EntityContainer::RESOURCE_NS);
       Ogre::Entity* sphere1_entity = scene.createEntity(sphere1_container.unique_name, "tesseract_sphere.mesh");
       Ogre::SceneNode* sphere1_node = scene.createSceneNode(sphere1_container.unique_name + "_node");
       sphere1_node->attachObject(sphere1_entity);
 
-      auto sphere2_container = entity_container.addUntrackedEntity(tesseract_gui::EntityContainer::RESOURCE_NS);
+      auto sphere2_container = entity_container.addUntrackedEntity(tesseract::gui::EntityContainer::RESOURCE_NS);
       Ogre::Entity* sphere2_entity = scene.createEntity(sphere2_container.unique_name, "tesseract_sphere.mesh");
       Ogre::SceneNode* sphere2_node = scene.createSceneNode(sphere2_container.unique_name + "_node");
       sphere2_node->attachObject(sphere2_entity);
@@ -638,18 +638,18 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
 
       break;
     }
-    case tesseract_geometry::GeometryType::MESH:
-    case tesseract_geometry::GeometryType::CONVEX_MESH:
+    case tesseract::geometry::GeometryType::MESH:
+    case tesseract::geometry::GeometryType::CONVEX_MESH:
     {
-      const auto& mesh = static_cast<const tesseract_geometry::PolygonMesh&>(geometry);
+      const auto& mesh = static_cast<const tesseract::geometry::PolygonMesh&>(geometry);
       auto* mesh_entity = loadMesh(scene, ogre_scale, entity_container, mesh, is_visual);
       ogre_entity.push_back(mesh_entity);
       offset_node->attachObject(mesh_entity);
       break;
     }
-    case tesseract_geometry::GeometryType::COMPOUND_MESH:
+    case tesseract::geometry::GeometryType::COMPOUND_MESH:
     {
-      const auto& compound_mesh = static_cast<const tesseract_geometry::CompoundMesh&>(geometry);
+      const auto& compound_mesh = static_cast<const tesseract::geometry::CompoundMesh&>(geometry);
       if (compound_mesh.getResource() && compound_mesh.getResource()->isFile() && is_visual)
       {
         std::string model_name = "file://" + compound_mesh.getResource()->getFilePath();
@@ -661,7 +661,7 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
         try
         {
           rviz_rendering::loadMeshFromResource(model_name);
-          auto entity = entity_container.addUntrackedEntity(tesseract_gui::EntityContainer::RESOURCE_NS);
+          auto entity = entity_container.addUntrackedEntity(tesseract::gui::EntityContainer::RESOURCE_NS);
           auto* mesh_entity = scene.createEntity(entity.unique_name, model_name);
           ogre_entity.push_back(mesh_entity);
           offset_node->attachObject(mesh_entity);
@@ -692,7 +692,7 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
       }
       break;
     }
-    case tesseract_geometry::GeometryType::OCTREE:
+    case tesseract::geometry::GeometryType::OCTREE:
     {
       std::size_t max_octree_depth = 0;
       double color_factor = 0.8;
@@ -700,7 +700,7 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
       OctreeVoxelColorMode octree_color_mode = OCTOMAP_Z_AXIS_COLOR;
       std::size_t octree_depth;
 
-      const auto& octomap = static_cast<const tesseract_geometry::Octree&>(geometry);
+      const auto& octomap = static_cast<const tesseract::geometry::Octree&>(geometry);
       const std::shared_ptr<const octomap::OcTree>& octree = octomap.getOctree();
 
       if (!max_octree_depth)
@@ -815,7 +815,7 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
         data->shape_type = octomap.getSubType();
 
         offset_node->attachObject(data->point_cloud.get());
-        entity_container.addUntrackedUnmanagedObject(tesseract_gui::EntityContainer::VISUAL_NS, data);
+        entity_container.addUntrackedUnmanagedObject(tesseract::gui::EntityContainer::VISUAL_NS, data);
       }
 
       break;
@@ -864,7 +864,7 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
 }
 
 Ogre::MaterialPtr loadLinkMaterial(Ogre::SceneManager& scene,
-                                   const tesseract_scene_graph::Link& link,
+                                   const tesseract::scene_graph::Link& link,
                                    const std::string& material_name)
 {
   if (link.visual.empty() || !link.visual[0]->material)
@@ -876,8 +876,8 @@ Ogre::MaterialPtr loadLinkMaterial(Ogre::SceneManager& scene,
       material_name_generator.generate(), Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
   mat->getTechnique(0)->setLightingEnabled(true);
 
-  tesseract_scene_graph::Visual::Ptr visual = nullptr;
-  std::vector<tesseract_scene_graph::Visual::Ptr>::const_iterator vi;
+  tesseract::scene_graph::Visual::Ptr visual = nullptr;
+  std::vector<tesseract::scene_graph::Visual::Ptr>::const_iterator vi;
   for (vi = link.visual.begin(); vi != link.visual.end(); vi++)
   {
     if ((*vi) && (*vi)->material != nullptr && (*vi)->material->getName() == material_name)
@@ -969,7 +969,7 @@ Ogre::MaterialPtr loadLinkMaterial(Ogre::SceneManager& scene,
   return mat;
 }
 
-Ogre::MaterialPtr loadMaterial(const tesseract_scene_graph::Material::ConstPtr& material)
+Ogre::MaterialPtr loadMaterial(const tesseract::scene_graph::Material::ConstPtr& material)
 {
   Ogre::MaterialPtr mat = Ogre::MaterialManager::getSingleton().create(
       material_name_generator.generate(), Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);

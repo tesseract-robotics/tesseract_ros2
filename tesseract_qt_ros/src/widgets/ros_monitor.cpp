@@ -33,7 +33,7 @@
 #include <QLabel>
 #include <QMainWindow>
 
-namespace tesseract_gui
+namespace tesseract::gui
 {
 void ROSStatusThread::run()
 {
@@ -130,4 +130,4 @@ void ROSMonitor::onStatus(bool connected)
   Q_EMIT status(connected);
 }
 
-}  // namespace tesseract_gui
+}  // namespace tesseract::gui

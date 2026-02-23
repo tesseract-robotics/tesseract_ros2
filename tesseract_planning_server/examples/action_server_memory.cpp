@@ -37,7 +37,7 @@ void callbackTest(const tesseract_msgs::GetMotionPlanGoalConstPtr& goal)
       for (std::size_t j = 0; j < 1000000000; j++)
       {
         std::uniform_real_distribution<double> sample{ 0, 10 };
-        t.push_back(sample(tesseract_common::mersenne));
+        t.push_back(sample(tesseract::common::mersenne));
       }
     });
     std::future<void> f = executor->run(taskflow);

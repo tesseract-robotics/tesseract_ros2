@@ -116,18 +116,20 @@ void ROSPlotting::waitForConnection(long seconds) const
   }
 }
 
-void ROSPlotting::plotEnvironment(const tesseract_environment::Environment& /*env*/, std::string /*ns*/) {}
+void ROSPlotting::plotEnvironment(const tesseract::environment::Environment& /*env*/, std::string /*ns*/) {}
 
-void ROSPlotting::plotEnvironmentState(const tesseract_scene_graph::SceneState& /*state*/, std::string /*ns*/) {}
+void ROSPlotting::plotEnvironmentState(const tesseract::scene_graph::SceneState& /*state*/, std::string /*ns*/) {}
 
-void ROSPlotting::plotTrajectory(const tesseract_common::JointTrajectory& traj,
-                                 const tesseract_scene_graph::StateSolver& /*state_solver*/,
+void ROSPlotting::plotTrajectory(const tesseract::common::JointTrajectory& traj,
+                                 const tesseract::scene_graph::StateSolver& /*state_solver*/,
                                  std::string ns)
 {
   plotTrajectory(traj, ns);
 }
 
-void ROSPlotting::plotTrajectory(const tesseract_common::JointTrajectory& traj, std::string ns, std::string description)
+void ROSPlotting::plotTrajectory(const tesseract::common::JointTrajectory& traj,
+                                 std::string ns,
+                                 std::string description)
 {
   tesseract_msgs::msg::Trajectory msg;
   msg.ns = std::move(ns);
@@ -156,8 +158,8 @@ void ROSPlotting::plotTrajectory(const tesseract_common::JointTrajectory& traj, 
 
 void ROSPlotting::plotTrajectory(const tesseract_msgs::msg::Trajectory& traj) { trajectory_pub_->publish(traj); }
 
-void ROSPlotting::plotTrajectory(const tesseract_environment::Environment& env,
-                                 const tesseract_planning::InstructionPoly& instruction,
+void ROSPlotting::plotTrajectory(const tesseract::environment::Environment& env,
+                                 const tesseract::command_language::InstructionPoly& instruction,
                                  std::string ns)
 {
   tesseract_msgs::msg::Trajectory msg;
@@ -167,23 +169,24 @@ void ROSPlotting::plotTrajectory(const tesseract_environment::Environment& env,
   toMsg(msg.environment, env);
 
   // Set the initial state
-  tesseract_scene_graph::SceneState initial_state = env.getState();
+  tesseract::scene_graph::SceneState initial_state = env.getState();
   tesseract_rosutils::toMsg(msg.initial_state, initial_state.joints);
 
   assert(instruction.isCompositeInstruction());
-  const auto& ci = instruction.as<tesseract_planning::CompositeInstruction>();
-  msg.instructions = tesseract_common::Serialization::toArchiveStringXML<tesseract_planning::CompositeInstruction>(ci);
+  const auto& ci = instruction.as<tesseract::command_language::CompositeInstruction>();
+  msg.instructions =
+      tesseract::common::Serialization::toArchiveStringXML<tesseract::command_language::CompositeInstruction>(ci);
 
   plotTrajectory(msg);
 }
 
-void ROSPlotting::plotTrajectories(const tesseract_environment::Environment& env,
-                                   const std::vector<tesseract_planning::InstructionPoly>& instructions,
+void ROSPlotting::plotTrajectories(const tesseract::environment::Environment& env,
+                                   const std::vector<tesseract::command_language::InstructionPoly>& instructions,
                                    std::string ns,
                                    const std::string& description,
                                    const boost::uuids::uuid& uuid)
 {
-  tesseract_planning::CompositeInstruction ci;
+  tesseract::command_language::CompositeInstruction ci;
   ci.setDescription(description);
   ci.setUUID(uuid);
 
@@ -196,8 +199,8 @@ void ROSPlotting::plotTrajectories(const tesseract_environment::Environment& env
   plotTrajectory(env, ci, std::move(ns));
 }
 
-void ROSPlotting::plotTrajectory(const tesseract_environment::Commands& cmds,
-                                 const tesseract_planning::InstructionPoly& instruction,
+void ROSPlotting::plotTrajectory(const tesseract::environment::Commands& cmds,
+                                 const tesseract::command_language::InstructionPoly& instruction,
                                  std::string ns)
 {
   tesseract_msgs::msg::Trajectory msg;
@@ -211,9 +214,9 @@ void ROSPlotting::plotTrajectory(const tesseract_environment::Commands& cmds,
 
   // Convert to joint trajectory
   assert(instruction.isCompositeInstruction());
-  const auto& ci = instruction.as<tesseract_planning::CompositeInstruction>();
+  const auto& ci = instruction.as<tesseract::command_language::CompositeInstruction>();
   msg.joint_trajectories_description = ci.getDescription();
-  tesseract_common::JointTrajectory traj = tesseract_planning::toJointTrajectory(ci);
+  tesseract::common::JointTrajectory traj = tesseract::command_language::toJointTrajectory(ci);
 
   if (!traj.empty())
   {
@@ -235,8 +238,8 @@ void ROSPlotting::plotTrajectory(const tesseract_environment::Commands& cmds,
   plotTrajectory(msg);
 }
 
-void ROSPlotting::plotTrajectories(const tesseract_environment::Commands& cmds,
-                                   const std::vector<tesseract_planning::InstructionPoly>& instructions,
+void ROSPlotting::plotTrajectories(const tesseract::environment::Commands& cmds,
+                                   const std::vector<tesseract::command_language::InstructionPoly>& instructions,
                                    std::string ns,
                                    const std::string& description,
                                    const boost::uuids::uuid& uuid)
@@ -256,8 +259,8 @@ void ROSPlotting::plotTrajectories(const tesseract_environment::Commands& cmds,
   {
     // Convert to joint trajectory
     assert(instruction.isCompositeInstruction());
-    const auto& ci = instruction.as<tesseract_planning::CompositeInstruction>();
-    tesseract_common::JointTrajectory traj = tesseract_planning::toJointTrajectory(ci);
+    const auto& ci = instruction.as<tesseract::command_language::CompositeInstruction>();
+    tesseract::common::JointTrajectory traj = tesseract::command_language::toJointTrajectory(ci);
 
     // Set the joint trajectory message
     tesseract_msgs::msg::JointTrajectory traj_msg;
@@ -284,13 +287,13 @@ void ROSPlotting::plotTrajectories(const tesseract_environment::Commands& cmds,
   plotTrajectory(msg);
 }
 
-void ROSPlotting::plotMarker(const tesseract_visualization::Marker& marker, std::string ns)
+void ROSPlotting::plotMarker(const tesseract::visualization::Marker& marker, std::string ns)
 {
   switch (marker.getType())
   {
-    case static_cast<int>(tesseract_visualization::MarkerType::ARROW):
+    case static_cast<int>(tesseract::visualization::MarkerType::ARROW):
     {
-      const auto& m = dynamic_cast<const tesseract_visualization::ArrowMarker&>(marker);
+      const auto& m = dynamic_cast<const tesseract::visualization::ArrowMarker&>(marker);
       visualization_msgs::msg::MarkerArray msg;
       auto arrow_marker_msg =
           getMarkerArrowMsg(marker_counter_, root_link_, topic_namespace_, internal_node_->now(), m);
@@ -298,17 +301,17 @@ void ROSPlotting::plotMarker(const tesseract_visualization::Marker& marker, std:
       arrows_pub_->publish(msg);
       break;
     }
-    case static_cast<int>(tesseract_visualization::MarkerType::AXIS):
+    case static_cast<int>(tesseract::visualization::MarkerType::AXIS):
     {
-      const auto& m = dynamic_cast<const tesseract_visualization::AxisMarker&>(marker);
+      const auto& m = dynamic_cast<const tesseract::visualization::AxisMarker&>(marker);
       visualization_msgs::msg::MarkerArray msg =
           getMarkerAxisMsg(marker_counter_, root_link_, topic_namespace_, internal_node_->now(), m.axis, m.getScale());
       axes_pub_->publish(msg);
       break;
     }
-    case static_cast<int>(tesseract_visualization::MarkerType::TOOLPATH):
+    case static_cast<int>(tesseract::visualization::MarkerType::TOOLPATH):
     {
-      const auto& m = dynamic_cast<const tesseract_visualization::ToolpathMarker&>(marker);
+      const auto& m = dynamic_cast<const tesseract::visualization::ToolpathMarker&>(marker);
       std::string prefix_ns = topic_namespace_;
       if (!ns.empty())
         prefix_ns = topic_namespace_ + "/" + ns;
@@ -329,9 +332,9 @@ void ROSPlotting::plotMarker(const tesseract_visualization::Marker& marker, std:
       tool_path_pub_->publish(msg);
       break;
     }
-    case static_cast<int>(tesseract_visualization::MarkerType::CONTACT_RESULTS):
+    case static_cast<int>(tesseract::visualization::MarkerType::CONTACT_RESULTS):
     {
-      const auto& m = dynamic_cast<const tesseract_visualization::ContactResultsMarker&>(marker);
+      const auto& m = dynamic_cast<const tesseract::visualization::ContactResultsMarker&>(marker);
       if (!m.dist_results.empty())
       {
         visualization_msgs::msg::MarkerArray msg =
@@ -347,22 +350,22 @@ void ROSPlotting::plotMarker(const tesseract_visualization::Marker& marker, std:
   }
 }
 
-void ROSPlotting::plotMarkers(const std::vector<tesseract_visualization::Marker::Ptr>& /*markers*/, std::string /*ns*/)
+void ROSPlotting::plotMarkers(const std::vector<tesseract::visualization::Marker::Ptr>& /*markers*/, std::string /*ns*/)
 {
   RCLCPP_ERROR(internal_node_->get_logger(), "ROSPlotting: Plotting vector of markers is currently not implemented!");
 }
 
-void ROSPlotting::plotToolpath(const tesseract_common::Toolpath& toolpath, std::string ns)
+void ROSPlotting::plotToolpath(const tesseract::common::Toolpath& toolpath, std::string ns)
 {
-  tesseract_visualization::ToolpathMarker marker(toolpath);
+  tesseract::visualization::ToolpathMarker marker(toolpath);
   plotMarker(marker, std::move(ns));
 }
 
-void ROSPlotting::plotToolpath(const tesseract_environment::Environment& env,
-                               const tesseract_planning::InstructionPoly& instruction,
+void ROSPlotting::plotToolpath(const tesseract::environment::Environment& env,
+                               const tesseract::command_language::InstructionPoly& instruction,
                                std::string ns)
 {
-  tesseract_common::Toolpath toolpath = toToolpath(instruction, env);
+  tesseract::common::Toolpath toolpath = tesseract::motion_planners::toToolpath(instruction, env);
   plotToolpath(toolpath, std::move(ns));
 }
 
@@ -433,7 +436,7 @@ visualization_msgs::msg::Marker ROSPlotting::getMarkerArrowMsg(int& id_counter,
                                                                const std::string& frame_id,
                                                                const std::string& ns,
                                                                const rclcpp::Time& time_stamp,
-                                                               const tesseract_visualization::ArrowMarker& marker)
+                                                               const tesseract::visualization::ArrowMarker& marker)
 {
   visualization_msgs::msg::Marker marker_msg;
   marker_msg.header.frame_id = frame_id;
@@ -520,19 +523,19 @@ ROSPlotting::getContactResultsMarkerArrayMsg(int& id_counter,
                                              const std::string& frame_id,
                                              const std::string& ns,
                                              const rclcpp::Time& time_stamp,
-                                             const tesseract_visualization::ContactResultsMarker& marker)
+                                             const tesseract::visualization::ContactResultsMarker& marker)
 {
   visualization_msgs::msg::MarkerArray msg;
   for (unsigned i = 0; i < marker.dist_results.size(); ++i)
   {
-    const tesseract_collision::ContactResult& dist = marker.dist_results[i];
+    const tesseract::collision::ContactResult& dist = marker.dist_results[i];
     double safety_distance{ 0 };
     if (marker.margin_fn != nullptr)
       safety_distance = marker.margin_fn(dist.link_names[0], dist.link_names[1]);
     else
       safety_distance = marker.margin_data.getCollisionMargin(dist.link_names[0], dist.link_names[1]);
 
-    auto base_material = std::make_shared<tesseract_scene_graph::Material>("base_material");
+    auto base_material = std::make_shared<tesseract::scene_graph::Material>("base_material");
     if (dist.distance < 0)
       base_material->color << 1.0, 0.0, 0.0, 1.0;
     else if (dist.distance < safety_distance)
@@ -540,21 +543,21 @@ ROSPlotting::getContactResultsMarkerArrayMsg(int& id_counter,
     else
       base_material->color << 0.0, 1.0, 0.0, 1.0;
 
-    if (dist.cc_type[0] == tesseract_collision::ContinuousCollisionType::CCType_Between)
+    if (dist.cc_type[0] == tesseract::collision::ContinuousCollisionType::CCType_Between)
     {
-      tesseract_visualization::ArrowMarker am(dist.transform[0] * dist.nearest_points_local[0],
-                                              dist.cc_transform[0] * dist.nearest_points_local[0]);
-      am.material = std::make_shared<tesseract_scene_graph::Material>("cc_material");
+      tesseract::visualization::ArrowMarker am(dist.transform[0] * dist.nearest_points_local[0],
+                                               dist.cc_transform[0] * dist.nearest_points_local[0]);
+      am.material = std::make_shared<tesseract::scene_graph::Material>("cc_material");
       am.material->color << 0.0, 0.0, 1.0, 1.0;
       auto marker = getMarkerArrowMsg(id_counter, frame_id, ns, time_stamp, am);
       msg.markers.push_back(marker);
     }
 
-    if (dist.cc_type[1] == tesseract_collision::ContinuousCollisionType::CCType_Between)
+    if (dist.cc_type[1] == tesseract::collision::ContinuousCollisionType::CCType_Between)
     {
-      tesseract_visualization::ArrowMarker am(dist.transform[1] * dist.nearest_points_local[1],
-                                              dist.cc_transform[1] * dist.nearest_points_local[1]);
-      am.material = std::make_shared<tesseract_scene_graph::Material>("cc_material");
+      tesseract::visualization::ArrowMarker am(dist.transform[1] * dist.nearest_points_local[1],
+                                               dist.cc_transform[1] * dist.nearest_points_local[1]);
+      am.material = std::make_shared<tesseract::scene_graph::Material>("cc_material");
       am.material->color << 0.0, 0.0, 0.5, 1.0;
       auto marker = getMarkerArrowMsg(id_counter, frame_id, ns, time_stamp, am);
       msg.markers.push_back(marker);
@@ -565,26 +568,26 @@ ROSPlotting::getContactResultsMarkerArrayMsg(int& id_counter,
 
     if (it0 != marker.link_names.end() && it1 != marker.link_names.end())
     {
-      tesseract_visualization::ArrowMarker am1(dist.nearest_points[0], dist.nearest_points[1]);
+      tesseract::visualization::ArrowMarker am1(dist.nearest_points[0], dist.nearest_points[1]);
       am1.material = base_material;
       auto marker0 = getMarkerArrowMsg(id_counter, frame_id, ns, time_stamp, am1);
       msg.markers.push_back(marker0);
 
-      tesseract_visualization::ArrowMarker am2(dist.nearest_points[1], dist.nearest_points[0]);
+      tesseract::visualization::ArrowMarker am2(dist.nearest_points[1], dist.nearest_points[0]);
       am2.material = base_material;
       auto marker1 = getMarkerArrowMsg(id_counter, frame_id, ns, time_stamp, am2);
       msg.markers.push_back(marker1);
     }
     else if (it0 != marker.link_names.end())
     {
-      tesseract_visualization::ArrowMarker am(dist.nearest_points[1], dist.nearest_points[0]);
+      tesseract::visualization::ArrowMarker am(dist.nearest_points[1], dist.nearest_points[0]);
       am.material = base_material;
       auto marker = getMarkerArrowMsg(id_counter, frame_id, ns, time_stamp, am);
       msg.markers.push_back(marker);
     }
     else
     {
-      tesseract_visualization::ArrowMarker am(dist.nearest_points[0], dist.nearest_points[1]);
+      tesseract::visualization::ArrowMarker am(dist.nearest_points[0], dist.nearest_points[1]);
       am.material = base_material;
       auto marker = getMarkerArrowMsg(id_counter, frame_id, ns, time_stamp, am);
       msg.markers.push_back(marker);

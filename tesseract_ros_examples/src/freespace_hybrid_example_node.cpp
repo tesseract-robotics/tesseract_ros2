@@ -34,7 +34,7 @@
 #include <tesseract_environment/environment.h>
 #include <tesseract_scene_graph/graph.h>
 
-using namespace tesseract_examples;
+using namespace tesseract::examples;
 using namespace tesseract_rosutils;
 
 /** @brief Default ROS parameter for robot description */
@@ -69,8 +69,8 @@ int main(int argc, char** argv)
     RCLCPP_INFO(node->get_logger(), "Using TrajOpt Ifopt!");
   }
 
-  auto env = std::make_shared<tesseract_environment::Environment>();
-  auto locator = std::make_shared<tesseract_common::GeneralResourceLocator>();
+  auto env = std::make_shared<tesseract::environment::Environment>();
+  auto locator = std::make_shared<tesseract::common::GeneralResourceLocator>();
   if (!env->init(urdf_xml_string, srdf_xml_string, locator))
     exit(1);
 

@@ -11,16 +11,16 @@ namespace rviz_common
 {
 class DisplayContext;
 }
-namespace tesseract_gui
+namespace tesseract::gui
 {
 class EntityContainer;
-}  // namespace tesseract_gui
+}  // namespace tesseract::gui
 
 namespace tesseract_rviz
 {
 struct ROSManipulationWidgetPrivate;
 
-class ROSManipulationWidget : public tesseract_gui::ManipulationWidget
+class ROSManipulationWidget : public tesseract::gui::ManipulationWidget
 {
   Q_OBJECT
 public:
@@ -31,10 +31,10 @@ public Q_SLOTS:
   void onRender(float dt);
   void onLinkVisibilityChanged(const std::vector<std::string>& links);
   void onGroupNameChanged(const QString& group_name);
-  void onManipulationStateChanged(const tesseract_scene_graph::SceneState& state, int state_index);
+  void onManipulationStateChanged(const tesseract::scene_graph::SceneState& state, int state_index);
 
 private Q_SLOTS:
-  void onEnvironmentSet(const std::shared_ptr<const tesseract_environment::Environment>& env);
+  void onEnvironmentSet(const std::shared_ptr<const tesseract::environment::Environment>& env);
   void onModeChanged(int mode);
   void onTCPChanged();
   void markerFeedback(const std::string& reference_frame,
@@ -51,7 +51,7 @@ private:
   std::unique_ptr<ROSManipulationWidgetPrivate> data_;
 
   void clear();
-  void clearContainer(const tesseract_gui::EntityContainer& container);
+  void clearContainer(const tesseract::gui::EntityContainer& container);
   void addInteractiveMarker();
 };
 }  // namespace tesseract_rviz

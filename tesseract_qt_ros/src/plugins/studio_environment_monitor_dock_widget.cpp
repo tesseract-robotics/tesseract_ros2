@@ -34,7 +34,7 @@
 #include <QAction>
 #include <QStatusBar>
 
-namespace tesseract_gui
+namespace tesseract::gui
 {
 struct StudioEnvironmentMonitorDockWidget::Implementation
 {
@@ -89,4 +89,4 @@ void StudioEnvironmentMonitorDockWidget::onShowMessage(const QString& message, i
   getMainWindowStatusBar()->showMessage(message, timeout);
 }
 
-}  // namespace tesseract_gui
+}  // namespace tesseract::gui

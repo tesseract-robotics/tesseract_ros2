@@ -43,7 +43,7 @@ struct JointTrajectoryMonitorProperties::Implementation
   rviz_common::Display* parent;
   rviz_common::properties::Property* main_property;
 
-  std::shared_ptr<const tesseract_gui::ComponentInfo> component_info;
+  std::shared_ptr<const tesseract::gui::ComponentInfo> component_info;
 
   rviz_common::properties::BoolProperty* legacy_main;
   rviz_common::properties::RosTopicProperty* legacy_joint_trajectory_topic_property;
@@ -66,8 +66,8 @@ struct JointTrajectoryMonitorProperties::Implementation
     for (std::size_t i = 0; i < msg->joint_names.size(); ++i)
       initial_state[msg->joint_names[i]] = msg->points[0].positions[i];
 
-    tesseract_common::JointTrajectorySet trajectory_set(initial_state);
-    tesseract_common::JointTrajectory joint_trajectory = tesseract_rosutils::fromMsg(*msg);
+    tesseract::common::JointTrajectorySet trajectory_set(initial_state);
+    tesseract::common::JointTrajectory joint_trajectory = tesseract_rosutils::fromMsg(*msg);
     trajectory_set.setUUID(joint_trajectory.uuid);
     trajectory_set.setDescription(joint_trajectory.description);
     trajectory_set.appendJointTrajectory(joint_trajectory);
@@ -75,7 +75,7 @@ struct JointTrajectoryMonitorProperties::Implementation
     QMetaObject::invokeMethod(
         qApp,
         [component_info_copy = component_info, trajectory_set]() {
-          tesseract_gui::events::JointTrajectoryAdd event(component_info_copy, trajectory_set);
+          tesseract::gui::events::JointTrajectoryAdd event(component_info_copy, trajectory_set);
           QApplication::sendEvent(qApp, &event);
         },
         Qt::QueuedConnection);
@@ -85,7 +85,7 @@ struct JointTrajectoryMonitorProperties::Implementation
   {
     try
     {
-      tesseract_common::JointTrajectorySet trajectory_set;
+      tesseract::common::JointTrajectorySet trajectory_set;
 
       // Get environment initial state
       std::unordered_map<std::string, double> initial_state;
@@ -93,20 +93,20 @@ struct JointTrajectoryMonitorProperties::Implementation
         initial_state[pair_msg.first] = pair_msg.second;
 
       // Get environment information
-      tesseract_environment::Environment::UPtr environment = tesseract_rosutils::fromMsg(msg->environment);
-      tesseract_environment::Commands commands = tesseract_rosutils::fromMsg(msg->commands);
+      tesseract::environment::Environment::UPtr environment = tesseract_rosutils::fromMsg(msg->environment);
+      tesseract::environment::Commands commands = tesseract_rosutils::fromMsg(msg->commands);
 
       if (environment != nullptr)
       {
-        trajectory_set = tesseract_common::JointTrajectorySet(std::move(environment));
+        trajectory_set = tesseract::common::JointTrajectorySet(std::move(environment));
       }
       else if (!commands.empty())
       {
-        trajectory_set = tesseract_common::JointTrajectorySet(initial_state, commands);
+        trajectory_set = tesseract::common::JointTrajectorySet(initial_state, commands);
       }
       else
       {
-        trajectory_set = tesseract_common::JointTrajectorySet(initial_state);
+        trajectory_set = tesseract::common::JointTrajectorySet(initial_state);
       }
 
       if (!msg->ns.empty())
@@ -114,36 +114,38 @@ struct JointTrajectoryMonitorProperties::Implementation
 
       if (!msg->instructions.empty())
       {
-        auto ci = tesseract_common::Serialization::fromArchiveStringXML<tesseract_planning::CompositeInstruction>(
-            msg->instructions);
+        auto ci =
+            tesseract::common::Serialization::fromArchiveStringXML<tesseract::command_language::CompositeInstruction>(
+                msg->instructions);
         trajectory_set.setUUID(ci.getUUID());
         trajectory_set.setDescription(ci.getDescription());
         if (!ci.empty() && ci.front().isCompositeInstruction())
         {
           for (const auto& entry : ci)
           {
-            const auto& sub_ci = entry.as<tesseract_planning::CompositeInstruction>();
-            tesseract_common::JointTrajectory joint_trajectory = tesseract_planning::toJointTrajectory(sub_ci);
+            const auto& sub_ci = entry.as<tesseract::command_language::CompositeInstruction>();
+            tesseract::common::JointTrajectory joint_trajectory =
+                tesseract::command_language::toJointTrajectory(sub_ci);
             trajectory_set.appendJointTrajectory(joint_trajectory);
           }
 
           QMetaObject::invokeMethod(
               qApp,
               [component_info_copy = component_info, trajectory_set]() {
-                tesseract_gui::events::JointTrajectoryAdd event(component_info_copy, trajectory_set);
+                tesseract::gui::events::JointTrajectoryAdd event(component_info_copy, trajectory_set);
                 QApplication::sendEvent(qApp, &event);
               },
               Qt::QueuedConnection);
         }
         else
         {
-          tesseract_common::JointTrajectory joint_trajectory = tesseract_planning::toJointTrajectory(ci);
+          tesseract::common::JointTrajectory joint_trajectory = tesseract::command_language::toJointTrajectory(ci);
           trajectory_set.appendJointTrajectory(joint_trajectory);
 
           QMetaObject::invokeMethod(
               qApp,
               [component_info_copy = component_info, trajectory_set]() {
-                tesseract_gui::events::JointTrajectoryAdd event(component_info_copy, trajectory_set);
+                tesseract::gui::events::JointTrajectoryAdd event(component_info_copy, trajectory_set);
                 QApplication::sendEvent(qApp, &event);
               },
               Qt::QueuedConnection);
@@ -155,14 +157,14 @@ struct JointTrajectoryMonitorProperties::Implementation
         trajectory_set.setDescription(msg->joint_trajectories_description);
         for (const auto& joint_trajectory_msg : msg->joint_trajectories)
         {
-          tesseract_common::JointTrajectory joint_trajectory = tesseract_rosutils::fromMsg(joint_trajectory_msg);
+          tesseract::common::JointTrajectory joint_trajectory = tesseract_rosutils::fromMsg(joint_trajectory_msg);
           trajectory_set.appendJointTrajectory(joint_trajectory);
         }
 
         QMetaObject::invokeMethod(
             qApp,
             [component_info_copy = component_info, trajectory_set]() {
-              tesseract_gui::events::JointTrajectoryAdd event(component_info_copy, trajectory_set);
+              tesseract::gui::events::JointTrajectoryAdd event(component_info_copy, trajectory_set);
               QApplication::sendEvent(qApp, &event);
             },
             Qt::QueuedConnection);
@@ -181,7 +183,7 @@ JointTrajectoryMonitorProperties::JointTrajectoryMonitorProperties(rviz_common::
   : data_(std::make_unique<Implementation>())
 {
   data_->parent = parent;
-  auto component_info = tesseract_gui::ComponentInfoManager::create("rviz_scene");
+  auto component_info = tesseract::gui::ComponentInfoManager::create("rviz_scene");
   component_info->setDescription("Joint trajectory monitor");
   data_->component_info = component_info;
 
@@ -258,12 +260,12 @@ void JointTrajectoryMonitorProperties::onInitialize(rviz_common::DisplayContext*
 }
 
 void JointTrajectoryMonitorProperties::setComponentInfo(
-    std::shared_ptr<const tesseract_gui::ComponentInfo> component_info)
+    std::shared_ptr<const tesseract::gui::ComponentInfo> component_info)
 {
   data_->component_info = std::move(component_info);
 }
 
-std::shared_ptr<const tesseract_gui::ComponentInfo> JointTrajectoryMonitorProperties::getComponentInfo() const
+std::shared_ptr<const tesseract::gui::ComponentInfo> JointTrajectoryMonitorProperties::getComponentInfo() const
 {
   return data_->component_info;
 }

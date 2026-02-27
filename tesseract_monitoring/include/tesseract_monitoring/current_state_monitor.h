@@ -37,7 +37,7 @@
 #ifndef TESSERACT_MONITORING_CURRENT_STATE_H
 #define TESSERACT_MONITORING_CURRENT_STATE_H
 
-#include <tesseract_common/macros.h>
+#include <tesseract/common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/joint_state.hpp>
@@ -51,9 +51,9 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_monitoring/constants.h>
 
-#include <tesseract_scene_graph/scene_state.h>
+#include <tesseract/scene_graph/scene_state.h>
 
-#include <tesseract_environment/fwd.h>
+#include <tesseract/environment/fwd.h>
 
 namespace tesseract_monitoring
 {

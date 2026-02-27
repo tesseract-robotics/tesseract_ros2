@@ -24,10 +24,10 @@
 
 #include <unordered_map>
 
-#include <tesseract_common/resource_locator.h>
-#include <tesseract_environment/environment.h>
-#include <tesseract_environment/command.h>
-#include <tesseract_environment/commands.h>
+#include <tesseract/common/resource_locator.h>
+#include <tesseract/environment/environment.h>
+#include <tesseract/environment/command.h>
+#include <tesseract/environment/commands.h>
 
 namespace tesseract_rviz
 {

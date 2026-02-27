@@ -14,7 +14,7 @@
   <depend>tf2_ros</depend>
   <depend>tf2_eigen</depend>
   <depend>visualization_msgs</depend>
-  <depend>tesseract_common</depend>
+  <depend>tesseract</depend>
   <depend>tesseract_msgs</depend>
   <depend>tesseract_rosutils</depend>
   

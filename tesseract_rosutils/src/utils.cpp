@@ -24,7 +24,7 @@
  * limitations under the License.
  */
 
-#include <tesseract_common/macros.h>
+#include <tesseract/common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <rclcpp/rclcpp.hpp>
 #include <ament_index_cpp/get_package_share_directory.hpp>
@@ -41,32 +41,32 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #endif
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
-#include <tesseract_geometry/geometries.h>
-#include <tesseract_geometry/utils.h>
+#include <tesseract/geometry/geometries.h>
+#include <tesseract/geometry/utils.h>
 
 #include <tesseract_rosutils/utils.h>
-#include <tesseract_environment/command.h>
-#include <tesseract_environment/commands.h>
-#include <tesseract_scene_graph/joint.h>
-#include <tesseract_srdf/kinematics_information.h>
-#include <tesseract_common/plugin_info.h>
-#include <tesseract_common/resource_locator.h>
+#include <tesseract/environment/command.h>
+#include <tesseract/environment/commands.h>
+#include <tesseract/scene_graph/joint.h>
+#include <tesseract/srdf/kinematics_information.h>
+#include <tesseract/common/plugin_info.h>
+#include <tesseract/common/resource_locator.h>
 
-#include <tesseract_environment/utils.h>
-#include <tesseract_environment/events.h>
-#include <tesseract_environment/environment.h>
+#include <tesseract/environment/utils.h>
+#include <tesseract/environment/events.h>
+#include <tesseract/environment/environment.h>
 
-#include <tesseract_scene_graph/graph.h>
-#include <tesseract_scene_graph/link.h>
-#include <tesseract_scene_graph/scene_state.h>
+#include <tesseract/scene_graph/graph.h>
+#include <tesseract/scene_graph/link.h>
+#include <tesseract/scene_graph/scene_state.h>
 
-#include <tesseract_srdf/srdf_model.h>
-#include <tesseract_srdf/utils.h>
+#include <tesseract/srdf/srdf_model.h>
+#include <tesseract/srdf/utils.h>
 
-#include <tesseract_collision/core/common.h>
-#include <tesseract_collision/core/types.h>
-#include <tesseract_collision/core/discrete_contact_manager.h>
-#include <tesseract_collision/core/continuous_contact_manager.h>
+#include <tesseract/collision/common.h>
+#include <tesseract/collision/types.h>
+#include <tesseract/collision/discrete_contact_manager.h>
+#include <tesseract/collision/continuous_contact_manager.h>
 
 #include <tesseract_task_composer/core/task_composer_node_info.h>
 

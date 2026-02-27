@@ -12,7 +12,7 @@ find_package(tf2_eigen REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(visualization_msgs REQUIRED)
 # tesseract
-find_package(tesseract_common REQUIRED)
+find_package(tesseract REQUIRED COMPONENTS common)
 # tesseract_ros2
 find_package(tesseract_msgs REQUIRED)
 find_package(tesseract_rosutils REQUIRED)
@@ -55,7 +55,7 @@ target_link_libraries(${PROJECT_NAME}_contacts
     ${sensor_msgs_TARGETS}
     ${visualization_msgs_TARGETS}
     ${tesseract_msgs_TARGETS}
-    tesseract::tesseract_environment
+    tesseract::environment
     ${PROJECT_NAME}_environment
   PRIVATE
     ${tf2_eigen_TARGETS}
@@ -69,7 +69,7 @@ target_include_directories(${PROJECT_NAME}_contacts PRIVATE
 
 add_executable(${PROJECT_NAME}_contacts_node src/contact_monitor_node.cpp)
 target_link_libraries(${PROJECT_NAME}_contacts_node PRIVATE
-  tesseract::tesseract_environment 
+  tesseract::environment 
   ${PROJECT_NAME}_contacts)
 target_compile_options(${PROJECT_NAME}_contacts_node PRIVATE ${TESSERACT_COMPILE_OPTIONS})
 target_clang_tidy(${PROJECT_NAME}_contacts_node ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS} ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})

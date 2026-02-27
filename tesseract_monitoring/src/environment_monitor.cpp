@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#include <tesseract_common/macros.h>
+#include <tesseract/common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <boost/algorithm/string.hpp>
 #include <utility>
@@ -44,14 +44,14 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 BOOST_BIND_NO_PLACEHOLDERS
 #endif
 
-#include <tesseract_common/resource_locator.h>
+#include <tesseract/common/resource_locator.h>
 
-#include <tesseract_scene_graph/graph.h>
+#include <tesseract/scene_graph/graph.h>
 
-#include <tesseract_environment/environment.h>
-#include <tesseract_environment/events.h>
-#include <tesseract_environment/command.h>
-#include <tesseract_environment/commands.h>
+#include <tesseract/environment/environment.h>
+#include <tesseract/environment/events.h>
+#include <tesseract/environment/command.h>
+#include <tesseract/environment/commands.h>
 
 #include <tesseract_monitoring/environment_monitor.h>
 #include <tesseract_rosutils/utils.h>

@@ -57,13 +57,13 @@
 #include <rviz_rendering/objects/shape.hpp>
 #include <rviz_rendering/objects/point_cloud.hpp>
 
-#include <tesseract_scene_graph/graph.h>
-#include <tesseract_scene_graph/joint.h>
-#include <tesseract_scene_graph/link.h>
+#include <tesseract/scene_graph/graph.h>
+#include <tesseract/scene_graph/joint.h>
+#include <tesseract/scene_graph/link.h>
 
 #include <filesystem>
-#include <tesseract_common/resource_locator.h>
-#include <tesseract_geometry/geometries.h>
+#include <tesseract/common/resource_locator.h>
+#include <tesseract/geometry/geometries.h>
 
 const std::string USER_VISIBILITY = "user_visibility";
 

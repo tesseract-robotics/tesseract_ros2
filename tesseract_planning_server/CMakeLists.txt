@@ -12,7 +12,7 @@ find_package(tf2_eigen REQUIRED)
 find_package(tf2_ros REQUIRED)
 # tesseract
 find_package(tesseract_command_language REQUIRED)
-find_package(tesseract_common REQUIRED)
+find_package(tesseract REQUIRED COMPONENTS common)
 find_package(tesseract_motion_planners REQUIRED)
 find_package(tesseract_task_composer REQUIRED)
 find_package(tesseract_time_parameterization REQUIRED)
@@ -32,7 +32,7 @@ target_link_libraries(${PROJECT_NAME}
     tf2_ros::tf2_ros
 
     tesseract::tesseract_command_language
-    tesseract::tesseract_common
+    tesseract::common
     tesseract::tesseract_motion_planners_core
     tesseract::tesseract_motion_planners_simple
     tesseract::tesseract_motion_planners_trajopt

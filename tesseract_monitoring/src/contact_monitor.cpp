@@ -28,12 +28,12 @@
 #include <tesseract_monitoring/contact_monitor.h>
 #include <tesseract_monitoring/environment_monitor.h>
 
-#include <tesseract_common/macros.h>
+#include <tesseract/common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <tesseract_msgs/msg/contact_result_vector.hpp>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
-#include <tesseract_common/contact_allowed_validator.h>
+#include <tesseract/common/contact_allowed_validator.h>
 #include <tesseract_rosutils/utils.h>
 #include <tesseract_rosutils/plotting.h>
 #include <tesseract_monitoring/constants.h>

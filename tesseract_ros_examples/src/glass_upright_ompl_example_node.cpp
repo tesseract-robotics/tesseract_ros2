@@ -30,7 +30,7 @@
 #include <tesseract_rosutils/plotting.h>
 #include <tesseract_rosutils/utils.h>
 
-#include <tesseract_common/resource_locator.h>
+#include <tesseract/common/resource_locator.h>
 
 using namespace tesseract::examples;
 using namespace tesseract_rosutils;

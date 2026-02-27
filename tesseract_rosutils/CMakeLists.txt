@@ -13,10 +13,9 @@ find_package(octomap_msgs REQUIRED)
 find_package(trajectory_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
 # tesseract
-find_package(tesseract_common REQUIRED)
+find_package(tesseract REQUIRED COMPONENTS common visualization)
 find_package(tesseract_motion_planners REQUIRED)
 find_package(tesseract_task_composer REQUIRED)
-find_package(tesseract_visualization REQUIRED)
 # tesseract_ros2
 find_package(tesseract_msgs REQUIRED)
 
@@ -29,9 +28,9 @@ target_link_libraries(${PROJECT_NAME}
     ${trajectory_msgs_TARGETS}
     ${visualization_msgs_TARGETS}
     ${tesseract_msgs_TARGETS}
-    tesseract::tesseract_common
+    tesseract::common
     tesseract::tesseract_task_composer
-    tesseract::tesseract_visualization
+    tesseract::visualization
     tesseract::tesseract_motion_planners_core
   PRIVATE
     ament_index_cpp::ament_index_cpp

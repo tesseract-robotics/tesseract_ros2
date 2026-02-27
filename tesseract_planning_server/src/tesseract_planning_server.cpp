@@ -23,7 +23,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <tesseract_common/macros.h>
+#include <tesseract/common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <rclcpp/rclcpp.hpp>
 #if __has_include(<tf2_eigen/tf2_eigen.hpp>)
@@ -55,16 +55,16 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <tesseract_task_composer/planning/profiles/min_length_profile.h>
 #include <tesseract_time_parameterization/isp/iterative_spline_parameterization_profiles.h>
 
-#include <tesseract_environment/environment.h>
-#include <tesseract_environment/environment_cache.h>
+#include <tesseract/environment/environment.h>
+#include <tesseract/environment/environment_cache.h>
 
-#include <tesseract_common/any_poly.h>
-#include <tesseract_common/profile_dictionary.h>
-#include <tesseract_common/stopwatch.h>
+#include <tesseract/common/any_poly.h>
+#include <tesseract/common/profile_dictionary.h>
+#include <tesseract/common/stopwatch.h>
 
-#include <tesseract_common/cereal_serialization.h>
+#include <tesseract/common/cereal_serialization.h>
 #include <tesseract_command_language/cereal_serialization.h>
-#include <tesseract_common/serialization.h>
+#include <tesseract/common/serialization.h>
 
 #include <tesseract_monitoring/environment_monitor.h>
 #include <tesseract_rosutils/utils.h>

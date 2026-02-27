@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#include <tesseract_common/macros.h>
+#include <tesseract/common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <limits>
 #include <geometry_msgs/msg/transform_stamped.hpp>
@@ -47,9 +47,9 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_monitoring/current_state_monitor.h>
 
-#include <tesseract_kinematics/core/joint_group.h>
-#include <tesseract_scene_graph/joint.h>
-#include <tesseract_environment/environment.h>
+#include <tesseract/kinematics/joint_group.h>
+#include <tesseract/scene_graph/joint.h>
+#include <tesseract/environment/environment.h>
 
 namespace tesseract_monitoring
 {

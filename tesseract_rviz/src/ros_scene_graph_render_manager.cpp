@@ -14,11 +14,11 @@
 #include <QApplication>
 #include <OgreSceneNode.h>
 
-#include <tesseract_scene_graph/scene_state.h>
+#include <tesseract/scene_graph/scene_state.h>
 
 #include <boost/uuid/uuid_io.hpp>
 
-#include <tesseract_scene_graph/link.h>
+#include <tesseract/scene_graph/link.h>
 
 const std::string USER_VISIBILITY = "user_visibility";
 

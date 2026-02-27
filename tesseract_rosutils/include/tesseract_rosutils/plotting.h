@@ -26,7 +26,7 @@
 #ifndef TESSERACT_ROSUTILS_PLOTTING_H
 #define TESSERACT_ROSUTILS_PLOTTING_H
 
-#include <tesseract_common/macros.h>
+#include <tesseract/common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <boost/uuid/random_generator.hpp>
 #include <rclcpp/rclcpp.hpp>
@@ -35,13 +35,13 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <visualization_msgs/msg/marker_array.hpp>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
-#include <tesseract_visualization/visualization.h>
-#include <tesseract_visualization/markers/arrow_marker.h>
-#include <tesseract_visualization/markers/contact_results_marker.h>
+#include <tesseract/visualization/visualization.h>
+#include <tesseract/visualization/markers/arrow_marker.h>
+#include <tesseract/visualization/markers/contact_results_marker.h>
 #include <tesseract_command_language/poly/instruction_poly.h>
 
-#include <tesseract_environment/commands.h>
-#include <tesseract_environment/fwd.h>
+#include <tesseract/environment/commands.h>
+#include <tesseract/environment/fwd.h>
 
 namespace tesseract_rosutils
 {

@@ -26,7 +26,7 @@
 #ifndef TESSERACT_ROSUTILS_UTILS_H
 #define TESSERACT_ROSUTILS_UTILS_H
 
-#include <tesseract_common/macros.h>
+#include <tesseract/common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <sensor_msgs/msg/joint_state.hpp>
 #include <tesseract_msgs/msg/allowed_collision_entry.hpp>
@@ -76,18 +76,18 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_motion_planners/core/types.h>
 
-#include <tesseract_common/fwd.h>
-#include <tesseract_geometry/fwd.h>
-#include <tesseract_scene_graph/fwd.h>
-#include <tesseract_state_solver/fwd.h>
-#include <tesseract_srdf/fwd.h>
-#include <tesseract_kinematics/core/fwd.h>
-#include <tesseract_collision/core/fwd.h>
-#include <tesseract_environment/fwd.h>
+#include <tesseract/common/fwd.h>
+#include <tesseract/geometry/fwd.h>
+#include <tesseract/scene_graph/fwd.h>
+#include <tesseract/state_solver/fwd.h>
+#include <tesseract/srdf/fwd.h>
+#include <tesseract/kinematics/fwd.h>
+#include <tesseract/collision/fwd.h>
+#include <tesseract/environment/fwd.h>
 #include <tesseract_task_composer/core/fwd.h>
 
-#include <tesseract_srdf/kinematics_information.h>  // For all the nested using
-#include <tesseract_collision/core/types.h>         // For all the nested using
+#include <tesseract/srdf/kinematics_information.h>  // For all the nested using
+#include <tesseract/collision/types.h>              // For all the nested using
 
 // Define rclcpp version macro for older ROS2 versions without <rclcpp/version.h>
 #ifndef RCLCPP_VERSION_GTE

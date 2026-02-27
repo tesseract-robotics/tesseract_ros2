@@ -25,7 +25,7 @@
  */
 
 #include <thread>
-#include <tesseract_common/macros.h>
+#include <tesseract/common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <rclcpp/rclcpp.hpp>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
@@ -35,9 +35,9 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <tesseract_rosutils/plotting.h>
 #include <tesseract_rosutils/utils.h>
 
-#include <tesseract_common/resource_locator.h>
-#include <tesseract_environment/environment.h>
-#include <tesseract_scene_graph/graph.h>
+#include <tesseract/common/resource_locator.h>
+#include <tesseract/environment/environment.h>
+#include <tesseract/scene_graph/graph.h>
 
 using namespace tesseract::examples;
 using namespace tesseract_rosutils;

@@ -15,8 +15,7 @@ find_package(tesseract_monitoring REQUIRED)
 
 # System dependencies are found with CMake's conventions
 find_package(Boost REQUIRED thread date_time system filesystem)
-find_package(tesseract_common REQUIRED)
-find_package(tesseract_environment REQUIRED)
+find_package(tesseract REQUIRED COMPONENTS common environment)
 find_package(tesseract_qt REQUIRED)
 find_package(
   Qt5
@@ -42,12 +41,12 @@ add_library(
 
 target_link_libraries(
   ${PROJECT_NAME}_widgets
-  PUBLIC tesseract::tesseract_common
+  PUBLIC tesseract::common
          Qt5::Core
          Qt5::Gui
          Qt5::Widgets
          ${catkin_LIBRARIES}
-         tesseract::tesseract_environment
+         tesseract::environment
          tesseract::tesseract_qt_common
          tesseract::tesseract_qt_studio_plugin_factory)
 target_include_directories(
@@ -72,7 +71,7 @@ add_library(
 
 target_link_libraries(
   ${PROJECT_NAME}_studio_plugins
-  PUBLIC tesseract::tesseract_common Qt5::Core Qt5::Gui Qt5::Widgets
+  PUBLIC tesseract::common Qt5::Core Qt5::Gui Qt5::Widgets
          tesseract::tesseract_qt_common ${PROJECT_NAME}_widgets)
 target_include_directories(
   ${PROJECT_NAME}_studio_plugins

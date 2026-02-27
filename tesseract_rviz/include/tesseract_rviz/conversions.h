@@ -34,9 +34,9 @@
 #include <tesseract_rviz/types.h>
 #include <Eigen/Core>
 
-#include <tesseract_scene_graph/fwd.h>
-#include <tesseract_geometry/fwd.h>
-#include <tesseract_common/eigen_types.h>
+#include <tesseract/scene_graph/fwd.h>
+#include <tesseract/geometry/fwd.h>
+#include <tesseract/common/eigen_types.h>
 
 namespace Ogre
 {

@@ -25,16 +25,16 @@
 
 #include <tesseract_monitoring/contact_monitor.h>
 
-#include <tesseract_common/macros.h>
+#include <tesseract/common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <rclcpp/rclcpp.hpp>
 #include <boost/algorithm/string.hpp>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
-#include <tesseract_common/resource_locator.h>
-#include <tesseract_environment/environment.h>
-#include <tesseract_scene_graph/graph.h>
-#include <tesseract_srdf/srdf_model.h>
+#include <tesseract/common/resource_locator.h>
+#include <tesseract/environment/environment.h>
+#include <tesseract/scene_graph/graph.h>
+#include <tesseract/srdf/srdf_model.h>
 #include <tesseract_rosutils/utils.h>
 
 // Stuff for the contact monitor

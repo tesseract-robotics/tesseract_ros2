@@ -26,7 +26,7 @@
 #ifndef TESSERACT_ROS_TESSERACT_PLANNING_SERVER_H
 #define TESSERACT_ROS_TESSERACT_PLANNING_SERVER_H
 
-#include <tesseract_common/macros.h>
+#include <tesseract/common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <Eigen/Geometry>
 #include <rclcpp/rclcpp.hpp>
@@ -36,9 +36,9 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <tesseract_msgs/action/get_motion_plan.hpp>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
-#include <tesseract_environment/fwd.h>
+#include <tesseract/environment/fwd.h>
 #include <tesseract_task_composer/core/fwd.h>
-#include <tesseract_common/fwd.h>
+#include <tesseract/common/fwd.h>
 
 namespace tesseract_planning_server
 {

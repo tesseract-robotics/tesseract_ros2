@@ -6,7 +6,7 @@
 #include <tesseract_qt/common/entity_manager.h>
 // #include <tesseract_qt/common/link_visibility_properties.h>
 
-#include <tesseract_environment/environment.h>
+#include <tesseract/environment/environment.h>
 
 #include <rviz_common/display_context.hpp>
 

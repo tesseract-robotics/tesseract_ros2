@@ -28,7 +28,7 @@
 #ifndef TESSERACT_MONITORING_CONTACT_MONITOR_H
 #define TESSERACT_MONITORING_CONTACT_MONITOR_H
 
-#include <tesseract_common/macros.h>
+#include <tesseract/common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/joint_state.hpp>
@@ -41,9 +41,9 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_monitoring/constants.h>
-#include <tesseract_collision/core/discrete_contact_manager.h>
-#include <tesseract_environment/environment.h>
-#include <tesseract_environment/environment_monitor.h>
+#include <tesseract/collision/discrete_contact_manager.h>
+#include <tesseract/environment/environment.h>
+#include <tesseract/environment/environment_monitor.h>
 
 namespace tesseract_monitoring
 {

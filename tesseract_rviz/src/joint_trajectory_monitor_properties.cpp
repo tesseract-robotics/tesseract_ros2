@@ -24,10 +24,10 @@
 #include <QApplication>
 #include <QMetaObject>
 
-#include <tesseract_common/serialization.h>
-#include <tesseract_environment/environment.h>
-#include <tesseract_environment/command.h>
-#include <tesseract_environment/commands.h>
+#include <tesseract/common/serialization.h>
+#include <tesseract/environment/environment.h>
+#include <tesseract/environment/command.h>
+#include <tesseract/environment/commands.h>
 #include <tesseract_command_language/composite_instruction.h>
 #include <tesseract_command_language/utils.h>
 

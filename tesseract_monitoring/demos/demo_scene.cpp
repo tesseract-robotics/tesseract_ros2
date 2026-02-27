@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#include <tesseract_common/macros.h>
+#include <tesseract/common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <rclcpp/rclcpp.hpp>
 #include <tesseract_msgs/msg/environment_state.hpp>

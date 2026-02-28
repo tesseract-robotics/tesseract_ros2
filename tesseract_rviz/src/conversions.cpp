@@ -326,7 +326,10 @@ Ogre::SceneNode* loadLinkVisuals(Ogre::SceneManager& scene,
 
       Ogre::SceneNode* geom_scene_node = loadLinkGeometry(
           scene, entity_container, *visual->geometry, Eigen::Vector3d::Ones(), visual->origin, material, true);
-      scene_node->addChild(geom_scene_node);
+      if (geom_scene_node != nullptr)
+      {
+        scene_node->addChild(geom_scene_node);
+      }
     }
   }
 
@@ -357,7 +360,10 @@ Ogre::SceneNode* loadLinkCollisions(Ogre::SceneManager& scene,
 
       Ogre::SceneNode* geom_scene_node = loadLinkGeometry(
           scene, entity_container, *collision->geometry, Eigen::Vector3d::Ones(), collision->origin, material, false);
-      scene_node->addChild(geom_scene_node);
+      if (geom_scene_node != nullptr)
+      {
+        scene_node->addChild(geom_scene_node);
+      }
     }
   }
 
@@ -818,6 +824,15 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
         entity_container.addUntrackedUnmanagedObject(tesseract::gui::EntityContainer::VISUAL_NS, data);
       }
 
+      break;
+    }
+    case tesseract_geometry::GeometryType::PLANE:
+    {
+      auto entity = entity_container.addUntrackedEntity(tesseract_gui::EntityContainer::RESOURCE_NS);
+      auto* plane_entity = scene.createEntity(entity.unique_name, "tesseract_plane.mesh");
+      ogre_entity.push_back(plane_entity);
+      offset_node->attachObject(plane_entity);
+      // Note: ogre_scale is already initialized to UNIT_SCALE, which is appropriate for planes
       break;
     }
     default:

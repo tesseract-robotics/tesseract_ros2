@@ -26,6 +26,8 @@
   <depend>libqt5-core</depend>
   <depend>libqt5-widgets</depend>
   
+  <test_depend>ament_cmake_gtest</test_depend>
+  
   <export>
     <build_type>ament_cmake</build_type>
     <rviz plugin="${prefix}/tesseract_rviz_environment_plugin_description.xml"/>

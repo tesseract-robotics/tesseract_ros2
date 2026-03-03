@@ -12,8 +12,8 @@
 
   <depend>rclcpp</depend>
   <depend>std_srvs</depend>
+  <depend>tesseract_planning</depend>
   <depend>tesseract_monitoring</depend>
-  <depend>tesseract_examples</depend>
   
   <exec_depend>tesseract_rviz</exec_depend>
   <exec_depend>xacro</exec_depend>

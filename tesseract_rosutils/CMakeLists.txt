@@ -14,8 +14,7 @@ find_package(trajectory_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
 # tesseract
 find_package(tesseract REQUIRED COMPONENTS common visualization)
-find_package(tesseract_motion_planners REQUIRED)
-find_package(tesseract_task_composer REQUIRED)
+find_package(tesseract_planning REQUIRED COMPONENTS motion_planners task_composer)
 # tesseract_ros2
 find_package(tesseract_msgs REQUIRED)
 
@@ -29,9 +28,9 @@ target_link_libraries(${PROJECT_NAME}
     ${visualization_msgs_TARGETS}
     ${tesseract_msgs_TARGETS}
     tesseract::common
-    tesseract::tesseract_task_composer
+    tesseract::task_composer
     tesseract::visualization
-    tesseract::tesseract_motion_planners_core
+    tesseract::motion_planners
   PRIVATE
     ament_index_cpp::ament_index_cpp
     ${tf2_eigen_TARGETS}
@@ -50,7 +49,7 @@ ament_export_dependencies(
   trajectory_msgs
   visualization_msgs
   tesseract_msgs
-  tesseract_task_composer
+  tesseract_planning
 )
 
 # Mark cpp header files for installation

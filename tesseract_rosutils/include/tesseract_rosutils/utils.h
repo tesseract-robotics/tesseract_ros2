@@ -74,7 +74,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <fstream>
 
-#include <tesseract_motion_planners/core/types.h>
+#include <tesseract/motion_planners/types.h>
 
 #include <tesseract/common/fwd.h>
 #include <tesseract/geometry/fwd.h>
@@ -84,7 +84,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <tesseract/kinematics/fwd.h>
 #include <tesseract/collision/fwd.h>
 #include <tesseract/environment/fwd.h>
-#include <tesseract_task_composer/core/fwd.h>
+#include <tesseract/task_composer/fwd.h>
 
 #include <tesseract/srdf/kinematics_information.h>  // For all the nested using
 #include <tesseract/collision/types.h>              // For all the nested using

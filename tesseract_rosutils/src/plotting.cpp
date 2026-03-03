@@ -34,10 +34,10 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <tesseract_rosutils/plotting.h>
 #include <tesseract_rosutils/utils.h>
 
-#include <tesseract_command_language/cereal_serialization.h>
-#include <tesseract_command_language/utils.h>
-#include <tesseract_command_language/composite_instruction.h>
-#include <tesseract_motion_planners/core/utils.h>
+#include <tesseract/command_language/cereal_serialization.h>
+#include <tesseract/command_language/utils.h>
+#include <tesseract/command_language/composite_instruction.h>
+#include <tesseract/motion_planners/utils.h>
 #include <tesseract/common/serialization.h>
 
 #include <tesseract/environment/environment.h>

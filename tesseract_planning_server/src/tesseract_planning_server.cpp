@@ -36,24 +36,24 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_planning_server/tesseract_planning_server.h>
 
-#include <tesseract_motion_planners/descartes/profile/descartes_profile.h>
-#include <tesseract_motion_planners/trajopt/profile/trajopt_profile.h>
-#include <tesseract_motion_planners/trajopt_ifopt/profile/trajopt_ifopt_profile.h>
-#include <tesseract_motion_planners/ompl/profile/ompl_profile.h>
-#include <tesseract_motion_planners/simple/profile/simple_planner_profile.h>
+#include <tesseract/motion_planners/descartes/profile/descartes_profile.h>
+#include <tesseract/motion_planners/trajopt/profile/trajopt_profile.h>
+#include <tesseract/motion_planners/trajopt_ifopt/profile/trajopt_ifopt_profile.h>
+#include <tesseract/motion_planners/ompl/profile/ompl_profile.h>
+#include <tesseract/motion_planners/simple/profile/simple_planner_profile.h>
 
-#include <tesseract_motion_planners/simple/profile/simple_planner_lvs_no_ik_move_profile.h>
-#include <tesseract_motion_planners/ompl/profile/ompl_real_vector_move_profile.h>
-#include <tesseract_motion_planners/descartes/profile/descartes_default_move_profile.h>
-#include <tesseract_motion_planners/trajopt/profile/trajopt_default_composite_profile.h>
-#include <tesseract_motion_planners/trajopt/profile/trajopt_default_move_profile.h>
-#include <tesseract_motion_planners/trajopt/profile/trajopt_osqp_solver_profile.h>
-#include <tesseract_motion_planners/trajopt_ifopt/profile/trajopt_ifopt_default_composite_profile.h>
-#include <tesseract_motion_planners/trajopt_ifopt/profile/trajopt_ifopt_default_move_profile.h>
-#include <tesseract_motion_planners/trajopt_ifopt/profile/trajopt_ifopt_osqp_solver_profile.h>
-#include <tesseract_task_composer/planning/profiles/contact_check_profile.h>
-#include <tesseract_task_composer/planning/profiles/min_length_profile.h>
-#include <tesseract_time_parameterization/isp/iterative_spline_parameterization_profiles.h>
+#include <tesseract/motion_planners/simple/profile/simple_planner_lvs_no_ik_move_profile.h>
+#include <tesseract/motion_planners/ompl/profile/ompl_real_vector_move_profile.h>
+#include <tesseract/motion_planners/descartes/profile/descartes_default_move_profile.h>
+#include <tesseract/motion_planners/trajopt/profile/trajopt_default_composite_profile.h>
+#include <tesseract/motion_planners/trajopt/profile/trajopt_default_move_profile.h>
+#include <tesseract/motion_planners/trajopt/profile/trajopt_osqp_solver_profile.h>
+#include <tesseract/motion_planners/trajopt_ifopt/profile/trajopt_ifopt_default_composite_profile.h>
+#include <tesseract/motion_planners/trajopt_ifopt/profile/trajopt_ifopt_default_move_profile.h>
+#include <tesseract/motion_planners/trajopt_ifopt/profile/trajopt_ifopt_osqp_solver_profile.h>
+#include <tesseract/task_composer/planning/profiles/contact_check_profile.h>
+#include <tesseract/task_composer/planning/profiles/min_length_profile.h>
+#include <tesseract/time_parameterization/isp/iterative_spline_parameterization_profiles.h>
 
 #include <tesseract/environment/environment.h>
 #include <tesseract/environment/environment_cache.h>
@@ -63,19 +63,19 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <tesseract/common/stopwatch.h>
 
 #include <tesseract/common/cereal_serialization.h>
-#include <tesseract_command_language/cereal_serialization.h>
+#include <tesseract/command_language/cereal_serialization.h>
 #include <tesseract/common/serialization.h>
 
 #include <tesseract_monitoring/environment_monitor.h>
 #include <tesseract_rosutils/utils.h>
 
-#include <tesseract_task_composer/core/task_composer_context.h>
-#include <tesseract_task_composer/core/task_composer_data_storage.h>
-#include <tesseract_task_composer/core/task_composer_future.h>
-#include <tesseract_task_composer/core/task_composer_executor.h>
-#include <tesseract_task_composer/core/task_composer_node.h>
-#include <tesseract_task_composer/core/task_composer_plugin_factory.h>
-#include <tesseract_task_composer/core/task_composer_server.h>
+#include <tesseract/task_composer/task_composer_context.h>
+#include <tesseract/task_composer/task_composer_data_storage.h>
+#include <tesseract/task_composer/task_composer_future.h>
+#include <tesseract/task_composer/task_composer_executor.h>
+#include <tesseract/task_composer/task_composer_node.h>
+#include <tesseract/task_composer/task_composer_plugin_factory.h>
+#include <tesseract/task_composer/task_composer_server.h>
 
 using tesseract::command_language::InstructionPoly;
 using tesseract::common::Serialization;

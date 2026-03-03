@@ -68,7 +68,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <tesseract/collision/discrete_contact_manager.h>
 #include <tesseract/collision/continuous_contact_manager.h>
 
-#include <tesseract_task_composer/core/task_composer_node_info.h>
+#include <tesseract/task_composer/task_composer_node_info.h>
 
 const std::string LOGGER_ID{ "tesseract_rosutils_utils" };
 namespace tesseract_rosutils

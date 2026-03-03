@@ -28,8 +28,8 @@
 #include <tesseract/environment/environment.h>
 #include <tesseract/environment/command.h>
 #include <tesseract/environment/commands.h>
-#include <tesseract_command_language/composite_instruction.h>
-#include <tesseract_command_language/utils.h>
+#include <tesseract/command_language/composite_instruction.h>
+#include <tesseract/command_language/utils.h>
 
 namespace tesseract_rviz
 {

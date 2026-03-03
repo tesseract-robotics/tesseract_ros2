@@ -11,11 +11,8 @@ find_package(rclcpp REQUIRED)
 find_package(tf2_eigen REQUIRED)
 find_package(tf2_ros REQUIRED)
 # tesseract
-find_package(tesseract_command_language REQUIRED)
 find_package(tesseract REQUIRED COMPONENTS common)
-find_package(tesseract_motion_planners REQUIRED)
-find_package(tesseract_task_composer REQUIRED)
-find_package(tesseract_time_parameterization REQUIRED)
+find_package(tesseract_planning REQUIRED COMPONENTS command_language motion_planners motion_planners_simple motion_planners_trajopt motion_planners_trajopt_ifopt motion_planners_ompl motion_planners_descartes task_composer task_composer_planning time_parameterization time_parameterization_isp)
 # tesseract_ros2
 find_package(tesseract_monitoring REQUIRED)
 find_package(tesseract_msgs REQUIRED)
@@ -31,18 +28,18 @@ target_link_libraries(${PROJECT_NAME}
     rclcpp::rclcpp
     tf2_ros::tf2_ros
 
-    tesseract::tesseract_command_language
+    tesseract::command_language
     tesseract::common
-    tesseract::tesseract_motion_planners_core
-    tesseract::tesseract_motion_planners_simple
-    tesseract::tesseract_motion_planners_trajopt
-    tesseract::tesseract_motion_planners_trajopt_ifopt
-    tesseract::tesseract_motion_planners_ompl
-    tesseract::tesseract_motion_planners_descartes
-    tesseract::tesseract_task_composer
-    tesseract::tesseract_task_composer_planning_nodes
-    tesseract::tesseract_time_parameterization_core
-    tesseract::tesseract_time_parameterization_isp
+    tesseract::motion_planners
+    tesseract::motion_planners_simple
+    tesseract::motion_planners_trajopt
+    tesseract::motion_planners_trajopt_ifopt
+    tesseract::motion_planners_ompl
+    tesseract::motion_planners_descartes
+    tesseract::task_composer
+    tesseract::task_composer_planning_nodes
+    tesseract::time_parameterization
+    tesseract::time_parameterization_isp
 
     ${tesseract_msgs_TARGETS}
     tesseract_monitoring::tesseract_monitoring_environment
@@ -68,7 +65,7 @@ target_include_directories(${PROJECT_NAME}_node PUBLIC
   "$<INSTALL_INTERFACE:include>")
 
 # add_executable(${PROJECT_NAME}_raster_example examples/server_raster_example.cpp)
-# target_link_libraries(${PROJECT_NAME}_raster_example PRIVATE tesseract::tesseract_command_language tesseract::tesseract_task_composer ${catkin_LIBRARIES})
+# target_link_libraries(${PROJECT_NAME}_raster_example PRIVATE tesseract::command_language tesseract::task_composer ${catkin_LIBRARIES})
 # target_compile_options(${PROJECT_NAME}_raster_example PRIVATE ${TESSERACT_COMPILE_OPTIONS})
 # target_clang_tidy(${PROJECT_NAME}_raster_example ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS} ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
 # target_cxx_version(${PROJECT_NAME}_raster_example PRIVATE VERSION ${TESSERACT_CXX_VERSION})

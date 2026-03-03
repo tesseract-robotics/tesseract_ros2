@@ -18,8 +18,7 @@
   <depend>octomap_msgs</depend>
 
   <depend>tesseract</depend>
-  <depend>tesseract_task_composer</depend>
-  <depend>tesseract_motion_planners</depend>
+  <depend>tesseract_planning</depend>
   <depend>tesseract_msgs</depend>
   
   <test_depend>std_msgs</test_depend>

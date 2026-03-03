@@ -6,7 +6,7 @@ extract_package_metadata(pkg)
 project(${pkg_extracted_name} VERSION ${pkg_extracted_version} LANGUAGES C CXX)
 
 find_package(std_srvs REQUIRED)
-find_package(tesseract_examples REQUIRED)
+find_package(tesseract_planning REQUIRED COMPONENTS examples)
 find_package(tesseract_monitoring REQUIRED)
 
 # Load variable for clang tidy args, compiler options and cxx version
@@ -16,7 +16,7 @@ macro(add_example test_name test_file)
   add_executable(${test_name} ${test_file})
   target_link_libraries(${test_name}
     ${std_srvs_TARGETS}
-    tesseract::tesseract_examples
+    tesseract::examples
     tesseract_monitoring::tesseract_monitoring_environment)
   target_compile_options(${test_name} PRIVATE ${TESSERACT_COMPILE_OPTIONS})
   target_clang_tidy(${test_name} ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS} ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})

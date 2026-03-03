@@ -37,7 +37,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract/environment/fwd.h>
-#include <tesseract_task_composer/core/fwd.h>
+#include <tesseract/task_composer/fwd.h>
 #include <tesseract/common/fwd.h>
 
 namespace tesseract_planning_server

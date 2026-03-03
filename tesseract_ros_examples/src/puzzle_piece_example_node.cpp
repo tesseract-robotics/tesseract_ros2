@@ -25,7 +25,7 @@
  */
 
 #include <thread>
-#include <tesseract_examples/puzzle_piece_example.h>
+#include <tesseract/examples/puzzle_piece_example.h>
 #include <tesseract_monitoring/environment_monitor.h>
 #include <tesseract_rosutils/plotting.h>
 #include <tesseract_rosutils/utils.h>

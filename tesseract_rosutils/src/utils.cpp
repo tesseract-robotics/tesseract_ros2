@@ -27,13 +27,11 @@
 #include <tesseract/common/macros.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <rclcpp/rclcpp.hpp>
-#include <ament_index_cpp/get_package_share_directory.hpp>
 #include <octomap_msgs/conversions.h>
 #include <tesseract_msgs/msg/string_limits_pair.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/lexical_cast.hpp>
 #include <console_bridge/console.h>
-#include <filesystem>
 #if __has_include(<tf2_eigen/tf2_eigen.hpp>)
 #include <tf2_eigen/tf2_eigen.hpp>
 #else
@@ -1008,11 +1006,15 @@ fromMsg(const std::vector<tesseract_msgs::msg::ContactMarginPair>& contact_margi
 
   for (const auto& pair : contact_margin_pairs_msg)
   {
-    tesseract::common::LinkNamesPair lp;
-    lp.first = pair.first.first;
-    lp.second = pair.first.second;
-
-    contact_margin_pairs.emplace(lp, pair.second);
+    const std::string& name1 = pair.first.first;
+    const std::string& name2 = pair.first.second;
+    auto id_pair = tesseract::common::LinkIdPair::make(tesseract::common::LinkId::fromName(name1),
+                                                       tesseract::common::LinkId::fromName(name2));
+    // Store names in canonical order matching LinkIdPair ordering
+    const std::string& canonical_name1 = (id_pair.first == tesseract::common::LinkId::fromName(name1)) ? name1 : name2;
+    const std::string& canonical_name2 = (id_pair.first == tesseract::common::LinkId::fromName(name1)) ? name2 : name1;
+    contact_margin_pairs.emplace(id_pair,
+                                 tesseract::common::MarginEntry{ canonical_name1, canonical_name2, pair.second });
   }
   return contact_margin_pairs;
 }
@@ -1024,9 +1026,9 @@ toMsg(const tesseract::common::PairsCollisionMarginData& contact_margin_pairs)
   for (const auto& pair : contact_margin_pairs)
   {
     tesseract_msgs::msg::ContactMarginPair cmp;
-    cmp.first.first = pair.first.first;
-    cmp.first.second = pair.first.second;
-    cmp.second = pair.second;
+    cmp.first.first = pair.second.name1;
+    cmp.first.second = pair.second.name2;
+    cmp.second = pair.second.margin;
     contact_margin_pairs_msg.push_back(cmp);
   }
 
@@ -1046,9 +1048,9 @@ tesseract_msgs::msg::CollisionMarginData toMsg(const tesseract::common::Collisio
   for (const auto& pair : contact_margin_data.getCollisionMarginPairData().getCollisionMargins())
   {
     tesseract_msgs::msg::ContactMarginPair cmp;
-    cmp.first.first = pair.first.first;
-    cmp.first.second = pair.first.second;
-    cmp.second = pair.second;
+    cmp.first.first = pair.second.name1;
+    cmp.first.second = pair.second.name2;
+    cmp.second = pair.second.margin;
     contact_margin_data_msg.margin_pairs.push_back(cmp);
   }
   return contact_margin_data_msg;
@@ -1113,9 +1115,9 @@ bool toMsg(std::vector<tesseract_msgs::msg::AllowedCollisionEntry>& acm_msg,
   for (const auto& entry : acm.getAllAllowedCollisions())
   {
     tesseract_msgs::msg::AllowedCollisionEntry entry_msg;
-    entry_msg.link_1 = entry.first.first;
-    entry_msg.link_2 = entry.first.second;
-    entry_msg.reason = entry.second;
+    entry_msg.link_1 = entry.second.name1;
+    entry_msg.link_2 = entry.second.name2;
+    entry_msg.reason = entry.second.reason;
     acm_msg.push_back(entry_msg);
   }
 

@@ -40,6 +40,10 @@
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/lexical_cast.hpp>
 
+#include <QMetaObject>
+#include <QPointer>
+#include <QThread>
+
 namespace tesseract::gui
 {
 struct EnvironmentMonitorWidget::Implementation
@@ -249,6 +253,17 @@ void EnvironmentMonitorWidget::onMonitorTopicChanged()
 
 void EnvironmentMonitorWidget::snapshotCallback(const tesseract_msgs::Environment::ConstPtr& msg)
 {
+  // This callback is triggered from a ROS spinner thread. Marshal to the widget's thread before
+  // touching Qt/UI or EnvironmentManager (which constructs Qt event-filtering wrappers).
+  if (QThread::currentThread() != thread())
+  {
+    auto msg_copy = msg;
+    QPointer<EnvironmentMonitorWidget> guard(this);
+    QMetaObject::invokeMethod(
+        this, [guard, msg_copy]() { if (guard) guard->snapshotCallback(msg_copy); }, Qt::QueuedConnection);
+    return;
+  }
+
   if (data_->monitor != nullptr)
     data_->monitor->shutdown();
 

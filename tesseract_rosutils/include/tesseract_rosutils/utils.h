@@ -398,6 +398,13 @@ bool fromMsg(tesseract::common::TransformMap& transform_map,
              const tesseract_msgs::msg::TransformMap& transform_map_msg);
 
 /**
+ * @brief Convert a TransformMap ROS message to a JointIdTransformMap (integer-keyed)
+ * @details This is used at the ROS message boundary for floating joint values.
+ */
+bool fromMsg(tesseract::common::JointIdTransformMap& transform_map,
+             const tesseract_msgs::msg::TransformMap& transform_map_msg);
+
+/**
  * @brief This will populate a joint states map message
  * @param joint_state_msg The joint states map message
  * @param joint_state The joint state map

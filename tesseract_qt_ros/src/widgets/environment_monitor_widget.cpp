@@ -271,7 +271,7 @@ void EnvironmentMonitorWidget::snapshotCallback(const tesseract_msgs::Environmen
 
   tesseract::environment::Commands commands = tesseract_rosutils::fromMsg(msg->command_history);
   std::unordered_map<std::string, double> jv;
-  tesseract::common::TransformMap fjv;
+  tesseract::common::JointIdTransformMap fjv;
   tesseract_rosutils::fromMsg(jv, msg->joint_states);
   tesseract_rosutils::fromMsg(fjv, msg->floating_joint_states);
   auto env = std::make_shared<tesseract::environment::Environment>();

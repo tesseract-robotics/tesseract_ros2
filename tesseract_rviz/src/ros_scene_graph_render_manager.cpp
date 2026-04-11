@@ -14,6 +14,7 @@
 #include <QApplication>
 #include <OgreSceneNode.h>
 
+#include <tesseract/common/types.h>
 #include <tesseract/scene_graph/scene_state.h>
 
 #include <boost/uuid/uuid_io.hpp>
@@ -329,20 +330,24 @@ void ROSSceneGraphRenderManager::render()
     {
       auto& e = static_cast<tesseract::gui::events::SceneStateChanged&>(*event);
       tesseract::gui::EntityManager::Ptr entity_manager = getEntityManager(e.getComponentInfo());
-      for (const auto& pair : e.getState().link_transforms)
+      const auto& link_transforms = e.getState().link_transforms;
+      for (const auto& ec : entity_manager->getEntityContainers())
       {
-        if (entity_manager->hasEntityContainer(pair.first))
-        {
-          auto container = entity_manager->getEntityContainer(pair.first);
-          Ogre::Vector3 position;
-          Ogre::Quaternion orientation;
-          toOgre(position, orientation, pair.second);
+        const std::string& link_name = ec.first;
+        auto link_id = tesseract::common::LinkId::fromName(link_name);
+        auto tf_it = link_transforms.find(link_id);
+        if (tf_it == link_transforms.end())
+          continue;
 
-          auto entity = container->getTrackedEntity(tesseract::gui::EntityContainer::VISUAL_NS, pair.first);
-          Ogre::SceneNode* sn = data_->scene_manager->getSceneNode(entity.unique_name);
-          sn->setPosition(position);
-          sn->setOrientation(orientation);
-        }
+        auto container = ec.second;
+        Ogre::Vector3 position;
+        Ogre::Quaternion orientation;
+        toOgre(position, orientation, tf_it->second);
+
+        auto entity = container->getTrackedEntity(tesseract::gui::EntityContainer::VISUAL_NS, link_name);
+        Ogre::SceneNode* sn = data_->scene_manager->getSceneNode(entity.unique_name);
+        sn->setPosition(position);
+        sn->setOrientation(orientation);
       }
     }
   }

@@ -383,10 +383,10 @@ TEST_F(TesseractROSUtilsUnit, toRosJointTrajectory)  // NOLINT
   ros_joint_trajectory.joint_names = joint_names;
 
   tesseract::scene_graph::SceneState env_state;
-  env_state.joints[joint_names[0]] = 0;
-  env_state.joints[joint_names[1]] = 0;
-  env_state.joints[joint_names[2]] = 1;
-  env_state.joints[joint_names[3]] = 1;
+  env_state.joints[tesseract::common::JointId::fromName(joint_names[0])] = 0;
+  env_state.joints[tesseract::common::JointId::fromName(joint_names[1])] = 0;
+  env_state.joints[tesseract::common::JointId::fromName(joint_names[2])] = 1;
+  env_state.joints[tesseract::common::JointId::fromName(joint_names[3])] = 1;
 
   // point 1
   ros_joint_state.positions = std::vector<double>{ 40, 40, 2, 1 };

@@ -57,6 +57,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <tesseract/scene_graph/graph.h>
 #include <tesseract/scene_graph/link.h>
 #include <tesseract/scene_graph/scene_state.h>
+#include <tesseract/state_solver/state_solver.h>
 
 #include <tesseract/srdf/srdf_model.h>
 #include <tesseract/srdf/utils.h>
@@ -69,6 +70,38 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <tesseract/task_composer/task_composer_node_info.h>
 
 const std::string LOGGER_ID{ "tesseract_rosutils_utils" };
+
+namespace
+{
+std::unordered_map<std::string, double> toStringJointValues(
+    const tesseract::scene_graph::SceneState::JointValues& id_map,
+    const std::vector<std::string>& joint_names)
+{
+  std::unordered_map<std::string, double> result;
+  for (const auto& name : joint_names)
+  {
+    auto it = id_map.find(tesseract::common::JointId::fromName(name));
+    if (it != id_map.end())
+      result[name] = it->second;
+  }
+  return result;
+}
+
+tesseract::common::TransformMap toStringTransformMap(
+    const tesseract::common::JointIdTransformMap& id_map,
+    const std::vector<std::string>& names)
+{
+  tesseract::common::TransformMap result;
+  for (const auto& name : names)
+  {
+    auto it = id_map.find(tesseract::common::JointId::fromName(name));
+    if (it != id_map.end())
+      result[name] = it->second;
+  }
+  return result;
+}
+}  // anonymous namespace
+
 namespace tesseract_rosutils
 {
 bool isMsgEmpty(const sensor_msgs::msg::JointState& msg)
@@ -1582,8 +1615,9 @@ void toMsg(tesseract_msgs::msg::EnvironmentState& state_msg,
   if (include_joint_states)
   {
     tesseract::scene_graph::SceneState env_state = env.getState();
-    toMsg(state_msg.joint_state, env_state.joints);
-    toMsg(state_msg.floating_joint_states, env_state.floating_joints);
+    toMsg(state_msg.joint_state, toStringJointValues(env_state.joints, env.getJointNames()));
+    toMsg(state_msg.floating_joint_states,
+          toStringTransformMap(env_state.floating_joints, env.getStateSolver()->getFloatingJointNames()));
   }
 }
 
@@ -1661,7 +1695,7 @@ bool processMsg(tesseract::environment::Environment& env,
   if (joint_state_msg_empty && floating_joint_state_msg_empty)
     return false;
 
-  tesseract::common::TransformMap floating_joints;
+  tesseract::common::JointIdTransformMap floating_joints;
   if (!floating_joint_state_msg_empty)
     fromMsg(floating_joints, floating_joint_state_msg);
 
@@ -1693,8 +1727,8 @@ void toMsg(tesseract_msgs::msg::ContactResult& contact_result_msg,
   contact_result_msg.distance = contact_result.distance;
   contact_result_msg.type_id[0] = static_cast<unsigned char>(contact_result.type_id[0]);
   contact_result_msg.type_id[1] = static_cast<unsigned char>(contact_result.type_id[1]);
-  contact_result_msg.link_names[0] = contact_result.link_names[0];
-  contact_result_msg.link_names[1] = contact_result.link_names[1];
+  contact_result_msg.link_names[0] = contact_result.link_ids[0].name();
+  contact_result_msg.link_names[1] = contact_result.link_ids[1].name();
   contact_result_msg.shape_id[0] = static_cast<size_t>(contact_result.shape_id[0]);
   contact_result_msg.shape_id[1] = static_cast<size_t>(contact_result.shape_id[1]);
   contact_result_msg.subshape_id[0] = static_cast<size_t>(contact_result.subshape_id[0]);
@@ -2095,6 +2129,25 @@ bool fromMsg(tesseract::common::TransformMap& transform_map, const tesseract_msg
   return true;
 }
 
+bool fromMsg(tesseract::common::JointIdTransformMap& transform_map,
+             const tesseract_msgs::msg::TransformMap& transform_map_msg)
+{
+  using tesseract::common::JointId;
+  if (transform_map_msg.names.size() != transform_map_msg.transforms.size())
+    return false;
+
+  for (std::size_t i = 0; i < transform_map_msg.names.size(); ++i)
+  {
+    Eigen::Isometry3d pose;
+    if (fromMsg(pose, transform_map_msg.transforms.at(i)))
+      return false;
+
+    transform_map[JointId::fromName(transform_map_msg.names.at(i))] = pose;
+  }
+
+  return true;
+}
+
 bool toMsg(sensor_msgs::msg::JointState& joint_state_msg, const std::unordered_map<std::string, double>& joint_state)
 {
   joint_state_msg.header.stamp = rclcpp::Clock{ RCL_ROS_TIME }.now();
@@ -2149,8 +2202,11 @@ bool toMsg(tesseract_msgs::msg::Environment& environment_msg,
   if (include_joint_states)
   {
     tesseract::scene_graph::SceneState env_state = env.getState();
-    success = success && toMsg(environment_msg.joint_states, env_state.joints);
-    success = success && toMsg(environment_msg.floating_joint_states, env_state.floating_joints);
+    success = success && toMsg(environment_msg.joint_states,
+                               toStringJointValues(env_state.joints, env.getJointNames()));
+    success = success && toMsg(environment_msg.floating_joint_states,
+                               toStringTransformMap(env_state.floating_joints,
+                                                    env.getStateSolver()->getFloatingJointNames()));
   }
 
   success = success && tesseract_rosutils::toMsg(environment_msg.command_history, env.getCommandHistory(), 0);
@@ -2190,18 +2246,19 @@ tesseract::environment::Environment::UPtr fromMsg(const tesseract_msgs::msg::Env
     return nullptr;
   }
 
-  auto env_state = std::make_shared<tesseract::scene_graph::SceneState>();
-  if (!tesseract_rosutils::fromMsg(env_state->joints, environment_msg.joint_states))
+  std::unordered_map<std::string, double> joint_values;
+  if (!tesseract_rosutils::fromMsg(joint_values, environment_msg.joint_states))
   {
     RCLCPP_ERROR_STREAM(rclcpp::get_logger(LOGGER_ID), "fromMsg(Environment): Failed to get joint states");
     return nullptr;
   }
-  if (!tesseract_rosutils::fromMsg(env_state->floating_joints, environment_msg.floating_joint_states))
+  tesseract::common::JointIdTransformMap floating_joints;
+  if (!tesseract_rosutils::fromMsg(floating_joints, environment_msg.floating_joint_states))
   {
     RCLCPP_ERROR_STREAM(rclcpp::get_logger(LOGGER_ID), "fromMsg(Environment): Failed to get floating joint states");
     return nullptr;
   }
-  env->setState(env_state->joints, env_state->floating_joints);
+  env->setState(joint_values, floating_joints);
 
   return env;
 }

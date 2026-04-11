@@ -31,6 +31,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <tesseract_msgs/msg/environment_command.hpp>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
+#include <tesseract/common/types.h>
 #include <tesseract/environment/environment.h>
 #include <tesseract_monitoring/environment_monitor_interface.h>
 #include <tesseract_rosutils/utils.h>
@@ -301,10 +302,28 @@ ROSEnvironmentMonitorInterface::getEnvironmentState(const std::string& monitor_n
     if (!res || !res->success)
       throw std::runtime_error("getEnvironmentState: Failed to get monitor environment information!");
     tesseract::scene_graph::SceneState env_state;
-    tesseract_rosutils::fromMsg(env_state.joints, res->joint_states);
-    tesseract_rosutils::fromMsg(env_state.floating_joints, res->floating_joint_states);
-    tesseract_rosutils::fromMsg(env_state.link_transforms, res->link_transforms);
-    tesseract_rosutils::fromMsg(env_state.joint_transforms, res->joint_transforms);
+
+    // fromMsg produces string-keyed maps; convert to integer-keyed SceneState fields
+    std::unordered_map<std::string, double> joints_str;
+    tesseract_rosutils::fromMsg(joints_str, res->joint_states);
+    for (const auto& [name, val] : joints_str)
+      env_state.joints[tesseract::common::JointId::fromName(name)] = val;
+
+    tesseract::common::TransformMap floating_str;
+    tesseract_rosutils::fromMsg(floating_str, res->floating_joint_states);
+    for (const auto& [name, tf] : floating_str)
+      env_state.floating_joints[tesseract::common::JointId::fromName(name)] = tf;
+
+    tesseract::common::TransformMap link_tf_str;
+    tesseract_rosutils::fromMsg(link_tf_str, res->link_transforms);
+    for (const auto& [name, tf] : link_tf_str)
+      env_state.link_transforms[tesseract::common::LinkId::fromName(name)] = tf;
+
+    tesseract::common::TransformMap joint_tf_str;
+    tesseract_rosutils::fromMsg(joint_tf_str, res->joint_transforms);
+    for (const auto& [name, tf] : joint_tf_str)
+      env_state.joint_transforms[tesseract::common::JointId::fromName(name)] = tf;
+
     return env_state;
   }
   catch (std::runtime_error& ex)

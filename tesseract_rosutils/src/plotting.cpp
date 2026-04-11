@@ -170,7 +170,16 @@ void ROSPlotting::plotTrajectory(const tesseract::environment::Environment& env,
 
   // Set the initial state
   tesseract::scene_graph::SceneState initial_state = env.getState();
-  tesseract_rosutils::toMsg(msg.initial_state, initial_state.joints);
+  {
+    std::unordered_map<std::string, double> joints_str;
+    for (const auto& name : env.getJointNames())
+    {
+      auto it = initial_state.joints.find(tesseract::common::JointId::fromName(name));
+      if (it != initial_state.joints.end())
+        joints_str[name] = it->second;
+    }
+    tesseract_rosutils::toMsg(msg.initial_state, joints_str);
+  }
 
   assert(instruction.isCompositeInstruction());
   const auto& ci = instruction.as<tesseract::command_language::CompositeInstruction>();
@@ -531,9 +540,9 @@ ROSPlotting::getContactResultsMarkerArrayMsg(int& id_counter,
     const tesseract::collision::ContactResult& dist = marker.dist_results[i];
     double safety_distance{ 0 };
     if (marker.margin_fn != nullptr)
-      safety_distance = marker.margin_fn(dist.link_names[0], dist.link_names[1]);
+      safety_distance = marker.margin_fn(dist.link_ids[0].name(), dist.link_ids[1].name());
     else
-      safety_distance = marker.margin_data.getCollisionMargin(dist.link_names[0], dist.link_names[1]);
+      safety_distance = marker.margin_data.getCollisionMargin(dist.link_ids[0].name(), dist.link_ids[1].name());
 
     auto base_material = std::make_shared<tesseract::scene_graph::Material>("base_material");
     if (dist.distance < 0)
@@ -563,8 +572,8 @@ ROSPlotting::getContactResultsMarkerArrayMsg(int& id_counter,
       msg.markers.push_back(marker);
     }
 
-    auto it0 = std::find(marker.link_names.begin(), marker.link_names.end(), dist.link_names[0]);
-    auto it1 = std::find(marker.link_names.begin(), marker.link_names.end(), dist.link_names[1]);
+    auto it0 = std::find(marker.link_names.begin(), marker.link_names.end(), dist.link_ids[0].name());
+    auto it1 = std::find(marker.link_names.begin(), marker.link_names.end(), dist.link_ids[1].name());
 
     if (it0 != marker.link_names.end() && it1 != marker.link_names.end())
     {

@@ -45,11 +45,13 @@ BOOST_BIND_NO_PLACEHOLDERS
 #endif
 
 #include <tesseract/common/resource_locator.h>
+#include <tesseract/common/types.h>
 
 #include <tesseract/scene_graph/graph.h>
 
 #include <tesseract/environment/environment.h>
 #include <tesseract/environment/events.h>
+#include <tesseract/state_solver/state_solver.h>
 #include <tesseract/environment/command.h>
 #include <tesseract/environment/commands.h>
 
@@ -865,7 +867,16 @@ void ROSEnvironmentMonitor::updateEnvironmentWithCurrentState()
     RCLCPP_DEBUG_STREAM(logger_, "robot state update " << fmod(last_robot_motion_time_.seconds(), 10.));
 
     auto env_state = current_state_monitor_->getCurrentState();
-    env_->setState(env_state.joints, env_state.floating_joints);
+
+    // Convert integer-keyed JointValues to string-keyed map for setState
+    std::unordered_map<std::string, double> joints_str;
+    for (const auto& name : env_->getJointNames())
+    {
+      auto it = env_state.joints.find(tesseract::common::JointId::fromName(name));
+      if (it != env_state.joints.end())
+        joints_str[name] = it->second;
+    }
+    env_->setState(joints_str, env_state.floating_joints);
   }
   else
     RCLCPP_ERROR_THROTTLE(logger_,
@@ -1003,23 +1014,31 @@ void ROSEnvironmentMonitor::getEnvironmentInformationCallback(
   tesseract::scene_graph::SceneState state = env_->getState();
   if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::LINK_TRANSFORMS)  // NOLINT
   {
-    for (const auto& link_pair : state.link_transforms)
+    for (const auto& name : env_->getLinkNames())
     {
-      res->link_transforms.names.push_back(link_pair.first);
-      geometry_msgs::msg::Pose pose;
-      tesseract_rosutils::toMsg(pose, link_pair.second);
-      res->link_transforms.transforms.push_back(pose);
+      auto it = state.link_transforms.find(tesseract::common::LinkId::fromName(name));
+      if (it != state.link_transforms.end())
+      {
+        res->link_transforms.names.push_back(name);
+        geometry_msgs::msg::Pose pose;
+        tesseract_rosutils::toMsg(pose, it->second);
+        res->link_transforms.transforms.push_back(pose);
+      }
     }
   }
 
   if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::JOINT_TRANSFORMS)  // NOLINT
   {
-    for (const auto& joint_pair : state.joint_transforms)
+    for (const auto& name : env_->getJointNames())
     {
-      res->joint_transforms.names.push_back(joint_pair.first);
-      geometry_msgs::msg::Pose pose;
-      tesseract_rosutils::toMsg(pose, joint_pair.second);
-      res->joint_transforms.transforms.push_back(pose);
+      auto it = state.joint_transforms.find(tesseract::common::JointId::fromName(name));
+      if (it != state.joint_transforms.end())
+      {
+        res->joint_transforms.names.push_back(name);
+        geometry_msgs::msg::Pose pose;
+        tesseract_rosutils::toMsg(pose, it->second);
+        res->joint_transforms.transforms.push_back(pose);
+      }
     }
   }
 
@@ -1043,13 +1062,29 @@ void ROSEnvironmentMonitor::getEnvironmentInformationCallback(
 
   if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::JOINT_STATES)  // NOLINT
   {
-    if (!tesseract_rosutils::toMsg(res->joint_states, state.joints))
+    // Convert integer-keyed JointValues to string-keyed for toMsg
+    std::unordered_map<std::string, double> joints_str;
+    for (const auto& name : env_->getJointNames())
+    {
+      auto it = state.joints.find(tesseract::common::JointId::fromName(name));
+      if (it != state.joints.end())
+        joints_str[name] = it->second;
+    }
+    if (!tesseract_rosutils::toMsg(res->joint_states, joints_str))
     {
       res->success = false;
       return;
     }
 
-    if (!tesseract_rosutils::toMsg(res->floating_joint_states, state.floating_joints))
+    // Convert JointIdTransformMap to string-keyed TransformMap for toMsg
+    tesseract::common::TransformMap floating_str;
+    for (const auto& name : env_->getStateSolver()->getFloatingJointNames())
+    {
+      auto it = state.floating_joints.find(tesseract::common::JointId::fromName(name));
+      if (it != state.floating_joints.end())
+        floating_str[name] = it->second;
+    }
+    if (!tesseract_rosutils::toMsg(res->floating_joint_states, floating_str))
     {
       res->success = false;
       return;

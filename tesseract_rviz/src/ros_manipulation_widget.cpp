@@ -319,8 +319,8 @@ void ROSManipulationWidget::addInteractiveMarker()
         assert(false);
     }
 
-    data_->joint_interactive_marker_link_names[joint_name] = joint->child_link_name;
-    Eigen::Isometry3d pose = state.link_transforms.at(tesseract::common::LinkId::fromName(joint->child_link_name));
+    data_->joint_interactive_marker_link_names[joint_name] = joint->child_link_id.name();
+    Eigen::Isometry3d pose = state.link_transforms.at(joint->child_link_id);
     Ogre::Vector3 position;
     Ogre::Quaternion orientation;
     toOgre(position, orientation, pose);
@@ -373,9 +373,8 @@ void ROSManipulationWidget::jointMarkerFeedback(const std::string& joint_name,
 
   tesseract::scene_graph::Joint::ConstPtr joint = environment().getJoint(joint_name);
   double current_joint_value = scene_state.joints.at(tesseract::common::JointId::fromName(joint_name));
-  Eigen::Isometry3d child_pose =
-      scene_state.link_transforms.at(
-          tesseract::common::LinkId::fromName(data_->joint_interactive_marker_link_names.at(joint_name)));
+  Eigen::Isometry3d child_pose = scene_state.link_transforms.at(
+      tesseract::common::LinkId::fromName(data_->joint_interactive_marker_link_names.at(joint_name)));
   Eigen::Isometry3d delta_pose = child_pose.inverse() * transform;
 
   Eigen::Vector3d delta_axis;

@@ -985,8 +985,8 @@ bool toMsg(tesseract_msgs::msg::Joint& joint_msg, const tesseract::scene_graph::
   joint_msg.axis[1] = joint.axis[1];
   joint_msg.axis[2] = joint.axis[2];
 
-  joint_msg.child_link_name = joint.child_link_name;
-  joint_msg.parent_link_name = joint.parent_link_name;
+  joint_msg.child_link_name = joint.child_link_id.name();
+  joint_msg.parent_link_name = joint.parent_link_id.name();
 
   joint_msg.parent_to_joint_origin_transform = Eigen::toMsg(joint.parent_to_joint_origin_transform);
 
@@ -1019,8 +1019,8 @@ tesseract::scene_graph::Joint fromMsg(const tesseract_msgs::msg::Joint& joint_ms
   joint.axis[1] = joint_msg.axis[1];
   joint.axis[2] = joint_msg.axis[2];
 
-  joint.child_link_name = joint_msg.child_link_name;
-  joint.parent_link_name = joint_msg.parent_link_name;
+  joint.child_link_id = tesseract::common::LinkId::fromName(joint_msg.child_link_name);
+  joint.parent_link_id = tesseract::common::LinkId::fromName(joint_msg.parent_link_name);
 
   Eigen::fromMsg(joint_msg.parent_to_joint_origin_transform, joint.parent_to_joint_origin_transform);
   fromMsg(joint.limits, joint_msg.limits);
@@ -1633,10 +1633,10 @@ void toMsg(tesseract_msgs::msg::JointTrajectory& traj_msg, const tesseract::comm
   traj_msg.description = traj.description;
   for (const auto& js : traj)
   {
-    assert(js.joint_names.size() == static_cast<unsigned>(js.position.size()));
+    assert(js.joint_ids.size() == static_cast<unsigned>(js.position.size()));
 
     tesseract_msgs::msg::JointState js_msg;
-    js_msg.joint_names = js.joint_names;
+    js_msg.joint_names = js.getJointNames();
     js_msg.position.resize(static_cast<size_t>(js.position.size()));
     js_msg.velocity.resize(static_cast<size_t>(js.velocity.size()));
     js_msg.acceleration.resize(static_cast<size_t>(js.acceleration.size()));
@@ -1665,7 +1665,9 @@ tesseract::common::JointTrajectory fromMsg(const tesseract_msgs::msg::JointTraje
     assert(js_msg.joint_names.size() == static_cast<unsigned>(js_msg.position.size()));
 
     tesseract::common::JointState js;
-    js.joint_names = js_msg.joint_names;
+    js.joint_ids.reserve(js_msg.joint_names.size());
+    for (const auto& name : js_msg.joint_names)
+      js.joint_ids.push_back(tesseract::common::JointId::fromName(name));
     js.position.resize(static_cast<long>(js_msg.position.size()));
     js.velocity.resize(static_cast<long>(js_msg.velocity.size()));
     js.acceleration.resize(static_cast<long>(js_msg.acceleration.size()));
@@ -2362,12 +2364,13 @@ trajectory_msgs::msg::JointTrajectory toMsg(const tesseract::common::JointTrajec
   trajectory_msgs::msg::JointTrajectoryPoint last_point;
   for (const auto& joint_state : joint_trajectory)
   {
-    for (const auto& joint : joint_state.joint_names)
+    for (const auto& id : joint_state.joint_ids)
     {
-      if (std::find(joint_names.begin(), joint_names.end(), joint) == joint_names.end())
+      const auto& name = id.name();
+      if (std::find(joint_names.begin(), joint_names.end(), name) == joint_names.end())
       {
-        joint_names.push_back(joint);
-        joint_names_indices.insert({ joint, joint_names.size() - 1 });
+        joint_names.push_back(name);
+        joint_names_indices.insert({ name, joint_names.size() - 1 });
       }
     }
   }
@@ -2384,9 +2387,10 @@ trajectory_msgs::msg::JointTrajectory toMsg(const tesseract::common::JointTrajec
     current_point.accelerations = std::vector<double>(joint_names.size(), 0);
     current_point.effort = std::vector<double>(joint_names.size(), 0);
     current_point.time_from_start = rclcpp::Duration::from_seconds(joint.time);
-    for (Eigen::Index j = 0; j < static_cast<Eigen::Index>(joint.joint_names.size()); j++)
+    for (Eigen::Index j = 0; j < static_cast<Eigen::Index>(joint.joint_ids.size()); j++)
     {
-      auto joint_index = static_cast<std::size_t>(joint_names_indices[joint.joint_names[static_cast<std::size_t>(j)]]);
+      auto joint_index =
+          static_cast<std::size_t>(joint_names_indices[joint.joint_ids[static_cast<std::size_t>(j)].name()]);
       if (joint.position.size() > 0)
         current_point.positions[joint_index] = joint.position[j];
       if (joint.velocity.size() > 0)
@@ -2410,7 +2414,9 @@ tesseract::common::JointTrajectory fromMsg(const trajectory_msgs::msg::JointTraj
   for (const auto& state_msg : joint_trajectory_msg.points)
   {
     tesseract::common::JointState state;
-    state.joint_names = joint_trajectory_msg.joint_names;
+    state.joint_ids.reserve(joint_trajectory_msg.joint_names.size());
+    for (const auto& name : joint_trajectory_msg.joint_names)
+      state.joint_ids.push_back(tesseract::common::JointId::fromName(name));
     state.position = Eigen::Map<const Eigen::VectorXd>(state_msg.positions.data(),
                                                        static_cast<Eigen::Index>(state_msg.positions.size()));
     state.velocity = Eigen::Map<const Eigen::VectorXd>(state_msg.velocities.data(),
@@ -2435,12 +2441,12 @@ void toTransformMsgs(const std::shared_ptr<tesseract::environment::Environment>&
 
   for (const auto& joint : scene_graph->getJoints())
   {
-    const auto& tf = env->getRelativeLinkTransform(joint->parent_link_name, joint->child_link_name);
+    const auto& tf = env->getRelativeLinkTransform(joint->parent_link_id.name(), joint->child_link_id.name());
     // Convert link transform to TransformStamped message
     auto transform_msg = tf2::eigenToTransform(tf);
     transform_msg.header.stamp = stamp;
-    transform_msg.header.frame_id = joint->parent_link_name;
-    transform_msg.child_frame_id = joint->child_link_name;
+    transform_msg.header.frame_id = joint->parent_link_id.name();
+    transform_msg.child_frame_id = joint->child_link_id.name();
 
     // Add to appropriate collection based on whether it's static (connected by a fixed joint) or dynamic
     if ((std::find(active_joints.begin(), active_joints.end(), joint->getName()) == active_joints.end()))

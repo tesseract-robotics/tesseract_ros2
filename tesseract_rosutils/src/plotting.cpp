@@ -139,10 +139,10 @@ void ROSPlotting::plotTrajectory(const tesseract::common::JointTrajectory& traj,
   if (!traj.empty())
   {
     // Set the initial state
-    for (std::size_t i = 0; i < traj[0].joint_names.size(); ++i)
+    for (std::size_t i = 0; i < traj[0].joint_ids.size(); ++i)
     {
       tesseract_msgs::msg::StringDoublePair pair;
-      pair.first = traj[0].joint_names[i];
+      pair.first = traj[0].joint_ids[i].name();
       pair.second = traj[0].position[static_cast<Eigen::Index>(i)];
       msg.initial_state.push_back(pair);
     }
@@ -230,10 +230,10 @@ void ROSPlotting::plotTrajectory(const tesseract::environment::Commands& cmds,
   if (!traj.empty())
   {
     // Set the initial state
-    for (std::size_t i = 0; i < traj[0].joint_names.size(); ++i)
+    for (std::size_t i = 0; i < traj[0].joint_ids.size(); ++i)
     {
       tesseract_msgs::msg::StringDoublePair pair;
-      pair.first = traj[0].joint_names[i];
+      pair.first = traj[0].joint_ids[i].name();
       pair.second = traj[0].position[static_cast<Eigen::Index>(i)];
       msg.initial_state.push_back(pair);
     }
@@ -281,10 +281,10 @@ void ROSPlotting::plotTrajectories(const tesseract::environment::Commands& cmds,
       if (!traj.empty())
       {
         // Set the initial state
-        for (std::size_t i = 0; i < traj[0].joint_names.size(); ++i)
+        for (std::size_t i = 0; i < traj[0].joint_ids.size(); ++i)
         {
           tesseract_msgs::msg::StringDoublePair pair;
-          pair.first = traj[0].joint_names[i];
+          pair.first = traj[0].joint_ids[i].name();
           pair.second = traj[0].position[static_cast<Eigen::Index>(i)];
           msg.initial_state.push_back(pair);
         }

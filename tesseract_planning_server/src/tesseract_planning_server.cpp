@@ -371,7 +371,7 @@ Eigen::Isometry3d TesseractPlanningServer::tfFindTCPOffset(const tesseract::comm
     throw std::runtime_error("tfFindTCPOffset: TCP offset is empty!");
 
   const std::string& tcp_frame = manip_info.tcp_frame.name();
-  const std::string& tcp_name = std::get<0>(manip_info.tcp_offset);
+  const std::string& tcp_name = std::get<0>(manip_info.tcp_offset).name();
 
   auto tcp_msg = tf_buffer_->lookupTransform(tcp_frame, tcp_name, tf2::TimePointZero);
   return tf2::transformToEigen(tcp_msg.transform);

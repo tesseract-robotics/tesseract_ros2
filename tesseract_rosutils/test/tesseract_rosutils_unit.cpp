@@ -68,8 +68,8 @@ TEST_F(TesseractROSUtilsUnit, processEnvironmentStateMsg)  // NOLINT
 
   Joint joint_1(joint_name1);
   joint_1.parent_to_joint_origin_transform.translation()(0) = 1.25;
-  joint_1.parent_link_name = "base_link";
-  joint_1.child_link_name = link_name1;
+  joint_1.parent_link_id = tesseract::common::LinkId::fromName("base_link");
+  joint_1.child_link_id = tesseract::common::LinkId::fromName(link_name1);
   joint_1.type = JointType::FIXED;
   auto cmd = std::make_shared<AddLinkCommand>(link_1, joint_1);
 
@@ -394,7 +394,9 @@ TEST_F(TesseractROSUtilsUnit, toRosJointTrajectory)  // NOLINT
   ros_joint_state.accelerations = std::vector<double>{ 0, 0, 0, 0 };
   ros_joint_state.effort = std::vector<double>{ 0, 0, 0, 0 };
 
-  tesseract_joint_state.joint_names = std::vector<std::string>{ "joint1", "joint2", "joint3" };
+  tesseract_joint_state.joint_ids = { tesseract::common::JointId::fromName("joint1"),
+                                      tesseract::common::JointId::fromName("joint2"),
+                                      tesseract::common::JointId::fromName("joint3") };
   tesseract_joint_state.position.resize(3);
   tesseract_joint_state.position << 40, 40, 2;
   ros_joint_trajectory.points.push_back(ros_joint_state);
@@ -406,7 +408,8 @@ TEST_F(TesseractROSUtilsUnit, toRosJointTrajectory)  // NOLINT
   ros_joint_state.accelerations = std::vector<double>{ 0, 1, 0, 1 };
   ros_joint_state.effort = std::vector<double>{ 0, 1, 0, 1 };
 
-  tesseract_joint_state.joint_names = std::vector<std::string>{ "joint2", "joint4" };
+  tesseract_joint_state.joint_ids = { tesseract::common::JointId::fromName("joint2"),
+                                      tesseract::common::JointId::fromName("joint4") };
   tesseract_joint_state.position.resize(2);
   tesseract_joint_state.position << 10, 40.1;
   tesseract_joint_state.velocity.resize(2);

@@ -73,9 +73,9 @@ const std::string LOGGER_ID{ "tesseract_rosutils_utils" };
 
 namespace
 {
-std::unordered_map<std::string, double> toStringJointValues(
-    const tesseract::scene_graph::SceneState::JointValues& id_map,
-    const std::vector<std::string>& joint_names)
+std::unordered_map<std::string, double>
+toStringJointValues(const tesseract::scene_graph::SceneState::JointValues& id_map,
+                    const std::vector<std::string>& joint_names)
 {
   std::unordered_map<std::string, double> result;
   for (const auto& name : joint_names)
@@ -87,9 +87,8 @@ std::unordered_map<std::string, double> toStringJointValues(
   return result;
 }
 
-tesseract::common::TransformMap toStringTransformMap(
-    const tesseract::common::JointIdTransformMap& id_map,
-    const std::vector<std::string>& names)
+tesseract::common::TransformMap toStringTransformMap(const tesseract::common::JointIdTransformMap& id_map,
+                                                     const std::vector<std::string>& names)
 {
   tesseract::common::TransformMap result;
   for (const auto& name : names)
@@ -1039,15 +1038,9 @@ fromMsg(const std::vector<tesseract_msgs::msg::ContactMarginPair>& contact_margi
 
   for (const auto& pair : contact_margin_pairs_msg)
   {
-    const std::string& name1 = pair.first.first;
-    const std::string& name2 = pair.first.second;
-    auto id_pair = tesseract::common::LinkIdPair::make(tesseract::common::LinkId::fromName(name1),
-                                                       tesseract::common::LinkId::fromName(name2));
-    // Store names in canonical order matching LinkIdPair ordering
-    const std::string& canonical_name1 = (id_pair.first == tesseract::common::LinkId::fromName(name1)) ? name1 : name2;
-    const std::string& canonical_name2 = (id_pair.first == tesseract::common::LinkId::fromName(name1)) ? name2 : name1;
-    contact_margin_pairs.emplace(id_pair,
-                                 tesseract::common::MarginEntry{ canonical_name1, canonical_name2, pair.second });
+    auto id_pair = tesseract::common::LinkIdPair::make(tesseract::common::LinkId::fromName(pair.first.first),
+                                                       tesseract::common::LinkId::fromName(pair.first.second));
+    contact_margin_pairs.emplace(id_pair, pair.second);
   }
   return contact_margin_pairs;
 }
@@ -1056,12 +1049,12 @@ std::vector<tesseract_msgs::msg::ContactMarginPair>
 toMsg(const tesseract::common::PairsCollisionMarginData& contact_margin_pairs)
 {
   std::vector<tesseract_msgs::msg::ContactMarginPair> contact_margin_pairs_msg;
-  for (const auto& pair : contact_margin_pairs)
+  for (const auto& [key, margin] : contact_margin_pairs)
   {
     tesseract_msgs::msg::ContactMarginPair cmp;
-    cmp.first.first = pair.second.name1;
-    cmp.first.second = pair.second.name2;
-    cmp.second = pair.second.margin;
+    cmp.first.first = key.first.name();
+    cmp.first.second = key.second.name();
+    cmp.second = margin;
     contact_margin_pairs_msg.push_back(cmp);
   }
 
@@ -1078,12 +1071,12 @@ tesseract_msgs::msg::CollisionMarginData toMsg(const tesseract::common::Collisio
 {
   tesseract_msgs::msg::CollisionMarginData contact_margin_data_msg;
   contact_margin_data_msg.default_margin = contact_margin_data.getDefaultCollisionMargin();
-  for (const auto& pair : contact_margin_data.getCollisionMarginPairData().getCollisionMargins())
+  for (const auto& [key, margin] : contact_margin_data.getCollisionMarginPairData().getCollisionMargins())
   {
     tesseract_msgs::msg::ContactMarginPair cmp;
-    cmp.first.first = pair.second.name1;
-    cmp.first.second = pair.second.name2;
-    cmp.second = pair.second.margin;
+    cmp.first.first = key.first.name();
+    cmp.first.second = key.second.name();
+    cmp.second = margin;
     contact_margin_data_msg.margin_pairs.push_back(cmp);
   }
   return contact_margin_data_msg;
@@ -2204,11 +2197,11 @@ bool toMsg(tesseract_msgs::msg::Environment& environment_msg,
   if (include_joint_states)
   {
     tesseract::scene_graph::SceneState env_state = env.getState();
-    success = success && toMsg(environment_msg.joint_states,
-                               toStringJointValues(env_state.joints, env.getJointNames()));
-    success = success && toMsg(environment_msg.floating_joint_states,
-                               toStringTransformMap(env_state.floating_joints,
-                                                    env.getStateSolver()->getFloatingJointNames()));
+    success =
+        success && toMsg(environment_msg.joint_states, toStringJointValues(env_state.joints, env.getJointNames()));
+    success = success &&
+              toMsg(environment_msg.floating_joint_states,
+                    toStringTransformMap(env_state.floating_joints, env.getStateSolver()->getFloatingJointNames()));
   }
 
   success = success && tesseract_rosutils::toMsg(environment_msg.command_history, env.getCommandHistory(), 0);

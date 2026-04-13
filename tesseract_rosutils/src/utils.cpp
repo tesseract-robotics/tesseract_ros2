@@ -1894,7 +1894,7 @@ tesseract_msgs::msg::GroupsJointStates toMsg(tesseract::srdf::GroupJointStates::
     for (const auto& s : gs.second)
     {
       tesseract_msgs::msg::StringDoublePair js;
-      js.first = s.first;
+      js.first = s.first.name();
       js.second = s.second;
       gjs.joint_state.push_back(js);
     }
@@ -1913,7 +1913,7 @@ tesseract_msgs::msg::GroupsTCPs toMsg(tesseract::srdf::GroupTCPs::const_referenc
   for (const auto& gs : group.second)
   {
     tesseract_msgs::msg::GroupsTCP gtcp;
-    gtcp.name = gs.first;
+    gtcp.name = gs.first.name();
     toMsg(gtcp.tcp, gs.second);
     g.tcps.push_back(gtcp);
   }
@@ -1949,8 +1949,8 @@ bool toMsg(tesseract_msgs::msg::KinematicsInformation& kin_info_msg,
     tesseract_msgs::msg::JointGroup g;
     g.name = group.first;
     g.joints.reserve(group.second.size());
-    for (const auto& joint_name : group.second)
-      g.joints.push_back(joint_name);
+    for (const auto& joint_id : group.second)
+      g.joints.push_back(joint_id.name());
 
     kin_info_msg.joint_groups.push_back(g);
   }
@@ -1961,8 +1961,8 @@ bool toMsg(tesseract_msgs::msg::KinematicsInformation& kin_info_msg,
     tesseract_msgs::msg::LinkGroup g;
     g.name = group.first;
     g.links.reserve(group.second.size());
-    for (const auto& link_name : group.second)
-      g.links.push_back(link_name);
+    for (const auto& link_id : group.second)
+      g.links.push_back(link_id.name());
 
     kin_info_msg.link_groups.push_back(g);
   }
@@ -1996,10 +1996,22 @@ bool fromMsg(tesseract::srdf::KinematicsInformation& kin_info,
   }
 
   for (const auto& group : kin_info_msg.joint_groups)
-    kin_info.joint_groups[group.name] = group.joints;
+  {
+    tesseract::srdf::JointGroup jg;
+    jg.reserve(group.joints.size());
+    for (const auto& name : group.joints)
+      jg.push_back(tesseract::common::JointId::fromName(name));
+    kin_info.joint_groups[group.name] = std::move(jg);
+  }
 
   for (const auto& group : kin_info_msg.link_groups)
-    kin_info.link_groups[group.name] = group.links;
+  {
+    tesseract::srdf::LinkGroup lg;
+    lg.reserve(group.links.size());
+    for (const auto& name : group.links)
+      lg.push_back(tesseract::common::LinkId::fromName(name));
+    kin_info.link_groups[group.name] = std::move(lg);
+  }
 
   for (const auto& group : kin_info_msg.group_joint_states)
   {
@@ -2008,7 +2020,7 @@ bool fromMsg(tesseract::srdf::KinematicsInformation& kin_info,
       tesseract::srdf::GroupsJointState joint_state;
       joint_state.reserve(state.joint_state.size());
       for (const auto& js : state.joint_state)
-        joint_state[js.first] = js.second;
+        joint_state[tesseract::common::JointId::fromName(js.first)] = js.second;
 
       kin_info.group_states[group.name][state.name] = joint_state;
     }
@@ -2021,7 +2033,7 @@ bool fromMsg(tesseract::srdf::KinematicsInformation& kin_info,
       Eigen::Isometry3d tcp{ Eigen::Isometry3d::Identity() };
       fromMsg(tcp, pose.tcp);
 
-      kin_info.group_tcps[group.name][pose.name] = tcp;
+      kin_info.group_tcps[group.name][tesseract::common::LinkId::fromName(pose.name)] = tcp;
     }
   }
 

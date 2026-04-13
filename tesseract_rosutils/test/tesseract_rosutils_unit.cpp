@@ -196,18 +196,22 @@ TEST_F(TesseractROSUtilsUnit, KinematicsInformation)  // NOLINT
   tesseract::srdf::KinematicsInformation kin_info;
   kin_info.group_names = { "manipulator1", "manipulator2", "manipulator3" };
   kin_info.chain_groups["manipulator1"] = { std::make_pair("base_link", "tip_link") };
-  kin_info.joint_groups["manipulator2"] = { "joint_1", "joint_2", "joint_3" };
-  kin_info.link_groups["manipulator3"] = { "base_link", "link_1", "link_2" };
+  using tesseract::common::JointId;
+  using tesseract::common::LinkId;
+  kin_info.joint_groups["manipulator2"] = { JointId::fromName("joint_1"), JointId::fromName("joint_2"),
+                                            JointId::fromName("joint_3") };
+  kin_info.link_groups["manipulator3"] = { LinkId::fromName("base_link"), LinkId::fromName("link_1"),
+                                           LinkId::fromName("link_2") };
   tesseract::srdf::GroupsJointState js;
-  js["joint_0"] = 1.1;
-  js["joint_1"] = 2.1;
+  js[JointId::fromName("joint_0")] = 1.1;
+  js[JointId::fromName("joint_1")] = 2.1;
   tesseract::srdf::GroupsJointStates jss;
   jss["home"] = js;
   kin_info.group_states["manipulator1"] = jss;
 
   tesseract::srdf::GroupsTCPs gts;
   Eigen::Isometry3d p = Eigen::Isometry3d::Identity();
-  gts["sander"] = p;
+  gts[LinkId::fromName("sander")] = p;
   kin_info.group_tcps["manipulator1"] = gts;
 
   kin_info.kinematics_plugin_info.search_paths.emplace_back("/usr/local/lib");

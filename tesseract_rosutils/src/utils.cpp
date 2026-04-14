@@ -2380,8 +2380,8 @@ trajectory_msgs::msg::JointTrajectory toMsg(const tesseract::common::JointTrajec
     }
   }
   Eigen::VectorXd initial_points = initial_state.getJointValues(joint_names);
-  last_point.positions =
-      std::vector<double>(initial_points.data(), initial_points.data() + initial_points.rows() * initial_points.cols());
+  last_point.positions = std::vector<double>(initial_points.data(),
+                                             initial_points.data() + (initial_points.rows() * initial_points.cols()));
   result.joint_names = joint_names;
   std::vector<trajectory_msgs::msg::JointTrajectoryPoint> points;
   for (const auto& joint : joint_trajectory)
@@ -2446,7 +2446,7 @@ void toTransformMsgs(const std::shared_ptr<tesseract::environment::Environment>&
 
   for (const auto& joint : scene_graph->getJoints())
   {
-    const auto& tf = env->getRelativeLinkTransform(joint->parent_link_id.name(), joint->child_link_id.name());
+    const auto& tf = env->getRelativeLinkTransform(joint->parent_link_id, joint->child_link_id);
     // Convert link transform to TransformStamped message
     auto transform_msg = tf2::eigenToTransform(tf);
     transform_msg.header.stamp = stamp;

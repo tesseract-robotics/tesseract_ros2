@@ -144,7 +144,7 @@ void ContactMonitor::computeCollisionReportThread()
           auto lock_read = monitor_->environment().lockRead();
 
           env_revision_ = monitor_->environment().getRevision();
-          active = manager_->getActiveCollisionObjects();
+          active = manager_->getActiveCollisionObjectNames();
           contact_margin_data = manager_->getCollisionMarginData();
           fn = manager_->getContactAllowedValidator();
           manager_ = monitor_->environment().getDiscreteContactManager();
@@ -245,7 +245,7 @@ void ContactMonitor::callbackModifyTesseractEnv(
 
   {
     auto lock_read = monitor_->environment().lockRead();
-    active = manager_->getActiveCollisionObjects();
+    active = manager_->getActiveCollisionObjectNames();
     contact_margin_data = manager_->getCollisionMarginData();
     fn = manager_->getContactAllowedValidator();
     manager_ = monitor_->environment().getDiscreteContactManager();

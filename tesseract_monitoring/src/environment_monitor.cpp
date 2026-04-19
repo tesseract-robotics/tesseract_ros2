@@ -872,7 +872,7 @@ void ROSEnvironmentMonitor::updateEnvironmentWithCurrentState()
     std::unordered_map<std::string, double> joints_str;
     for (const auto& name : env_->getJointNames())
     {
-      auto it = env_state.joints.find(tesseract::common::JointId::fromName(name));
+      auto it = env_state.joints.find(tesseract::common::JointId(name));
       if (it != env_state.joints.end())
         joints_str[name] = it->second;
     }
@@ -1014,12 +1014,12 @@ void ROSEnvironmentMonitor::getEnvironmentInformationCallback(
   tesseract::scene_graph::SceneState state = env_->getState();
   if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::LINK_TRANSFORMS)  // NOLINT
   {
-    for (const auto& name : env_->getLinkNames())
+    for (const auto& id : env_->getLinkIds())
     {
-      auto it = state.link_transforms.find(tesseract::common::LinkId::fromName(name));
+      auto it = state.link_transforms.find(id);
       if (it != state.link_transforms.end())
       {
-        res->link_transforms.names.push_back(name);
+        res->link_transforms.names.push_back(id.name());
         geometry_msgs::msg::Pose pose;
         tesseract_rosutils::toMsg(pose, it->second);
         res->link_transforms.transforms.push_back(pose);
@@ -1029,12 +1029,12 @@ void ROSEnvironmentMonitor::getEnvironmentInformationCallback(
 
   if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::JOINT_TRANSFORMS)  // NOLINT
   {
-    for (const auto& name : env_->getJointNames())
+    for (const auto& id : env_->getJointIds())
     {
-      auto it = state.joint_transforms.find(tesseract::common::JointId::fromName(name));
+      auto it = state.joint_transforms.find(id);
       if (it != state.joint_transforms.end())
       {
-        res->joint_transforms.names.push_back(name);
+        res->joint_transforms.names.push_back(id.name());
         geometry_msgs::msg::Pose pose;
         tesseract_rosutils::toMsg(pose, it->second);
         res->joint_transforms.transforms.push_back(pose);
@@ -1066,7 +1066,7 @@ void ROSEnvironmentMonitor::getEnvironmentInformationCallback(
     std::unordered_map<std::string, double> joints_str;
     for (const auto& name : env_->getJointNames())
     {
-      auto it = state.joints.find(tesseract::common::JointId::fromName(name));
+      auto it = state.joints.find(tesseract::common::JointId(name));
       if (it != state.joints.end())
         joints_str[name] = it->second;
     }
@@ -1076,15 +1076,7 @@ void ROSEnvironmentMonitor::getEnvironmentInformationCallback(
       return;
     }
 
-    // Convert JointIdTransformMap to string-keyed TransformMap for toMsg
-    tesseract::common::TransformMap floating_str;
-    for (const auto& name : env_->getStateSolver()->getFloatingJointNames())
-    {
-      auto it = state.floating_joints.find(tesseract::common::JointId::fromName(name));
-      if (it != state.floating_joints.end())
-        floating_str[name] = it->second;
-    }
-    if (!tesseract_rosutils::toMsg(res->floating_joint_states, floating_str))
+    if (!tesseract_rosutils::toMsg(res->floating_joint_states, state.floating_joints))
     {
       res->success = false;
       return;

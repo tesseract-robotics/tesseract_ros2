@@ -80,25 +80,13 @@ toStringJointValues(const tesseract::scene_graph::SceneState::JointValues& id_ma
   std::unordered_map<std::string, double> result;
   for (const auto& name : joint_names)
   {
-    auto it = id_map.find(tesseract::common::JointId::fromName(name));
+    auto it = id_map.find(tesseract::common::JointId(name));
     if (it != id_map.end())
       result[name] = it->second;
   }
   return result;
 }
 
-tesseract::common::TransformMap toStringTransformMap(const tesseract::common::JointIdTransformMap& id_map,
-                                                     const std::vector<std::string>& names)
-{
-  tesseract::common::TransformMap result;
-  for (const auto& name : names)
-  {
-    auto it = id_map.find(tesseract::common::JointId::fromName(name));
-    if (it != id_map.end())
-      result[name] = it->second;
-  }
-  return result;
-}
 }  // anonymous namespace
 
 namespace tesseract_rosutils
@@ -1018,8 +1006,8 @@ tesseract::scene_graph::Joint fromMsg(const tesseract_msgs::msg::Joint& joint_ms
   joint.axis[1] = joint_msg.axis[1];
   joint.axis[2] = joint_msg.axis[2];
 
-  joint.child_link_id = tesseract::common::LinkId::fromName(joint_msg.child_link_name);
-  joint.parent_link_id = tesseract::common::LinkId::fromName(joint_msg.parent_link_name);
+  joint.child_link_id = tesseract::common::LinkId(joint_msg.child_link_name);
+  joint.parent_link_id = tesseract::common::LinkId(joint_msg.parent_link_name);
 
   Eigen::fromMsg(joint_msg.parent_to_joint_origin_transform, joint.parent_to_joint_origin_transform);
   fromMsg(joint.limits, joint_msg.limits);
@@ -1038,9 +1026,15 @@ fromMsg(const std::vector<tesseract_msgs::msg::ContactMarginPair>& contact_margi
 
   for (const auto& pair : contact_margin_pairs_msg)
   {
-    auto id_pair = tesseract::common::LinkIdPair::make(tesseract::common::LinkId::fromName(pair.first.first),
-                                                       tesseract::common::LinkId::fromName(pair.first.second));
-    contact_margin_pairs.emplace(id_pair, pair.second);
+    tesseract::common::LinkId id1(pair.first.first);
+    tesseract::common::LinkId id2(pair.first.second);
+    auto id_pair = tesseract::common::LinkIdPair(id1, id2);
+    if (id1.value() <= id2.value())
+      contact_margin_pairs.emplace(
+          id_pair, tesseract::common::PairMarginEntry{ pair.first.first, pair.first.second, pair.second });
+    else
+      contact_margin_pairs.emplace(
+          id_pair, tesseract::common::PairMarginEntry{ pair.first.second, pair.first.first, pair.second });
   }
   return contact_margin_pairs;
 }
@@ -1049,12 +1043,12 @@ std::vector<tesseract_msgs::msg::ContactMarginPair>
 toMsg(const tesseract::common::PairsCollisionMarginData& contact_margin_pairs)
 {
   std::vector<tesseract_msgs::msg::ContactMarginPair> contact_margin_pairs_msg;
-  for (const auto& [key, margin] : contact_margin_pairs)
+  for (const auto& [key, entry] : contact_margin_pairs)
   {
     tesseract_msgs::msg::ContactMarginPair cmp;
-    cmp.first.first = key.first.name();
-    cmp.first.second = key.second.name();
-    cmp.second = margin;
+    cmp.first.first = entry.name1;
+    cmp.first.second = entry.name2;
+    cmp.second = entry.margin;
     contact_margin_pairs_msg.push_back(cmp);
   }
 
@@ -1071,12 +1065,12 @@ tesseract_msgs::msg::CollisionMarginData toMsg(const tesseract::common::Collisio
 {
   tesseract_msgs::msg::CollisionMarginData contact_margin_data_msg;
   contact_margin_data_msg.default_margin = contact_margin_data.getDefaultCollisionMargin();
-  for (const auto& [key, margin] : contact_margin_data.getCollisionMarginPairData().getCollisionMargins())
+  for (const auto& [key, entry] : contact_margin_data.getCollisionMarginPairData().getCollisionMargins())
   {
     tesseract_msgs::msg::ContactMarginPair cmp;
-    cmp.first.first = key.first.name();
-    cmp.first.second = key.second.name();
-    cmp.second = margin;
+    cmp.first.first = entry.name1;
+    cmp.first.second = entry.name2;
+    cmp.second = entry.margin;
     contact_margin_data_msg.margin_pairs.push_back(cmp);
   }
   return contact_margin_data_msg;
@@ -1153,7 +1147,7 @@ bool toMsg(std::vector<tesseract_msgs::msg::AllowedCollisionEntry>& acm_msg,
 void toMsg(tesseract_msgs::msg::SceneGraph& scene_graph_msg, const tesseract::scene_graph::SceneGraph& scene_graph)
 {
   scene_graph_msg.id = scene_graph.getName();
-  scene_graph_msg.root = scene_graph.getRoot();
+  scene_graph_msg.root = scene_graph.getRoot().name();
 
   for (const auto& link : scene_graph.getLinks())
   {
@@ -1609,8 +1603,7 @@ void toMsg(tesseract_msgs::msg::EnvironmentState& state_msg,
   {
     tesseract::scene_graph::SceneState env_state = env.getState();
     toMsg(state_msg.joint_state, toStringJointValues(env_state.joints, env.getJointNames()));
-    toMsg(state_msg.floating_joint_states,
-          toStringTransformMap(env_state.floating_joints, env.getStateSolver()->getFloatingJointNames()));
+    toMsg(state_msg.floating_joint_states, env_state.floating_joints);
   }
 }
 
@@ -1658,9 +1651,7 @@ tesseract::common::JointTrajectory fromMsg(const tesseract_msgs::msg::JointTraje
     assert(js_msg.joint_names.size() == static_cast<unsigned>(js_msg.position.size()));
 
     tesseract::common::JointState js;
-    js.joint_ids.reserve(js_msg.joint_names.size());
-    for (const auto& name : js_msg.joint_names)
-      js.joint_ids.push_back(tesseract::common::JointId::fromName(name));
+    js.joint_ids = tesseract::common::toIds<tesseract::common::JointId>(js_msg.joint_names);
     js.position.resize(static_cast<long>(js_msg.position.size()));
     js.velocity.resize(static_cast<long>(js_msg.velocity.size()));
     js.acceleration.resize(static_cast<long>(js_msg.acceleration.size()));
@@ -1873,8 +1864,8 @@ tesseract_msgs::msg::ChainGroup toMsg(tesseract::srdf::ChainGroups::const_refere
   for (const auto& pair : group.second)
   {
     tesseract_msgs::msg::StringPair chain;
-    chain.first = pair.first;
-    chain.second = pair.second;
+    chain.first = pair.first.name();
+    chain.second = pair.second.name();
     g.chains.push_back(chain);
   }
   return g;
@@ -1935,8 +1926,8 @@ bool toMsg(tesseract_msgs::msg::KinematicsInformation& kin_info_msg,
     for (const auto& chain : group.second)
     {
       tesseract_msgs::msg::StringPair pair;
-      pair.first = chain.first;
-      pair.second = chain.second;
+      pair.first = chain.first.name();
+      pair.second = chain.second.name();
       g.chains.push_back(pair);
     }
 
@@ -2000,7 +1991,7 @@ bool fromMsg(tesseract::srdf::KinematicsInformation& kin_info,
     tesseract::srdf::JointGroup jg;
     jg.reserve(group.joints.size());
     for (const auto& name : group.joints)
-      jg.push_back(tesseract::common::JointId::fromName(name));
+      jg.emplace_back(name);
     kin_info.joint_groups[group.name] = std::move(jg);
   }
 
@@ -2009,7 +2000,7 @@ bool fromMsg(tesseract::srdf::KinematicsInformation& kin_info,
     tesseract::srdf::LinkGroup lg;
     lg.reserve(group.links.size());
     for (const auto& name : group.links)
-      lg.push_back(tesseract::common::LinkId::fromName(name));
+      lg.emplace_back(name);
     kin_info.link_groups[group.name] = std::move(lg);
   }
 
@@ -2020,7 +2011,7 @@ bool fromMsg(tesseract::srdf::KinematicsInformation& kin_info,
       tesseract::srdf::GroupsJointState joint_state;
       joint_state.reserve(state.joint_state.size());
       for (const auto& js : state.joint_state)
-        joint_state[tesseract::common::JointId::fromName(js.first)] = js.second;
+        joint_state[tesseract::common::JointId(js.first)] = js.second;
 
       kin_info.group_states[group.name][state.name] = joint_state;
     }
@@ -2033,7 +2024,7 @@ bool fromMsg(tesseract::srdf::KinematicsInformation& kin_info,
       Eigen::Isometry3d tcp{ Eigen::Isometry3d::Identity() };
       fromMsg(tcp, pose.tcp);
 
-      kin_info.group_tcps[group.name][tesseract::common::LinkId::fromName(pose.name)] = tcp;
+      kin_info.group_tcps[group.name][tesseract::common::LinkId(pose.name)] = tcp;
     }
   }
 
@@ -2103,36 +2094,20 @@ tesseract::common::PluginInfo fromMsg(const tesseract_msgs::msg::PluginInfo& inf
   return info;
 }
 
-bool toMsg(tesseract_msgs::msg::TransformMap& transform_map_msg, const tesseract::common::TransformMap& transform_map)
+bool toMsg(tesseract_msgs::msg::TransformMap& transform_map_msg,
+           const tesseract::common::JointIdTransformMap& transform_map)
 {
   transform_map_msg.names.reserve(transform_map.size());
   transform_map_msg.transforms.reserve(transform_map.size());
   for (const auto& pair : transform_map)
   {
-    transform_map_msg.names.push_back(pair.first);
+    transform_map_msg.names.push_back(pair.first.name());
     geometry_msgs::msg::Pose pose;
     if (!toMsg(pose, pair.second))
       return false;
 
     transform_map_msg.transforms.push_back(pose);
   }
-  return true;
-}
-
-bool fromMsg(tesseract::common::TransformMap& transform_map, const tesseract_msgs::msg::TransformMap& transform_map_msg)
-{
-  if (transform_map_msg.names.size() != transform_map_msg.transforms.size())
-    return false;
-
-  for (std::size_t i = 0; i < transform_map_msg.names.size(); ++i)
-  {
-    Eigen::Isometry3d pose;
-    if (fromMsg(pose, transform_map_msg.transforms.at(i)))
-      return false;
-
-    transform_map[transform_map_msg.names.at(i)] = pose;
-  }
-
   return true;
 }
 
@@ -2149,7 +2124,7 @@ bool fromMsg(tesseract::common::JointIdTransformMap& transform_map,
     if (fromMsg(pose, transform_map_msg.transforms.at(i)))
       return false;
 
-    transform_map[JointId::fromName(transform_map_msg.names.at(i))] = pose;
+    transform_map[JointId(transform_map_msg.names.at(i))] = pose;
   }
 
   return true;
@@ -2211,9 +2186,7 @@ bool toMsg(tesseract_msgs::msg::Environment& environment_msg,
     tesseract::scene_graph::SceneState env_state = env.getState();
     success =
         success && toMsg(environment_msg.joint_states, toStringJointValues(env_state.joints, env.getJointNames()));
-    success = success &&
-              toMsg(environment_msg.floating_joint_states,
-                    toStringTransformMap(env_state.floating_joints, env.getStateSolver()->getFloatingJointNames()));
+    success = success && toMsg(environment_msg.floating_joint_states, env_state.floating_joints);
   }
 
   success = success && tesseract_rosutils::toMsg(environment_msg.command_history, env.getCommandHistory(), 0);
@@ -2419,9 +2392,7 @@ tesseract::common::JointTrajectory fromMsg(const trajectory_msgs::msg::JointTraj
   for (const auto& state_msg : joint_trajectory_msg.points)
   {
     tesseract::common::JointState state;
-    state.joint_ids.reserve(joint_trajectory_msg.joint_names.size());
-    for (const auto& name : joint_trajectory_msg.joint_names)
-      state.joint_ids.push_back(tesseract::common::JointId::fromName(name));
+    state.joint_ids = tesseract::common::toIds<tesseract::common::JointId>(joint_trajectory_msg.joint_names);
     state.position = Eigen::Map<const Eigen::VectorXd>(state_msg.positions.data(),
                                                        static_cast<Eigen::Index>(state_msg.positions.size()));
     state.velocity = Eigen::Map<const Eigen::VectorXd>(state_msg.velocities.data(),

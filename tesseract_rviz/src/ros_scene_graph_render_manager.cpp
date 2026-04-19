@@ -334,7 +334,7 @@ void ROSSceneGraphRenderManager::render()
       for (const auto& ec : entity_manager->getEntityContainers())
       {
         const std::string& link_name = ec.first;
-        auto link_id = tesseract::common::LinkId::fromName(link_name);
+        auto link_id = tesseract::common::LinkId(link_name);
         auto tf_it = link_transforms.find(link_id);
         if (tf_it == link_transforms.end())
           continue;

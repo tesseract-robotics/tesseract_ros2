@@ -386,16 +386,8 @@ tesseract::common::PluginInfo fromMsg(const tesseract_msgs::msg::PluginInfo& inf
  * @param transform_map The transform map
  * @return True if successful, otherwise false
  */
-bool toMsg(tesseract_msgs::msg::TransformMap& transform_map_msg, const tesseract::common::TransformMap& transform_map);
-
-/**
- * @brief This will populate a transform map given a message
- * @param transform_map The transform map
- * @param transform_map_msg The transform map message
- * @return True if successful, otherwise false
- */
-bool fromMsg(tesseract::common::TransformMap& transform_map,
-             const tesseract_msgs::msg::TransformMap& transform_map_msg);
+bool toMsg(tesseract_msgs::msg::TransformMap& transform_map_msg,
+           const tesseract::common::JointIdTransformMap& transform_map);
 
 /**
  * @brief Convert a TransformMap ROS message to a JointIdTransformMap (integer-keyed)

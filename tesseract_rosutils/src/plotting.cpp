@@ -174,7 +174,7 @@ void ROSPlotting::plotTrajectory(const tesseract::environment::Environment& env,
     std::unordered_map<std::string, double> joints_str;
     for (const auto& name : env.getJointNames())
     {
-      auto it = initial_state.joints.find(tesseract::common::JointId::fromName(name));
+      auto it = initial_state.joints.find(tesseract::common::JointId(name));
       if (it != initial_state.joints.end())
         joints_str[name] = it->second;
     }

@@ -251,7 +251,7 @@ void TesseractPlanningServer::onMotionPlanningCallback(
   std::unordered_map<std::string, double> initial_joints_str;
   for (const auto& name : env->getJointNames())
   {
-    auto it = initial_state.joints.find(tesseract::common::JointId::fromName(name));
+    auto it = initial_state.joints.find(tesseract::common::JointId(name));
     if (it != initial_state.joints.end())
       initial_joints_str[name] = it->second;
   }

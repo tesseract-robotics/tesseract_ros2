@@ -81,7 +81,7 @@ int main(int argc, char** argv)
 
   ROSPlottingPtr plotter;
   if (plotting)
-    plotter = std::make_shared<ROSPlotting>(env->getSceneGraph()->getRoot());
+    plotter = std::make_shared<ROSPlotting>(env->getSceneGraph()->getRoot().name());
 
   PuzzlePieceExample example(env, plotter, ifopt, debug);
   rclcpp::sleep_for(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(5.0)));

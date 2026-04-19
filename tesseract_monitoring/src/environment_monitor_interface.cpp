@@ -303,26 +303,24 @@ ROSEnvironmentMonitorInterface::getEnvironmentState(const std::string& monitor_n
       throw std::runtime_error("getEnvironmentState: Failed to get monitor environment information!");
     tesseract::scene_graph::SceneState env_state;
 
-    // fromMsg produces string-keyed maps; convert to integer-keyed SceneState fields
     std::unordered_map<std::string, double> joints_str;
     tesseract_rosutils::fromMsg(joints_str, res->joint_states);
     for (const auto& [name, val] : joints_str)
-      env_state.joints[tesseract::common::JointId::fromName(name)] = val;
+      env_state.joints[tesseract::common::JointId(name)] = val;
 
-    tesseract::common::TransformMap floating_str;
-    tesseract_rosutils::fromMsg(floating_str, res->floating_joint_states);
-    for (const auto& [name, tf] : floating_str)
-      env_state.floating_joints[tesseract::common::JointId::fromName(name)] = tf;
+    tesseract_rosutils::fromMsg(env_state.floating_joints, res->floating_joint_states);
 
-    tesseract::common::TransformMap link_tf_str;
-    tesseract_rosutils::fromMsg(link_tf_str, res->link_transforms);
-    for (const auto& [name, tf] : link_tf_str)
-      env_state.link_transforms[tesseract::common::LinkId::fromName(name)] = tf;
+    if (res->link_transforms.names.size() == res->link_transforms.transforms.size())
+    {
+      for (std::size_t i = 0; i < res->link_transforms.names.size(); ++i)
+      {
+        Eigen::Isometry3d pose;
+        tesseract_rosutils::fromMsg(pose, res->link_transforms.transforms.at(i));
+        env_state.link_transforms[tesseract::common::LinkId(res->link_transforms.names.at(i))] = pose;
+      }
+    }
 
-    tesseract::common::TransformMap joint_tf_str;
-    tesseract_rosutils::fromMsg(joint_tf_str, res->joint_transforms);
-    for (const auto& [name, tf] : joint_tf_str)
-      env_state.joint_transforms[tesseract::common::JointId::fromName(name)] = tf;
+    tesseract_rosutils::fromMsg(env_state.joint_transforms, res->joint_transforms);
 
     return env_state;
   }
@@ -332,10 +330,32 @@ ROSEnvironmentMonitorInterface::getEnvironmentState(const std::string& monitor_n
   }
 }
 
-bool ROSEnvironmentMonitorInterface::setEnvironmentState(const std::string& monitor_namespace,
-                                                         const std::unordered_map<std::string, double>& joints,
-                                                         const tesseract::common::TransformMap& floating_joints) const
+bool ROSEnvironmentMonitorInterface::setEnvironmentState(
+    const std::string& monitor_namespace,
+    const tesseract::scene_graph::SceneState::JointValues& joints,
+    const tesseract::common::JointIdTransformMap& floating_joints) const
 {
+  std::unordered_map<std::string, double> joints_str;
+  for (const auto& [id, val] : joints)
+    joints_str[id.name()] = val;
+
+  tesseract_msgs::msg::EnvironmentCommand command;
+  command.command = tesseract_msgs::msg::EnvironmentCommand::UPDATE_JOINT_STATE;
+  tesseract_rosutils::toMsg(command.joint_state, joints_str);
+  tesseract_rosutils::toMsg(command.floating_joint_states, floating_joints);
+  return sendCommands(monitor_namespace, { command });
+}
+
+bool ROSEnvironmentMonitorInterface::setEnvironmentState(
+    const std::string& monitor_namespace,
+    const std::vector<tesseract::common::JointId>& joint_ids,
+    const Eigen::Ref<const Eigen::VectorXd>& joint_values,
+    const tesseract::common::JointIdTransformMap& floating_joints) const
+{
+  std::unordered_map<std::string, double> joints;
+  for (std::size_t i = 0; i < joint_ids.size(); ++i)
+    joints[joint_ids[i].name()] = joint_values[static_cast<Eigen::Index>(i)];
+
   tesseract_msgs::msg::EnvironmentCommand command;
   command.command = tesseract_msgs::msg::EnvironmentCommand::UPDATE_JOINT_STATE;
   tesseract_rosutils::toMsg(command.joint_state, joints);
@@ -343,34 +363,12 @@ bool ROSEnvironmentMonitorInterface::setEnvironmentState(const std::string& moni
   return sendCommands(monitor_namespace, { command });
 }
 
-bool ROSEnvironmentMonitorInterface::setEnvironmentState(const std::string& monitor_namespace,
-                                                         const std::vector<std::string>& joint_names,
-                                                         const std::vector<double>& joint_values,
-                                                         const tesseract::common::TransformMap& floating_joints) const
+bool ROSEnvironmentMonitorInterface::setEnvironmentState(
+    const std::string& monitor_namespace,
+    const tesseract::common::JointIdTransformMap& floating_joints) const
 {
-  std::unordered_map<std::string, double> joints;
-  for (std::size_t i = 0; i < joint_names.size(); ++i)
-    joints[joint_names[i]] = joint_values[i];
-
   tesseract_msgs::msg::EnvironmentCommand command;
   command.command = tesseract_msgs::msg::EnvironmentCommand::UPDATE_JOINT_STATE;
-  tesseract_rosutils::toMsg(command.joint_state, joints);
-  tesseract_rosutils::toMsg(command.floating_joint_states, floating_joints);
-  return sendCommands(monitor_namespace, { command });
-}
-
-bool ROSEnvironmentMonitorInterface::setEnvironmentState(const std::string& monitor_namespace,
-                                                         const std::vector<std::string>& joint_names,
-                                                         const Eigen::Ref<const Eigen::VectorXd>& joint_values,
-                                                         const tesseract::common::TransformMap& floating_joints) const
-{
-  std::unordered_map<std::string, double> joints;
-  for (std::size_t i = 0; i < joint_names.size(); ++i)
-    joints[joint_names[i]] = joint_values[static_cast<Eigen::Index>(i)];
-
-  tesseract_msgs::msg::EnvironmentCommand command;
-  command.command = tesseract_msgs::msg::EnvironmentCommand::UPDATE_JOINT_STATE;
-  tesseract_rosutils::toMsg(command.joint_state, joints);
   tesseract_rosutils::toMsg(command.floating_joint_states, floating_joints);
   return sendCommands(monitor_namespace, { command });
 }
@@ -385,8 +383,8 @@ bool ROSEnvironmentMonitorInterface::setEnvironmentState(const std::string& moni
 }
 
 std::vector<std::string>
-ROSEnvironmentMonitorInterface::setEnvironmentState(const std::unordered_map<std::string, double>& joints,
-                                                    const tesseract::common::TransformMap& floating_joints) const
+ROSEnvironmentMonitorInterface::setEnvironmentState(const tesseract::scene_graph::SceneState::JointValues& joints,
+                                                    const tesseract::common::JointIdTransformMap& floating_joints) const
 {
   std::vector<std::string> failed_namespace;
   failed_namespace.reserve(ns_.size());
@@ -398,35 +396,21 @@ ROSEnvironmentMonitorInterface::setEnvironmentState(const std::unordered_map<std
 }
 
 std::vector<std::string>
-ROSEnvironmentMonitorInterface::setEnvironmentState(const std::vector<std::string>& joint_names,
-                                                    const std::vector<double>& joint_values,
-                                                    const tesseract::common::TransformMap& floating_joints) const
-{
-  std::vector<std::string> failed_namespace;
-  failed_namespace.reserve(ns_.size());
-  for (const auto& ns : ns_)
-    if (!setEnvironmentState(ns, joint_names, joint_values, floating_joints))
-      failed_namespace.push_back(ns);
-
-  return failed_namespace;
-}
-
-std::vector<std::string>
-ROSEnvironmentMonitorInterface::setEnvironmentState(const std::vector<std::string>& joint_names,
+ROSEnvironmentMonitorInterface::setEnvironmentState(const std::vector<tesseract::common::JointId>& joint_ids,
                                                     const Eigen::Ref<const Eigen::VectorXd>& joint_values,
-                                                    const tesseract::common::TransformMap& floating_joints) const
+                                                    const tesseract::common::JointIdTransformMap& floating_joints) const
 {
   std::vector<std::string> failed_namespace;
   failed_namespace.reserve(ns_.size());
   for (const auto& ns : ns_)
-    if (!setEnvironmentState(ns, joint_names, joint_values, floating_joints))
+    if (!setEnvironmentState(ns, joint_ids, joint_values, floating_joints))
       failed_namespace.push_back(ns);
 
   return failed_namespace;
 }
 
 std::vector<std::string>
-ROSEnvironmentMonitorInterface::setEnvironmentState(const tesseract::common::TransformMap& floating_joints) const
+ROSEnvironmentMonitorInterface::setEnvironmentState(const tesseract::common::JointIdTransformMap& floating_joints) const
 {
   std::vector<std::string> failed_namespace;
   failed_namespace.reserve(ns_.size());

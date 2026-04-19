@@ -88,7 +88,7 @@ int main(int argc, char** argv)
 
   ROSPlottingPtr plotter;
   if (plotting)
-    plotter = std::make_shared<ROSPlotting>(env->getSceneGraph()->getRoot());
+    plotter = std::make_shared<ROSPlotting>(env->getSceneGraph()->getRoot().name());
 
   OnlinePlanningExample example(env, plotter, static_cast<int>(steps), box_size, update_start_state, use_continuous);
 

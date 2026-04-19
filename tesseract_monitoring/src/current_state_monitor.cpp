@@ -55,14 +55,14 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 namespace
 {
 /** @brief Convert integer-keyed JointValues to string-keyed map using the environment's joint names */
-std::unordered_map<std::string, double> toStringJointValues(
-    const tesseract::scene_graph::SceneState::JointValues& id_map,
-    const std::vector<std::string>& joint_names)
+std::unordered_map<std::string, double>
+toStringJointValues(const tesseract::scene_graph::SceneState::JointValues& id_map,
+                    const std::vector<std::string>& joint_names)
 {
   std::unordered_map<std::string, double> result;
   for (const auto& name : joint_names)
   {
-    auto it = id_map.find(tesseract::common::JointId::fromName(name));
+    auto it = id_map.find(tesseract::common::JointId(name));
     if (it != id_map.end())
       result[name] = it->second;
   }
@@ -167,9 +167,9 @@ std::string CurrentStateMonitor::getMonitoredTopic() const
   return "";
 }
 
-bool CurrentStateMonitor::isPassiveOrMimicDOF(const std::string& dof) const
+bool CurrentStateMonitor::isPassiveOrMimicDOF(const tesseract::common::JointId& dof) const
 {
-  const auto& active_joints = env_->getActiveJointNames();
+  const auto& active_joints = env_->getActiveJointIds();
   auto passive = (std::find(active_joints.begin(), active_joints.end(), dof) == active_joints.end());
   auto mimic = env_->getJoint(dof)->mimic != nullptr;
 
@@ -180,13 +180,13 @@ bool CurrentStateMonitor::haveCompleteState() const
 {
   bool result = true;
   std::scoped_lock slock(state_update_lock_);
-  for (const auto& name : env_->getJointNames())
-    if (env_state_.joints.count(tesseract::common::JointId::fromName(name)) != 0)
-      if (joint_time_.find(name) == joint_time_.end())
+  for (const auto& id : env_->getJointIds())
+    if (env_state_.joints.count(id) != 0)
+      if (joint_time_.find(id) == joint_time_.end())
       {
-        if (!isPassiveOrMimicDOF(name))
+        if (!isPassiveOrMimicDOF(id))
         {
-          RCLCPP_DEBUG(node_->get_logger(), "Joint variable '%s' has never been updated", name.c_str());
+          RCLCPP_DEBUG(node_->get_logger(), "Joint variable '%s' has never been updated", id.name().c_str());
           result = false;
         }
       }
@@ -198,7 +198,7 @@ bool CurrentStateMonitor::haveCompleteState(std::vector<std::string>& missing_jo
   bool result = true;
   std::scoped_lock slock(state_update_lock_);
   for (const auto& name : env_->getJointNames())
-    if (env_state_.joints.count(tesseract::common::JointId::fromName(name)) != 0)
+    if (env_state_.joints.count(tesseract::common::JointId(name)) != 0)
       if (joint_time_.find(name) == joint_time_.end())
         if (!isPassiveOrMimicDOF(name))
         {
@@ -217,7 +217,7 @@ bool CurrentStateMonitor::haveCompleteState(const rclcpp::Duration& age) const
   std::scoped_lock slock(state_update_lock_);
   for (const auto& name : env_->getJointNames())
   {
-    if (env_state_.joints.count(tesseract::common::JointId::fromName(name)) == 0)
+    if (env_state_.joints.count(tesseract::common::JointId(name)) == 0)
       continue;
     if (isPassiveOrMimicDOF(name))
       continue;
@@ -249,7 +249,7 @@ bool CurrentStateMonitor::haveCompleteState(const rclcpp::Duration& age, std::ve
 
   for (const auto& name : env_->getJointNames())
   {
-    if (env_state_.joints.count(tesseract::common::JointId::fromName(name)) == 0)
+    if (env_state_.joints.count(tesseract::common::JointId(name)) == 0)
       continue;
     if (isPassiveOrMimicDOF(name))
       continue;
@@ -362,7 +362,7 @@ void CurrentStateMonitor::jointStateCallback(const sensor_msgs::msg::JointState:
 
     for (unsigned i = 0; i < joint_state->name.size(); ++i)
     {
-      auto jid = tesseract::common::JointId::fromName(joint_state->name[i]);
+      auto jid = tesseract::common::JointId(joint_state->name[i]);
       auto it = env_state_.joints.find(jid);
       if (it != env_state_.joints.end())
       {

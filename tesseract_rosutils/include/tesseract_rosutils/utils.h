@@ -88,6 +88,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract/srdf/kinematics_information.h>  // For all the nested using
 #include <tesseract/collision/types.h>              // For all the nested using
+#include <tesseract/scene_graph/scene_state.h>      // For SceneState::JointValues
 
 // Define rclcpp version macro for older ROS2 versions without <rclcpp/version.h>
 #ifndef RCLCPP_VERSION_GTE
@@ -395,6 +396,21 @@ bool toMsg(tesseract_msgs::msg::TransformMap& transform_map_msg,
  */
 bool fromMsg(tesseract::common::JointIdTransformMap& transform_map,
              const tesseract_msgs::msg::TransformMap& transform_map_msg);
+
+/**
+ * @brief Convert id-keyed SceneState::JointValues to a string-keyed joint map filtered by @p joint_names
+ * @details Entries in @p joint_names that are not present in @p joints are omitted. Used to bridge the
+ * integer-keyed scene state into the string-keyed ROS message representations.
+ */
+std::unordered_map<std::string, double>
+toStringJointValues(const tesseract::scene_graph::SceneState::JointValues& joints,
+                    const std::vector<std::string>& joint_names);
+
+/**
+ * @brief Convert a string-keyed joint map to id-keyed SceneState::JointValues
+ */
+tesseract::scene_graph::SceneState::JointValues
+toIdJointValues(const std::unordered_map<std::string, double>& joints);
 
 /**
  * @brief This will populate a joint states map message

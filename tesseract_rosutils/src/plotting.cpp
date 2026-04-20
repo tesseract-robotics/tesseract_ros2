@@ -170,16 +170,8 @@ void ROSPlotting::plotTrajectory(const tesseract::environment::Environment& env,
 
   // Set the initial state
   tesseract::scene_graph::SceneState initial_state = env.getState();
-  {
-    std::unordered_map<std::string, double> joints_str;
-    for (const auto& name : env.getJointNames())
-    {
-      auto it = initial_state.joints.find(tesseract::common::JointId(name));
-      if (it != initial_state.joints.end())
-        joints_str[name] = it->second;
-    }
-    tesseract_rosutils::toMsg(msg.initial_state, joints_str);
-  }
+  tesseract_rosutils::toMsg(msg.initial_state,
+                            tesseract_rosutils::toStringJointValues(initial_state.joints, env.getJointNames()));
 
   assert(instruction.isCompositeInstruction());
   const auto& ci = instruction.as<tesseract::command_language::CompositeInstruction>();

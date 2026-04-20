@@ -247,15 +247,9 @@ void TesseractPlanningServer::onMotionPlanningCallback(
 
   // Store the initial state in the response for publishing trajectories
   tesseract::scene_graph::SceneState initial_state = env->getState();
-  // Convert integer-keyed JointValues to string-keyed map for toMsg
-  std::unordered_map<std::string, double> initial_joints_str;
-  for (const auto& name : env->getJointNames())
-  {
-    auto it = initial_state.joints.find(tesseract::common::JointId(name));
-    if (it != initial_state.joints.end())
-      initial_joints_str[name] = it->second;
-  }
-  tesseract_rosutils::toMsg(result->response.initial_state, initial_joints_str);
+  tesseract_rosutils::toMsg(
+      result->response.initial_state,
+      tesseract_rosutils::toStringJointValues(initial_state.joints, env->getJointNames()));
 
   // Create solve data storage
   auto data = std::make_unique<TaskComposerDataStorage>();
@@ -368,7 +362,7 @@ Eigen::Isometry3d TesseractPlanningServer::tfFindTCPOffset(const tesseract::comm
     throw std::runtime_error("tfFindTCPOffset: TCP offset is not a string!");
 
   if (!manip_info.tcp_frame.isValid())
-    throw std::runtime_error("tfFindTCPOffset: TCP offset is empty!");
+    throw std::runtime_error("tfFindTCPOffset: TCP frame is empty!");
 
   const std::string& tcp_frame = manip_info.tcp_frame.name();
   const std::string& tcp_name = std::get<0>(manip_info.tcp_offset).name();

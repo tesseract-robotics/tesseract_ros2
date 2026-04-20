@@ -46,29 +46,12 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_monitoring/current_state_monitor.h>
+#include <tesseract_rosutils/utils.h>
 
 #include <tesseract/common/types.h>
 #include <tesseract/kinematics/joint_group.h>
 #include <tesseract/scene_graph/joint.h>
 #include <tesseract/environment/environment.h>
-
-namespace
-{
-/** @brief Convert integer-keyed JointValues to string-keyed map using the environment's joint names */
-std::unordered_map<std::string, double>
-toStringJointValues(const tesseract::scene_graph::SceneState::JointValues& id_map,
-                    const std::vector<std::string>& joint_names)
-{
-  std::unordered_map<std::string, double> result;
-  for (const auto& name : joint_names)
-  {
-    auto it = id_map.find(tesseract::common::JointId(name));
-    if (it != id_map.end())
-      result[name] = it->second;
-  }
-  return result;
-}
-}  // anonymous namespace
 
 namespace tesseract_monitoring
 {
@@ -114,7 +97,7 @@ std::pair<tesseract::scene_graph::SceneState, rclcpp::Time> CurrentStateMonitor:
 std::unordered_map<std::string, double> CurrentStateMonitor::getCurrentStateValues() const
 {
   std::scoped_lock slock(state_update_lock_);
-  return toStringJointValues(env_state_.joints, env_->getJointNames());
+  return tesseract_rosutils::toStringJointValues(env_state_.joints, env_->getJointNames());
 }
 
 void CurrentStateMonitor::addUpdateCallback(const JointStateUpdateCallback& fn)
@@ -377,7 +360,7 @@ void CurrentStateMonitor::jointStateCallback(const sensor_msgs::msg::JointState:
     }
 
     if (update)
-      env_state_ = env_->getState(toStringJointValues(env_state_.joints, env_->getJointNames()));
+      env_state_ = env_->getState(tesseract_rosutils::toStringJointValues(env_state_.joints, env_->getJointNames()));
   }
 
   // callbacks, if needed

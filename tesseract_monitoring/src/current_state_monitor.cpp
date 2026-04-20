@@ -360,7 +360,7 @@ void CurrentStateMonitor::jointStateCallback(const sensor_msgs::msg::JointState:
           it->second = joint_state->position[i];
           update = true;
         }
-        joint_time_[joint_state->name[i]] = joint_state->header.stamp;
+        joint_time_[jid] = joint_state->header.stamp;
       }
     }
 

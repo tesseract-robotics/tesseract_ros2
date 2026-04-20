@@ -71,26 +71,34 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 const std::string LOGGER_ID{ "tesseract_rosutils_utils" };
 
-namespace
+namespace tesseract_rosutils
 {
 std::unordered_map<std::string, double>
-toStringJointValues(const tesseract::scene_graph::SceneState::JointValues& id_map,
+toStringJointValues(const tesseract::scene_graph::SceneState::JointValues& joints,
                     const std::vector<std::string>& joint_names)
 {
+  const auto ids = tesseract::common::toIds<tesseract::common::JointId>(joint_names);
   std::unordered_map<std::string, double> result;
-  for (const auto& name : joint_names)
+  result.reserve(joint_names.size());
+  for (std::size_t i = 0; i < ids.size(); ++i)
   {
-    auto it = id_map.find(tesseract::common::JointId(name));
-    if (it != id_map.end())
-      result[name] = it->second;
+    auto it = joints.find(ids[i]);
+    if (it != joints.end())
+      result[joint_names[i]] = it->second;
   }
   return result;
 }
 
-}  // anonymous namespace
-
-namespace tesseract_rosutils
+tesseract::scene_graph::SceneState::JointValues
+toIdJointValues(const std::unordered_map<std::string, double>& joints)
 {
+  tesseract::scene_graph::SceneState::JointValues result;
+  result.reserve(joints.size());
+  for (const auto& [name, val] : joints)
+    result[tesseract::common::JointId(name)] = val;
+  return result;
+}
+
 bool isMsgEmpty(const sensor_msgs::msg::JointState& msg)
 {
   return msg.name.empty() && msg.position.empty() && msg.velocity.empty() && msg.effort.empty();
@@ -2121,7 +2129,7 @@ bool fromMsg(tesseract::common::JointIdTransformMap& transform_map,
   for (std::size_t i = 0; i < transform_map_msg.names.size(); ++i)
   {
     Eigen::Isometry3d pose;
-    if (fromMsg(pose, transform_map_msg.transforms.at(i)))
+    if (!fromMsg(pose, transform_map_msg.transforms.at(i)))
       return false;
 
     transform_map[JointId(transform_map_msg.names.at(i))] = pose;

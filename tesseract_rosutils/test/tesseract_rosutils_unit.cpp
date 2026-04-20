@@ -173,6 +173,43 @@ TEST_F(TesseractROSUtilsUnit, toTransformMsgs)  // NOLINT
   EXPECT_TRUE(found_link_6_to_tool0);
 }
 
+TEST_F(TesseractROSUtilsUnit, fromMsgJointIdTransformMap)  // NOLINT
+{
+  using tesseract::common::JointId;
+
+  // Round-trip: populate a JointIdTransformMap, convert to msg, convert back, compare.
+  tesseract::common::JointIdTransformMap original;
+  Eigen::Isometry3d pose_a{ Eigen::Isometry3d::Identity() };
+  pose_a.translation() << 1.0, 2.0, 3.0;
+  Eigen::Isometry3d pose_b{ Eigen::Isometry3d::Identity() };
+  pose_b.translation() << -4.5, 0.25, 7.125;
+  original[JointId("joint_a")] = pose_a;
+  original[JointId("joint_b")] = pose_b;
+
+  tesseract_msgs::msg::TransformMap msg;
+  EXPECT_TRUE(toMsg(msg, original));
+  EXPECT_EQ(msg.names.size(), original.size());
+  EXPECT_EQ(msg.transforms.size(), original.size());
+
+  tesseract::common::JointIdTransformMap round_trip;
+  EXPECT_TRUE(fromMsg(round_trip, msg));
+  ASSERT_EQ(round_trip.size(), original.size());
+  for (const auto& [id, tf] : original)
+  {
+    auto it = round_trip.find(id);
+    ASSERT_NE(it, round_trip.end());
+    EXPECT_TRUE(tf.isApprox(it->second));
+  }
+
+  // Failure: size mismatch between names and transforms must return false without populating the map.
+  tesseract_msgs::msg::TransformMap bad_msg;
+  bad_msg.names = { "joint_a", "joint_b" };
+  bad_msg.transforms.resize(1);
+  tesseract::common::JointIdTransformMap bad_result;
+  EXPECT_FALSE(fromMsg(bad_result, bad_msg));
+  EXPECT_TRUE(bad_result.empty());
+}
+
 TEST_F(TesseractROSUtilsUnit, toFromFile)  // NOLINT
 {
   std_msgs::msg::ColorRGBA msg;

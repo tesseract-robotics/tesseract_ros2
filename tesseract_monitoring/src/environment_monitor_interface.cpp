@@ -305,8 +305,7 @@ ROSEnvironmentMonitorInterface::getEnvironmentState(const std::string& monitor_n
 
     std::unordered_map<std::string, double> joints_str;
     tesseract_rosutils::fromMsg(joints_str, res->joint_states);
-    for (const auto& [name, val] : joints_str)
-      env_state.joints[tesseract::common::JointId(name)] = val;
+    env_state.joints = tesseract_rosutils::toIdJointValues(joints_str);
 
     tesseract_rosutils::fromMsg(env_state.floating_joints, res->floating_joint_states);
 
@@ -352,9 +351,11 @@ bool ROSEnvironmentMonitorInterface::setEnvironmentState(
     const Eigen::Ref<const Eigen::VectorXd>& joint_values,
     const tesseract::common::JointIdTransformMap& floating_joints) const
 {
+  const auto joint_names = tesseract::common::toNames(joint_ids);
   std::unordered_map<std::string, double> joints;
-  for (std::size_t i = 0; i < joint_ids.size(); ++i)
-    joints[joint_ids[i].name()] = joint_values[static_cast<Eigen::Index>(i)];
+  joints.reserve(joint_names.size());
+  for (std::size_t i = 0; i < joint_names.size(); ++i)
+    joints[joint_names[i]] = joint_values[static_cast<Eigen::Index>(i)];
 
   tesseract_msgs::msg::EnvironmentCommand command;
   command.command = tesseract_msgs::msg::EnvironmentCommand::UPDATE_JOINT_STATE;

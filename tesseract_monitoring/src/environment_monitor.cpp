@@ -868,15 +868,8 @@ void ROSEnvironmentMonitor::updateEnvironmentWithCurrentState()
 
     auto env_state = current_state_monitor_->getCurrentState();
 
-    // Convert integer-keyed JointValues to string-keyed map for setState
-    std::unordered_map<std::string, double> joints_str;
-    for (const auto& name : env_->getJointNames())
-    {
-      auto it = env_state.joints.find(tesseract::common::JointId(name));
-      if (it != env_state.joints.end())
-        joints_str[name] = it->second;
-    }
-    env_->setState(joints_str, env_state.floating_joints);
+    env_->setState(tesseract_rosutils::toStringJointValues(env_state.joints, env_->getJointNames()),
+                   env_state.floating_joints);
   }
   else
     RCLCPP_ERROR_THROTTLE(logger_,
@@ -1062,15 +1055,8 @@ void ROSEnvironmentMonitor::getEnvironmentInformationCallback(
 
   if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::JOINT_STATES)  // NOLINT
   {
-    // Convert integer-keyed JointValues to string-keyed for toMsg
-    std::unordered_map<std::string, double> joints_str;
-    for (const auto& name : env_->getJointNames())
-    {
-      auto it = state.joints.find(tesseract::common::JointId(name));
-      if (it != state.joints.end())
-        joints_str[name] = it->second;
-    }
-    if (!tesseract_rosutils::toMsg(res->joint_states, joints_str))
+    if (!tesseract_rosutils::toMsg(res->joint_states,
+                                   tesseract_rosutils::toStringJointValues(state.joints, env_->getJointNames())))
     {
       res->success = false;
       return;

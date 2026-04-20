@@ -309,14 +309,15 @@ ROSEnvironmentMonitorInterface::getEnvironmentState(const std::string& monitor_n
 
     tesseract_rosutils::fromMsg(env_state.floating_joints, res->floating_joint_states);
 
-    if (res->link_transforms.names.size() == res->link_transforms.transforms.size())
+    if (res->link_transforms.names.size() != res->link_transforms.transforms.size())
+      throw std::runtime_error("getEnvironmentState: link_transforms names/transforms size mismatch!");
+
+    for (std::size_t i = 0; i < res->link_transforms.names.size(); ++i)
     {
-      for (std::size_t i = 0; i < res->link_transforms.names.size(); ++i)
-      {
-        Eigen::Isometry3d pose;
-        tesseract_rosutils::fromMsg(pose, res->link_transforms.transforms.at(i));
-        env_state.link_transforms[tesseract::common::LinkId(res->link_transforms.names.at(i))] = pose;
-      }
+      Eigen::Isometry3d pose;
+      if (!tesseract_rosutils::fromMsg(pose, res->link_transforms.transforms.at(i)))
+        throw std::runtime_error("getEnvironmentState: Failed to convert link transform from message!");
+      env_state.link_transforms[tesseract::common::LinkId(res->link_transforms.names.at(i))] = pose;
     }
 
     tesseract_rosutils::fromMsg(env_state.joint_transforms, res->joint_transforms);

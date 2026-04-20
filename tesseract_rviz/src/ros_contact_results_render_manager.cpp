@@ -17,6 +17,8 @@
 #include <boost/uuid/uuid_io.hpp>
 #include <rclcpp/rclcpp.hpp>
 
+#include <algorithm>
+
 static const std::string USER_VISIBILITY = "user_visibility";
 
 namespace tesseract_rviz
@@ -164,12 +166,16 @@ void ROSContactResultsRenderManager::render()
         Ogre::Vector3 p1(cr.nearest_points[0].x(), cr.nearest_points[0].y(), cr.nearest_points[0].z());
         Ogre::Vector3 p2(cr.nearest_points[1].x(), cr.nearest_points[1].y(), cr.nearest_points[1].z());
         Ogre::Vector3 direction = p2 - p1;
-        direction.normalise();
+        const float segment_length = direction.length();
+        if (segment_length > 0.0f)
+          direction /= segment_length;
+        else
+          direction = Ogre::Vector3::UNIT_Z;
 
         float shaft_diameter = 0.0015f;
         float head_diameter = 3 * shaft_diameter;
         float head_length = head_diameter;
-        float shaft_length = cr.distance - head_length;
+        float shaft_length = std::max(0.0f, static_cast<float>(cr.distance) - head_length);
         std::array<float, 4> proportions = { shaft_length, shaft_diameter, head_length, head_diameter };
 
         auto arrow = std::make_unique<ArrowMarker>(

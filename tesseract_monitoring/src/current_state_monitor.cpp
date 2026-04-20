@@ -181,14 +181,17 @@ bool CurrentStateMonitor::haveCompleteState(std::vector<std::string>& missing_jo
   bool result = true;
   std::scoped_lock slock(state_update_lock_);
   for (const auto& name : env_->getJointNames())
-    if (env_state_.joints.count(tesseract::common::JointId(name)) != 0)
-      if (joint_time_.find(name) == joint_time_.end())
-        if (!isPassiveOrMimicDOF(name))
+  {
+    const tesseract::common::JointId id(name);
+    if (env_state_.joints.count(id) != 0)
+      if (joint_time_.find(id) == joint_time_.end())
+        if (!isPassiveOrMimicDOF(id))
         {
           RCLCPP_DEBUG(node_->get_logger(), "Joint variable '%s' has never been updated", name.c_str());
           missing_joints.push_back(name);
           result = false;
         }
+  }
   return result;
 }
 
@@ -200,11 +203,12 @@ bool CurrentStateMonitor::haveCompleteState(const rclcpp::Duration& age) const
   std::scoped_lock slock(state_update_lock_);
   for (const auto& name : env_->getJointNames())
   {
-    if (env_state_.joints.count(tesseract::common::JointId(name)) == 0)
+    const tesseract::common::JointId id(name);
+    if (env_state_.joints.count(id) == 0)
       continue;
-    if (isPassiveOrMimicDOF(name))
+    if (isPassiveOrMimicDOF(id))
       continue;
-    auto it = joint_time_.find(name);
+    auto it = joint_time_.find(id);
     if (it == joint_time_.end())
     {
       RCLCPP_DEBUG(node_->get_logger(), "Joint variable '%s' has never been updated", name.c_str());
@@ -232,11 +236,12 @@ bool CurrentStateMonitor::haveCompleteState(const rclcpp::Duration& age, std::ve
 
   for (const auto& name : env_->getJointNames())
   {
-    if (env_state_.joints.count(tesseract::common::JointId(name)) == 0)
+    const tesseract::common::JointId id(name);
+    if (env_state_.joints.count(id) == 0)
       continue;
-    if (isPassiveOrMimicDOF(name))
+    if (isPassiveOrMimicDOF(id))
       continue;
-    auto it = joint_time_.find(name);
+    auto it = joint_time_.find(id);
     if (it == joint_time_.end())
     {
       RCLCPP_DEBUG(node_->get_logger(), "Joint variable '%s' has never been updated", name.c_str());

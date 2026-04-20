@@ -2126,15 +2126,18 @@ bool fromMsg(tesseract::common::JointIdTransformMap& transform_map,
   if (transform_map_msg.names.size() != transform_map_msg.transforms.size())
     return false;
 
+  tesseract::common::JointIdTransformMap result;
+  result.reserve(transform_map_msg.names.size());
   for (std::size_t i = 0; i < transform_map_msg.names.size(); ++i)
   {
     Eigen::Isometry3d pose;
     if (!fromMsg(pose, transform_map_msg.transforms.at(i)))
       return false;
 
-    transform_map[JointId(transform_map_msg.names.at(i))] = pose;
+    result[JointId(transform_map_msg.names.at(i))] = pose;
   }
 
+  transform_map = std::move(result);
   return true;
 }
 

@@ -136,7 +136,7 @@ void ContactMonitor::computeCollisionReportThread()
       if (env_revision_ != monitor_->environment().getRevision())
       {
         // Create a new manager
-        std::vector<std::string> active;
+        std::unordered_set<tesseract::common::LinkId> active;
         tesseract::collision::CollisionMarginData contact_margin_data;
         tesseract::common::ContactAllowedValidator::ConstPtr fn;
 
@@ -144,7 +144,7 @@ void ContactMonitor::computeCollisionReportThread()
           auto lock_read = monitor_->environment().lockRead();
 
           env_revision_ = monitor_->environment().getRevision();
-          active = manager_->getActiveCollisionObjectNames();
+          active = manager_->getActiveCollisionObjectIds();
           contact_margin_data = manager_->getCollisionMarginData();
           fn = manager_->getContactAllowedValidator();
           manager_ = monitor_->environment().getDiscreteContactManager();
@@ -239,13 +239,13 @@ void ContactMonitor::callbackModifyTesseractEnv(
   response->revision = static_cast<unsigned long>(monitor_->environment().getRevision());
 
   // Create a new manager
-  std::vector<std::string> active;
+  std::unordered_set<tesseract::common::LinkId> active;
   tesseract::collision::CollisionMarginData contact_margin_data;
   tesseract::common::ContactAllowedValidator::ConstPtr fn;
 
   {
     auto lock_read = monitor_->environment().lockRead();
-    active = manager_->getActiveCollisionObjectNames();
+    active = manager_->getActiveCollisionObjectIds();
     contact_margin_data = manager_->getCollisionMarginData();
     fn = manager_->getContactAllowedValidator();
     manager_ = monitor_->environment().getDiscreteContactManager();

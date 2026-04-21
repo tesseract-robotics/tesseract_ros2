@@ -89,8 +89,7 @@ toStringJointValues(const tesseract::scene_graph::SceneState::JointValues& joint
   return result;
 }
 
-tesseract::scene_graph::SceneState::JointValues
-toIdJointValues(const std::unordered_map<std::string, double>& joints)
+tesseract::scene_graph::SceneState::JointValues toIdJointValues(const std::unordered_map<std::string, double>& joints)
 {
   tesseract::scene_graph::SceneState::JointValues result;
   result.reserve(joints.size());
@@ -2363,7 +2362,8 @@ trajectory_msgs::msg::JointTrajectory toMsg(const tesseract::common::JointTrajec
       }
     }
   }
-  Eigen::VectorXd initial_points = initial_state.getJointValues(joint_names);
+  Eigen::VectorXd initial_points =
+      initial_state.getJointValues(tesseract::common::toIds<tesseract::common::JointId>(joint_names));
   last_point.positions = std::vector<double>(initial_points.data(),
                                              initial_points.data() + (initial_points.rows() * initial_points.cols()));
   result.joint_names = joint_names;

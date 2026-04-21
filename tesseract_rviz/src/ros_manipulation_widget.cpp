@@ -21,7 +21,7 @@ struct ROSManipulationWidgetPrivate
 {
   ROSManipulationWidgetPrivate()
     : entity_managers(
-          { std::make_shared<tesseract::gui::EntityManager>(), std::make_shared<tesseract::gui::EntityManager>() }){};
+          { std::make_shared<tesseract::gui::EntityManager>(), std::make_shared<tesseract::gui::EntityManager>() }) {};
 
   rviz_common::DisplayContext* context;
   Ogre::SceneNode* scene_node;
@@ -467,10 +467,10 @@ void ROSManipulationWidget::onRender(float dt)
         if (!data_->render_group.isEmpty())
         {
           auto jg = environment().getJointGroup(data_->render_group.toStdString());
-          std::vector<std::string> link_names = jg->getActiveLinkNames();
-          for (const auto& link_name : link_names)
+          std::vector<tesseract::common::LinkId> link_ids = jg->getActiveLinkIds();
+          for (const auto& link_id : link_ids)
           {
-            auto link = environment().getLink(link_name);
+            auto link = environment().getLink(link_id);
             auto entity_container = entity_manager->getEntityContainer(link->getName());
             Ogre::SceneNode* sn = loadLink(*data_->context->getSceneManager(),
                                            *entity_container,

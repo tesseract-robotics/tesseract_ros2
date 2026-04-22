@@ -409,8 +409,7 @@ toStringJointValues(const tesseract::scene_graph::SceneState::JointValues& joint
 /**
  * @brief Convert a string-keyed joint map to id-keyed SceneState::JointValues
  */
-tesseract::scene_graph::SceneState::JointValues
-toIdJointValues(const std::unordered_map<std::string, double>& joints);
+tesseract::scene_graph::SceneState::JointValues toIdJointValues(const std::unordered_map<std::string, double>& joints);
 
 /**
  * @brief This will populate a joint states map message

@@ -315,7 +315,12 @@ void EnvironmentMonitorProperties::snapshotCallback(const tesseract_msgs::msg::E
     auto msg_copy = msg;
     QPointer<EnvironmentMonitorProperties> guard(this);
     QMetaObject::invokeMethod(
-        this, [guard, msg_copy]() { if (guard) guard->snapshotCallback(msg_copy); }, Qt::QueuedConnection);
+        this,
+        [guard, msg_copy]() {
+          if (guard)
+            guard->snapshotCallback(msg_copy);
+        },
+        Qt::QueuedConnection);
     return;
   }
 

@@ -34,6 +34,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract/common/contact_allowed_validator.h>
+#include <tesseract/common/types.h>
 #include <tesseract_rosutils/utils.h>
 #include <tesseract_rosutils/plotting.h>
 #include <tesseract_monitoring/constants.h>
@@ -135,7 +136,7 @@ void ContactMonitor::computeCollisionReportThread()
       if (env_revision_ != monitor_->environment().getRevision())
       {
         // Create a new manager
-        std::vector<std::string> active;
+        std::unordered_set<tesseract::common::LinkId> active;
         tesseract::collision::CollisionMarginData contact_margin_data;
         tesseract::common::ContactAllowedValidator::ConstPtr fn;
 
@@ -143,7 +144,7 @@ void ContactMonitor::computeCollisionReportThread()
           auto lock_read = monitor_->environment().lockRead();
 
           env_revision_ = monitor_->environment().getRevision();
-          active = manager_->getActiveCollisionObjects();
+          active = manager_->getActiveCollisionObjectIds();
           contact_margin_data = manager_->getCollisionMarginData();
           fn = manager_->getContactAllowedValidator();
           manager_ = monitor_->environment().getDiscreteContactManager();
@@ -238,13 +239,13 @@ void ContactMonitor::callbackModifyTesseractEnv(
   response->revision = static_cast<unsigned long>(monitor_->environment().getRevision());
 
   // Create a new manager
-  std::vector<std::string> active;
+  std::unordered_set<tesseract::common::LinkId> active;
   tesseract::collision::CollisionMarginData contact_margin_data;
   tesseract::common::ContactAllowedValidator::ConstPtr fn;
 
   {
     auto lock_read = monitor_->environment().lockRead();
-    active = manager_->getActiveCollisionObjects();
+    active = manager_->getActiveCollisionObjectIds();
     contact_margin_data = manager_->getCollisionMarginData();
     fn = manager_->getContactAllowedValidator();
     manager_ = monitor_->environment().getDiscreteContactManager();

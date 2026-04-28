@@ -22,6 +22,7 @@
 #include <QApplication>
 #include <QLayout>
 #include <QDebug>
+#include <QThread>
 
 namespace tesseract_rviz
 {
@@ -117,9 +118,10 @@ void WorkbenchDisplay::update(float wall_dt, float ros_dt)
 {
   Display::update(wall_dt, ros_dt);
 
-  if (data_->widget != nullptr)
+  if (data_->widget != nullptr && QThread::currentThread() == qApp->thread())
   {
-    tesseract::gui::events::PreRender event(data_->widget->getComponentInfo()->getSceneName());
+    const auto scene_name = data_->widget->getComponentInfo()->getSceneName();
+    tesseract::gui::events::PreRender event(scene_name);
     QApplication::sendEvent(qApp, &event);
   }
 }

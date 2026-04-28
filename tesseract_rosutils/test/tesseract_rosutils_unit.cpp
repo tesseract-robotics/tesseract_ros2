@@ -68,8 +68,8 @@ TEST_F(TesseractROSUtilsUnit, processEnvironmentStateMsg)  // NOLINT
 
   Joint joint_1(joint_name1);
   joint_1.parent_to_joint_origin_transform.translation()(0) = 1.25;
-  joint_1.parent_link_name = "base_link";
-  joint_1.child_link_name = link_name1;
+  joint_1.parent_link_id = "base_link";
+  joint_1.child_link_id = link_name1;
   joint_1.type = JointType::FIXED;
   auto cmd = std::make_shared<AddLinkCommand>(link_1, joint_1);
 
@@ -173,6 +173,43 @@ TEST_F(TesseractROSUtilsUnit, toTransformMsgs)  // NOLINT
   EXPECT_TRUE(found_link_6_to_tool0);
 }
 
+TEST_F(TesseractROSUtilsUnit, fromMsgJointIdTransformMap)  // NOLINT
+{
+  using tesseract::common::JointId;
+
+  // Round-trip: populate a JointIdTransformMap, convert to msg, convert back, compare.
+  tesseract::common::JointIdTransformMap original;
+  Eigen::Isometry3d pose_a{ Eigen::Isometry3d::Identity() };
+  pose_a.translation() << 1.0, 2.0, 3.0;
+  Eigen::Isometry3d pose_b{ Eigen::Isometry3d::Identity() };
+  pose_b.translation() << -4.5, 0.25, 7.125;
+  original[JointId("joint_a")] = pose_a;
+  original[JointId("joint_b")] = pose_b;
+
+  tesseract_msgs::msg::TransformMap msg;
+  EXPECT_TRUE(toMsg(msg, original));
+  EXPECT_EQ(msg.names.size(), original.size());
+  EXPECT_EQ(msg.transforms.size(), original.size());
+
+  tesseract::common::JointIdTransformMap round_trip;
+  EXPECT_TRUE(fromMsg(round_trip, msg));
+  ASSERT_EQ(round_trip.size(), original.size());
+  for (const auto& [id, tf] : original)
+  {
+    auto it = round_trip.find(id);
+    ASSERT_NE(it, round_trip.end());
+    EXPECT_TRUE(tf.isApprox(it->second));
+  }
+
+  // Failure: size mismatch between names and transforms must return false without populating the map.
+  tesseract_msgs::msg::TransformMap bad_msg;
+  bad_msg.names = { "joint_a", "joint_b" };
+  bad_msg.transforms.resize(1);
+  tesseract::common::JointIdTransformMap bad_result;
+  EXPECT_FALSE(fromMsg(bad_result, bad_msg));
+  EXPECT_TRUE(bad_result.empty());
+}
+
 TEST_F(TesseractROSUtilsUnit, toFromFile)  // NOLINT
 {
   std_msgs::msg::ColorRGBA msg;
@@ -196,18 +233,20 @@ TEST_F(TesseractROSUtilsUnit, KinematicsInformation)  // NOLINT
   tesseract::srdf::KinematicsInformation kin_info;
   kin_info.group_names = { "manipulator1", "manipulator2", "manipulator3" };
   kin_info.chain_groups["manipulator1"] = { std::make_pair("base_link", "tip_link") };
-  kin_info.joint_groups["manipulator2"] = { "joint_1", "joint_2", "joint_3" };
-  kin_info.link_groups["manipulator3"] = { "base_link", "link_1", "link_2" };
+  using tesseract::common::JointId;
+  using tesseract::common::LinkId;
+  kin_info.joint_groups["manipulator2"] = { JointId("joint_1"), "joint_2", "joint_3" };
+  kin_info.link_groups["manipulator3"] = { LinkId("base_link"), "link_1", "link_2" };
   tesseract::srdf::GroupsJointState js;
-  js["joint_0"] = 1.1;
-  js["joint_1"] = 2.1;
+  js[JointId("joint_0")] = 1.1;
+  js[JointId("joint_1")] = 2.1;
   tesseract::srdf::GroupsJointStates jss;
   jss["home"] = js;
   kin_info.group_states["manipulator1"] = jss;
 
   tesseract::srdf::GroupsTCPs gts;
   Eigen::Isometry3d p = Eigen::Isometry3d::Identity();
-  gts["sander"] = p;
+  gts[LinkId("sander")] = p;
   kin_info.group_tcps["manipulator1"] = gts;
 
   kin_info.kinematics_plugin_info.search_paths.emplace_back("/usr/local/lib");
@@ -383,10 +422,10 @@ TEST_F(TesseractROSUtilsUnit, toRosJointTrajectory)  // NOLINT
   ros_joint_trajectory.joint_names = joint_names;
 
   tesseract::scene_graph::SceneState env_state;
-  env_state.joints[joint_names[0]] = 0;
-  env_state.joints[joint_names[1]] = 0;
-  env_state.joints[joint_names[2]] = 1;
-  env_state.joints[joint_names[3]] = 1;
+  env_state.joints[tesseract::common::JointId(joint_names[0])] = 0;
+  env_state.joints[tesseract::common::JointId(joint_names[1])] = 0;
+  env_state.joints[tesseract::common::JointId(joint_names[2])] = 1;
+  env_state.joints[tesseract::common::JointId(joint_names[3])] = 1;
 
   // point 1
   ros_joint_state.positions = std::vector<double>{ 40, 40, 2, 1 };
@@ -394,7 +433,7 @@ TEST_F(TesseractROSUtilsUnit, toRosJointTrajectory)  // NOLINT
   ros_joint_state.accelerations = std::vector<double>{ 0, 0, 0, 0 };
   ros_joint_state.effort = std::vector<double>{ 0, 0, 0, 0 };
 
-  tesseract_joint_state.joint_names = std::vector<std::string>{ "joint1", "joint2", "joint3" };
+  tesseract_joint_state.joint_ids = { tesseract::common::JointId("joint1"), "joint2", "joint3" };
   tesseract_joint_state.position.resize(3);
   tesseract_joint_state.position << 40, 40, 2;
   ros_joint_trajectory.points.push_back(ros_joint_state);
@@ -406,7 +445,7 @@ TEST_F(TesseractROSUtilsUnit, toRosJointTrajectory)  // NOLINT
   ros_joint_state.accelerations = std::vector<double>{ 0, 1, 0, 1 };
   ros_joint_state.effort = std::vector<double>{ 0, 1, 0, 1 };
 
-  tesseract_joint_state.joint_names = std::vector<std::string>{ "joint2", "joint4" };
+  tesseract_joint_state.joint_ids = { tesseract::common::JointId("joint2"), "joint4" };
   tesseract_joint_state.position.resize(2);
   tesseract_joint_state.position << 10, 40.1;
   tesseract_joint_state.velocity.resize(2);

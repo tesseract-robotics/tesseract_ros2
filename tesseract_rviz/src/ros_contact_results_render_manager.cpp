@@ -17,6 +17,8 @@
 #include <boost/uuid/uuid_io.hpp>
 #include <rclcpp/rclcpp.hpp>
 
+#include <algorithm>
+
 static const std::string USER_VISIBILITY = "user_visibility";
 
 namespace tesseract_rviz
@@ -155,6 +157,37 @@ void ROSContactResultsRenderManager::render()
       data_->clear(*entity_manager);
 
       auto contacts = e.getContactResults();
+
+      int cnt = 0;
+      auto add_arrow = [&cnt, this](const tesseract::collision::ContactResult& cr,
+                                    const boost::uuids::uuid& uuid,
+                                    tesseract::gui::EntityContainer& ec,
+                                    Ogre::SceneNode* scene_node) {
+        Ogre::Vector3 p1(cr.nearest_points[0].x(), cr.nearest_points[0].y(), cr.nearest_points[0].z());
+        Ogre::Vector3 p2(cr.nearest_points[1].x(), cr.nearest_points[1].y(), cr.nearest_points[1].z());
+        Ogre::Vector3 direction = p2 - p1;
+        const float segment_length = direction.length();
+        if (segment_length > 0.0f)
+          direction /= segment_length;
+        else
+          direction = Ogre::Vector3::UNIT_Z;
+
+        float shaft_diameter = 0.0015f;
+        float head_diameter = 3 * shaft_diameter;
+        float head_length = head_diameter;
+        float shaft_length = std::max(0.0f, static_cast<float>(cr.distance) - head_length);
+        std::array<float, 4> proportions = { shaft_length, shaft_diameter, head_length, head_diameter };
+
+        auto arrow = std::make_unique<ArrowMarker>(
+            "ContactResults", cnt++, p1, direction, proportions, data_->scene_manager, scene_node);
+        arrow->setColor(Ogre::ColourValue(1, 0, 0));
+        arrow->setVisible(false);
+        arrow->getUserObjectBindings().setUserAny(USER_VISIBILITY, Ogre::Any(true));
+
+        ec.addTrackedUnmanagedObject(
+            tesseract::gui::EntityContainer::VISUAL_NS, boost::uuids::to_string(uuid), std::move(arrow));
+      };
+
       if (contacts.index() == 0)
       {
         const tesseract::gui::ContactResultVector& crv = std::get<tesseract::gui::ContactResultVector>(contacts);
@@ -166,37 +199,13 @@ void ROSContactResultsRenderManager::render()
         scene_node->getUserObjectBindings().setUserAny(USER_VISIBILITY, Ogre::Any(false));
         data_->scene_node->addChild(scene_node);
 
-        int cnt = 0;
         for (const auto& crt : crv())
-        {
-          const auto& cr = crt();
-          Ogre::Vector3 p1(cr.nearest_points[0].x(), cr.nearest_points[0].y(), cr.nearest_points[0].z());
-          Ogre::Vector3 p2(cr.nearest_points[1].x(), cr.nearest_points[1].y(), cr.nearest_points[1].z());
-          Ogre::Vector3 direction = p2 - p1;
-          direction.normalise();
-
-          float head_length = 0.015;
-          float shaft_diameter = 0.01;
-          float head_diameter = 0.015;
-          float shaft_length = cr.distance - head_length;
-          std::array<float, 4> proportions = { shaft_length, shaft_diameter, head_length, head_diameter };
-
-          auto arrow = std::make_unique<ArrowMarker>(
-              "ContactResults", cnt++, p1, direction, proportions, data_->scene_manager, scene_node);
-          arrow->setColor(Ogre::ColourValue(1, 0, 0));
-          arrow->setVisible(false);
-          arrow->getUserObjectBindings().setUserAny(USER_VISIBILITY, Ogre::Any(true));
-
-          const std::string arrow_key_name = boost::uuids::to_string(crt.getUUID());
-          entity_container->addTrackedUnmanagedObject(
-              tesseract::gui::EntityContainer::VISUAL_NS, arrow_key_name, std::move(arrow));
-        }
+          add_arrow(crt(), crt.getUUID(), *entity_container, scene_node);
       }
       else
       {
         const tesseract::gui::ContactResultMap& crm = std::get<tesseract::gui::ContactResultMap>(contacts);
 
-        int cnt = 0;
         for (const auto& pair : crm)
         {
           const std::string parent_key = boost::uuids::to_string(pair.second.getUUID());
@@ -208,29 +217,7 @@ void ROSContactResultsRenderManager::render()
           data_->scene_node->addChild(scene_node);
 
           for (const auto& crt : pair.second())
-          {
-            const auto& cr = crt();
-            Ogre::Vector3 p1(cr.nearest_points[0].x(), cr.nearest_points[0].y(), cr.nearest_points[0].z());
-            Ogre::Vector3 p2(cr.nearest_points[1].x(), cr.nearest_points[1].y(), cr.nearest_points[1].z());
-            Ogre::Vector3 direction = p2 - p1;
-            direction.normalise();
-
-            float head_length = 0.015;
-            float shaft_diameter = 0.01;
-            float head_diameter = 0.015;
-            float shaft_length = cr.distance - head_length;
-            std::array<float, 4> proportions = { shaft_length, shaft_diameter, head_length, head_diameter };
-
-            auto arrow = std::make_unique<ArrowMarker>(
-                "ContactResults", cnt++, p1, direction, proportions, data_->scene_manager, scene_node);
-            arrow->setColor(Ogre::ColourValue(1, 0, 0));
-            arrow->setVisible(false);
-            arrow->getUserObjectBindings().setUserAny(USER_VISIBILITY, Ogre::Any(true));
-
-            const std::string arrow_key_name = boost::uuids::to_string(crt.getUUID());
-            entity_container->addTrackedUnmanagedObject(
-                tesseract::gui::EntityContainer::VISUAL_NS, arrow_key_name, std::move(arrow));
-          }
+            add_arrow(crt(), crt.getUUID(), *entity_container, scene_node);
         }
       }
     }

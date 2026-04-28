@@ -24,6 +24,10 @@
 
 #include <unordered_map>
 
+#include <QMetaObject>
+#include <QPointer>
+#include <QThread>
+
 #include <tesseract/common/resource_locator.h>
 #include <tesseract/environment/environment.h>
 #include <tesseract/environment/command.h>
@@ -304,6 +308,22 @@ void EnvironmentMonitorProperties::onEnvironmentTopicChanged()
 
 void EnvironmentMonitorProperties::snapshotCallback(const tesseract_msgs::msg::Environment::SharedPtr msg)
 {
+  // This callback runs on a ROS executor thread. Marshal to this QObject's thread before doing
+  // any Qt/GUI-related work (including emitting signals connected to GUI components).
+  if (QThread::currentThread() != thread())
+  {
+    auto msg_copy = msg;
+    QPointer<EnvironmentMonitorProperties> guard(this);
+    QMetaObject::invokeMethod(
+        this,
+        [guard, msg_copy]() {
+          if (guard)
+            guard->snapshotCallback(msg_copy);
+        },
+        Qt::QueuedConnection);
+    return;
+  }
+
   if (data_->scene_manager == nullptr || data_->scene_node == nullptr)
     return;
 
@@ -311,7 +331,7 @@ void EnvironmentMonitorProperties::snapshotCallback(const tesseract_msgs::msg::E
 
   tesseract::environment::Commands commands = tesseract_rosutils::fromMsg(msg->command_history);
   std::unordered_map<std::string, double> jv;
-  tesseract::common::TransformMap fjv;
+  tesseract::common::JointIdTransformMap fjv;
   tesseract_rosutils::fromMsg(jv, msg->joint_states);
   tesseract_rosutils::fromMsg(fjv, msg->floating_joint_states);
   auto env = std::make_shared<tesseract::environment::Environment>();

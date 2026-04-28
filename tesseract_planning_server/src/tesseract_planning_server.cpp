@@ -55,6 +55,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <tesseract/task_composer/planning/profiles/min_length_profile.h>
 #include <tesseract/time_parameterization/isp/iterative_spline_parameterization_profiles.h>
 
+#include <tesseract/common/types.h>
 #include <tesseract/environment/environment.h>
 #include <tesseract/environment/environment_cache.h>
 
@@ -237,15 +238,17 @@ void TesseractPlanningServer::onMotionPlanningCallback(
 
   tesseract::environment::Environment::Ptr env = environment_cache_->getCachedEnvironment();
 
-  tesseract::scene_graph::SceneState env_state;
-  tesseract_rosutils::fromMsg(env_state.joints, goal->request.environment_state.joint_state);
+  // fromMsg produces string-keyed map; setState also expects string-keyed
+  std::unordered_map<std::string, double> joints_str;
+  tesseract_rosutils::fromMsg(joints_str, goal->request.environment_state.joint_state);
 
   env->applyCommands(tesseract_rosutils::fromMsg(goal->request.commands));
-  env->setState(env_state.joints);
+  env->setState(joints_str);
 
   // Store the initial state in the response for publishing trajectories
   tesseract::scene_graph::SceneState initial_state = env->getState();
-  tesseract_rosutils::toMsg(result->response.initial_state, initial_state.joints);
+  tesseract_rosutils::toMsg(result->response.initial_state,
+                            tesseract_rosutils::toStringJointValues(initial_state.joints, env->getJointNames()));
 
   // Create solve data storage
   auto data = std::make_unique<TaskComposerDataStorage>();
@@ -357,11 +360,11 @@ Eigen::Isometry3d TesseractPlanningServer::tfFindTCPOffset(const tesseract::comm
   if (manip_info.tcp_offset.index() == 1)
     throw std::runtime_error("tfFindTCPOffset: TCP offset is not a string!");
 
-  if (manip_info.tcp_frame.empty())
-    throw std::runtime_error("tfFindTCPOffset: TCP offset is empty!");
+  if (!manip_info.tcp_frame.isValid())
+    throw std::runtime_error("tfFindTCPOffset: TCP frame is empty!");
 
-  const std::string& tcp_frame = manip_info.tcp_frame;
-  const std::string& tcp_name = std::get<0>(manip_info.tcp_offset);
+  const std::string& tcp_frame = manip_info.tcp_frame.name();
+  const std::string& tcp_name = std::get<0>(manip_info.tcp_offset).name();
 
   auto tcp_msg = tf_buffer_->lookupTransform(tcp_frame, tcp_name, tf2::TimePointZero);
   return tf2::transformToEigen(tcp_msg.transform);

@@ -185,13 +185,13 @@ public:
 
 private:
   void jointStateCallback(const sensor_msgs::msg::JointState::ConstSharedPtr joint_state);  // NOLINT
-  bool isPassiveOrMimicDOF(const std::string& dof) const;
+  bool isPassiveOrMimicDOF(const tesseract::common::JointId& dof) const;
 
   rclcpp::Node::SharedPtr node_;
   std::shared_ptr<const tesseract::environment::Environment> env_;
   tesseract::scene_graph::SceneState env_state_;
   int last_environment_revision_;
-  std::map<std::string, rclcpp::Time> joint_time_;
+  std::map<tesseract::common::JointId, rclcpp::Time> joint_time_;
   bool state_monitor_started_;
   bool copy_dynamics_;  // Copy velocity and effort from joint_state
   rclcpp::Time monitor_start_time_;

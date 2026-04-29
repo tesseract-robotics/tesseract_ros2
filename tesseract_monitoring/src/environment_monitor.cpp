@@ -45,11 +45,13 @@ BOOST_BIND_NO_PLACEHOLDERS
 #endif
 
 #include <tesseract/common/resource_locator.h>
+#include <tesseract/common/types.h>
 
 #include <tesseract/scene_graph/graph.h>
 
 #include <tesseract/environment/environment.h>
 #include <tesseract/environment/events.h>
+#include <tesseract/state_solver/state_solver.h>
 #include <tesseract/environment/command.h>
 #include <tesseract/environment/commands.h>
 
@@ -865,7 +867,9 @@ void ROSEnvironmentMonitor::updateEnvironmentWithCurrentState()
     RCLCPP_DEBUG_STREAM(logger_, "robot state update " << fmod(last_robot_motion_time_.seconds(), 10.));
 
     auto env_state = current_state_monitor_->getCurrentState();
-    env_->setState(env_state.joints, env_state.floating_joints);
+
+    env_->setState(tesseract_rosutils::toStringJointValues(env_state.joints, env_->getJointNames()),
+                   env_state.floating_joints);
   }
   else
     RCLCPP_ERROR_THROTTLE(logger_,
@@ -1003,23 +1007,31 @@ void ROSEnvironmentMonitor::getEnvironmentInformationCallback(
   tesseract::scene_graph::SceneState state = env_->getState();
   if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::LINK_TRANSFORMS)  // NOLINT
   {
-    for (const auto& link_pair : state.link_transforms)
+    for (const auto& id : env_->getLinkIds())
     {
-      res->link_transforms.names.push_back(link_pair.first);
-      geometry_msgs::msg::Pose pose;
-      tesseract_rosutils::toMsg(pose, link_pair.second);
-      res->link_transforms.transforms.push_back(pose);
+      auto it = state.link_transforms.find(id);
+      if (it != state.link_transforms.end())
+      {
+        res->link_transforms.names.push_back(id.name());
+        geometry_msgs::msg::Pose pose;
+        tesseract_rosutils::toMsg(pose, it->second);
+        res->link_transforms.transforms.push_back(pose);
+      }
     }
   }
 
   if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::JOINT_TRANSFORMS)  // NOLINT
   {
-    for (const auto& joint_pair : state.joint_transforms)
+    for (const auto& id : env_->getJointIds())
     {
-      res->joint_transforms.names.push_back(joint_pair.first);
-      geometry_msgs::msg::Pose pose;
-      tesseract_rosutils::toMsg(pose, joint_pair.second);
-      res->joint_transforms.transforms.push_back(pose);
+      auto it = state.joint_transforms.find(id);
+      if (it != state.joint_transforms.end())
+      {
+        res->joint_transforms.names.push_back(id.name());
+        geometry_msgs::msg::Pose pose;
+        tesseract_rosutils::toMsg(pose, it->second);
+        res->joint_transforms.transforms.push_back(pose);
+      }
     }
   }
 
@@ -1043,7 +1055,8 @@ void ROSEnvironmentMonitor::getEnvironmentInformationCallback(
 
   if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::JOINT_STATES)  // NOLINT
   {
-    if (!tesseract_rosutils::toMsg(res->joint_states, state.joints))
+    if (!tesseract_rosutils::toMsg(res->joint_states,
+                                   tesseract_rosutils::toStringJointValues(state.joints, env_->getJointNames())))
     {
       res->success = false;
       return;

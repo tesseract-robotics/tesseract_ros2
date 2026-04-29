@@ -759,7 +759,7 @@ bool toMsg(tesseract_msgs::msg::Link& link_msg, const tesseract::scene_graph::Li
 
 tesseract::scene_graph::Link fromMsg(const tesseract_msgs::msg::Link& link_msg)
 {
-  tesseract::scene_graph::Link link(link_msg.name);
+  tesseract::scene_graph::Link link(tesseract::common::LinkId(link_msg.name));
 
   fromMsg(link.inertial, link_msg.inertial);
 
@@ -1005,7 +1005,7 @@ bool toMsg(tesseract_msgs::msg::Joint& joint_msg, const tesseract::scene_graph::
 
 tesseract::scene_graph::Joint fromMsg(const tesseract_msgs::msg::Joint& joint_msg)
 {
-  tesseract::scene_graph::Joint joint(joint_msg.name);
+  tesseract::scene_graph::Joint joint(tesseract::common::JointId(joint_msg.name));
 
   joint.type = static_cast<tesseract::scene_graph::JointType>(joint_msg.type);
 
@@ -1161,10 +1161,10 @@ void toMsg(tesseract_msgs::msg::SceneGraph& scene_graph_msg, const tesseract::sc
     tesseract_msgs::msg::Link link_msg;
     toMsg(link_msg, *link);
     scene_graph_msg.links.push_back(link_msg);
-    if (!scene_graph.getLinkVisibility(link->getName()))
+    if (!scene_graph.getLinkVisibility(link->getId()))
       scene_graph_msg.invisible_links.push_back(link->getName());
 
-    if (!scene_graph.getLinkCollisionEnabled(link->getName()))
+    if (!scene_graph.getLinkCollisionEnabled(link->getId()))
       scene_graph_msg.disabled_collision_links.push_back(link->getName());
   }
 
@@ -1188,16 +1188,17 @@ tesseract::scene_graph::SceneGraph fromMsg(const tesseract_msgs::msg::SceneGraph
   for (const auto& joint_msg : scene_graph_msg.joints)
     g.addJoint(fromMsg(joint_msg));
 
-  g.setRoot(scene_graph_msg.root);
+  g.setRoot(tesseract::common::LinkId(scene_graph_msg.root));
 
   for (const auto& link_name : scene_graph_msg.invisible_links)
-    g.setLinkVisibility(link_name, false);
+    g.setLinkVisibility(tesseract::common::LinkId(link_name), false);
 
   for (const auto& link_name : scene_graph_msg.disabled_collision_links)
-    g.setLinkCollisionEnabled(link_name, false);
+    g.setLinkCollisionEnabled(tesseract::common::LinkId(link_name), false);
 
   for (const auto& entry : scene_graph_msg.acm)
-    g.getAllowedCollisionMatrix()->addAllowedCollision(entry.link_1, entry.link_2, entry.reason);
+    g.getAllowedCollisionMatrix()->addAllowedCollision(
+        tesseract::common::LinkId(entry.link_1), tesseract::common::LinkId(entry.link_2), entry.reason);
 
   return g;
 }
@@ -1229,22 +1230,22 @@ bool toMsg(tesseract_msgs::msg::EnvironmentCommand& command_msg, const tesseract
     {
       command_msg.command = tesseract_msgs::msg::EnvironmentCommand::MOVE_JOINT;
       const auto& cmd = static_cast<const tesseract::environment::MoveJointCommand&>(command);
-      command_msg.move_joint_name = cmd.getJointName();
-      command_msg.move_joint_parent_link = cmd.getParentLink();
+      command_msg.move_joint_name = cmd.getJointId().name();
+      command_msg.move_joint_parent_link = cmd.getParentLink().name();
       return true;
     }
     case tesseract::environment::CommandType::REMOVE_LINK:
     {
       command_msg.command = tesseract_msgs::msg::EnvironmentCommand::REMOVE_LINK;
       const auto& cmd = static_cast<const tesseract::environment::RemoveLinkCommand&>(command);
-      command_msg.remove_link = cmd.getLinkName();
+      command_msg.remove_link = cmd.getLinkId().name();
       return true;
     }
     case tesseract::environment::CommandType::REMOVE_JOINT:
     {
       command_msg.command = tesseract_msgs::msg::EnvironmentCommand::REMOVE_JOINT;
       const auto& cmd = static_cast<const tesseract::environment::RemoveJointCommand&>(command);
-      command_msg.remove_joint = cmd.getJointName();
+      command_msg.remove_joint = cmd.getJointId().name();
       return true;
     }
     case tesseract::environment::CommandType::REPLACE_JOINT:
@@ -1263,7 +1264,7 @@ bool toMsg(tesseract_msgs::msg::EnvironmentCommand& command_msg, const tesseract
     {
       command_msg.command = tesseract_msgs::msg::EnvironmentCommand::CHANGE_JOINT_ORIGIN;
       const auto& cmd = static_cast<const tesseract::environment::ChangeJointOriginCommand&>(command);
-      command_msg.change_joint_origin_name = cmd.getJointName();
+      command_msg.change_joint_origin_name = cmd.getJointId().name();
       command_msg.change_joint_origin_pose = Eigen::toMsg(cmd.getOrigin());
       return true;
     }
@@ -1271,7 +1272,7 @@ bool toMsg(tesseract_msgs::msg::EnvironmentCommand& command_msg, const tesseract
     {
       command_msg.command = tesseract_msgs::msg::EnvironmentCommand::CHANGE_LINK_COLLISION_ENABLED;
       const auto& cmd = static_cast<const tesseract::environment::ChangeLinkCollisionEnabledCommand&>(command);
-      command_msg.change_link_collision_enabled_name = cmd.getLinkName();
+      command_msg.change_link_collision_enabled_name = cmd.getLinkId().name();
       command_msg.change_link_collision_enabled_value = cmd.getEnabled();
       return true;
     }
@@ -1279,7 +1280,7 @@ bool toMsg(tesseract_msgs::msg::EnvironmentCommand& command_msg, const tesseract
     {
       command_msg.command = tesseract_msgs::msg::EnvironmentCommand::CHANGE_LINK_VISIBILITY;
       const auto& cmd = static_cast<const tesseract::environment::ChangeLinkVisibilityCommand&>(command);
-      command_msg.change_link_visibility_name = cmd.getLinkName();
+      command_msg.change_link_visibility_name = cmd.getLinkId().name();
       command_msg.change_link_visibility_value = cmd.getEnabled();
       return true;
     }
@@ -1295,7 +1296,7 @@ bool toMsg(tesseract_msgs::msg::EnvironmentCommand& command_msg, const tesseract
     {
       command_msg.command = tesseract_msgs::msg::EnvironmentCommand::REMOVE_ALLOWED_COLLISION_LINK;
       const auto& cmd = static_cast<const tesseract::environment::RemoveAllowedCollisionLinkCommand&>(command);
-      command_msg.remove_allowed_collision_link = cmd.getLinkName();
+      command_msg.remove_allowed_collision_link = cmd.getLinkId().name();
       return true;
     }
     case tesseract::environment::CommandType::ADD_SCENE_GRAPH:
@@ -1317,7 +1318,7 @@ bool toMsg(tesseract_msgs::msg::EnvironmentCommand& command_msg, const tesseract
       for (const auto& limits : cmd.getLimits())
       {
         tesseract_msgs::msg::StringLimitsPair pair;
-        pair.first = limits.first;
+        pair.first = limits.first.name();
         pair.second[0] = limits.second.first;
         pair.second[1] = limits.second.second;
         command_msg.change_joint_position_limits.push_back(pair);
@@ -1332,7 +1333,7 @@ bool toMsg(tesseract_msgs::msg::EnvironmentCommand& command_msg, const tesseract
       for (const auto& limits : cmd.getLimits())
       {
         tesseract_msgs::msg::StringDoublePair pair;
-        pair.first = limits.first;
+        pair.first = limits.first.name();
         pair.second = limits.second;
         command_msg.change_joint_velocity_limits.push_back(pair);
       }
@@ -1346,7 +1347,7 @@ bool toMsg(tesseract_msgs::msg::EnvironmentCommand& command_msg, const tesseract
       for (const auto& limits : cmd.getLimits())
       {
         tesseract_msgs::msg::StringDoublePair pair;
-        pair.first = limits.first;
+        pair.first = limits.first.name();
         pair.second = limits.second;
         command_msg.change_joint_acceleration_limits.push_back(pair);
       }
@@ -1400,8 +1401,8 @@ bool toMsg(tesseract_msgs::msg::EnvironmentCommand& command_msg, const tesseract
     {
       command_msg.command = tesseract_msgs::msg::EnvironmentCommand::ADD_TRAJECTORY_LINK;
       const auto& cmd = static_cast<const tesseract::environment::AddTrajectoryLinkCommand&>(command);
-      command_msg.add_trajectory_link_name = cmd.getLinkName();
-      command_msg.add_trajectory_link_parent_name = cmd.getParentLinkName();
+      command_msg.add_trajectory_link_name = cmd.getLinkId().name();
+      command_msg.add_trajectory_link_parent_name = cmd.getParentLinkId().name();
       toMsg(command_msg.add_trajectory_link_traj, cmd.getTrajectory());
       command_msg.add_trajectory_link_replace_allowed = cmd.replaceAllowed();
       return true;
@@ -1461,16 +1462,19 @@ tesseract::environment::Command::Ptr fromMsg(const tesseract_msgs::msg::Environm
     }
     case tesseract_msgs::msg::EnvironmentCommand::MOVE_JOINT:
     {
-      return std::make_shared<tesseract::environment::MoveJointCommand>(command_msg.move_joint_name,
-                                                                        command_msg.move_joint_parent_link);
+      return std::make_shared<tesseract::environment::MoveJointCommand>(
+          tesseract::common::JointId(command_msg.move_joint_name),
+          tesseract::common::LinkId(command_msg.move_joint_parent_link));
     }
     case tesseract_msgs::msg::EnvironmentCommand::REMOVE_LINK:
     {
-      return std::make_shared<tesseract::environment::RemoveLinkCommand>(command_msg.remove_link);
+      return std::make_shared<tesseract::environment::RemoveLinkCommand>(
+          tesseract::common::LinkId(command_msg.remove_link));
     }
     case tesseract_msgs::msg::EnvironmentCommand::REMOVE_JOINT:
     {
-      return std::make_shared<tesseract::environment::RemoveJointCommand>(command_msg.remove_joint);
+      return std::make_shared<tesseract::environment::RemoveJointCommand>(
+          tesseract::common::JointId(command_msg.remove_joint));
     }
     case tesseract_msgs::msg::EnvironmentCommand::REPLACE_JOINT:
     {
@@ -1483,24 +1487,27 @@ tesseract::environment::Command::Ptr fromMsg(const tesseract_msgs::msg::Environm
       if (!fromMsg(pose, command_msg.change_joint_origin_pose))
         throw std::runtime_error("Failed to convert pose message to eigen");
 
-      return std::make_shared<tesseract::environment::ChangeJointOriginCommand>(command_msg.change_joint_origin_name,
-                                                                                pose);
+      return std::make_shared<tesseract::environment::ChangeJointOriginCommand>(
+          tesseract::common::JointId(command_msg.change_joint_origin_name), pose);
     }
     case tesseract_msgs::msg::EnvironmentCommand::CHANGE_LINK_COLLISION_ENABLED:
     {
       return std::make_shared<tesseract::environment::ChangeLinkCollisionEnabledCommand>(
-          command_msg.change_link_collision_enabled_name, command_msg.change_link_collision_enabled_value);
+          tesseract::common::LinkId(command_msg.change_link_collision_enabled_name),
+          command_msg.change_link_collision_enabled_value);
     }
     case tesseract_msgs::msg::EnvironmentCommand::CHANGE_LINK_VISIBILITY:
     {
       return std::make_shared<tesseract::environment::ChangeLinkVisibilityCommand>(
-          command_msg.change_link_visibility_name, command_msg.change_link_visibility_value);
+          tesseract::common::LinkId(command_msg.change_link_visibility_name),
+          command_msg.change_link_visibility_value);
     }
     case tesseract_msgs::msg::EnvironmentCommand::MODIFY_ALLOWED_COLLISIONS:
     {
       tesseract::common::AllowedCollisionMatrix acm;
       for (const auto& entry : command_msg.modify_allowed_collisions)
-        acm.addAllowedCollision(entry.link_1, entry.link_2, entry.reason);
+        acm.addAllowedCollision(
+            tesseract::common::LinkId(entry.link_1), tesseract::common::LinkId(entry.link_2), entry.reason);
       return std::make_shared<tesseract::environment::ModifyAllowedCollisionsCommand>(
           acm,
           static_cast<tesseract::environment::ModifyAllowedCollisionsType>(command_msg.modify_allowed_collisions_type));
@@ -1508,7 +1515,7 @@ tesseract::environment::Command::Ptr fromMsg(const tesseract_msgs::msg::Environm
     case tesseract_msgs::msg::EnvironmentCommand::REMOVE_ALLOWED_COLLISION_LINK:
     {
       return std::make_shared<tesseract::environment::RemoveAllowedCollisionLinkCommand>(
-          command_msg.remove_allowed_collision_link);
+          tesseract::common::LinkId(command_msg.remove_allowed_collision_link));
     }
     case tesseract_msgs::msg::EnvironmentCommand::ADD_SCENE_GRAPH:
     {
@@ -1524,25 +1531,25 @@ tesseract::environment::Command::Ptr fromMsg(const tesseract_msgs::msg::Environm
     }
     case tesseract_msgs::msg::EnvironmentCommand::CHANGE_JOINT_POSITION_LIMITS:
     {
-      std::unordered_map<std::string, std::pair<double, double>> limits_map;
+      std::unordered_map<tesseract::common::JointId, std::pair<double, double>> limits_map;
       for (const auto& limits : command_msg.change_joint_position_limits)
-        limits_map[limits.first] = std::make_pair(limits.second[0], limits.second[1]);
+        limits_map[tesseract::common::JointId(limits.first)] = std::make_pair(limits.second[0], limits.second[1]);
 
       return std::make_shared<tesseract::environment::ChangeJointPositionLimitsCommand>(limits_map);
     }
     case tesseract_msgs::msg::EnvironmentCommand::CHANGE_JOINT_VELOCITY_LIMITS:
     {
-      std::unordered_map<std::string, double> limits_map;
+      std::unordered_map<tesseract::common::JointId, double> limits_map;
       for (const auto& limits : command_msg.change_joint_velocity_limits)
-        limits_map[limits.first] = limits.second;
+        limits_map[tesseract::common::JointId(limits.first)] = limits.second;
 
       return std::make_shared<tesseract::environment::ChangeJointVelocityLimitsCommand>(limits_map);
     }
     case tesseract_msgs::msg::EnvironmentCommand::CHANGE_JOINT_ACCELERATION_LIMITS:
     {
-      std::unordered_map<std::string, double> limits_map;
+      std::unordered_map<tesseract::common::JointId, double> limits_map;
       for (const auto& limits : command_msg.change_joint_acceleration_limits)
-        limits_map[limits.first] = limits.second;
+        limits_map[tesseract::common::JointId(limits.first)] = limits.second;
 
       return std::make_shared<tesseract::environment::ChangeJointAccelerationLimitsCommand>(limits_map);
     }
@@ -1587,8 +1594,8 @@ tesseract::environment::Command::Ptr fromMsg(const tesseract_msgs::msg::Environm
     {
       tesseract::common::JointTrajectory traj = fromMsg(command_msg.add_trajectory_link_traj);
       return std::make_shared<tesseract::environment::AddTrajectoryLinkCommand>(
-          command_msg.add_trajectory_link_name,
-          command_msg.add_trajectory_link_parent_name,
+          tesseract::common::LinkId(command_msg.add_trajectory_link_name),
+          tesseract::common::LinkId(command_msg.add_trajectory_link_parent_name),
           traj,
           command_msg.add_trajectory_link_replace_allowed);
     }

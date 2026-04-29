@@ -53,6 +53,8 @@ target_link_libraries(${PROJECT_NAME}_markers PUBLIC
 target_link_libraries(${PROJECT_NAME}_markers PRIVATE
   rviz_default_plugins::rviz_default_plugins
 )
+target_compile_definitions(${PROJECT_NAME}_markers PRIVATE ${TESSERACT_COMPILE_DEFINITIONS_PRIVATE})
+target_compile_definitions(${PROJECT_NAME}_markers PUBLIC ${TESSERACT_COMPILE_DEFINITIONS_PUBLIC})
 target_compile_options(${PROJECT_NAME}_markers PUBLIC ${TESSERACT_COMPILE_OPTIONS})
 target_cxx_version(${PROJECT_NAME}_markers PUBLIC VERSION ${TESSERACT_CXX_VERSION})
 target_include_directories(${PROJECT_NAME}_markers PUBLIC
@@ -77,6 +79,8 @@ target_link_libraries(${PROJECT_NAME}_interactive_marker PUBLIC
   rviz_rendering::rviz_rendering
   ${QT_LIBRARIES}
 )
+target_compile_definitions(${PROJECT_NAME}_interactive_marker PRIVATE ${TESSERACT_COMPILE_DEFINITIONS_PRIVATE})
+target_compile_definitions(${PROJECT_NAME}_interactive_marker PUBLIC ${TESSERACT_COMPILE_DEFINITIONS_PUBLIC})
 target_compile_options(${PROJECT_NAME}_interactive_marker PUBLIC ${TESSERACT_COMPILE_OPTIONS})
 target_cxx_version(${PROJECT_NAME}_interactive_marker PUBLIC VERSION ${TESSERACT_CXX_VERSION})
 target_include_directories(${PROJECT_NAME}_interactive_marker PUBLIC
@@ -126,6 +130,8 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
   ${QT_LIBRARIES}
 )
 target_link_libraries(${PROJECT_NAME} PRIVATE resource_retriever::resource_retriever)
+target_compile_definitions(${PROJECT_NAME} PRIVATE ${TESSERACT_COMPILE_DEFINITIONS_PRIVATE})
+target_compile_definitions(${PROJECT_NAME} PUBLIC ${TESSERACT_COMPILE_DEFINITIONS_PUBLIC})
 target_compile_options(${PROJECT_NAME} PUBLIC ${TESSERACT_COMPILE_OPTIONS})
 target_cxx_version(${PROJECT_NAME} PUBLIC VERSION ${TESSERACT_CXX_VERSION})
 target_include_directories(${PROJECT_NAME} PUBLIC
@@ -139,6 +145,8 @@ add_library(${PROJECT_NAME}_environment_plugin SHARED src/environment_plugin_ini
 target_link_libraries(${PROJECT_NAME}_environment_plugin PRIVATE
   ${PROJECT_NAME}
 )
+target_compile_definitions(${PROJECT_NAME}_environment_plugin PRIVATE ${TESSERACT_COMPILE_DEFINITIONS_PRIVATE})
+target_compile_definitions(${PROJECT_NAME}_environment_plugin PUBLIC ${TESSERACT_COMPILE_DEFINITIONS_PUBLIC})
 target_compile_options(${PROJECT_NAME}_environment_plugin PUBLIC ${TESSERACT_COMPILE_OPTIONS})
 target_cxx_version(${PROJECT_NAME}_environment_plugin PUBLIC VERSION ${TESSERACT_CXX_VERSION})
 target_include_directories(${PROJECT_NAME}_environment_plugin PRIVATE
@@ -149,6 +157,8 @@ add_library(${PROJECT_NAME}_workbench_plugin SHARED src/workbench_plugin_init.cp
 target_link_libraries(${PROJECT_NAME}_workbench_plugin PRIVATE
   ${PROJECT_NAME}
 )
+target_compile_definitions(${PROJECT_NAME}_workbench_plugin PRIVATE ${TESSERACT_COMPILE_DEFINITIONS_PRIVATE})
+target_compile_definitions(${PROJECT_NAME}_workbench_plugin PUBLIC ${TESSERACT_COMPILE_DEFINITIONS_PUBLIC})
 target_compile_options(${PROJECT_NAME}_workbench_plugin PUBLIC ${TESSERACT_COMPILE_OPTIONS})
 target_cxx_version(${PROJECT_NAME}_workbench_plugin PUBLIC VERSION ${TESSERACT_CXX_VERSION})
 target_include_directories(${PROJECT_NAME}_workbench_plugin PRIVATE

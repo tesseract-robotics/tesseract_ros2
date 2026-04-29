@@ -47,6 +47,8 @@ target_link_libraries(${PROJECT_NAME}
   PRIVATE
     ${tf2_eigen_TARGETS}
 )
+target_compile_definitions(${PROJECT_NAME} PRIVATE ${TESSERACT_COMPILE_DEFINITIONS_PRIVATE})
+target_compile_definitions(${PROJECT_NAME} PUBLIC ${TESSERACT_COMPILE_DEFINITIONS_PUBLIC})
 target_compile_options(${PROJECT_NAME} PRIVATE ${TESSERACT_COMPILE_OPTIONS})
 target_clang_tidy(${PROJECT_NAME} ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS} ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
 target_cxx_version(${PROJECT_NAME} PUBLIC VERSION ${TESSERACT_CXX_VERSION})
@@ -57,6 +59,8 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 
 add_executable(${PROJECT_NAME}_node src/tesseract_planning_server_node.cpp)
 target_link_libraries(${PROJECT_NAME}_node PRIVATE ${PROJECT_NAME} ${catkin_LIBRARIES})
+target_compile_definitions(${PROJECT_NAME}_node PRIVATE ${TESSERACT_COMPILE_DEFINITIONS_PRIVATE})
+target_compile_definitions(${PROJECT_NAME}_node PUBLIC ${TESSERACT_COMPILE_DEFINITIONS_PUBLIC})
 target_compile_options(${PROJECT_NAME}_node PRIVATE ${TESSERACT_COMPILE_OPTIONS})
 target_clang_tidy(${PROJECT_NAME}_node ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS} ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
 target_cxx_version(${PROJECT_NAME}_node PRIVATE VERSION ${TESSERACT_CXX_VERSION})

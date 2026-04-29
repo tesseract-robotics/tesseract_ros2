@@ -49,6 +49,8 @@ target_link_libraries(
          tesseract::environment
          tesseract::tesseract_qt_common
          tesseract::tesseract_qt_studio_plugin_factory)
+target_compile_definitions(${PROJECT_NAME}_widgets PRIVATE ${TESSERACT_COMPILE_DEFINITIONS_PRIVATE})
+target_compile_definitions(${PROJECT_NAME}_widgets PUBLIC ${TESSERACT_COMPILE_DEFINITIONS_PUBLIC})
 target_include_directories(
   ${PROJECT_NAME}_widgets
   PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
@@ -73,6 +75,8 @@ target_link_libraries(
   ${PROJECT_NAME}_studio_plugins
   PUBLIC tesseract::common Qt5::Core Qt5::Gui Qt5::Widgets
          tesseract::tesseract_qt_common ${PROJECT_NAME}_widgets)
+target_compile_definitions(${PROJECT_NAME}_studio_plugins PRIVATE ${TESSERACT_COMPILE_DEFINITIONS_PRIVATE})
+target_compile_definitions(${PROJECT_NAME}_studio_plugins PUBLIC ${TESSERACT_COMPILE_DEFINITIONS_PUBLIC})
 target_include_directories(
   ${PROJECT_NAME}_studio_plugins
   PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"

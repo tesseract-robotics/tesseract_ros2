@@ -256,7 +256,7 @@ std::vector<std::string> loadSceneGraph(Ogre::SceneManager& scene,
   {
     for (const auto& link : scene_graph.getLinks())
     {
-      auto clone_link = link->clone(prefix + link->getName());
+      auto clone_link = link->clone(tesseract::common::LinkId(prefix + link->getName()));
       auto entity_container = entity_manager.getEntityContainer(clone_link.getName());
       parent_node.addChild(loadLink(scene, *entity_container, clone_link));
       link_names.push_back(clone_link.getName());

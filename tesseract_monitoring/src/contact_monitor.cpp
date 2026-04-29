@@ -52,8 +52,8 @@ ContactMonitor::ContactMonitor(std::string monitor_namespace,
   : monitor_namespace_(std::move(monitor_namespace))
   , node_(node)
   , internal_node_(std::make_shared<rclcpp::Node>("ContactMonitor_internal", node->get_fully_qualified_name()))
-  , monitored_link_names_(std::move(monitored_link_names))
-  , disabled_link_names_(std::move(disabled_link_names))
+  , monitored_link_ids_(tesseract::common::toIds<tesseract::common::LinkId>(monitored_link_names))
+  , disabled_link_ids_(tesseract::common::toIds<tesseract::common::LinkId>(disabled_link_names))
   , type_(type)
   , contact_distance_(contact_distance)
 {
@@ -68,12 +68,12 @@ ContactMonitor::ContactMonitor(std::string monitor_namespace,
   if (manager_ == nullptr)
     throw std::runtime_error("Contact monitor failed to get discrete contact manager from environment!");
 
-  manager_->setActiveCollisionObjects(monitored_link_names_);
+  manager_->setActiveCollisionObjects(monitored_link_ids_);
   manager_->setDefaultCollisionMargin(contact_distance_);
-  for (const auto& disabled_link_name : disabled_link_names_)
-    manager_->disableCollisionObject(disabled_link_name);
+  for (const auto& disabled_link_id : disabled_link_ids_)
+    manager_->disableCollisionObject(disabled_link_id);
 
-  std::cout << ((disabled_link_names_.empty()) ? "Empty" : "Not Empty") << "\n";
+  std::cout << ((disabled_link_ids_.empty()) ? "Empty" : "Not Empty") << "\n";
 
   joint_states_sub_ = internal_node_->create_subscription<sensor_msgs::msg::JointState>(
       joint_state_topic,
@@ -153,8 +153,8 @@ void ContactMonitor::computeCollisionReportThread()
         manager_->setActiveCollisionObjects(active);
         manager_->setCollisionMarginData(contact_margin_data);
         manager_->setContactAllowedValidator(fn);
-        for (const auto& disabled_link_name : disabled_link_names_)
-          manager_->disableCollisionObject(disabled_link_name);
+        for (const auto& disabled_link_id : disabled_link_ids_)
+          manager_->disableCollisionObject(disabled_link_id);
       }
 
       if (!current_joint_states_)
@@ -198,7 +198,7 @@ void ContactMonitor::computeCollisionReportThread()
       {
         int id_counter = 0;
         tesseract::visualization::ContactResultsMarker marker(
-            monitored_link_names_, contacts_vector, manager_->getCollisionMarginData());
+            monitored_link_ids_, contacts_vector, manager_->getCollisionMarginData());
         visualization_msgs::msg::MarkerArray marker_msg =
             tesseract_rosutils::ROSPlotting::getContactResultsMarkerArrayMsg(
                 id_counter, root_link, "contact_monitor", msg->header.stamp, marker);
@@ -254,8 +254,8 @@ void ContactMonitor::callbackModifyTesseractEnv(
   manager_->setActiveCollisionObjects(active);
   manager_->setCollisionMarginData(contact_margin_data);
   manager_->setContactAllowedValidator(fn);
-  for (const auto& disabled_link_name : disabled_link_names_)
-    manager_->disableCollisionObject(disabled_link_name);
+  for (const auto& disabled_link_id : disabled_link_ids_)
+    manager_->disableCollisionObject(disabled_link_id);
 }
 
 void ContactMonitor::callbackComputeContactResultVector(

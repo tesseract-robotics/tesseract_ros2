@@ -532,9 +532,9 @@ ROSPlotting::getContactResultsMarkerArrayMsg(int& id_counter,
     const tesseract::collision::ContactResult& dist = marker.dist_results[i];
     double safety_distance{ 0 };
     if (marker.margin_fn != nullptr)
-      safety_distance = marker.margin_fn(dist.link_ids[0].name(), dist.link_ids[1].name());
+      safety_distance = marker.margin_fn(dist.link_ids[0], dist.link_ids[1]);
     else
-      safety_distance = marker.margin_data.getCollisionMargin(dist.link_ids[0].name(), dist.link_ids[1].name());
+      safety_distance = marker.margin_data.getCollisionMargin(dist.link_ids[0], dist.link_ids[1]);
 
     auto base_material = std::make_shared<tesseract::scene_graph::Material>("base_material");
     if (dist.distance < 0)
@@ -564,10 +564,10 @@ ROSPlotting::getContactResultsMarkerArrayMsg(int& id_counter,
       msg.markers.push_back(marker);
     }
 
-    auto it0 = std::find(marker.link_names.begin(), marker.link_names.end(), dist.link_ids[0].name());
-    auto it1 = std::find(marker.link_names.begin(), marker.link_names.end(), dist.link_ids[1].name());
+    auto it0 = std::find(marker.link_ids.begin(), marker.link_ids.end(), dist.link_ids[0]);
+    auto it1 = std::find(marker.link_ids.begin(), marker.link_ids.end(), dist.link_ids[1]);
 
-    if (it0 != marker.link_names.end() && it1 != marker.link_names.end())
+    if (it0 != marker.link_ids.end() && it1 != marker.link_ids.end())
     {
       tesseract::visualization::ArrowMarker am1(dist.nearest_points[0], dist.nearest_points[1]);
       am1.material = base_material;
@@ -579,7 +579,7 @@ ROSPlotting::getContactResultsMarkerArrayMsg(int& id_counter,
       auto marker1 = getMarkerArrowMsg(id_counter, frame_id, ns, time_stamp, am2);
       msg.markers.push_back(marker1);
     }
-    else if (it0 != marker.link_names.end())
+    else if (it0 != marker.link_ids.end())
     {
       tesseract::visualization::ArrowMarker am(dist.nearest_points[1], dist.nearest_points[0]);
       am.material = base_material;

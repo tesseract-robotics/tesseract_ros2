@@ -2,8 +2,8 @@
 Changelog for package tesseract_rosutils
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.35.0 (2026-06-15)
+-------------------
 * Update to leverage tesseract_planning single cmake project
 * Tesseract single cmake project consolidation
 * Leverage nested namespaces

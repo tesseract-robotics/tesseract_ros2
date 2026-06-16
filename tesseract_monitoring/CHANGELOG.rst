@@ -2,8 +2,8 @@
 Changelog for package tesseract_monitoring
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.35.0 (2026-06-15)
+-------------------
 * fix(monitoring): add missing ROSEnvironmentMonitorInterface::setEnvironmentState(ns, floating_joints) impl
   Header declared the override final but the cpp never defined it, breaking
   the vtable when typeinfo is pinned (e.g. nanobind bindings, dynamic_cast).

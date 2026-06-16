@@ -2,8 +2,8 @@
 Changelog for package tesseract_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.35.0 (2026-06-15)
+-------------------
 * Leverage nested namespaces
 * Contributors: Levi Armstrong
 

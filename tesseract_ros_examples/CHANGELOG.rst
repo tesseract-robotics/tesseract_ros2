@@ -2,6 +2,13 @@
 Changelog for package tesseract_ros_examples
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Update to leverage tesseract_planning single cmake project
+* Tesseract single cmake project consolidation
+* Leverage nested namespaces
+* Contributors: Levi Armstrong
+
 0.34.0 (2026-02-20)
 -------------------
 * Switch to Cereal for serialization (`#176 <https://github.com/tesseract-robotics/tesseract_ros2/issues/176>`_)

@@ -2,6 +2,16 @@
 Changelog for package tesseract_monitoring
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* fix(monitoring): add missing ROSEnvironmentMonitorInterface::setEnvironmentState(ns, floating_joints) impl
+  Header declared the override final but the cpp never defined it, breaking
+  the vtable when typeinfo is pinned (e.g. nanobind bindings, dynamic_cast).
+  Mirrors the sibling per-namespace overloads.
+* Tesseract single cmake project consolidation
+* Leverage nested namespaces
+* Contributors: Levi Armstrong, Simon White
+
 0.34.0 (2026-02-20)
 -------------------
 * Switch to Cereal for serialization (`#176 <https://github.com/tesseract-robotics/tesseract_ros2/issues/176>`_)

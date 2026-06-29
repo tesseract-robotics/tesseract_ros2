@@ -42,6 +42,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_monitoring/constants.h>
 #include <tesseract/collision/discrete_contact_manager.h>
+#include <tesseract/common/types.h>
 #include <tesseract/environment/environment.h>
 #include <tesseract/environment/environment_monitor.h>
 
@@ -114,8 +115,8 @@ private:
   tesseract::environment::EnvironmentMonitor::UPtr monitor_;
   rclcpp::Node::SharedPtr node_;
   rclcpp::Node::SharedPtr internal_node_;
-  std::vector<std::string> monitored_link_names_;
-  std::vector<std::string> disabled_link_names_;
+  std::vector<tesseract::common::LinkId> monitored_link_ids_;
+  std::vector<tesseract::common::LinkId> disabled_link_ids_;
   tesseract::collision::ContactTestType type_;
   double contact_distance_;
   tesseract::collision::DiscreteContactManager::UPtr manager_;

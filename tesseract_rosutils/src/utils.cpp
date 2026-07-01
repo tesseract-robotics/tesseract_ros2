@@ -1464,7 +1464,7 @@ tesseract::environment::Command::Ptr fromMsg(const tesseract_msgs::msg::Environm
     }
     case tesseract_msgs::msg::EnvironmentCommand::CHANGE_LINK_VISIBILITY:
     {
-      return std::make_shared<tesseract::environment::ChangeLinkCollisionEnabledCommand>(
+      return std::make_shared<tesseract::environment::ChangeLinkVisibilityCommand>(
           command_msg.change_link_visibility_name, command_msg.change_link_visibility_value);
     }
     case tesseract_msgs::msg::EnvironmentCommand::MODIFY_ALLOWED_COLLISIONS:

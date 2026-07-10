@@ -903,7 +903,7 @@ bool toMsg(tesseract_msgs::msg::JointMimic& joint_mimic_msg, const tesseract::sc
 
   joint_mimic_msg.multiplier = joint_mimic->multiplier;
 
-  joint_mimic_msg.joint_name = joint_mimic->joint_name;
+  joint_mimic_msg.joint_name = joint_mimic->joint_id.name();
 
   return true;
 }
@@ -923,7 +923,7 @@ bool fromMsg(tesseract::scene_graph::JointMimic::Ptr& joint_mimic,
 
   joint_mimic->multiplier = joint_mimic_msg.multiplier;
 
-  joint_mimic->joint_name = joint_mimic_msg.joint_name;
+  joint_mimic->joint_id = tesseract::common::JointId(joint_mimic_msg.joint_name);
 
   return true;
 }

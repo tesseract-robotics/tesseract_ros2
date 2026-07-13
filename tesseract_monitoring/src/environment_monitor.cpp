@@ -858,11 +858,11 @@ void ROSEnvironmentMonitor::updateEnvironmentWithCurrentState()
 {
   if (current_state_monitor_)
   {
-    std::vector<std::string> missing;
+    std::vector<tesseract::common::JointId> missing;
     if (!current_state_monitor_->haveCompleteState(missing) &&
         (internal_node_->now() - current_state_monitor_->getMonitorStartTime()).seconds() > 1.0)
     {
-      std::string missing_str = boost::algorithm::join(missing, ", ");
+      std::string missing_str = boost::algorithm::join(tesseract::common::toNames(missing), ", ");
       RCLCPP_WARN_THROTTLE(logger_,
                            *internal_node_->get_clock(),
                            1.0,

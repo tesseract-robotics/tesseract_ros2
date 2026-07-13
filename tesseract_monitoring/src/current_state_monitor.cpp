@@ -309,9 +309,9 @@ bool CurrentStateMonitor::waitForCompleteState(const std::string& manip, double 
     {
       std::set<std::string> mj;
       mj.insert(missing_joints.begin(), missing_joints.end());
-      const std::vector<std::string>& names = jmg->getJointNames();
-      for (std::size_t i = 0; ok && i < names.size(); ++i)
-        if (mj.find(names[i]) != mj.end())
+      const std::vector<tesseract::common::JointId>& ids = jmg->getJointIds();
+      for (std::size_t i = 0; ok && i < ids.size(); ++i)
+        if (mj.find(ids[i].name()) != mj.end())
           ok = false;
     }
     else

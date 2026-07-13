@@ -232,7 +232,7 @@ void ROSManipulationWidget::addInteractiveMarker()
   std::string tcp_name = getTCPName().toStdString();
   int state_index = getActiveStateIndex();
   int mode = getMode();
-  std::vector<std::string> joint_names = kin_group.getJointNames();
+  const std::vector<tesseract::common::JointId>& joint_ids = kin_group.getJointIds();
 
   // Add 6 DOF interactive marker at the end of the manipulator
   data_->interactive_marker = std::make_shared<InteractiveMarker>(
@@ -258,13 +258,14 @@ void ROSManipulationWidget::addInteractiveMarker()
   // Add joint specific interactive marker
   data_->joint_interactive_markers.clear();
   data_->joint_interactive_marker_link_names.clear();
-  for (const auto& joint_name : joint_names)
+  for (const auto& joint_id : joint_ids)
   {
+    const std::string& joint_name = joint_id.name();
     std::string name = joint_name + "_interactive_marker";
     std::string disc = "Move joint: " + joint_name;
     InteractiveMarker::Ptr interactive_marker = std::make_shared<InteractiveMarker>(
         name, disc, data_->root_interactive_node, data_->context, data_->joint_interactive_marker_scale);
-    const auto& joint = environment().getJoint(joint_name);
+    const auto& joint = environment().getJoint(joint_id);
 
     switch (joint->type)
     {
@@ -418,20 +419,20 @@ void ROSManipulationWidget::jointMarkerFeedback(const std::string& joint_name,
   Eigen::MatrixX2d limits = kin_group.getLimits().joint_limits;
   int i = 0;
   std::unordered_map<std::string, double> state;
-  for (const auto& j : kin_group.getJointNames())
+  for (const auto& joint_id : kin_group.getJointIds())
   {
-    if (joint_name == j)
+    if (joint_name == joint_id.name())
     {
       if (new_joint_value > limits(i, 1))
         new_joint_value = limits(i, 1);
       else if (new_joint_value < limits(i, 0))
         new_joint_value = limits(i, 0);
 
-      state[j] = new_joint_value;
+      state[joint_id.name()] = new_joint_value;
     }
     else
     {
-      state[j] = scene_state.joints[tesseract::common::JointId(j)];
+      state[joint_id.name()] = scene_state.joints.at(joint_id);
     }
 
     ++i;

@@ -1631,7 +1631,7 @@ void toMsg(tesseract_msgs::msg::JointTrajectory& traj_msg, const tesseract::comm
     assert(js.joint_ids.size() == static_cast<unsigned>(js.position.size()));
 
     tesseract_msgs::msg::JointState js_msg;
-    js_msg.joint_names = js.getJointNames();
+    js_msg.joint_names = tesseract::common::toNames(js.joint_ids);
     js_msg.position.resize(static_cast<size_t>(js.position.size()));
     js_msg.velocity.resize(static_cast<size_t>(js.velocity.size()));
     js_msg.acceleration.resize(static_cast<size_t>(js.acceleration.size()));

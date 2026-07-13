@@ -123,14 +123,14 @@ public:
    *  @param missing_joints Returns the list of joints that are missing
    *  @return False if we have no joint state information for one or more of the joints
    */
-  bool haveCompleteState(std::vector<std::string>& missing_joints) const;
+  bool haveCompleteState(std::vector<tesseract::common::JointId>& missing_joints) const;
 
   /** @brief Query whether we have joint state information for all DOFs in the kinematic model
    *  @param age The max allowed age of the joint state information
    *  @param missing_states Returns the list of joints that are missing
    *  @return False if we have no joint state information for one of the joints or if our state
    *  information is more than \e age old*/
-  bool haveCompleteState(const rclcpp::Duration& age, std::vector<std::string>& missing_states) const;
+  bool haveCompleteState(const rclcpp::Duration& age, std::vector<tesseract::common::JointId>& missing_states) const;
 
   /** @brief Get the current state
    *  @return Returns the current state */

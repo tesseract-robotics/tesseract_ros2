@@ -75,7 +75,7 @@ public:
 
   tesseract::scene_graph::SceneState getEnvironmentState(const std::string& monitor_namespace) const override final;
 
-  // Un-hide the inline string->ID delegating wrappers on the base interface.
+  // Un-hide the inline delegating overloads on the base interface.
   using tesseract::environment::EnvironmentMonitorInterface::setEnvironmentState;
 
   bool setEnvironmentState(const std::string& monitor_namespace,

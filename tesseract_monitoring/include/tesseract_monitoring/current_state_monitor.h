@@ -142,6 +142,10 @@ public:
    *  @return Returns a pair of the current state and its time stamp */
   std::pair<tesseract::scene_graph::SceneState, rclcpp::Time> getCurrentStateAndTime() const;
 
+  /** @brief Get the current state values as a map from joint ids to joint state values
+   *  @return Returns the map from joint ids to joint state values */
+  tesseract::scene_graph::SceneState::JointValues getCurrentStateValues() const;
+
   /** @brief Wait for at most \e wait_time seconds (default 1s) for a robot state more recent than t
    *  @return true on success, false if up-to-date robot state wasn't received within \e wait_time
    */

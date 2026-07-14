@@ -93,6 +93,12 @@ std::pair<tesseract::scene_graph::SceneState, rclcpp::Time> CurrentStateMonitor:
   return std::make_pair(env_state_, current_state_time_);
 }
 
+tesseract::scene_graph::SceneState::JointValues CurrentStateMonitor::getCurrentStateValues() const
+{
+  std::scoped_lock slock(state_update_lock_);
+  return env_state_.joints;
+}
+
 void CurrentStateMonitor::addUpdateCallback(const JointStateUpdateCallback& fn)
 {
   if (fn)

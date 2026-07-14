@@ -32,6 +32,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <sensor_msgs/msg/joint_state.hpp>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <tesseract_msgs/msg/joint_state.hpp>
+#include <tesseract/common/types.h>
 
 namespace tesseract_rosutils
 {
@@ -43,12 +44,13 @@ namespace tesseract_rosutils
 Eigen::VectorXd toEigen(const std::vector<double>& vector);
 
 /**
- * @brief Converts JointState position to Eigen vector in the order provided by joint_names
+ * @brief Converts JointState position to Eigen vector in the order provided by joint_ids
  * @param joint_state The JointState
- * @param joint_names The vector joint names used to order the output
- * @return Eigen::VectorXd in the same order as joint_names
+ * @param joint_ids The vector of joint ids used to order the output
+ * @return Eigen::VectorXd ordered by joint_ids
  */
-Eigen::VectorXd toEigen(const sensor_msgs::msg::JointState& joint_state, const std::vector<std::string>& joint_names);
+Eigen::VectorXd toEigen(const sensor_msgs::msg::JointState& joint_state,
+                        const std::vector<tesseract::common::JointId>& joint_ids);
 
 /**
  * @brief Convert a joint trajectory to csv format and write to file

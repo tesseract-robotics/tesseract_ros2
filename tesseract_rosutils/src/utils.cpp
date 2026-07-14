@@ -73,15 +73,6 @@ const std::string LOGGER_ID{ "tesseract_rosutils_utils" };
 
 namespace tesseract_rosutils
 {
-tesseract::scene_graph::SceneState::JointValues toIdJointValues(const std::unordered_map<std::string, double>& joints)
-{
-  tesseract::scene_graph::SceneState::JointValues result;
-  result.reserve(joints.size());
-  for (const auto& [name, val] : joints)
-    result[tesseract::common::JointId(name)] = val;
-  return result;
-}
-
 bool isMsgEmpty(const sensor_msgs::msg::JointState& msg)
 {
   return msg.name.empty() && msg.position.empty() && msg.velocity.empty() && msg.effort.empty();
@@ -2135,19 +2126,6 @@ bool fromMsg(tesseract::common::JointIdTransformMap& transform_map,
   return true;
 }
 
-bool toMsg(sensor_msgs::msg::JointState& joint_state_msg, const std::unordered_map<std::string, double>& joint_state)
-{
-  joint_state_msg.header.stamp = rclcpp::Clock{ RCL_ROS_TIME }.now();
-  joint_state_msg.name.reserve(joint_state.size());
-  joint_state_msg.position.reserve(joint_state.size());
-  for (const auto& pair : joint_state)
-  {
-    joint_state_msg.name.push_back(pair.first);
-    joint_state_msg.position.push_back(pair.second);
-  }
-  return true;
-}
-
 bool toMsg(sensor_msgs::msg::JointState& joint_state_msg,
            const tesseract::scene_graph::SceneState::JointValues& joints)
 {
@@ -2159,17 +2137,6 @@ bool toMsg(sensor_msgs::msg::JointState& joint_state_msg,
     joint_state_msg.name.push_back(id.name());
     joint_state_msg.position.push_back(val);
   }
-  return true;
-}
-
-bool fromMsg(std::unordered_map<std::string, double>& joint_state, const sensor_msgs::msg::JointState& joint_state_msg)
-{
-  if (joint_state_msg.name.size() != joint_state_msg.position.size())
-    return false;
-
-  for (std::size_t i = 0; i < joint_state_msg.name.size(); ++i)
-    joint_state[joint_state_msg.name.at(i)] = joint_state_msg.position.at(i);
-
   return true;
 }
 
@@ -2187,19 +2154,6 @@ bool fromMsg(tesseract::scene_graph::SceneState::JointValues& joint_state,
 }
 
 bool toMsg(std::vector<tesseract_msgs::msg::StringDoublePair>& joint_state_map_msg,
-           const std::unordered_map<std::string, double>& joint_state)
-{
-  for (const auto& s : joint_state)
-  {
-    tesseract_msgs::msg::StringDoublePair js;
-    js.first = s.first;
-    js.second = s.second;
-    joint_state_map_msg.push_back(js);
-  }
-  return true;
-}
-
-bool toMsg(std::vector<tesseract_msgs::msg::StringDoublePair>& joint_state_map_msg,
            const tesseract::scene_graph::SceneState::JointValues& joints)
 {
   joint_state_map_msg.reserve(joints.size());
@@ -2213,11 +2167,12 @@ bool toMsg(std::vector<tesseract_msgs::msg::StringDoublePair>& joint_state_map_m
   return true;
 }
 
-bool fromMsg(std::unordered_map<std::string, double>& joint_state,
+bool fromMsg(tesseract::scene_graph::SceneState::JointValues& joint_state,
              const std::vector<tesseract_msgs::msg::StringDoublePair>& joint_state_map_msg)
 {
+  joint_state.reserve(joint_state.size() + joint_state_map_msg.size());
   for (const auto& s : joint_state_map_msg)
-    joint_state[s.first] = s.second;
+    joint_state[tesseract::common::JointId(s.first)] = s.second;
 
   return true;
 }

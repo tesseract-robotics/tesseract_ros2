@@ -43,14 +43,15 @@ Eigen::VectorXd toEigen(const std::vector<double>& vector)
   return Eigen::VectorXd::Map(vector.data(), static_cast<long>(vector.size()));
 }
 
-Eigen::VectorXd toEigen(const sensor_msgs::msg::JointState& joint_state, const std::vector<std::string>& joint_names)
+Eigen::VectorXd toEigen(const sensor_msgs::msg::JointState& joint_state,
+                        const std::vector<tesseract::common::JointId>& joint_ids)
 {
   Eigen::VectorXd position;
-  position.resize(static_cast<long>(joint_names.size()));
+  position.resize(static_cast<long>(joint_ids.size()));
   int i = 0;
-  for (const auto& joint_name : joint_names)
+  for (const auto& joint_id : joint_ids)
   {
-    auto it = std::find(joint_state.name.begin(), joint_state.name.end(), joint_name);
+    auto it = std::find(joint_state.name.begin(), joint_state.name.end(), joint_id.name());
     assert(it != joint_state.name.end());
     auto index = static_cast<size_t>(std::distance(joint_state.name.begin(), it));
     position[i] = joint_state.position[index];

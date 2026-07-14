@@ -525,6 +525,35 @@ TEST_F(TesseractROSUtilsUnit, FromMsgJointStateToJointValues)  // NOLINT
   EXPECT_FALSE(tesseract_rosutils::fromMsg(bad_joints, bad_msg));
 }
 
+TEST_F(TesseractROSUtilsUnit, FromMsgStringDoublePairToJointValues)  // NOLINT
+{
+  std::vector<tesseract_msgs::msg::StringDoublePair> msg(2);
+  msg[0].first = "joint_1";
+  msg[0].second = 1.5;
+  msg[1].first = "joint_2";
+  msg[1].second = -0.25;
+
+  tesseract::scene_graph::SceneState::JointValues joints;
+  EXPECT_TRUE(tesseract_rosutils::fromMsg(joints, msg));
+  ASSERT_EQ(joints.size(), 2U);
+  EXPECT_DOUBLE_EQ(joints.at(tesseract::common::JointId("joint_1")), 1.5);
+  EXPECT_DOUBLE_EQ(joints.at(tesseract::common::JointId("joint_2")), -0.25);
+}
+
+TEST_F(TesseractROSUtilsUnit, ToEigenOrdersByJointId)  // NOLINT
+{
+  sensor_msgs::msg::JointState msg;
+  msg.name = { "joint_1", "joint_2", "joint_3" };
+  msg.position = { 1.0, 2.0, 3.0 };
+
+  const std::vector<tesseract::common::JointId> joint_ids{ "joint_3", "joint_1" };
+
+  const Eigen::VectorXd position = tesseract_rosutils::toEigen(msg, joint_ids);
+  ASSERT_EQ(position.size(), 2);
+  EXPECT_DOUBLE_EQ(position[0], 3.0);
+  EXPECT_DOUBLE_EQ(position[1], 1.0);
+}
+
 int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);

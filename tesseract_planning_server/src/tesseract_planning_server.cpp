@@ -247,8 +247,7 @@ void TesseractPlanningServer::onMotionPlanningCallback(
 
   // Store the initial state in the response for publishing trajectories
   tesseract::scene_graph::SceneState initial_state = env->getState();
-  tesseract_rosutils::toMsg(result->response.initial_state,
-                            tesseract_rosutils::toStringJointValues(initial_state.joints, env->getJointNames()));
+  tesseract_rosutils::toMsg(result->response.initial_state, initial_state.joints);
 
   // Create solve data storage
   auto data = std::make_unique<TaskComposerDataStorage>();

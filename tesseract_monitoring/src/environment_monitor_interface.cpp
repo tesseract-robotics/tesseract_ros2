@@ -335,13 +335,9 @@ bool ROSEnvironmentMonitorInterface::setEnvironmentState(
     const tesseract::scene_graph::SceneState::JointValues& joints,
     const tesseract::common::JointIdTransformMap& floating_joints) const
 {
-  std::unordered_map<std::string, double> joints_str;
-  for (const auto& [id, val] : joints)
-    joints_str[id.name()] = val;
-
   tesseract_msgs::msg::EnvironmentCommand command;
   command.command = tesseract_msgs::msg::EnvironmentCommand::UPDATE_JOINT_STATE;
-  tesseract_rosutils::toMsg(command.joint_state, joints_str);
+  tesseract_rosutils::toMsg(command.joint_state, joints);
   tesseract_rosutils::toMsg(command.floating_joint_states, floating_joints);
   return sendCommands(monitor_namespace, { command });
 }

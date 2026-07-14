@@ -170,8 +170,7 @@ void ROSPlotting::plotTrajectory(const tesseract::environment::Environment& env,
 
   // Set the initial state
   tesseract::scene_graph::SceneState initial_state = env.getState();
-  tesseract_rosutils::toMsg(msg.initial_state,
-                            tesseract_rosutils::toStringJointValues(initial_state.joints, env.getJointNames()));
+  tesseract_rosutils::toMsg(msg.initial_state, initial_state.joints);
 
   assert(instruction.isCompositeInstruction());
   const auto& ci = instruction.as<tesseract::command_language::CompositeInstruction>();

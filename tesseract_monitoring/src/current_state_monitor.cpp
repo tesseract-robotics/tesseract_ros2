@@ -46,7 +46,6 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_monitoring/current_state_monitor.h>
-#include <tesseract_rosutils/utils.h>
 
 #include <tesseract/common/types.h>
 #include <tesseract/kinematics/joint_group.h>
@@ -92,12 +91,6 @@ std::pair<tesseract::scene_graph::SceneState, rclcpp::Time> CurrentStateMonitor:
 {
   std::scoped_lock slock(state_update_lock_);
   return std::make_pair(env_state_, current_state_time_);
-}
-
-std::unordered_map<std::string, double> CurrentStateMonitor::getCurrentStateValues() const
-{
-  std::scoped_lock slock(state_update_lock_);
-  return tesseract_rosutils::toStringJointValues(env_state_.joints, env_->getJointNames());
 }
 
 void CurrentStateMonitor::addUpdateCallback(const JointStateUpdateCallback& fn)
@@ -366,7 +359,7 @@ void CurrentStateMonitor::jointStateCallback(const sensor_msgs::msg::JointState:
     }
 
     if (update)
-      env_state_ = env_->getState(tesseract_rosutils::toStringJointValues(env_state_.joints, env_->getJointNames()));
+      env_state_ = env_->getState(env_state_.joints);
   }
 
   // callbacks, if needed

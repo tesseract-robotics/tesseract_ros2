@@ -917,8 +917,7 @@ void ROSEnvironmentMonitor::updateEnvironmentWithCurrentState()
 
     auto env_state = current_state_monitor_->getCurrentState();
 
-    env_->setState(tesseract_rosutils::toStringJointValues(env_state.joints, env_->getJointNames()),
-                   env_state.floating_joints);
+    env_->setState(env_state.joints, env_state.floating_joints);
   }
   else
     RCLCPP_ERROR_THROTTLE(logger_,
@@ -1104,8 +1103,7 @@ void ROSEnvironmentMonitor::getEnvironmentInformationCallback(
 
   if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::JOINT_STATES)  // NOLINT
   {
-    if (!tesseract_rosutils::toMsg(res->joint_states,
-                                   tesseract_rosutils::toStringJointValues(state.joints, env_->getJointNames())))
+    if (!tesseract_rosutils::toMsg(res->joint_states, state.joints))
     {
       res->success = false;
       return;

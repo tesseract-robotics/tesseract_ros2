@@ -32,6 +32,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract/common/resource_locator.h>
+#include <tesseract/common/types.h>
 #include <tesseract/environment/environment.h>
 #include <tesseract/scene_graph/graph.h>
 #include <tesseract/srdf/srdf_model.h>
@@ -92,49 +93,36 @@ int main(int argc, char** argv)
 
   double contact_distance = node->declare_parameter("contact_distance", DEFAULT_CONTACT_DISTANCE);
 
-  std::vector<std::string> monitored_link_names;
-  std::string monitored_link_names_str = node->declare_parameter("monitor_links", "");
-  if (!monitored_link_names_str.empty())
-  {
-    boost::split(monitored_link_names, monitored_link_names_str, boost::is_any_of(" "));
-  }
+  // Link parameters are space separated lists of link names
+  auto declare_link_ids_parameter = [&node](const std::string& name) {
+    std::vector<std::string> link_names;
+    const std::string value = node->declare_parameter(name, "");
+    if (!value.empty())
+      boost::split(link_names, value, boost::is_any_of(" "));
 
-  if (monitored_link_names.empty())
-    monitored_link_names = env->getLinkNames();
-
-  std::vector<std::string> disabled_link_names;
-  std::string disabled_link_names_str = node->declare_parameter("disabled_links", "");
-  if (!disabled_link_names_str.empty())
-  {
-    boost::split(disabled_link_names, disabled_link_names_str, boost::is_any_of(" "));
-  }
-
-  for (const auto& disabled_link : disabled_link_names)
-  {
-    if (disabled_link_names_str.empty())
-      disabled_link_names_str = disabled_link;
-    else
-      disabled_link_names_str += (", " + disabled_link);
-  }
-
-  RCLCPP_INFO(node->get_logger(), "DISABLED_LINKS: %s", disabled_link_names_str.c_str());
-
-  auto pred = [&disabled_link_names](const std::string& key) -> bool {
-    return std::find(disabled_link_names.begin(), disabled_link_names.end(), key) != disabled_link_names.end();
+    return tesseract::common::toIds<tesseract::common::LinkId>(link_names);
   };
 
-  monitored_link_names.erase(std::remove_if(monitored_link_names.begin(), monitored_link_names.end(), pred),
-                             monitored_link_names.end());
+  std::vector<tesseract::common::LinkId> monitored_link_ids = declare_link_ids_parameter("monitor_links");
+  if (monitored_link_ids.empty())
+    monitored_link_ids = env->getLinkIds();
 
-  for (const auto& monitor_link : monitored_link_names)
-  {
-    if (monitored_link_names_str.empty())
-      monitored_link_names_str = monitor_link;
-    else
-      monitored_link_names_str += (", " + monitor_link);
-  }
+  std::vector<tesseract::common::LinkId> disabled_link_ids = declare_link_ids_parameter("disabled_links");
 
-  RCLCPP_INFO(node->get_logger(), "MONITORED_LINKS: %s", monitored_link_names_str.c_str());
+  RCLCPP_INFO(node->get_logger(),
+              "DISABLED_LINKS: %s",
+              boost::algorithm::join(tesseract::common::toNames(disabled_link_ids), ", ").c_str());
+
+  auto pred = [&disabled_link_ids](const tesseract::common::LinkId& key) -> bool {
+    return std::find(disabled_link_ids.begin(), disabled_link_ids.end(), key) != disabled_link_ids.end();
+  };
+
+  monitored_link_ids.erase(std::remove_if(monitored_link_ids.begin(), monitored_link_ids.end(), pred),
+                           monitored_link_ids.end());
+
+  RCLCPP_INFO(node->get_logger(),
+              "MONITORED_LINKS: %s",
+              boost::algorithm::join(tesseract::common::toNames(monitored_link_ids), ", ").c_str());
 
   auto contact_test_type = node->declare_parameter("contact_test_type", 2);
 
@@ -148,8 +136,8 @@ int main(int argc, char** argv)
   tesseract_monitoring::ContactMonitor cm(monitor_namespace,
                                           std::move(env),
                                           node,
-                                          monitored_link_names,
-                                          disabled_link_names,
+                                          std::move(monitored_link_ids),
+                                          std::move(disabled_link_ids),
                                           type,
                                           contact_distance,
                                           joint_state_topic);

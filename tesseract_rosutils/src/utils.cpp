@@ -1680,10 +1680,19 @@ bool processMsg(tesseract::environment::Environment& env,
 
   if (!joint_state_msg_empty)
   {
-    std::unordered_map<std::string, double> joints;
-    for (auto i = 0U; i < joint_state_msg.name.size(); ++i)
-      joints[joint_state_msg.name[i]] = joint_state_msg.position[i];
-    env.setState(joints, floating_joints);
+    if (joint_state_msg.name.size() != joint_state_msg.position.size())
+    {
+      RCLCPP_ERROR(rclcpp::get_logger(LOGGER_ID),
+                   "Joint state message has %zu names but %zu positions, ignoring",
+                   joint_state_msg.name.size(),
+                   joint_state_msg.position.size());
+      return false;
+    }
+
+    env.setState(joint_state_msg.name,
+                 Eigen::Map<const Eigen::VectorXd>(joint_state_msg.position.data(),
+                                                   static_cast<Eigen::Index>(joint_state_msg.position.size())),
+                 floating_joints);
     return true;
   }
 

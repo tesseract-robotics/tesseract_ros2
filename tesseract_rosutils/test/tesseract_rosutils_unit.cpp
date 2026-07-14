@@ -504,6 +504,27 @@ TEST_F(TesseractROSUtilsUnit, toRosJointTrajectory)  // NOLINT
   EXPECT_EQ(ros_joint_trajectory, calculated_trajectory);
 }
 
+TEST_F(TesseractROSUtilsUnit, FromMsgJointStateToJointValues)  // NOLINT
+{
+  sensor_msgs::msg::JointState msg;
+  msg.name = { "joint_1", "joint_2" };
+  msg.position = { 1.5, -0.25 };
+
+  tesseract::scene_graph::SceneState::JointValues joints;
+  EXPECT_TRUE(tesseract_rosutils::fromMsg(joints, msg));
+  ASSERT_EQ(joints.size(), 2U);
+  EXPECT_DOUBLE_EQ(joints.at(tesseract::common::JointId("joint_1")), 1.5);
+  EXPECT_DOUBLE_EQ(joints.at(tesseract::common::JointId("joint_2")), -0.25);
+
+  // A name/position size mismatch is rejected rather than silently truncated.
+  sensor_msgs::msg::JointState bad_msg;
+  bad_msg.name = { "joint_1", "joint_2" };
+  bad_msg.position = { 1.5 };
+
+  tesseract::scene_graph::SceneState::JointValues bad_joints;
+  EXPECT_FALSE(tesseract_rosutils::fromMsg(bad_joints, bad_msg));
+}
+
 int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);

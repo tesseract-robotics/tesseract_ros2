@@ -32,6 +32,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract/common/types.h>
+#include <tesseract/scene_graph/scene_state.h>
 #include <tesseract/environment/environment.h>
 #include <tesseract_monitoring/environment_monitor_interface.h>
 #include <tesseract_rosutils/utils.h>
@@ -303,9 +304,7 @@ ROSEnvironmentMonitorInterface::getEnvironmentState(const std::string& monitor_n
       throw std::runtime_error("getEnvironmentState: Failed to get monitor environment information!");
     tesseract::scene_graph::SceneState env_state;
 
-    std::unordered_map<std::string, double> joints_str;
-    tesseract_rosutils::fromMsg(joints_str, res->joint_states);
-    env_state.joints = tesseract_rosutils::toIdJointValues(joints_str);
+    tesseract_rosutils::fromMsg(env_state.joints, res->joint_states);
 
     tesseract_rosutils::fromMsg(env_state.floating_joints, res->floating_joint_states);
 
@@ -348,11 +347,10 @@ bool ROSEnvironmentMonitorInterface::setEnvironmentState(
     const Eigen::Ref<const Eigen::VectorXd>& joint_values,
     const tesseract::common::JointIdTransformMap& floating_joints) const
 {
-  const auto joint_names = tesseract::common::toNames(joint_ids);
-  std::unordered_map<std::string, double> joints;
-  joints.reserve(joint_names.size());
-  for (std::size_t i = 0; i < joint_names.size(); ++i)
-    joints[joint_names[i]] = joint_values[static_cast<Eigen::Index>(i)];
+  tesseract::scene_graph::SceneState::JointValues joints;
+  joints.reserve(joint_ids.size());
+  for (std::size_t i = 0; i < joint_ids.size(); ++i)
+    joints[joint_ids[i]] = joint_values[static_cast<Eigen::Index>(i)];
 
   tesseract_msgs::msg::EnvironmentCommand command;
   command.command = tesseract_msgs::msg::EnvironmentCommand::UPDATE_JOINT_STATE;

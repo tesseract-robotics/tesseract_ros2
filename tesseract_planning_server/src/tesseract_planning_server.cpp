@@ -56,6 +56,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <tesseract/time_parameterization/isp/iterative_spline_parameterization_profiles.h>
 
 #include <tesseract/common/types.h>
+#include <tesseract/scene_graph/scene_state.h>
 #include <tesseract/environment/environment.h>
 #include <tesseract/environment/environment_cache.h>
 
@@ -238,12 +239,11 @@ void TesseractPlanningServer::onMotionPlanningCallback(
 
   tesseract::environment::Environment::Ptr env = environment_cache_->getCachedEnvironment();
 
-  // fromMsg produces string-keyed map; setState also expects string-keyed
-  std::unordered_map<std::string, double> joints_str;
-  tesseract_rosutils::fromMsg(joints_str, goal->request.environment_state.joint_state);
+  tesseract::scene_graph::SceneState::JointValues joints;
+  tesseract_rosutils::fromMsg(joints, goal->request.environment_state.joint_state);
 
   env->applyCommands(tesseract_rosutils::fromMsg(goal->request.commands));
-  env->setState(joints_str);
+  env->setState(joints);
 
   // Store the initial state in the response for publishing trajectories
   tesseract::scene_graph::SceneState initial_state = env->getState();

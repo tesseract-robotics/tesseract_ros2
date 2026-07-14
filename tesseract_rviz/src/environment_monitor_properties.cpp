@@ -29,6 +29,7 @@
 #include <QThread>
 
 #include <tesseract/common/resource_locator.h>
+#include <tesseract/scene_graph/scene_state.h>
 #include <tesseract/environment/environment.h>
 #include <tesseract/environment/command.h>
 #include <tesseract/environment/commands.h>
@@ -330,7 +331,7 @@ void EnvironmentMonitorProperties::snapshotCallback(const tesseract_msgs::msg::E
   resetMonitor();
 
   tesseract::environment::Commands commands = tesseract_rosutils::fromMsg(msg->command_history);
-  std::unordered_map<std::string, double> jv;
+  tesseract::scene_graph::SceneState::JointValues jv;
   tesseract::common::JointIdTransformMap fjv;
   tesseract_rosutils::fromMsg(jv, msg->joint_states);
   tesseract_rosutils::fromMsg(fjv, msg->floating_joint_states);

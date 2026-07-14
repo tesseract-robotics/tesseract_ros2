@@ -22,8 +22,6 @@
 #include <rviz_common/properties/enum_property.hpp>
 #include <rviz_common/panel_dock_widget.hpp>
 
-#include <unordered_map>
-
 #include <QMetaObject>
 #include <QPointer>
 #include <QThread>

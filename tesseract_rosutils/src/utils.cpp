@@ -1469,8 +1469,7 @@ tesseract::environment::Command::Ptr fromMsg(const tesseract_msgs::msg::Environm
     case tesseract_msgs::msg::EnvironmentCommand::CHANGE_LINK_VISIBILITY:
     {
       return std::make_shared<tesseract::environment::ChangeLinkVisibilityCommand>(
-          tesseract::common::LinkId(command_msg.change_link_visibility_name),
-          command_msg.change_link_visibility_value);
+          tesseract::common::LinkId(command_msg.change_link_visibility_name), command_msg.change_link_visibility_value);
     }
     case tesseract_msgs::msg::EnvironmentCommand::MODIFY_ALLOWED_COLLISIONS:
     {
@@ -1680,7 +1679,7 @@ bool processMsg(tesseract::environment::Environment& env,
       return false;
     }
 
-    env.setState(joint_state_msg.name,
+    env.setState(tesseract::common::toIds<tesseract::common::JointId>(joint_state_msg.name),
                  Eigen::Map<const Eigen::VectorXd>(joint_state_msg.position.data(),
                                                    static_cast<Eigen::Index>(joint_state_msg.position.size())),
                  floating_joints);
@@ -2126,8 +2125,7 @@ bool fromMsg(tesseract::common::JointIdTransformMap& transform_map,
   return true;
 }
 
-bool toMsg(sensor_msgs::msg::JointState& joint_state_msg,
-           const tesseract::scene_graph::SceneState::JointValues& joints)
+bool toMsg(sensor_msgs::msg::JointState& joint_state_msg, const tesseract::scene_graph::SceneState::JointValues& joints)
 {
   joint_state_msg.header.stamp = rclcpp::Clock{ RCL_ROS_TIME }.now();
   joint_state_msg.name.reserve(joints.size());

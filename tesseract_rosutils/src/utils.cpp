@@ -2173,6 +2173,19 @@ bool fromMsg(std::unordered_map<std::string, double>& joint_state, const sensor_
   return true;
 }
 
+bool fromMsg(tesseract::scene_graph::SceneState::JointValues& joint_state,
+             const sensor_msgs::msg::JointState& joint_state_msg)
+{
+  if (joint_state_msg.name.size() != joint_state_msg.position.size())
+    return false;
+
+  joint_state.reserve(joint_state.size() + joint_state_msg.name.size());
+  for (std::size_t i = 0; i < joint_state_msg.name.size(); ++i)
+    joint_state[tesseract::common::JointId(joint_state_msg.name.at(i))] = joint_state_msg.position.at(i);
+
+  return true;
+}
+
 bool toMsg(std::vector<tesseract_msgs::msg::StringDoublePair>& joint_state_map_msg,
            const std::unordered_map<std::string, double>& joint_state)
 {
@@ -2258,7 +2271,7 @@ tesseract::environment::Environment::UPtr fromMsg(const tesseract_msgs::msg::Env
     return nullptr;
   }
 
-  std::unordered_map<std::string, double> joint_values;
+  tesseract::scene_graph::SceneState::JointValues joint_values;
   if (!tesseract_rosutils::fromMsg(joint_values, environment_msg.joint_states))
   {
     RCLCPP_ERROR_STREAM(rclcpp::get_logger(LOGGER_ID), "fromMsg(Environment): Failed to get joint states");

@@ -428,6 +428,15 @@ bool toMsg(sensor_msgs::msg::JointState& joint_state_msg,
 bool fromMsg(std::unordered_map<std::string, double>& joint_state, const sensor_msgs::msg::JointState& joint_state_msg);
 
 /**
+ * @brief This will populate id-keyed joint values from a joint state message
+ * @param joint_state The id-keyed joint values
+ * @param joint_state_msg The joint states message
+ * @return True if successful, otherwise false
+ */
+bool fromMsg(tesseract::scene_graph::SceneState::JointValues& joint_state,
+             const sensor_msgs::msg::JointState& joint_state_msg);
+
+/**
  * @brief This will populate a joint states map message
  * @param joint_state_msg The joint states map message
  * @param joint_state The joint state map

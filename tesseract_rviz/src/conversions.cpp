@@ -24,6 +24,7 @@
  * limitations under the License.
  */
 #include <tesseract_rviz/conversions.h>
+#include <tesseract_rosutils/utils.h>
 
 #include <OgreEntity.h>
 #include <OgreManualObject.h>
@@ -819,6 +820,47 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
         entity_container.addUntrackedUnmanagedObject(tesseract::gui::EntityContainer::VISUAL_NS, data);
       }
 
+      break;
+    }
+    case tesseract::geometry::GeometryType::SIGNED_DISTANCE_FIELD:
+    {
+      // Render the field as a voxel box cloud: one box per grid sample
+      // at the surface, coloured by height. Discretizes a lazy field via getDistances().
+      const auto& sdf = static_cast<const tesseract::geometry::SignedDistanceField&>(geometry);
+      const Eigen::AlignedBox3d& domain = sdf.getDomain();
+      const Eigen::Vector3i& dims = sdf.getDimensions();
+
+      const int nx = dims.x(), ny = dims.y(), nz = dims.z();
+      // Grid sample spacing (guard single-sample axes).
+      const Eigen::Vector3d spacing(domain.sizes().x() / std::max(nx - 1, 1),
+                                    domain.sizes().y() / std::max(ny - 1, 1),
+                                    domain.sizes().z() / std::max(nz - 1, 1));
+      const auto box_size = static_cast<float>(spacing.minCoeff());
+      const double color_factor = 0.8;
+      // Half-width of the rendered surface shell (metres): one voxel of the largest
+      // axis spacing, so the shell is ~2 samples thick and never leaves gaps.
+      const double surface_band = spacing.maxCoeff();
+
+      std::vector<rviz_rendering::PointCloud::Point> points;
+      for (const Eigen::Vector3d& p : tesseract_rosutils::sdfSurfaceShellPoints(sdf, surface_band))
+      {
+        rviz_rendering::PointCloud::Point point;
+        point.position.x = static_cast<float>(p.x());
+        point.position.y = static_cast<float>(p.y());
+        point.position.z = static_cast<float>(p.z());
+        setOctomapColor(p.z(), domain.min().z(), domain.max().z(), color_factor, &point);
+        points.push_back(point);
+      }
+
+      auto data = std::make_shared<OctreeDataContainer>();
+      data->size = box_size;
+      data->points = points;
+      data->shape_type = tesseract::geometry::OctreeSubType::BOX;
+      data->point_cloud =
+          createPointCloud(std::move(points), entity_container, box_size, tesseract::geometry::OctreeSubType::BOX);
+
+      offset_node->attachObject(data->point_cloud.get());
+      entity_container.addUntrackedUnmanagedObject(tesseract::gui::EntityContainer::VISUAL_NS, data);
       break;
     }
     default:

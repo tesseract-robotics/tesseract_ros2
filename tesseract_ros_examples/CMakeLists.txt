@@ -42,6 +42,7 @@ if(tesseract_planning_examples_FOUND)
   add_example(${PROJECT_NAME}_puzzle_piece_auxillary_axes_example_node src/puzzle_piece_auxillary_axes_example_node.cpp)
   add_example(${PROJECT_NAME}_puzzle_piece_example_node src/puzzle_piece_example_node.cpp)
   add_example(${PROJECT_NAME}_scene_graph_example_node src/scene_graph_example_node.cpp)
+  add_example(${PROJECT_NAME}_signed_distance_field_example_node src/signed_distance_field_example_node.cpp)
 
   # Mark executables for installation
   install(
@@ -57,6 +58,7 @@ if(tesseract_planning_examples_FOUND)
       ${PROJECT_NAME}_puzzle_piece_auxillary_axes_example_node
       ${PROJECT_NAME}_puzzle_piece_example_node
       ${PROJECT_NAME}_scene_graph_example_node
+      ${PROJECT_NAME}_signed_distance_field_example_node
     RUNTIME DESTINATION lib/${PROJECT_NAME}
   )
 

@@ -45,7 +45,6 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <condition_variable>
 #include <memory>
 #include <functional>
-#include <unordered_map>
 #include <map>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
@@ -142,10 +141,6 @@ public:
   /** @brief Get the current state and its time stamp
    *  @return Returns a pair of the current state and its time stamp */
   std::pair<tesseract::scene_graph::SceneState, rclcpp::Time> getCurrentStateAndTime() const;
-
-  /** @brief Get the current state values as a map from joint names to joint state values
-   *  @return Returns the map from joint names to joint state values*/
-  std::unordered_map<std::string, double> getCurrentStateValues() const;
 
   /** @brief Wait for at most \e wait_time seconds (default 1s) for a robot state more recent than t
    *  @return true on success, false if up-to-date robot state wasn't received within \e wait_time

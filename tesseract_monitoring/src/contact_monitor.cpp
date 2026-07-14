@@ -44,16 +44,16 @@ namespace tesseract_monitoring
 ContactMonitor::ContactMonitor(std::string monitor_namespace,
                                tesseract::environment::Environment::UPtr env,
                                rclcpp::Node::SharedPtr node,  // NOLINT
-                               std::vector<std::string> monitored_link_names,
-                               std::vector<std::string> disabled_link_names,
+                               std::vector<tesseract::common::LinkId> monitored_link_ids,
+                               std::vector<tesseract::common::LinkId> disabled_link_ids,
                                tesseract::collision::ContactTestType type,
                                double contact_distance,
                                const std::string& joint_state_topic)
   : monitor_namespace_(std::move(monitor_namespace))
   , node_(node)
   , internal_node_(std::make_shared<rclcpp::Node>("ContactMonitor_internal", node->get_fully_qualified_name()))
-  , monitored_link_ids_(tesseract::common::toIds<tesseract::common::LinkId>(monitored_link_names))
-  , disabled_link_ids_(tesseract::common::toIds<tesseract::common::LinkId>(disabled_link_names))
+  , monitored_link_ids_(std::move(monitored_link_ids))
+  , disabled_link_ids_(std::move(disabled_link_ids))
   , type_(type)
   , contact_distance_(contact_distance)
 {

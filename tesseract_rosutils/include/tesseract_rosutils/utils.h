@@ -398,15 +398,6 @@ bool fromMsg(tesseract::common::JointIdTransformMap& transform_map,
              const tesseract_msgs::msg::TransformMap& transform_map_msg);
 
 /**
- * @brief Convert id-keyed SceneState::JointValues to a string-keyed joint map filtered by @p joint_names
- * @details Entries in @p joint_names that are not present in @p joints are omitted. Used to bridge the
- * integer-keyed scene state into the string-keyed ROS message representations.
- */
-std::unordered_map<std::string, double>
-toStringJointValues(const tesseract::scene_graph::SceneState::JointValues& joints,
-                    const std::vector<std::string>& joint_names);
-
-/**
  * @brief Convert a string-keyed joint map to id-keyed SceneState::JointValues
  */
 tesseract::scene_graph::SceneState::JointValues toIdJointValues(const std::unordered_map<std::string, double>& joints);
@@ -418,6 +409,15 @@ tesseract::scene_graph::SceneState::JointValues toIdJointValues(const std::unord
  * @return True if successful, otherwise false
  */
 bool toMsg(sensor_msgs::msg::JointState& joint_state_msg, const std::unordered_map<std::string, double>& joint_state);
+
+/**
+ * @brief This will populate a joint states map message from the id-keyed scene state joint values
+ * @param joint_state_msg The joint states map message
+ * @param joints The id-keyed joint values
+ * @return True if successful, otherwise false
+ */
+bool toMsg(sensor_msgs::msg::JointState& joint_state_msg,
+           const tesseract::scene_graph::SceneState::JointValues& joints);
 
 /**
  * @brief This will populate a joint states from message
@@ -435,6 +435,15 @@ bool fromMsg(std::unordered_map<std::string, double>& joint_state, const sensor_
  */
 bool toMsg(std::vector<tesseract_msgs::msg::StringDoublePair>& joint_state_map_msg,
            const std::unordered_map<std::string, double>& joint_state);
+
+/**
+ * @brief This will populate a joint states map message from the id-keyed scene state joint values
+ * @param joint_state_map_msg The joint states map message
+ * @param joints The id-keyed joint values
+ * @return True if successful, otherwise false
+ */
+bool toMsg(std::vector<tesseract_msgs::msg::StringDoublePair>& joint_state_map_msg,
+           const tesseract::scene_graph::SceneState::JointValues& joints);
 
 /**
  * @brief This will populate a joint states from message

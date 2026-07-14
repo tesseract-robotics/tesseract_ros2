@@ -54,8 +54,8 @@ public:
   ContactMonitor(std::string monitor_namespace,
                  tesseract::environment::Environment::UPtr env,
                  rclcpp::Node::SharedPtr node,
-                 std::vector<std::string> monitored_link_names,
-                 std::vector<std::string> disabled_link_names,
+                 std::vector<tesseract::common::LinkId> monitored_link_ids,
+                 std::vector<tesseract::common::LinkId> disabled_link_ids,
                  tesseract::collision::ContactTestType type,
                  double contact_distance = 0.1,
                  const std::string& joint_state_topic = DEFAULT_JOINT_STATES_TOPIC);

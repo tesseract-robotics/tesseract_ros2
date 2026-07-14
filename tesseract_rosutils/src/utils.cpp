@@ -73,22 +73,6 @@ const std::string LOGGER_ID{ "tesseract_rosutils_utils" };
 
 namespace tesseract_rosutils
 {
-std::unordered_map<std::string, double>
-toStringJointValues(const tesseract::scene_graph::SceneState::JointValues& joints,
-                    const std::vector<std::string>& joint_names)
-{
-  const auto ids = tesseract::common::toIds<tesseract::common::JointId>(joint_names);
-  std::unordered_map<std::string, double> result;
-  result.reserve(joint_names.size());
-  for (std::size_t i = 0; i < ids.size(); ++i)
-  {
-    auto it = joints.find(ids[i]);
-    if (it != joints.end())
-      result[joint_names[i]] = it->second;
-  }
-  return result;
-}
-
 tesseract::scene_graph::SceneState::JointValues toIdJointValues(const std::unordered_map<std::string, double>& joints)
 {
   tesseract::scene_graph::SceneState::JointValues result;
@@ -1611,7 +1595,7 @@ void toMsg(tesseract_msgs::msg::EnvironmentState& state_msg,
   if (include_joint_states)
   {
     tesseract::scene_graph::SceneState env_state = env.getState();
-    toMsg(state_msg.joint_state, toStringJointValues(env_state.joints, env.getJointNames()));
+    toMsg(state_msg.joint_state, env_state.joints);
     toMsg(state_msg.floating_joint_states, env_state.floating_joints);
   }
 }
@@ -2155,6 +2139,20 @@ bool toMsg(sensor_msgs::msg::JointState& joint_state_msg, const std::unordered_m
   return true;
 }
 
+bool toMsg(sensor_msgs::msg::JointState& joint_state_msg,
+           const tesseract::scene_graph::SceneState::JointValues& joints)
+{
+  joint_state_msg.header.stamp = rclcpp::Clock{ RCL_ROS_TIME }.now();
+  joint_state_msg.name.reserve(joints.size());
+  joint_state_msg.position.reserve(joints.size());
+  for (const auto& [id, val] : joints)
+  {
+    joint_state_msg.name.push_back(id.name());
+    joint_state_msg.position.push_back(val);
+  }
+  return true;
+}
+
 bool fromMsg(std::unordered_map<std::string, double>& joint_state, const sensor_msgs::msg::JointState& joint_state_msg)
 {
   if (joint_state_msg.name.size() != joint_state_msg.position.size())
@@ -2179,6 +2177,20 @@ bool toMsg(std::vector<tesseract_msgs::msg::StringDoublePair>& joint_state_map_m
   return true;
 }
 
+bool toMsg(std::vector<tesseract_msgs::msg::StringDoublePair>& joint_state_map_msg,
+           const tesseract::scene_graph::SceneState::JointValues& joints)
+{
+  joint_state_map_msg.reserve(joints.size());
+  for (const auto& [id, val] : joints)
+  {
+    tesseract_msgs::msg::StringDoublePair js;
+    js.first = id.name();
+    js.second = val;
+    joint_state_map_msg.push_back(js);
+  }
+  return true;
+}
+
 bool fromMsg(std::unordered_map<std::string, double>& joint_state,
              const std::vector<tesseract_msgs::msg::StringDoublePair>& joint_state_map_msg)
 {
@@ -2196,8 +2208,7 @@ bool toMsg(tesseract_msgs::msg::Environment& environment_msg,
   if (include_joint_states)
   {
     tesseract::scene_graph::SceneState env_state = env.getState();
-    success =
-        success && toMsg(environment_msg.joint_states, toStringJointValues(env_state.joints, env.getJointNames()));
+    success = success && toMsg(environment_msg.joint_states, env_state.joints);
     success = success && toMsg(environment_msg.floating_joint_states, env_state.floating_joints);
   }
 
@@ -2426,7 +2437,7 @@ void toTransformMsgs(const std::shared_ptr<tesseract::environment::Environment>&
                      std::vector<geometry_msgs::msg::TransformStamped>& static_transforms)
 {
   const auto& scene_graph = env->getSceneGraph();
-  const auto& active_joints = env->getActiveJointNames();
+  const auto active_joints = env->getActiveJointIds();
 
   for (const auto& joint : scene_graph->getJoints())
   {
@@ -2438,7 +2449,7 @@ void toTransformMsgs(const std::shared_ptr<tesseract::environment::Environment>&
     transform_msg.child_frame_id = joint->child_link_id.name();
 
     // Add to appropriate collection based on whether it's static (connected by a fixed joint) or dynamic
-    if ((std::find(active_joints.begin(), active_joints.end(), joint->getName()) == active_joints.end()))
+    if ((std::find(active_joints.begin(), active_joints.end(), joint->getId()) == active_joints.end()))
     {
       static_transforms.push_back(transform_msg);
     }

@@ -339,7 +339,6 @@ void EnvironmentMonitorProperties::snapshotCallback(const tesseract_msgs::msg::E
   env->setResourceLocator(locator);
   if (env->init(commands))
   {
-    env->setState(jv);
     env->setState(jv, fjv);
 
     data_->monitor = std::make_unique<tesseract_monitoring::ROSEnvironmentMonitor>(

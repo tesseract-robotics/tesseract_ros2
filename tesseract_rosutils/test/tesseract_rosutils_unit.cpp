@@ -23,6 +23,8 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <tesseract_msgs/msg/environment.h>
 #include <tesseract_msgs/msg/environment_state.h>
 #include <tesseract_msgs/msg/joint_trajectory.h>
+#include <tesseract_msgs/msg/transform_map.h>
+#include <sensor_msgs/msg/joint_state.hpp>
 #include <trajectory_msgs/msg/joint_trajectory.h>
 
 using namespace tesseract::environment;
@@ -84,6 +86,45 @@ TEST_F(TesseractROSUtilsUnit, processEnvironmentStateMsg)  // NOLINT
   EXPECT_EQ(environment_state_msg2.id, env_->getName());
   EXPECT_EQ(environment_state_msg2.revision, env_->getRevision());
   EXPECT_EQ(environment_state_msg.revision + 1, environment_state_msg2.revision);
+}
+
+TEST_F(TesseractROSUtilsUnit, processJointStateMsg)  // NOLINT
+{
+  const std::vector<std::string> joint_names = env_->getActiveJointNames();
+  ASSERT_FALSE(joint_names.empty());
+
+  sensor_msgs::msg::JointState joint_state_msg;
+  joint_state_msg.name = joint_names;
+  joint_state_msg.position.resize(joint_names.size());
+  for (std::size_t i = 0; i < joint_names.size(); ++i)
+    joint_state_msg.position[i] = 0.1 * static_cast<double>(i + 1);
+
+  const tesseract_msgs::msg::TransformMap floating_joint_state_msg;
+
+  EXPECT_TRUE(processMsg(*env_, joint_state_msg, floating_joint_state_msg));
+
+  const tesseract::scene_graph::SceneState state = env_->getState();
+  for (std::size_t i = 0; i < joint_names.size(); ++i)
+  {
+    auto it = state.joints.find(tesseract::common::JointId(joint_names[i]));
+    ASSERT_NE(it, state.joints.end());
+    EXPECT_NEAR(it->second, joint_state_msg.position[i], 1e-12);
+  }
+
+  // A message whose name and position arrays disagree is malformed: it must be rejected, not applied.
+  sensor_msgs::msg::JointState mismatched_msg;
+  mismatched_msg.name = joint_names;
+  mismatched_msg.position.resize(joint_names.size() - 1, 0.0);
+
+  EXPECT_FALSE(processMsg(*env_, mismatched_msg, floating_joint_state_msg));
+
+  const tesseract::scene_graph::SceneState unchanged_state = env_->getState();
+  for (std::size_t i = 0; i < joint_names.size(); ++i)
+  {
+    auto it = unchanged_state.joints.find(tesseract::common::JointId(joint_names[i]));
+    ASSERT_NE(it, unchanged_state.joints.end());
+    EXPECT_NEAR(it->second, joint_state_msg.position[i], 1e-12);
+  }
 }
 
 TEST_F(TesseractROSUtilsUnit, toFromMsgTesseract)  // NOLINT

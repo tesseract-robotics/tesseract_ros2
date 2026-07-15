@@ -132,7 +132,7 @@ void ContactMonitor::computeCollisionReportThread()
     // Limit the lock
     {
       std::unique_lock lock(modify_mutex_);
-      root_link = monitor_->environment().getRootLinkName();
+      root_link = monitor_->environment().getRootLinkId().name();
       if (env_revision_ != monitor_->environment().getRevision())
       {
         // Create a new manager
@@ -173,7 +173,7 @@ void ContactMonitor::computeCollisionReportThread()
       contacts_msg.contacts.clear();
 
       monitor_->environment().setState(
-          msg->name,
+          tesseract::common::toIds<tesseract::common::JointId>(msg->name),
           Eigen::Map<Eigen::VectorXd>(msg->position.data(), static_cast<Eigen::Index>(msg->position.size())));
       tesseract::scene_graph::SceneState state = monitor_->environment().getState();
 
@@ -268,7 +268,7 @@ void ContactMonitor::callbackComputeContactResultVector(
   contacts_vector.clear();
 
   monitor_->environment().setState(
-      request->joint_states.name,
+      tesseract::common::toIds<tesseract::common::JointId>(request->joint_states.name),
       Eigen::Map<Eigen::VectorXd>(request->joint_states.position.data(),
                                   static_cast<Eigen::Index>(request->joint_states.position.size())));
   tesseract::scene_graph::SceneState state = monitor_->environment().getState();

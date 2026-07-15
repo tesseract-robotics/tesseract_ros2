@@ -224,8 +224,8 @@ TEST_F(TesseractROSUtilsUnit, fromMsgJointIdTransformMap)  // NOLINT
   pose_a.translation() << 1.0, 2.0, 3.0;
   Eigen::Isometry3d pose_b{ Eigen::Isometry3d::Identity() };
   pose_b.translation() << -4.5, 0.25, 7.125;
-  original[JointId("joint_a")] = pose_a;
-  original[JointId("joint_b")] = pose_b;
+  original["joint_a"] = pose_a;
+  original["joint_b"] = pose_b;
 
   tesseract_msgs::msg::TransformMap msg;
   EXPECT_TRUE(toMsg(msg, original));
@@ -279,8 +279,8 @@ TEST_F(TesseractROSUtilsUnit, KinematicsInformation)  // NOLINT
   kin_info.joint_groups["manipulator2"] = { "joint_1", "joint_2", "joint_3" };
   kin_info.link_groups["manipulator3"] = { "base_link", "link_1", "link_2" };
   tesseract::srdf::GroupsJointState js;
-  js[JointId("joint_0")] = 1.1;
-  js[JointId("joint_1")] = 2.1;
+  js["joint_0"] = 1.1;
+  js["joint_1"] = 2.1;
   tesseract::srdf::GroupsJointStates jss;
   jss["home"] = js;
   kin_info.group_states["manipulator1"] = jss;
@@ -513,8 +513,8 @@ TEST_F(TesseractROSUtilsUnit, FromMsgJointStateToJointValues)  // NOLINT
   tesseract::scene_graph::SceneState::JointValues joints;
   EXPECT_TRUE(tesseract_rosutils::fromMsg(joints, msg));
   ASSERT_EQ(joints.size(), 2U);
-  EXPECT_DOUBLE_EQ(joints.at(tesseract::common::JointId("joint_1")), 1.5);
-  EXPECT_DOUBLE_EQ(joints.at(tesseract::common::JointId("joint_2")), -0.25);
+  EXPECT_DOUBLE_EQ(joints.at("joint_1"), 1.5);
+  EXPECT_DOUBLE_EQ(joints.at("joint_2"), -0.25);
 
   // A name/position size mismatch is rejected rather than silently truncated.
   sensor_msgs::msg::JointState bad_msg;
@@ -536,8 +536,8 @@ TEST_F(TesseractROSUtilsUnit, FromMsgStringDoublePairToJointValues)  // NOLINT
   tesseract::scene_graph::SceneState::JointValues joints;
   EXPECT_TRUE(tesseract_rosutils::fromMsg(joints, msg));
   ASSERT_EQ(joints.size(), 2U);
-  EXPECT_DOUBLE_EQ(joints.at(tesseract::common::JointId("joint_1")), 1.5);
-  EXPECT_DOUBLE_EQ(joints.at(tesseract::common::JointId("joint_2")), -0.25);
+  EXPECT_DOUBLE_EQ(joints.at("joint_1"), 1.5);
+  EXPECT_DOUBLE_EQ(joints.at("joint_2"), -0.25);
 }
 
 TEST_F(TesseractROSUtilsUnit, ToEigenOrdersByJointId)  // NOLINT

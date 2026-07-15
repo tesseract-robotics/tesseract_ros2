@@ -980,33 +980,33 @@ void ROSEnvironmentMonitor::getEnvironmentInformationCallback(
 
   if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::LINK_NAMES)  // NOLINT
   {
-    for (const auto& link : env_->getLinkNames())
+    for (const auto& id : env_->getLinkIds())
     {
-      res->link_names.push_back(link);
+      res->link_names.push_back(id.name());
     }
   }
 
   if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::JOINT_NAMES)  // NOLINT
   {
-    for (const auto& joint : env_->getJointNames())
+    for (const auto& id : env_->getJointIds())
     {
-      res->joint_names.push_back(joint);
+      res->joint_names.push_back(id.name());
     }
   }
 
   if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::ACTIVE_LINK_NAMES)  // NOLINT
   {
-    for (const auto& link : env_->getActiveLinkNames())
+    for (const auto& id : env_->getActiveLinkIds())
     {
-      res->active_link_names.push_back(link);
+      res->active_link_names.push_back(id.name());
     }
   }
 
   if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::ACTIVE_JOINT_NAMES)  // NOLINT
   {
-    for (const auto& joint : env_->getActiveJointNames())
+    for (const auto& id : env_->getActiveJointIds())
     {
-      res->active_joint_names.push_back(joint);
+      res->active_joint_names.push_back(id.name());
     }
   }
 

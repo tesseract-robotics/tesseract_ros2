@@ -90,7 +90,7 @@ TEST_F(TesseractROSUtilsUnit, processEnvironmentStateMsg)  // NOLINT
 
 TEST_F(TesseractROSUtilsUnit, processJointStateMsg)  // NOLINT
 {
-  const std::vector<std::string> joint_names = env_->getActiveJointNames();
+  const std::vector<std::string> joint_names = tesseract::common::toNames(env_->getActiveJointIds());
   ASSERT_FALSE(joint_names.empty());
 
   sensor_msgs::msg::JointState joint_state_msg;

@@ -194,8 +194,15 @@ void ROSEnvironmentMonitor::shutdown()
   get_environment_changes_service_.reset();
   get_environment_information_service_.reset();
   save_scene_graph_service_.reset();
-  internal_node_executor_->cancel();
-  if (internal_node_spinner_->joinable())
+
+  // The executor and spinner are only created at the end of the constructor. If construction bailed
+  // out early (e.g. the robot description parameter was missing, or env_->init() failed because a
+  // package:// mesh could not be resolved), these remain null while the object is otherwise fully
+  // constructed and later destroyed. Dereferencing them unconditionally here segfaults on teardown,
+  // so a failed-to-initialize monitor could not be torn down cleanly. Guard against that.
+  if (internal_node_executor_)
+    internal_node_executor_->cancel();
+  if (internal_node_spinner_ && internal_node_spinner_->joinable())
     internal_node_spinner_->join();
 }
 

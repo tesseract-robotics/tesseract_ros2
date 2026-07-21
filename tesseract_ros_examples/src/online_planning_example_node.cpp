@@ -103,8 +103,7 @@ int main(int argc, char** argv)
 
   auto fn2 = [&example](const sensor_msgs::msg::JointState::ConstSharedPtr joint_state)  // NOLINT
   {
-    example.updateState(tesseract::common::toIds<tesseract::common::JointId>(joint_state->name),
-                         joint_state->position);
+    example.updateState(tesseract::common::toIds<tesseract::common::JointId>(joint_state->name), joint_state->position);
   };
 
   // Set up ROS interfaces

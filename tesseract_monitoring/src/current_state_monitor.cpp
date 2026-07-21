@@ -304,7 +304,7 @@ bool CurrentStateMonitor::waitForCompleteState(const std::string& manip, double 
     tesseract::kinematics::JointGroup::ConstPtr jmg = env_->getJointGroup(manip);
     if (jmg)
     {
-      std::set<tesseract::common::JointId> mj(missing_joints.begin(), missing_joints.end());
+      std::unordered_set<tesseract::common::JointId> mj(missing_joints.begin(), missing_joints.end());
       for (const auto& id : jmg->getJointIds())
       {
         if (mj.find(id) != mj.end())

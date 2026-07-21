@@ -45,7 +45,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <condition_variable>
 #include <memory>
 #include <functional>
-#include <map>
+#include <unordered_map>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_monitoring/constants.h>
@@ -190,7 +190,7 @@ private:
   std::shared_ptr<const tesseract::environment::Environment> env_;
   tesseract::scene_graph::SceneState env_state_;
   int last_environment_revision_;
-  std::map<tesseract::common::JointId, rclcpp::Time> joint_time_;
+  std::unordered_map<tesseract::common::JointId, rclcpp::Time> joint_time_;
   bool state_monitor_started_;
   bool copy_dynamics_;  // Copy velocity and effort from joint_state
   rclcpp::Time monitor_start_time_;

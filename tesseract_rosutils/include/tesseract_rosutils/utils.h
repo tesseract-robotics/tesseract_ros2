@@ -88,6 +88,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract/srdf/kinematics_information.h>  // For all the nested using
 #include <tesseract/collision/types.h>              // For all the nested using
+#include <tesseract/scene_graph/scene_state.h>      // For SceneState::JointValues
 
 // Define rclcpp version macro for older ROS2 versions without <rclcpp/version.h>
 #ifndef RCLCPP_VERSION_GTE
@@ -386,49 +387,50 @@ tesseract::common::PluginInfo fromMsg(const tesseract_msgs::msg::PluginInfo& inf
  * @param transform_map The transform map
  * @return True if successful, otherwise false
  */
-bool toMsg(tesseract_msgs::msg::TransformMap& transform_map_msg, const tesseract::common::TransformMap& transform_map);
+bool toMsg(tesseract_msgs::msg::TransformMap& transform_map_msg,
+           const tesseract::common::JointIdTransformMap& transform_map);
 
 /**
- * @brief This will populate a transform map given a message
- * @param transform_map The transform map
- * @param transform_map_msg The transform map message
- * @return True if successful, otherwise false
+ * @brief Convert a TransformMap ROS message to a JointIdTransformMap (integer-keyed)
+ * @details This is used at the ROS message boundary for floating joint values.
  */
-bool fromMsg(tesseract::common::TransformMap& transform_map,
+bool fromMsg(tesseract::common::JointIdTransformMap& transform_map,
              const tesseract_msgs::msg::TransformMap& transform_map_msg);
 
 /**
- * @brief This will populate a joint states map message
+ * @brief This will populate a joint states map message from the id-keyed scene state joint values
  * @param joint_state_msg The joint states map message
- * @param joint_state The joint state map
+ * @param joints The id-keyed joint values
  * @return True if successful, otherwise false
  */
-bool toMsg(sensor_msgs::msg::JointState& joint_state_msg, const std::unordered_map<std::string, double>& joint_state);
+bool toMsg(sensor_msgs::msg::JointState& joint_state_msg,
+           const tesseract::scene_graph::SceneState::JointValues& joints);
 
 /**
- * @brief This will populate a joint states from message
- * @param joint_state The joint state map
- * @param joint_state_msg The joint states map message
+ * @brief This will populate id-keyed joint values from a joint state message
+ * @param joint_state The id-keyed joint values
+ * @param joint_state_msg The joint states message
  * @return True if successful, otherwise false
  */
-bool fromMsg(std::unordered_map<std::string, double>& joint_state, const sensor_msgs::msg::JointState& joint_state_msg);
+bool fromMsg(tesseract::scene_graph::SceneState::JointValues& joint_state,
+             const sensor_msgs::msg::JointState& joint_state_msg);
 
 /**
- * @brief This will populate a joint states map message
- * @param joint_state_msg The joint states map message
- * @param joint_state The joint state map
+ * @brief This will populate a joint states map message from the id-keyed scene state joint values
+ * @param joint_state_map_msg The joint states map message
+ * @param joints The id-keyed joint values
  * @return True if successful, otherwise false
  */
 bool toMsg(std::vector<tesseract_msgs::msg::StringDoublePair>& joint_state_map_msg,
-           const std::unordered_map<std::string, double>& joint_state);
+           const tesseract::scene_graph::SceneState::JointValues& joints);
 
 /**
- * @brief This will populate a joint states from message
- * @param joint_state The joint state map
+ * @brief This will populate id-keyed joint values from a joint states map message
+ * @param joint_state The id-keyed joint values
  * @param joint_state_map_msg The joint states map message
  * @return True if successful, otherwise false
  */
-bool fromMsg(std::unordered_map<std::string, double>& joint_state,
+bool fromMsg(tesseract::scene_graph::SceneState::JointValues& joint_state,
              const std::vector<tesseract_msgs::msg::StringDoublePair>& joint_state_map_msg);
 
 /**

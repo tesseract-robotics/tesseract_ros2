@@ -46,7 +46,6 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <memory>
 #include <functional>
 #include <unordered_map>
-#include <map>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_monitoring/constants.h>
@@ -123,14 +122,14 @@ public:
    *  @param missing_joints Returns the list of joints that are missing
    *  @return False if we have no joint state information for one or more of the joints
    */
-  bool haveCompleteState(std::vector<std::string>& missing_joints) const;
+  bool haveCompleteState(std::vector<tesseract::common::JointId>& missing_joints) const;
 
   /** @brief Query whether we have joint state information for all DOFs in the kinematic model
    *  @param age The max allowed age of the joint state information
    *  @param missing_states Returns the list of joints that are missing
    *  @return False if we have no joint state information for one of the joints or if our state
    *  information is more than \e age old*/
-  bool haveCompleteState(const rclcpp::Duration& age, std::vector<std::string>& missing_states) const;
+  bool haveCompleteState(const rclcpp::Duration& age, std::vector<tesseract::common::JointId>& missing_states) const;
 
   /** @brief Get the current state
    *  @return Returns the current state */
@@ -143,9 +142,9 @@ public:
    *  @return Returns a pair of the current state and its time stamp */
   std::pair<tesseract::scene_graph::SceneState, rclcpp::Time> getCurrentStateAndTime() const;
 
-  /** @brief Get the current state values as a map from joint names to joint state values
-   *  @return Returns the map from joint names to joint state values*/
-  std::unordered_map<std::string, double> getCurrentStateValues() const;
+  /** @brief Get the current state values as a map from joint ids to joint state values
+   *  @return Returns the map from joint ids to joint state values */
+  tesseract::scene_graph::SceneState::JointValues getCurrentStateValues() const;
 
   /** @brief Wait for at most \e wait_time seconds (default 1s) for a robot state more recent than t
    *  @return true on success, false if up-to-date robot state wasn't received within \e wait_time
@@ -185,13 +184,13 @@ public:
 
 private:
   void jointStateCallback(const sensor_msgs::msg::JointState::ConstSharedPtr joint_state);  // NOLINT
-  bool isPassiveOrMimicDOF(const std::string& dof) const;
+  bool isPassiveOrMimicDOF(const tesseract::common::JointId& dof) const;
 
   rclcpp::Node::SharedPtr node_;
   std::shared_ptr<const tesseract::environment::Environment> env_;
   tesseract::scene_graph::SceneState env_state_;
   int last_environment_revision_;
-  std::map<std::string, rclcpp::Time> joint_time_;
+  std::unordered_map<tesseract::common::JointId, rclcpp::Time> joint_time_;
   bool state_monitor_started_;
   bool copy_dynamics_;  // Copy velocity and effort from joint_state
   rclcpp::Time monitor_start_time_;

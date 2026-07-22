@@ -47,6 +47,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_monitoring/current_state_monitor.h>
 
+#include <tesseract/common/types.h>
 #include <tesseract/kinematics/joint_group.h>
 #include <tesseract/scene_graph/joint.h>
 #include <tesseract/environment/environment.h>
@@ -92,7 +93,7 @@ std::pair<tesseract::scene_graph::SceneState, rclcpp::Time> CurrentStateMonitor:
   return std::make_pair(env_state_, current_state_time_);
 }
 
-std::unordered_map<std::string, double> CurrentStateMonitor::getCurrentStateValues() const
+tesseract::scene_graph::SceneState::JointValues CurrentStateMonitor::getCurrentStateValues() const
 {
   std::scoped_lock slock(state_update_lock_);
   return env_state_.joints;
@@ -148,9 +149,9 @@ std::string CurrentStateMonitor::getMonitoredTopic() const
   return "";
 }
 
-bool CurrentStateMonitor::isPassiveOrMimicDOF(const std::string& dof) const
+bool CurrentStateMonitor::isPassiveOrMimicDOF(const tesseract::common::JointId& dof) const
 {
-  const auto& active_joints = env_->getActiveJointNames();
+  const auto& active_joints = env_->getActiveJointIds();
   auto passive = (std::find(active_joints.begin(), active_joints.end(), dof) == active_joints.end());
   auto mimic = env_->getJoint(dof)->mimic != nullptr;
 
@@ -161,30 +162,34 @@ bool CurrentStateMonitor::haveCompleteState() const
 {
   bool result = true;
   std::scoped_lock slock(state_update_lock_);
-  for (const auto& joint : env_state_.joints)
-    if (joint_time_.find(joint.first) == joint_time_.end())
-    {
-      if (!isPassiveOrMimicDOF(joint.first))
+  for (const auto& id : env_->getJointIds())
+    if (env_state_.joints.count(id) != 0)
+      if (joint_time_.find(id) == joint_time_.end())
       {
-        RCLCPP_DEBUG(node_->get_logger(), "Joint variable '%s' has never been updated", joint.first.c_str());
-        result = false;
+        if (!isPassiveOrMimicDOF(id))
+        {
+          RCLCPP_DEBUG(node_->get_logger(), "Joint variable '%s' has never been updated", id.name().c_str());
+          result = false;
+        }
       }
-    }
   return result;
 }
 
-bool CurrentStateMonitor::haveCompleteState(std::vector<std::string>& missing_joints) const
+bool CurrentStateMonitor::haveCompleteState(std::vector<tesseract::common::JointId>& missing_joints) const
 {
   bool result = true;
   std::scoped_lock slock(state_update_lock_);
-  for (const auto& joint : env_state_.joints)
-    if (joint_time_.find(joint.first) == joint_time_.end())
-      if (!isPassiveOrMimicDOF(joint.first))
-      {
-        RCLCPP_DEBUG(node_->get_logger(), "Joint variable '%s' has never been updated", joint.first.c_str());
-        missing_joints.push_back(joint.first);
-        result = false;
-      }
+  for (const auto& id : env_->getJointIds())
+  {
+    if (env_state_.joints.count(id) != 0)
+      if (joint_time_.find(id) == joint_time_.end())
+        if (!isPassiveOrMimicDOF(id))
+        {
+          RCLCPP_DEBUG(node_->get_logger(), "Joint variable '%s' has never been updated", id.name().c_str());
+          missing_joints.push_back(id);
+          result = false;
+        }
+  }
   return result;
 }
 
@@ -194,21 +199,23 @@ bool CurrentStateMonitor::haveCompleteState(const rclcpp::Duration& age) const
   rclcpp::Time now = node_->now();
   rclcpp::Time old = now - age;
   std::scoped_lock slock(state_update_lock_);
-  for (const auto& joint : env_state_.joints)
+  for (const auto& id : env_->getJointIds())
   {
-    if (isPassiveOrMimicDOF(joint.first))
+    if (env_state_.joints.count(id) == 0)
       continue;
-    auto it = joint_time_.find(joint.first);
+    if (isPassiveOrMimicDOF(id))
+      continue;
+    auto it = joint_time_.find(id);
     if (it == joint_time_.end())
     {
-      RCLCPP_DEBUG(node_->get_logger(), "Joint variable '%s' has never been updated", joint.first.c_str());
+      RCLCPP_DEBUG(node_->get_logger(), "Joint variable '%s' has never been updated", id.name().c_str());
       result = false;
     }
     else if (it->second < old)
     {
       RCLCPP_DEBUG(node_->get_logger(),
                    "Joint variable '%s' was last updated %0.3lf seconds ago (older than the allowed %0.3lf seconds)",
-                   joint.first.c_str(),
+                   id.name().c_str(),
                    (now - it->second).seconds(),
                    age.seconds());
       result = false;
@@ -217,32 +224,35 @@ bool CurrentStateMonitor::haveCompleteState(const rclcpp::Duration& age) const
   return result;
 }
 
-bool CurrentStateMonitor::haveCompleteState(const rclcpp::Duration& age, std::vector<std::string>& missing_states) const
+bool CurrentStateMonitor::haveCompleteState(const rclcpp::Duration& age,
+                                            std::vector<tesseract::common::JointId>& missing_states) const
 {
   bool result = true;
   rclcpp::Time now = node_->now();
   rclcpp::Time old = now - age;
   std::scoped_lock slock(state_update_lock_);
 
-  for (const auto& joint : env_state_.joints)
+  for (const auto& id : env_->getJointIds())
   {
-    if (isPassiveOrMimicDOF(joint.first))
+    if (env_state_.joints.count(id) == 0)
       continue;
-    auto it = joint_time_.find(joint.first);
+    if (isPassiveOrMimicDOF(id))
+      continue;
+    auto it = joint_time_.find(id);
     if (it == joint_time_.end())
     {
-      RCLCPP_DEBUG(node_->get_logger(), "Joint variable '%s' has never been updated", joint.first.c_str());
-      missing_states.push_back(joint.first);
+      RCLCPP_DEBUG(node_->get_logger(), "Joint variable '%s' has never been updated", id.name().c_str());
+      missing_states.push_back(id);
       result = false;
     }
     else if (it->second < old)
     {
       RCLCPP_DEBUG(node_->get_logger(),
                    "Joint variable '%s' was last updated %0.3lf seconds ago (older than the allowed %0.3lf seconds)",
-                   joint.first.c_str(),
+                   id.name().c_str(),
                    (now - it->second).seconds(),
                    age.seconds());
-      missing_states.push_back(joint.first);
+      missing_states.push_back(id);
       result = false;
     }
   }
@@ -288,18 +298,21 @@ bool CurrentStateMonitor::waitForCompleteState(const std::string& manip, double 
 
   // check to see if we have a fully known state for the joints we want to
   // record
-  std::vector<std::string> missing_joints;
+  std::vector<tesseract::common::JointId> missing_joints;
   if (!haveCompleteState(missing_joints))
   {
     tesseract::kinematics::JointGroup::ConstPtr jmg = env_->getJointGroup(manip);
     if (jmg)
     {
-      std::set<std::string> mj;
-      mj.insert(missing_joints.begin(), missing_joints.end());
-      const std::vector<std::string>& names = jmg->getJointNames();
-      for (std::size_t i = 0; ok && i < names.size(); ++i)
-        if (mj.find(names[i]) != mj.end())
+      std::unordered_set<tesseract::common::JointId> mj(missing_joints.begin(), missing_joints.end());
+      for (const auto& id : jmg->getJointIds())
+      {
+        if (mj.find(id) != mj.end())
+        {
           ok = false;
+          break;
+        }
+      }
     }
     else
       ok = false;
@@ -337,15 +350,17 @@ void CurrentStateMonitor::jointStateCallback(const sensor_msgs::msg::JointState:
 
     for (unsigned i = 0; i < joint_state->name.size(); ++i)
     {
-      if (env_state_.joints.find(joint_state->name[i]) != env_state_.joints.end())
+      auto jid = tesseract::common::JointId(joint_state->name[i]);
+      auto it = env_state_.joints.find(jid);
+      if (it != env_state_.joints.end())
       {
-        double diff = env_state_.joints[joint_state->name[i]] - joint_state->position[i];
+        double diff = it->second - joint_state->position[i];
         if (std::fabs(diff) > std::numeric_limits<double>::epsilon())
         {
-          env_state_.joints[joint_state->name[i]] = joint_state->position[i];
+          it->second = joint_state->position[i];
           update = true;
         }
-        joint_time_[joint_state->name[i]] = joint_state->header.stamp;
+        joint_time_[jid] = joint_state->header.stamp;
       }
     }
 

@@ -16,7 +16,6 @@
 #include <rviz_common/properties/ros_topic_property.hpp>
 #include <rviz_common/panel_dock_widget.hpp>
 
-#include <unordered_map>
 #include <thread>
 #include <boost/lexical_cast.hpp>
 #include <boost/uuid/uuid_io.hpp>
@@ -28,6 +27,7 @@
 #include <tesseract/environment/environment.h>
 #include <tesseract/environment/command.h>
 #include <tesseract/environment/commands.h>
+#include <tesseract/scene_graph/scene_state.h>
 #include <tesseract/command_language/composite_instruction.h>
 #include <tesseract/command_language/utils.h>
 
@@ -62,12 +62,14 @@ struct JointTrajectoryMonitorProperties::Implementation
     if (msg->points.empty())
       return;
 
-    std::unordered_map<std::string, double> initial_state;
-    for (std::size_t i = 0; i < msg->joint_names.size(); ++i)
-      initial_state[msg->joint_names[i]] = msg->points[0].positions[i];
+    tesseract::common::JointTrajectory joint_trajectory = tesseract_rosutils::fromMsg(*msg);
+
+    const tesseract::common::JointState& state = joint_trajectory.states.front();
+    tesseract::scene_graph::SceneState::JointValues initial_state;
+    for (std::size_t i = 0; i < state.joint_ids.size(); ++i)
+      initial_state[state.joint_ids[i]] = state.position[i];
 
     tesseract::common::JointTrajectorySet trajectory_set(initial_state);
-    tesseract::common::JointTrajectory joint_trajectory = tesseract_rosutils::fromMsg(*msg);
     trajectory_set.setUUID(joint_trajectory.uuid);
     trajectory_set.setDescription(joint_trajectory.description);
     trajectory_set.appendJointTrajectory(joint_trajectory);
@@ -88,9 +90,8 @@ struct JointTrajectoryMonitorProperties::Implementation
       tesseract::common::JointTrajectorySet trajectory_set;
 
       // Get environment initial state
-      std::unordered_map<std::string, double> initial_state;
-      for (const auto& pair_msg : msg->initial_state)
-        initial_state[pair_msg.first] = pair_msg.second;
+      tesseract::scene_graph::SceneState::JointValues initial_state;
+      tesseract_rosutils::fromMsg(initial_state, msg->initial_state);
 
       // Get environment information
       tesseract::environment::Environment::UPtr environment = tesseract_rosutils::fromMsg(msg->environment);

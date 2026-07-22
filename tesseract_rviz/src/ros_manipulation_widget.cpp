@@ -6,6 +6,7 @@
 #include <tesseract_qt/common/entity_manager.h>
 // #include <tesseract_qt/common/link_visibility_properties.h>
 
+#include <tesseract/common/types.h>
 #include <tesseract/environment/environment.h>
 
 #include <rviz_common/display_context.hpp>
@@ -231,14 +232,14 @@ void ROSManipulationWidget::addInteractiveMarker()
   std::string tcp_name = getTCPName().toStdString();
   int state_index = getActiveStateIndex();
   int mode = getMode();
-  std::vector<std::string> joint_names = kin_group.getJointNames();
+  const std::vector<tesseract::common::JointId>& joint_ids = kin_group.getJointIds();
 
   // Add 6 DOF interactive marker at the end of the manipulator
   data_->interactive_marker = std::make_shared<InteractiveMarker>(
       "6DOF", "Move Robot", data_->root_interactive_node, data_->context, data_->interactive_marker_scale);
   make6Dof(*data_->interactive_marker);
 
-  Eigen::Isometry3d pose = state.link_transforms.at(tcp_name);  // * tcp_offset_;
+  Eigen::Isometry3d pose = state.link_transforms.at(tesseract::common::LinkId(tcp_name));  // * tcp_offset_;
   Ogre::Vector3 position;
   Ogre::Quaternion orientation;
   toOgre(position, orientation, pose);
@@ -257,13 +258,14 @@ void ROSManipulationWidget::addInteractiveMarker()
   // Add joint specific interactive marker
   data_->joint_interactive_markers.clear();
   data_->joint_interactive_marker_link_names.clear();
-  for (const auto& joint_name : joint_names)
+  for (const auto& joint_id : joint_ids)
   {
+    const std::string& joint_name = joint_id.name();
     std::string name = joint_name + "_interactive_marker";
     std::string disc = "Move joint: " + joint_name;
     InteractiveMarker::Ptr interactive_marker = std::make_shared<InteractiveMarker>(
         name, disc, data_->root_interactive_node, data_->context, data_->joint_interactive_marker_scale);
-    const auto& joint = environment().getJoint(joint_name);
+    const auto& joint = environment().getJoint(joint_id);
 
     switch (joint->type)
     {
@@ -318,8 +320,8 @@ void ROSManipulationWidget::addInteractiveMarker()
         assert(false);
     }
 
-    data_->joint_interactive_marker_link_names[joint_name] = joint->child_link_name;
-    Eigen::Isometry3d pose = state.link_transforms.at(joint->child_link_name);
+    data_->joint_interactive_marker_link_names[joint_name] = joint->child_link_id.name();
+    Eigen::Isometry3d pose = state.link_transforms.at(joint->child_link_id);
     Ogre::Vector3 position;
     Ogre::Quaternion orientation;
     toOgre(position, orientation, pose);
@@ -351,11 +353,12 @@ void ROSManipulationWidget::markerFeedback(const std::string& reference_frame,
   const std::string working_frame = getWorkingFrame().toStdString();
 
   Eigen::Isometry3d tf_world{ transform };
-  auto it = state.link_transforms.find(reference_frame);
+  auto it = state.link_transforms.find(tesseract::common::LinkId(reference_frame));
   if (it != state.link_transforms.end())
     tf_world = it->second * transform;
 
-  const Eigen::Isometry3d tf_working_frame = state.link_transforms.at(working_frame).inverse() * tf_world;
+  const Eigen::Isometry3d tf_working_frame =
+      state.link_transforms.at(tesseract::common::LinkId(working_frame)).inverse() * tf_world;
   setActiveCartesianTransform(tf_working_frame);
 }
 
@@ -370,9 +373,9 @@ void ROSManipulationWidget::jointMarkerFeedback(const std::string& joint_name,
   int current_state_index = getActiveStateIndex();
 
   tesseract::scene_graph::Joint::ConstPtr joint = environment().getJoint(joint_name);
-  double current_joint_value = scene_state.joints.at(joint_name);
-  Eigen::Isometry3d child_pose =
-      scene_state.link_transforms.at(data_->joint_interactive_marker_link_names.at(joint_name));
+  double current_joint_value = scene_state.joints.at(tesseract::common::JointId(joint_name));
+  Eigen::Isometry3d child_pose = scene_state.link_transforms.at(
+      tesseract::common::LinkId(data_->joint_interactive_marker_link_names.at(joint_name)));
   Eigen::Isometry3d delta_pose = child_pose.inverse() * transform;
 
   Eigen::Vector3d delta_axis;
@@ -416,20 +419,20 @@ void ROSManipulationWidget::jointMarkerFeedback(const std::string& joint_name,
   Eigen::MatrixX2d limits = kin_group.getLimits().joint_limits;
   int i = 0;
   std::unordered_map<std::string, double> state;
-  for (const auto& j : kin_group.getJointNames())
+  for (const auto& joint_id : kin_group.getJointIds())
   {
-    if (joint_name == j)
+    if (joint_name == joint_id.name())
     {
       if (new_joint_value > limits(i, 1))
         new_joint_value = limits(i, 1);
       else if (new_joint_value < limits(i, 0))
         new_joint_value = limits(i, 0);
 
-      state[j] = new_joint_value;
+      state[joint_id.name()] = new_joint_value;
     }
     else
     {
-      state[j] = scene_state.joints[j];
+      state[joint_id.name()] = scene_state.joints.at(joint_id);
     }
 
     ++i;
@@ -465,10 +468,10 @@ void ROSManipulationWidget::onRender(float dt)
         if (!data_->render_group.isEmpty())
         {
           auto jg = environment().getJointGroup(data_->render_group.toStdString());
-          std::vector<std::string> link_names = jg->getActiveLinkNames();
-          for (const auto& link_name : link_names)
+          std::vector<tesseract::common::LinkId> link_ids = jg->getActiveLinkIds();
+          for (const auto& link_id : link_ids)
           {
-            auto link = environment().getLink(link_name);
+            auto link = environment().getLink(link_id);
             auto entity_container = entity_manager->getEntityContainer(link->getName());
             Ogre::SceneNode* sn = loadLink(*data_->context->getSceneManager(),
                                            *entity_container,
@@ -493,20 +496,24 @@ void ROSManipulationWidget::onRender(float dt)
       if (data_->render_states_dirty[i])
       {
         const tesseract::scene_graph::SceneState& render_state = data_->render_states[i];
-        for (const auto& pair : render_state.link_transforms)
+        const auto& link_transforms = render_state.link_transforms;
+        for (const auto& ec : entity_manager->getEntityContainers())
         {
-          if (entity_manager->hasEntityContainer(pair.first))
-          {
-            auto container = entity_manager->getEntityContainer(pair.first);
-            Ogre::Vector3 position;
-            Ogre::Quaternion orientation;
-            toOgre(position, orientation, pair.second);
+          const std::string& link_name = ec.first;
+          auto link_id = tesseract::common::LinkId(link_name);
+          auto tf_it = link_transforms.find(link_id);
+          if (tf_it == link_transforms.end())
+            continue;
 
-            auto entity = container->getTrackedEntity(tesseract::gui::EntityContainer::VISUAL_NS, pair.first);
-            Ogre::SceneNode* sn = data_->context->getSceneManager()->getSceneNode(entity.unique_name);
-            sn->setPosition(position);
-            sn->setOrientation(orientation);
-          }
+          auto container = ec.second;
+          Ogre::Vector3 position;
+          Ogre::Quaternion orientation;
+          toOgre(position, orientation, tf_it->second);
+
+          auto entity = container->getTrackedEntity(tesseract::gui::EntityContainer::VISUAL_NS, link_name);
+          Ogre::SceneNode* sn = data_->context->getSceneManager()->getSceneNode(entity.unique_name);
+          sn->setPosition(position);
+          sn->setOrientation(orientation);
         }
 
         // Interactive markers are only created of the active state
@@ -527,8 +534,8 @@ void ROSManipulationWidget::onRender(float dt)
           {
             if (!jm.second->isDragging())
             {
-              Eigen::Isometry3d pose =
-                  render_state.link_transforms.at(data_->joint_interactive_marker_link_names[jm.first]);
+              Eigen::Isometry3d pose = render_state.link_transforms.at(
+                  tesseract::common::LinkId(data_->joint_interactive_marker_link_names[jm.first]));
               Ogre::Vector3 position;
               Ogre::Quaternion orientation;
               toOgre(position, orientation, pose);

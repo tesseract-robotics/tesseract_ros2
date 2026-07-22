@@ -172,9 +172,9 @@ void ROSContactResultsRenderManager::render()
         else
           direction = Ogre::Vector3::UNIT_Z;
 
-        float shaft_diameter = 0.0015f;
-        float head_diameter = 3 * shaft_diameter;
-        float head_length = head_diameter;
+        float head_length = 0.015;
+        float shaft_diameter = 0.01;
+        float head_diameter = 0.015;
         float shaft_length = std::max(0.0f, static_cast<float>(cr.distance) - head_length);
         std::array<float, 4> proportions = { shaft_length, shaft_diameter, head_length, head_diameter };
 

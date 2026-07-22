@@ -1979,22 +1979,10 @@ bool fromMsg(tesseract::srdf::KinematicsInformation& kin_info,
   }
 
   for (const auto& group : kin_info_msg.joint_groups)
-  {
-    tesseract::srdf::JointGroup jg;
-    jg.reserve(group.joints.size());
-    for (const auto& name : group.joints)
-      jg.emplace_back(name);
-    kin_info.joint_groups[group.name] = std::move(jg);
-  }
+    kin_info.joint_groups[group.name] = tesseract::common::toIds<tesseract::common::JointId>(group.joints);
 
   for (const auto& group : kin_info_msg.link_groups)
-  {
-    tesseract::srdf::LinkGroup lg;
-    lg.reserve(group.links.size());
-    for (const auto& name : group.links)
-      lg.emplace_back(name);
-    kin_info.link_groups[group.name] = std::move(lg);
-  }
+    kin_info.link_groups[group.name] = tesseract::common::toIds<tesseract::common::LinkId>(group.links);
 
   for (const auto& group : kin_info_msg.group_joint_states)
   {

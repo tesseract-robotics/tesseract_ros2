@@ -53,6 +53,7 @@ BOOST_BIND_NO_PLACEHOLDERS
 #include <tesseract/environment/command.h>
 #include <tesseract/environment/commands.h>
 
+#include <chrono>
 #include <tesseract_monitoring/environment_monitor.h>
 #include <tesseract_rosutils/utils.h>
 
@@ -455,6 +456,19 @@ double ROSEnvironmentMonitor::getStateUpdateFrequency() const
   return 0.0;
 }
 
+/**
+ * Bounded wait for the monitored-environment service calls below.
+ *
+ * These fetches used to block with future.wait(): if the monitored process
+ * exits while a response is in flight (routine for a planner that runs one
+ * plan and exits -- a full environment with SDF collision links is a
+ * 100MB+ response taking tens of seconds), the future NEVER resolves and the
+ * monitor's executor thread parks forever -- no error, no further syncs, the
+ * displayed environment silently frozen. A generous timeout + pending-request
+ * prune converts that hang into a logged retry on the next state message.
+ */
+static constexpr std::chrono::seconds MONITORED_ENV_SERVICE_TIMEOUT{ 60 };
+
 void ROSEnvironmentMonitor::newEnvironmentStateCallback(
     const tesseract_msgs::msg::EnvironmentState::ConstSharedPtr env_msg)  // NOLINT
 {
@@ -467,7 +481,14 @@ void ROSEnvironmentMonitor::newEnvironmentStateCallback(
                               tesseract_msgs::srv::GetEnvironmentInformation::Request::KINEMATICS_INFORMATION;
 
     auto gei_result_future = get_monitored_environment_information_client_->async_send_request(get_env_info_req);
-    gei_result_future.wait();
+    if (gei_result_future.wait_for(MONITORED_ENV_SERVICE_TIMEOUT) != std::future_status::ready)
+    {
+      get_monitored_environment_information_client_->remove_pending_request(gei_result_future);
+      RCLCPP_ERROR_STREAM(logger_,
+                          "newEnvironmentStateCallback: Timed out waiting for monitored environment information; "
+                          "will retry on the next state message.");
+      return;
+    }
     auto gei_res = gei_result_future.get();
     if (!gei_res->success)
     {
@@ -506,7 +527,14 @@ void ROSEnvironmentMonitor::newEnvironmentStateCallback(
       get_env_changes_req->revision = static_cast<unsigned long>(env_->getRevision());
 
       auto gec_result_future = get_monitored_environment_changes_client_->async_send_request(get_env_changes_req);
-      gec_result_future.wait();
+      if (gec_result_future.wait_for(MONITORED_ENV_SERVICE_TIMEOUT) != std::future_status::ready)
+      {
+        get_monitored_environment_changes_client_->remove_pending_request(gec_result_future);
+        RCLCPP_ERROR_STREAM(logger_,
+                            "newEnvironmentStateCallback: Timed out waiting for monitored environment changes; "
+                            "will retry on the next state message.");
+        return;
+      }
       auto gec_res = gec_result_future.get();
       if (gec_res->success)
       {
@@ -534,7 +562,14 @@ void ROSEnvironmentMonitor::newEnvironmentStateCallback(
             get_env_changes_req->revision = static_cast<unsigned long>(env_->getRevision());
 
             auto gec_result_future = get_monitored_environment_changes_client_->async_send_request(get_env_changes_req);
-            gec_result_future.wait();
+            if (gec_result_future.wait_for(MONITORED_ENV_SERVICE_TIMEOUT) != std::future_status::ready)
+            {
+              get_monitored_environment_changes_client_->remove_pending_request(gec_result_future);
+              RCLCPP_ERROR_STREAM(logger_,
+                                  "newEnvironmentStateCallback: Timed out waiting for monitored environment "
+                                  "changes; will retry on the next state message.");
+              return;
+            }
             auto gec_res = gec_result_future.get();
             if (gec_res->success)
             {
@@ -566,7 +601,14 @@ void ROSEnvironmentMonitor::newEnvironmentStateCallback(
         if (tesseract_rosutils::toMsg(modify_env_req->commands, env_->getCommandHistory(), env_msg->revision))
         {
           auto me_result_future = modify_monitored_environment_client_->async_send_request(modify_env_req);
-          me_result_future.wait();
+          if (me_result_future.wait_for(MONITORED_ENV_SERVICE_TIMEOUT) != std::future_status::ready)
+          {
+            modify_monitored_environment_client_->remove_pending_request(me_result_future);
+            RCLCPP_ERROR_STREAM(logger_,
+                                "newEnvironmentStateCallback: Timed out waiting for monitored environment modify; "
+                                "will retry on the next state message.");
+            return;
+          }
           auto me_res = me_result_future.get();
           if (!me_res->success)
           {

@@ -24,11 +24,13 @@
  * limitations under the License.
  */
 #include <tesseract_rviz/conversions.h>
+#include <tesseract_rosutils/utils.h>
 
 #include <OgreEntity.h>
 #include <OgreManualObject.h>
 #include <OgreMaterialManager.h>
 #include <OgreMesh.h>
+#include <OgreMeshManager.h>
 #include <OgreRibbonTrail.h>
 #include <OgreSceneManager.h>
 #include <OgreSceneNode.h>
@@ -61,6 +63,7 @@
 #include <tesseract/scene_graph/joint.h>
 #include <tesseract/scene_graph/link.h>
 
+#include <cstdlib>
 #include <filesystem>
 #include <tesseract/common/resource_locator.h>
 #include <tesseract/geometry/geometries.h>
@@ -119,6 +122,20 @@ std::string getEnvNamespaceFromTopic(const std::string& topic)
     return tokens.at(0);
 
   return std::string();
+}
+
+void removeGeneratedMeshResource(const std::string& resource_entity_name)
+{
+  // createEntityForMeshData registers its mesh in the Ogre::MeshManager under
+  // "<entity name>::mesh". destroyEntity() does NOT release that resource, so a
+  // clear/rebuild cycle leaked every generated mesh (CPU + GPU buffers; multi-GB
+  // per planning run). Callers destroying a RESOURCE_NS entity must call this
+  // alongside destroyEntity(). No-op for entities without a generated mesh
+  // (e.g. point clouds).
+  const std::string mesh_name = resource_entity_name + "::mesh";
+  auto& mesh_mgr = Ogre::MeshManager::getSingleton();
+  if (mesh_mgr.resourceExists(mesh_name, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME))
+    mesh_mgr.remove(mesh_name, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
 }
 
 Ogre::Entity* createEntityForMeshData(Ogre::SceneManager& scene,
@@ -196,7 +213,11 @@ Ogre::Entity* createEntityForMeshData(Ogre::SceneManager& scene,
   auto entity = entity_container.addUntrackedEntity(tesseract::gui::EntityContainer::RESOURCE_NS);
   std::string mesh_name = entity.unique_name + "::mesh";
   Ogre::MeshPtr ogre_mesh = object->convertToMesh(mesh_name, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
-  ogre_mesh->buildEdgeList();
+  // NOTE: no buildEdgeList() -- edge lists exist solely for stencil shadows, which
+  // rviz never enables, and building them is O(edges log edges) PER MESH on the GUI
+  // thread. On large CAD collision meshes it dominated every scene rebuild (the
+  // profiled 99%-CPU stall during planning; one full rebuild is queued per
+  // add/remove-link environment event).
 
   Ogre::Entity* ogre_entity = scene.createEntity(entity.unique_name, mesh_name);
 
@@ -819,6 +840,49 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
         entity_container.addUntrackedUnmanagedObject(tesseract::gui::EntityContainer::VISUAL_NS, data);
       }
 
+      break;
+    }
+    case tesseract::geometry::GeometryType::SIGNED_DISTANCE_FIELD:
+    {
+      // Render the field as a voxel box cloud: one box per grid sample
+      // at the surface, coloured by height. Discretizes a lazy field via getDistances().
+      const auto& sdf = static_cast<const tesseract::geometry::SignedDistanceField&>(geometry);
+      const Eigen::AlignedBox3d& domain = sdf.getDomain();
+      const Eigen::Vector3i& dims = sdf.getDimensions();
+
+      const int nx = dims.x(), ny = dims.y(), nz = dims.z();
+      // Grid sample spacing (guard single-sample axes).
+      const Eigen::Vector3d spacing(domain.sizes().x() / std::max(nx - 1, 1),
+                                    domain.sizes().y() / std::max(ny - 1, 1),
+                                    domain.sizes().z() / std::max(nz - 1, 1));
+      const auto box_size = static_cast<float>(spacing.minCoeff());
+      const double color_factor = 0.8;
+      // Half-width of the rendered surface shell (metres): one voxel of the largest
+      // axis spacing, so the shell is ~2 samples thick and never leaves gaps.
+      const double surface_band = spacing.maxCoeff();
+
+      std::vector<rviz_rendering::PointCloud::Point> points;
+      std::vector<Eigen::Vector3d> shell = tesseract_rosutils::sdfSurfaceShellPoints(sdf, surface_band);
+      points.reserve(shell.size());
+      for (const Eigen::Vector3d& p : shell)
+      {
+        rviz_rendering::PointCloud::Point point;
+        point.position.x = static_cast<float>(p.x());
+        point.position.y = static_cast<float>(p.y());
+        point.position.z = static_cast<float>(p.z());
+        setOctomapColor(p.z(), domain.min().z(), domain.max().z(), color_factor, &point);
+        points.push_back(point);
+      }
+
+      auto data = std::make_shared<OctreeDataContainer>();
+      data->size = box_size;
+      data->points = points;
+      data->shape_type = tesseract::geometry::OctreeSubType::BOX;
+      data->point_cloud =
+          createPointCloud(std::move(points), entity_container, box_size, tesseract::geometry::OctreeSubType::BOX);
+
+      offset_node->attachObject(data->point_cloud.get());
+      entity_container.addUntrackedUnmanagedObject(tesseract::gui::EntityContainer::VISUAL_NS, data);
       break;
     }
     default:

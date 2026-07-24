@@ -15,6 +15,7 @@ find_package(tesseract_qt REQUIRED)
 # tesseract_ros2
 find_package(tesseract_msgs REQUIRED)
 find_package(tesseract_monitoring REQUIRED)
+find_package(tesseract_rosutils REQUIRED)
 
 # Ogre
 # find_package(OGRE REQUIRED)
@@ -121,6 +122,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
   tesseract::tesseract_qt_workbench_widgets
 
   tesseract_monitoring::tesseract_monitoring_environment
+  tesseract_rosutils::tesseract_rosutils
   ${PROJECT_NAME}_markers
   ${PROJECT_NAME}_interactive_marker
   ${QT_LIBRARIES}

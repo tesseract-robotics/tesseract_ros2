@@ -71,6 +71,7 @@ set(message_files
   "msg/PluginInfoContainer.msg"
   "msg/ProfileMap.msg"
   "msg/SceneGraph.msg"
+  "msg/SignedDistanceField.msg"
   "msg/StringDoublePair.msg"
   "msg/StringLimitsPair.msg"
   "msg/StringPair.msg"

@@ -1010,7 +1010,7 @@ fromMsg(const std::vector<tesseract_msgs::msg::ContactMarginPair>& contact_margi
     tesseract::common::LinkId id1(pair.first.first);
     tesseract::common::LinkId id2(pair.first.second);
     auto id_pair = tesseract::common::LinkIdPair(id1, id2);
-    contact_margin_pairs.emplace(id_pair, tesseract::common::PairMarginEntry{ pair.second });
+    contact_margin_pairs.emplace(id_pair, pair.second);
   }
   return contact_margin_pairs;
 }
@@ -1019,12 +1019,12 @@ std::vector<tesseract_msgs::msg::ContactMarginPair>
 toMsg(const tesseract::common::PairsCollisionMarginData& contact_margin_pairs)
 {
   std::vector<tesseract_msgs::msg::ContactMarginPair> contact_margin_pairs_msg;
-  for (const auto& [key, entry] : contact_margin_pairs)
+  for (const auto& [key, margin] : contact_margin_pairs)
   {
     tesseract_msgs::msg::ContactMarginPair cmp;
     cmp.first.first = key.first().name();
     cmp.first.second = key.second().name();
-    cmp.second = entry.margin;
+    cmp.second = margin;
     contact_margin_pairs_msg.push_back(cmp);
   }
 
@@ -1041,12 +1041,12 @@ tesseract_msgs::msg::CollisionMarginData toMsg(const tesseract::common::Collisio
 {
   tesseract_msgs::msg::CollisionMarginData contact_margin_data_msg;
   contact_margin_data_msg.default_margin = contact_margin_data.getDefaultCollisionMargin();
-  for (const auto& [key, entry] : contact_margin_data.getCollisionMarginPairData().getCollisionMargins())
+  for (const auto& [key, margin] : contact_margin_data.getCollisionMarginPairData().getCollisionMargins())
   {
     tesseract_msgs::msg::ContactMarginPair cmp;
     cmp.first.first = key.first().name();
     cmp.first.second = key.second().name();
-    cmp.second = entry.margin;
+    cmp.second = margin;
     contact_margin_data_msg.margin_pairs.push_back(cmp);
   }
   return contact_margin_data_msg;
@@ -1113,7 +1113,7 @@ bool toMsg(std::vector<tesseract_msgs::msg::AllowedCollisionEntry>& acm_msg,
     tesseract_msgs::msg::AllowedCollisionEntry entry_msg;
     entry_msg.link_1 = entry.first.first().name();
     entry_msg.link_2 = entry.first.second().name();
-    entry_msg.reason = entry.second.reason;
+    entry_msg.reason = entry.second;
     acm_msg.push_back(entry_msg);
   }
 

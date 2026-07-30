@@ -153,7 +153,10 @@ bool CurrentStateMonitor::isPassiveOrMimicDOF(const tesseract::common::JointId& 
 {
   const auto& active_joints = env_->getActiveJointIds();
   auto passive = (std::find(active_joints.begin(), active_joints.end(), dof) == active_joints.end());
-  auto mimic = env_->getJoint(dof)->mimic != nullptr;
+  // The cached state outlives an environment revision until the next joint state arrives, so it can still name a
+  // joint the environment has removed; getJoint returns null for those.
+  const auto joint = env_->getJoint(dof);
+  auto mimic = (joint != nullptr) && (joint->mimic != nullptr);
 
   return passive || mimic;
 }
@@ -162,16 +165,15 @@ bool CurrentStateMonitor::haveCompleteState() const
 {
   bool result = true;
   std::scoped_lock slock(state_update_lock_);
-  for (const auto& id : env_->getJointIds())
-    if (env_state_.joints.count(id) != 0)
-      if (joint_time_.find(id) == joint_time_.end())
+  for (const auto& joint : env_state_.joints)
+    if (joint_time_.find(joint.first) == joint_time_.end())
+    {
+      if (!isPassiveOrMimicDOF(joint.first))
       {
-        if (!isPassiveOrMimicDOF(id))
-        {
-          RCLCPP_DEBUG(node_->get_logger(), "Joint variable '%s' has never been updated", id.name().c_str());
-          result = false;
-        }
+        RCLCPP_DEBUG(node_->get_logger(), "Joint variable '%s' has never been updated", joint.first.name().c_str());
+        result = false;
       }
+    }
   return result;
 }
 
@@ -179,17 +181,14 @@ bool CurrentStateMonitor::haveCompleteState(std::vector<tesseract::common::Joint
 {
   bool result = true;
   std::scoped_lock slock(state_update_lock_);
-  for (const auto& id : env_->getJointIds())
-  {
-    if (env_state_.joints.count(id) != 0)
-      if (joint_time_.find(id) == joint_time_.end())
-        if (!isPassiveOrMimicDOF(id))
-        {
-          RCLCPP_DEBUG(node_->get_logger(), "Joint variable '%s' has never been updated", id.name().c_str());
-          missing_joints.push_back(id);
-          result = false;
-        }
-  }
+  for (const auto& joint : env_state_.joints)
+    if (joint_time_.find(joint.first) == joint_time_.end())
+      if (!isPassiveOrMimicDOF(joint.first))
+      {
+        RCLCPP_DEBUG(node_->get_logger(), "Joint variable '%s' has never been updated", joint.first.name().c_str());
+        missing_joints.push_back(joint.first);
+        result = false;
+      }
   return result;
 }
 
@@ -199,23 +198,21 @@ bool CurrentStateMonitor::haveCompleteState(const rclcpp::Duration& age) const
   rclcpp::Time now = node_->now();
   rclcpp::Time old = now - age;
   std::scoped_lock slock(state_update_lock_);
-  for (const auto& id : env_->getJointIds())
+  for (const auto& joint : env_state_.joints)
   {
-    if (env_state_.joints.count(id) == 0)
+    if (isPassiveOrMimicDOF(joint.first))
       continue;
-    if (isPassiveOrMimicDOF(id))
-      continue;
-    auto it = joint_time_.find(id);
+    auto it = joint_time_.find(joint.first);
     if (it == joint_time_.end())
     {
-      RCLCPP_DEBUG(node_->get_logger(), "Joint variable '%s' has never been updated", id.name().c_str());
+      RCLCPP_DEBUG(node_->get_logger(), "Joint variable '%s' has never been updated", joint.first.name().c_str());
       result = false;
     }
     else if (it->second < old)
     {
       RCLCPP_DEBUG(node_->get_logger(),
                    "Joint variable '%s' was last updated %0.3lf seconds ago (older than the allowed %0.3lf seconds)",
-                   id.name().c_str(),
+                   joint.first.name().c_str(),
                    (now - it->second).seconds(),
                    age.seconds());
       result = false;
@@ -232,27 +229,25 @@ bool CurrentStateMonitor::haveCompleteState(const rclcpp::Duration& age,
   rclcpp::Time old = now - age;
   std::scoped_lock slock(state_update_lock_);
 
-  for (const auto& id : env_->getJointIds())
+  for (const auto& joint : env_state_.joints)
   {
-    if (env_state_.joints.count(id) == 0)
+    if (isPassiveOrMimicDOF(joint.first))
       continue;
-    if (isPassiveOrMimicDOF(id))
-      continue;
-    auto it = joint_time_.find(id);
+    auto it = joint_time_.find(joint.first);
     if (it == joint_time_.end())
     {
-      RCLCPP_DEBUG(node_->get_logger(), "Joint variable '%s' has never been updated", id.name().c_str());
-      missing_states.push_back(id);
+      RCLCPP_DEBUG(node_->get_logger(), "Joint variable '%s' has never been updated", joint.first.name().c_str());
+      missing_states.push_back(joint.first);
       result = false;
     }
     else if (it->second < old)
     {
       RCLCPP_DEBUG(node_->get_logger(),
                    "Joint variable '%s' was last updated %0.3lf seconds ago (older than the allowed %0.3lf seconds)",
-                   id.name().c_str(),
+                   joint.first.name().c_str(),
                    (now - it->second).seconds(),
                    age.seconds());
-      missing_states.push_back(id);
+      missing_states.push_back(joint.first);
       result = false;
     }
   }

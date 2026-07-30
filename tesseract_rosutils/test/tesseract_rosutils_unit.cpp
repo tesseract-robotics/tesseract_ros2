@@ -274,8 +274,6 @@ TEST_F(TesseractROSUtilsUnit, KinematicsInformation)  // NOLINT
   tesseract::srdf::KinematicsInformation kin_info;
   kin_info.group_names = { "manipulator1", "manipulator2", "manipulator3" };
   kin_info.chain_groups["manipulator1"] = { std::make_pair("base_link", "tip_link") };
-  using tesseract::common::JointId;
-  using tesseract::common::LinkId;
   kin_info.joint_groups["manipulator2"] = { "joint_1", "joint_2", "joint_3" };
   kin_info.link_groups["manipulator3"] = { "base_link", "link_1", "link_2" };
   tesseract::srdf::GroupsJointState js;

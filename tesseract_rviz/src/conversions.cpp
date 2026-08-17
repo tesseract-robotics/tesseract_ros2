@@ -348,7 +348,8 @@ Ogre::SceneNode* loadLinkVisuals(Ogre::SceneManager& scene,
 
       Ogre::SceneNode* geom_scene_node = loadLinkGeometry(
           scene, entity_container, *visual->geometry, Eigen::Vector3d::Ones(), visual->origin, material, true);
-      scene_node->addChild(geom_scene_node);
+      if (geom_scene_node != nullptr)
+        scene_node->addChild(geom_scene_node);
     }
   }
 
@@ -380,7 +381,8 @@ Ogre::SceneNode* loadLinkCollisions(Ogre::SceneManager& scene,
 
       Ogre::SceneNode* geom_scene_node = loadLinkGeometry(
           scene, entity_container, *collision->geometry, Eigen::Vector3d::Ones(), collision->origin, material, false);
-      scene_node->addChild(geom_scene_node);
+      if (geom_scene_node != nullptr)
+        scene_node->addChild(geom_scene_node);
     }
   }
 

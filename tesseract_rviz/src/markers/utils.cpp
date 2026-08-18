@@ -35,8 +35,6 @@
 #include <tesseract_rviz/interactive_marker/interactive_marker.h>
 #include <tesseract_rviz/interactive_marker/interactive_marker_control.h>
 
-#include <rviz_common/display_context.hpp>
-#include <rviz_rendering/objects/shape.hpp>
 
 namespace tesseract_rviz
 {

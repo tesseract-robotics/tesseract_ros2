@@ -46,8 +46,6 @@ class DisplayContext;
 
 namespace tesseract_rviz
 {
-class MarkerBase;
-class ArrowMarker;
 class InteractiveMarkerControl;
 class InteractiveMarker;
 

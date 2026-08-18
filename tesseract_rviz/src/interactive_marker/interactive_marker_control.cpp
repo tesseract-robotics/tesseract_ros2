@@ -62,7 +62,6 @@
 #include <tesseract_rviz/interactive_marker/interactive_marker_control.h>
 #include <tesseract_rviz/interactive_marker/interactive_marker.h>
 #include <tesseract_rviz/markers/marker_base.h>
-#include <tesseract_rviz/markers/utils.h>
 
 #define NO_HIGHLIGHT_VALUE 0.0f
 #define ACTIVE_HIGHLIGHT_VALUE 0.5f

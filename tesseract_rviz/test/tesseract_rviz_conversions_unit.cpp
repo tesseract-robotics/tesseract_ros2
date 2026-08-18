@@ -159,6 +159,94 @@ TEST_F(TesseractRvizConversionsUnit, UnsupportedGeometryIsSkipped)  // NOLINT
   EXPECT_EQ(result->numChildren(), 1U) << "only the supported visual may contribute a child node";
 }
 
+/** @brief Every returned origin must satisfy a*x + b*y + c*z - d = 0 */
+static void expectOnPlane(const tesseract::geometry::Plane& plane, const Eigen::Isometry3d& t)
+{
+  const Eigen::Vector3d& p = t.translation();
+  const double residual = plane.getA() * p.x() + plane.getB() * p.y() + plane.getC() * p.z() - plane.getD();
+  EXPECT_NEAR(residual, 0.0, 1e-9);
+}
+
+/** @brief The quad's +Z axis must map onto the plane's unit normal */
+static void expectNormalAligned(const tesseract::geometry::Plane& plane, const Eigen::Isometry3d& t)
+{
+  const Eigen::Vector3d expected = Eigen::Vector3d(plane.getA(), plane.getB(), plane.getC()).normalized();
+  const Eigen::Vector3d actual = t.linear() * Eigen::Vector3d::UnitZ();
+  EXPECT_TRUE(actual.isApprox(expected, 1e-9)) << "expected " << expected.transpose() << " got " << actual.transpose();
+}
+
+TEST(TesseractRvizPlaneTransform, GroundPlaneThroughOrigin)  // NOLINT
+{
+  const tesseract::geometry::Plane plane(0.0, 0.0, 1.0, 0.0);
+  Eigen::Isometry3d t;
+  ASSERT_TRUE(tesseract_rviz::computePlaneTransform(plane, t));
+  expectOnPlane(plane, t);
+  expectNormalAligned(plane, t);
+  EXPECT_TRUE(t.translation().isApprox(Eigen::Vector3d::Zero(), 1e-9));
+}
+
+TEST(TesseractRvizPlaneTransform, OffsetAlongNormal)  // NOLINT
+{
+  // z + 2 = 0  ->  the plane sits at z = -2
+  const tesseract::geometry::Plane plane(0.0, 0.0, 1.0, -2.0);
+  Eigen::Isometry3d t;
+  ASSERT_TRUE(tesseract_rviz::computePlaneTransform(plane, t));
+  expectOnPlane(plane, t);
+  expectNormalAligned(plane, t);
+  EXPECT_TRUE(t.translation().isApprox(Eigen::Vector3d(0.0, 0.0, -2.0), 1e-9));
+}
+
+TEST(TesseractRvizPlaneTransform, NonUnitNormalIsNormalized)  // NOLINT
+{
+  // 2z + 4 = 0  ->  still z = -2, despite the un-normalized coefficients
+  const tesseract::geometry::Plane plane(0.0, 0.0, 2.0, -4.0);
+  Eigen::Isometry3d t;
+  ASSERT_TRUE(tesseract_rviz::computePlaneTransform(plane, t));
+  expectOnPlane(plane, t);
+  expectNormalAligned(plane, t);
+  EXPECT_TRUE(t.translation().isApprox(Eigen::Vector3d(0.0, 0.0, -2.0), 1e-9));
+}
+
+TEST(TesseractRvizPlaneTransform, VerticalPlane)  // NOLINT
+{
+  // x = 0 plane, normal +X
+  const tesseract::geometry::Plane plane(1.0, 0.0, 0.0, 0.0);
+  Eigen::Isometry3d t;
+  ASSERT_TRUE(tesseract_rviz::computePlaneTransform(plane, t));
+  expectOnPlane(plane, t);
+  expectNormalAligned(plane, t);
+}
+
+TEST(TesseractRvizPlaneTransform, AntiparallelNormal)  // NOLINT
+{
+  // Normal is exactly -Z, the degenerate case for naive axis-angle construction
+  const tesseract::geometry::Plane plane(0.0, 0.0, -1.0, 1.0);
+  Eigen::Isometry3d t;
+  ASSERT_TRUE(tesseract_rviz::computePlaneTransform(plane, t));
+  expectOnPlane(plane, t);
+  expectNormalAligned(plane, t);
+}
+
+TEST(TesseractRvizPlaneTransform, ObliquePlane)  // NOLINT
+{
+  const tesseract::geometry::Plane plane(1.0, 2.0, 3.0, -4.0);
+  Eigen::Isometry3d t;
+  ASSERT_TRUE(tesseract_rviz::computePlaneTransform(plane, t));
+  expectOnPlane(plane, t);
+  expectNormalAligned(plane, t);
+}
+
+TEST(TesseractRvizPlaneTransform, DegenerateNormalRejected)  // NOLINT
+{
+  // Default-constructed Plane is a=b=c=d=0 and has no defined orientation
+  const tesseract::geometry::Plane plane(0.0, 0.0, 0.0, 0.0);
+  Eigen::Isometry3d t = Eigen::Isometry3d::Identity();
+  t.translation() = Eigen::Vector3d(9.0, 9.0, 9.0);
+  EXPECT_FALSE(tesseract_rviz::computePlaneTransform(plane, t));
+  // Output must be left untouched on failure
+  EXPECT_TRUE(t.translation().isApprox(Eigen::Vector3d(9.0, 9.0, 9.0), 1e-9));
+}
+
 int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);

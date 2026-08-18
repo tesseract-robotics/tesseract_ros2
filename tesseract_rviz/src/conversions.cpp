@@ -92,6 +92,22 @@ void toOgre(Ogre::Vector3& position, Ogre::Quaternion& orientation, const Eigen:
                                  robot_visual_orientation.z());
 }
 
+bool computePlaneTransform(const tesseract::geometry::Plane& plane, Eigen::Isometry3d& transform)
+{
+  const Eigen::Vector3d normal(plane.getA(), plane.getB(), plane.getC());
+  if (normal.isZero())
+    return false;
+
+  const double norm = normal.norm();
+  const Eigen::Vector3d unit_normal = normal / norm;
+
+  // FromTwoVectors picks a stable axis for the antiparallel case, which a raw cross product would not
+  transform.linear() = Eigen::Quaterniond::FromTwoVectors(Eigen::Vector3d::UnitZ(), unit_normal).toRotationMatrix();
+  // Closest point on the plane to the origin; d is the signed offset along the normal, as FCL and Coal read it
+  transform.translation() = unit_normal * (plane.getD() / norm);
+  return true;
+}
+
 bool isMeshWithColor(const std::string& file_path)
 {
   if (file_path.length() >= 4)

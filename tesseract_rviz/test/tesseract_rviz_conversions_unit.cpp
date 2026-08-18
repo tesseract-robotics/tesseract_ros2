@@ -8,6 +8,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <OgreRoot.h>
 #include <OgreSceneManager.h>
 #include <OgreSceneNode.h>
+#include <OgreEntity.h>
 #include <OgreMaterialManager.h>
 #include <OgreLogManager.h>
 #include <OgreRenderWindow.h>
@@ -245,6 +246,37 @@ TEST(TesseractRvizPlaneTransform, DegenerateNormalRejected)  // NOLINT
   EXPECT_FALSE(tesseract_rviz::computePlaneTransform(plane, t));
   // Output must be left untouched on failure
   EXPECT_TRUE(t.translation().isApprox(Eigen::Vector3d(9.0, 9.0, 9.0), 1e-9));
+}
+
+/** @brief A PLANE must now produce a scene node with an attached entity */
+TEST_F(TesseractRvizConversionsUnit, PlaneGeometryProducesSceneNode)  // NOLINT
+{
+  if (!ogreReady())
+    GTEST_SKIP() << "No Ogre render system available";
+
+  // The plane mesh is generated on demand into the default resource group, so this test
+  // does not depend on an ament lookup finding an installed tesseract_rviz share directory.
+  const tesseract::geometry::Plane plane(0.0, 0.0, 1.0, -0.5);
+  auto entity_container = entity_manager_->getEntityContainer("test");
+
+  Ogre::SceneNode* result = tesseract_rviz::loadLinkGeometry(*scene_manager_,
+                                                             *entity_container,
+                                                             plane,
+                                                             Eigen::Vector3d::Ones(),
+                                                             Eigen::Isometry3d::Identity(),
+                                                             createTestMaterial(),
+                                                             true);
+
+  ASSERT_NE(result, nullptr) << "PLANE geometry should be supported";
+  // Two quads with opposing normals, so the plane stays visible and lit from either side
+  ASSERT_EQ(result->numAttachedObjects(), 2U);
+  // d = -0.5 with a +Z normal puts the quad half a metre down
+  EXPECT_NEAR(result->getPosition().z, -0.5F, 1e-5F);
+
+  // The mesh is a unit quad, so the node scale IS the drawn extent, exactly as for the
+  // other primitives whose shipped meshes are also 1x1x1
+  EXPECT_NEAR(result->getScale().x, 10.0F, 1e-5F) << "plane should be drawn at PLANE_VISUAL_EXTENT metres";
+  EXPECT_NEAR(result->getScale().y, 10.0F, 1e-5F);
 }
 
 int main(int argc, char** argv)

@@ -65,6 +65,7 @@
 
 #include <algorithm>
 #include <filesystem>
+#include <utility>
 #include <vector>
 #include <tesseract/common/resource_locator.h>
 #include <tesseract/geometry/geometries.h>
@@ -73,6 +74,15 @@ const std::string USER_VISIBILITY = "user_visibility";
 
 namespace tesseract_rviz
 {
+/**
+ * @brief Edge length (m) of the finite quad standing in for an unbounded plane; matches the 10 m default RViz grid
+ * @note Every other geometry takes its size from its own data; a Plane carries only a/b/c/d, so the size is ours to
+ * pick
+ */
+static constexpr Ogre::Real PLANE_VISUAL_EXTENT = 10.0F;
+static constexpr char PLANE_MESH_NAME[] = "tesseract_plane.mesh";
+static constexpr char PLANE_BACK_MESH_NAME[] = "tesseract_plane_back.mesh";
+
 static Ogre::NameGenerator material_name_generator("tesseract::material::");
 
 void toEigen(Eigen::Isometry3d& transform, const Ogre::Vector3& position, const Ogre::Quaternion& orientation)
@@ -241,6 +251,36 @@ Ogre::Entity* createEntityForMeshData(Ogre::SceneManager& scene,
   delete object;
 
   return ogre_entity;
+}
+
+/**
+ * @brief Register the unit plane quads; a plane is unbounded so no static asset can represent one
+ * @note Sized 1x1 like the shipped primitive meshes, so callers scale it the same way
+ * @note Two meshes with opposing normals, so the plane is visible and correctly lit from either side
+ * @note Needs a live rendering context, not merely an initialised render system, so do not hoist it earlier
+ */
+static void ensurePlaneMeshRegistered()
+{
+  auto& mesh_mgr = Ogre::MeshManager::getSingleton();
+  if (mesh_mgr.resourceExists(PLANE_MESH_NAME, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME))
+    return;
+
+  for (const auto& [name, normal] : { std::pair{ PLANE_MESH_NAME, Ogre::Vector3::UNIT_Z },
+                                      std::pair{ PLANE_BACK_MESH_NAME, Ogre::Vector3::NEGATIVE_UNIT_Z } })
+  {
+    mesh_mgr.createPlane(name,
+                         Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
+                         Ogre::Plane(normal, 0.0F),
+                         1.0F,
+                         1.0F,
+                         1,
+                         1,
+                         true,
+                         1,
+                         1.0F,
+                         1.0F,
+                         Ogre::Vector3::UNIT_Y);
+  }
 }
 
 std::shared_ptr<rviz_rendering::PointCloud> createPointCloud(std::vector<rviz_rendering::PointCloud::Point>&& points,
@@ -902,6 +942,38 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
 
       offset_node->attachObject(data->point_cloud.get());
       entity_container.addUntrackedUnmanagedObject(tesseract::gui::EntityContainer::VISUAL_NS, data);
+      break;
+    }
+    case tesseract::geometry::GeometryType::PLANE:
+    {
+      const auto& plane = static_cast<const tesseract::geometry::Plane&>(geometry);
+
+      Eigen::Isometry3d plane_transform;
+      if (!computePlaneTransform(plane, plane_transform))
+      {
+        RCLCPP_WARN(rclcpp::get_logger("tesseract_environment_plugin"),
+                    "Plane geometry has a degenerate normal (a=%f, b=%f, c=%f, d=%f); skipping",
+                    plane.getA(),
+                    plane.getB(),
+                    plane.getC(),
+                    plane.getD());
+        break;
+      }
+
+      ensurePlaneMeshRegistered();
+
+      for (const auto* mesh_name : { PLANE_MESH_NAME, PLANE_BACK_MESH_NAME })
+      {
+        auto entity = entity_container.addUntrackedEntity(tesseract::gui::EntityContainer::RESOURCE_NS);
+        auto* plane_entity = scene.createEntity(entity.unique_name, mesh_name);
+        ogre_entity.push_back(plane_entity);
+        offset_node->attachObject(plane_entity);
+      }
+
+      // Compose the plane's own pose onto the visual origin
+      toOgre(offset_position, offset_orientation, local_pose * plane_transform);
+
+      ogre_scale = Ogre::Vector3(PLANE_VISUAL_EXTENT);
       break;
     }
     default:

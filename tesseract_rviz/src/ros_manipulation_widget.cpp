@@ -1,6 +1,6 @@
 #include <tesseract_rviz/ros_manipulation_widget.h>
 #include <tesseract_rviz/conversions.h>
-#include <tesseract_rviz/markers/utils.h>
+#include <tesseract_rviz/interactive_marker/utils.h>
 #include <tesseract_rviz/interactive_marker/interactive_marker.h>
 
 #include <tesseract_qt/common/entity_manager.h>

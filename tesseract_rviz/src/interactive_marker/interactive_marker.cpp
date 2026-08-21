@@ -45,7 +45,7 @@
 
 #include <tesseract_rviz/interactive_marker/integer_action.h>
 #include <tesseract_rviz/interactive_marker/interactive_marker.h>
-#include <tesseract_rviz/markers/utils.h>
+#include <tesseract_rviz/interactive_marker/utils.h>
 
 namespace tesseract_rviz
 {

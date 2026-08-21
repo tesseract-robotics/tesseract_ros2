@@ -39,7 +39,6 @@ tesseract_variables()
 add_library(${PROJECT_NAME}_markers SHARED
   src/markers/marker_base.cpp
   src/markers/marker_selection_handler.cpp
-  src/markers/utils.cpp
   src/markers/arrow_marker.cpp
   src/markers/sphere_marker.cpp
   src/markers/cube_marker.cpp
@@ -69,6 +68,7 @@ add_library(${PROJECT_NAME}_interactive_marker SHARED
   src/interactive_marker/integer_action.cpp
   src/interactive_marker/interactive_marker.cpp
   src/interactive_marker/interactive_marker_control.cpp
+  src/interactive_marker/utils.cpp
   ${${PROJECT_NAME}_interactive_marker_cpp_MOCS}
 )
 target_link_libraries(${PROJECT_NAME}_interactive_marker PUBLIC

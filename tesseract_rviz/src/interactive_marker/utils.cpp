@@ -27,14 +27,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <tesseract_rviz/markers/utils.h>
+#include <tesseract_rviz/interactive_marker/utils.h>
 #include <tesseract_rviz/markers/sphere_marker.h>
 #include <tesseract_rviz/markers/arrow_marker.h>
 #include <tesseract_rviz/markers/triangle_list_marker.h>
 #include <tesseract_rviz/markers/text_view_facing_marker.h>
 #include <tesseract_rviz/interactive_marker/interactive_marker.h>
 #include <tesseract_rviz/interactive_marker/interactive_marker_control.h>
-
 
 namespace tesseract_rviz
 {

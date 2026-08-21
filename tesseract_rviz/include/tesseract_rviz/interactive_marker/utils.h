@@ -27,8 +27,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef TESSERACT_RVIZ_MARKERS_UTILS_H
-#define TESSERACT_RVIZ_MARKERS_UTILS_H
+#ifndef TESSERACT_RVIZ_INTERACTIVE_MARKER_UTILS_H
+#define TESSERACT_RVIZ_INTERACTIVE_MARKER_UTILS_H
 
 #include <string>
 
@@ -84,4 +84,4 @@ void make6Dof(InteractiveMarker& interactive_marker);
 
 }  // namespace tesseract_rviz
 
-#endif  // TESSERACT_RVIZ_RENDER_TOOLS_UTILS_H
+#endif  // TESSERACT_RVIZ_INTERACTIVE_MARKER_UTILS_H

@@ -23,12 +23,11 @@ jobs:
           - os: jammy
             distro: humble
             env:
-              TARGET_CMAKE_ARGS: "-DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_BUILD_TYPE=Debug -DTESSERACT_ENABLE_CLANG_TIDY=ON -DTESSERACT_ENABLE_TESTING=ON -DCLANG_TIDY_NAMES=clang-tidy-17"
+              TARGET_CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=Debug -DTESSERACT_ENABLE_CLANG_TIDY=ON -DTESSERACT_ENABLE_TESTING=ON -DCLANG_TIDY_NAMES=clang-tidy-17"
 
     container:
       image: ghcr.io/tesseract-robotics/tesseract_qt:${{ matrix.os }}-master
       env:
-        CCACHE_DIR: "${{ github.workspace }}/${{ matrix.os }}/.ccache"
         DEBIAN_FRONTEND: noninteractive
         TZ: Etc/UTC
     steps:
@@ -52,10 +51,10 @@ jobs:
           apt install -y clang-tidy-17 libomp-17-dev
 
       - name: Build and Tests
-        uses: tesseract-robotics/colcon-action@v14
+        uses: tesseract-robotics/colcon-action@v15
         with:
           before-script: apt install ros-${{ matrix.distro }}-ros-base && source /opt/tesseract_qt/install/setup.bash && source /opt/ros/${{ matrix.distro }}/setup.bash
-          ccache-prefix: ${{ matrix.distro }}
+          ccache-prefix: code-quality-${{ matrix.distro }}
           vcs-file: .github/workflows/dependencies.repos
           run-tests: false
           rosdep-install-args: -iry --skip-keys='libomp-dev osqp-eigen'

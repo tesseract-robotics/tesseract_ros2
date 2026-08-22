@@ -58,6 +58,6 @@ jobs:
           before-script: source /opt/tesseract_qt/install/setup.bash && source /opt/ros/${{ matrix.distro }}/setup.bash
           ccache-prefix: unstable-${{ matrix.distro }}
           vcs-file: ${{ matrix.vcs-file }}
-          rosdep-install-args: -iry --skip-keys=osqp-eigen
+          rosdep-install-args: -iry --skip-keys=osqp_eigen
           target-path: target_ws/src
           target-args: --cmake-args -DCMAKE_BUILD_TYPE=Debug -DTESSERACT_ENABLE_TESTING=ON

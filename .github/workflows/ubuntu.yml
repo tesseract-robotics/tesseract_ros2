@@ -63,7 +63,6 @@ jobs:
     container:
       image: ghcr.io/tesseract-robotics/tesseract_qt:${{ matrix.os }}-${{ needs.get-tag.outputs.major }}.${{ needs.get-tag.outputs.minor }}
       env:
-        CCACHE_DIR: ${{ github.workspace }}/${{ matrix.distro }}/.ccache
         DEBIAN_FRONTEND: noninteractive
         TZ: Etc/UTC
     steps:
@@ -81,10 +80,10 @@ jobs:
           apt install -y ros-${{ matrix.distro }}-ros-base
 
       - name: Build and Tests
-        uses: tesseract-robotics/colcon-action@v14
+        uses: tesseract-robotics/colcon-action@v15
         with:
           before-script: source /opt/tesseract_qt/install/setup.bash && source /opt/ros/${{ matrix.distro }}/setup.bash
-          ccache-prefix: ${{ matrix.distro }}
+          ccache-prefix: ubuntu-${{ matrix.distro }}
           vcs-file: ${{ matrix.vcs-file }}
           rosdep-install-args: -iry --skip-keys osqp-eigen
           target-path: target_ws/src

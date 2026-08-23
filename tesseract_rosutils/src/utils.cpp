@@ -2359,7 +2359,7 @@ tesseract::common::JointTrajectory fromMsg(const trajectory_msgs::msg::JointTraj
                                                            static_cast<Eigen::Index>(state_msg.accelerations.size()));
     state.effort =
         Eigen::Map<const Eigen::VectorXd>(state_msg.effort.data(), static_cast<Eigen::Index>(state_msg.effort.size()));
-    state.time = state_msg.time_from_start.sec;
+    state.time = rclcpp::Duration(state_msg.time_from_start).seconds();
     joint_trajectory.push_back(state);
   }
   return joint_trajectory;

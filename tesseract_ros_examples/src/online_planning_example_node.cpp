@@ -37,6 +37,7 @@
 #include <std_srvs/srv/set_bool.hpp>
 
 #include <tesseract/common/resource_locator.h>
+#include <tesseract/common/types.h>
 #include <tesseract/environment/environment.h>
 #include <tesseract/scene_graph/graph.h>
 
@@ -88,7 +89,7 @@ int main(int argc, char** argv)
 
   ROSPlottingPtr plotter;
   if (plotting)
-    plotter = std::make_shared<ROSPlotting>(env->getSceneGraph()->getRoot());
+    plotter = std::make_shared<ROSPlotting>(env->getSceneGraph()->getRoot().name());
 
   OnlinePlanningExample example(env, plotter, static_cast<int>(steps), box_size, update_start_state, use_continuous);
 
@@ -101,7 +102,9 @@ int main(int argc, char** argv)
   };
 
   auto fn2 = [&example](const sensor_msgs::msg::JointState::ConstSharedPtr joint_state)  // NOLINT
-  { example.updateState(joint_state->name, joint_state->position); };
+  {
+    example.updateState(tesseract::common::toIds<tesseract::common::JointId>(joint_state->name), joint_state->position);
+  };
 
   // Set up ROS interfaces
   auto joint_state_subscriber_ =

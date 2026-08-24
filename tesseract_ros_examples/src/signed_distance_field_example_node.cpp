@@ -76,8 +76,8 @@ static SceneGraph::Ptr buildSceneGraph()
 
   Joint sdf_joint("base_to_sdf");
   sdf_joint.type = JointType::FIXED;
-  sdf_joint.parent_link_name = "base_link";
-  sdf_joint.child_link_name = "sdf_link";
+  sdf_joint.parent_link_id = "base_link";
+  sdf_joint.child_link_id = "sdf_link";
   sg->addJoint(sdf_joint);
 
   // Probe sphere placed just inside the SDF surface: SDF(0.45,0,0) = -0.05, so with a 0.1 radius
@@ -93,8 +93,8 @@ static SceneGraph::Ptr buildSceneGraph()
 
   Joint probe_joint("base_to_probe");
   probe_joint.type = JointType::FIXED;
-  probe_joint.parent_link_name = "base_link";
-  probe_joint.child_link_name = "probe_link";
+  probe_joint.parent_link_id = "base_link";
+  probe_joint.child_link_id = "probe_link";
   probe_joint.parent_to_joint_origin_transform.translation().x() = 0.45;
   sg->addJoint(probe_joint);
 
@@ -146,8 +146,8 @@ int main(int argc, char** argv)
   {
     RCLCPP_INFO(node->get_logger(),
                 "SignedDistanceFieldExample: %s vs %s, distance = %f",
-                contacts[0].link_names[0].c_str(),
-                contacts[0].link_names[1].c_str(),
+                contacts[0].link_ids[0].name().c_str(),
+                contacts[0].link_ids[1].name().c_str(),
                 contacts[0].distance);
   }
 

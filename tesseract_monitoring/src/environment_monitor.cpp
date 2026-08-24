@@ -45,11 +45,13 @@ BOOST_BIND_NO_PLACEHOLDERS
 #endif
 
 #include <tesseract/common/resource_locator.h>
+#include <tesseract/common/types.h>
 
 #include <tesseract/scene_graph/graph.h>
 
 #include <tesseract/environment/environment.h>
 #include <tesseract/environment/events.h>
+#include <tesseract/state_solver/state_solver.h>
 #include <tesseract/environment/command.h>
 #include <tesseract/environment/commands.h>
 
@@ -898,11 +900,11 @@ void ROSEnvironmentMonitor::updateEnvironmentWithCurrentState()
 {
   if (current_state_monitor_)
   {
-    std::vector<std::string> missing;
+    std::vector<tesseract::common::JointId> missing;
     if (!current_state_monitor_->haveCompleteState(missing) &&
         (internal_node_->now() - current_state_monitor_->getMonitorStartTime()).seconds() > 1.0)
     {
-      std::string missing_str = boost::algorithm::join(missing, ", ");
+      std::string missing_str = boost::algorithm::join(tesseract::common::toNames(missing), ", ");
       RCLCPP_WARN_THROTTLE(logger_,
                            *internal_node_->get_clock(),
                            1.0,
@@ -914,6 +916,7 @@ void ROSEnvironmentMonitor::updateEnvironmentWithCurrentState()
     RCLCPP_DEBUG_STREAM(logger_, "robot state update " << fmod(last_robot_motion_time_.seconds(), 10.));
 
     auto env_state = current_state_monitor_->getCurrentState();
+
     env_->setState(env_state.joints, env_state.floating_joints);
   }
   else
@@ -1019,56 +1022,52 @@ void ROSEnvironmentMonitor::getEnvironmentInformationCallback(
 
   if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::LINK_NAMES)  // NOLINT
   {
-    for (const auto& link : env_->getLinkNames())
+    for (const auto& id : env_->getLinkIds())
     {
-      res->link_names.push_back(link);
+      res->link_names.push_back(id.name());
     }
   }
 
   if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::JOINT_NAMES)  // NOLINT
   {
-    for (const auto& joint : env_->getJointNames())
+    for (const auto& id : env_->getJointIds())
     {
-      res->joint_names.push_back(joint);
+      res->joint_names.push_back(id.name());
     }
   }
 
   if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::ACTIVE_LINK_NAMES)  // NOLINT
   {
-    for (const auto& link : env_->getActiveLinkNames())
+    for (const auto& id : env_->getActiveLinkIds())
     {
-      res->active_link_names.push_back(link);
+      res->active_link_names.push_back(id.name());
     }
   }
 
   if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::ACTIVE_JOINT_NAMES)  // NOLINT
   {
-    for (const auto& joint : env_->getActiveJointNames())
+    for (const auto& id : env_->getActiveJointIds())
     {
-      res->active_joint_names.push_back(joint);
+      res->active_joint_names.push_back(id.name());
     }
   }
 
   tesseract::scene_graph::SceneState state = env_->getState();
   if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::LINK_TRANSFORMS)  // NOLINT
   {
-    for (const auto& link_pair : state.link_transforms)
+    if (!tesseract_rosutils::toMsg(res->link_transforms, state.link_transforms))
     {
-      res->link_transforms.names.push_back(link_pair.first);
-      geometry_msgs::msg::Pose pose;
-      tesseract_rosutils::toMsg(pose, link_pair.second);
-      res->link_transforms.transforms.push_back(pose);
+      res->success = false;
+      return;
     }
   }
 
   if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::JOINT_TRANSFORMS)  // NOLINT
   {
-    for (const auto& joint_pair : state.joint_transforms)
+    if (!tesseract_rosutils::toMsg(res->joint_transforms, state.joint_transforms))
     {
-      res->joint_transforms.names.push_back(joint_pair.first);
-      geometry_msgs::msg::Pose pose;
-      tesseract_rosutils::toMsg(pose, joint_pair.second);
-      res->joint_transforms.transforms.push_back(pose);
+      res->success = false;
+      return;
     }
   }
 

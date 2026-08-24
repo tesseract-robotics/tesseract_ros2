@@ -14,6 +14,7 @@
 #include <QApplication>
 #include <OgreSceneNode.h>
 
+#include <tesseract/common/types.h>
 #include <tesseract/scene_graph/scene_state.h>
 
 #include <boost/uuid/uuid_io.hpp>
@@ -335,14 +336,15 @@ void ROSSceneGraphRenderManager::render()
       tesseract::gui::EntityManager::Ptr entity_manager = getEntityManager(e.getComponentInfo());
       for (const auto& pair : e.getState().link_transforms)
       {
-        if (entity_manager->hasEntityContainer(pair.first))
+        const std::string& link_name = pair.first.name();
+        if (entity_manager->hasEntityContainer(link_name))
         {
-          auto container = entity_manager->getEntityContainer(pair.first);
+          auto container = entity_manager->getEntityContainer(link_name);
           Ogre::Vector3 position;
           Ogre::Quaternion orientation;
           toOgre(position, orientation, pair.second);
 
-          auto entity = container->getTrackedEntity(tesseract::gui::EntityContainer::VISUAL_NS, pair.first);
+          auto entity = container->getTrackedEntity(tesseract::gui::EntityContainer::VISUAL_NS, link_name);
           Ogre::SceneNode* sn = data_->scene_manager->getSceneNode(entity.unique_name);
           sn->setPosition(position);
           sn->setOrientation(orientation);

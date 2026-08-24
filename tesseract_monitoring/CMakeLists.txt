@@ -32,6 +32,8 @@ target_link_libraries(${PROJECT_NAME}_environment
   PRIVATE
     ${tf2_eigen_TARGETS}
 )
+target_compile_definitions(${PROJECT_NAME}_environment PRIVATE ${TESSERACT_COMPILE_DEFINITIONS_PRIVATE})
+target_compile_definitions(${PROJECT_NAME}_environment PUBLIC ${TESSERACT_COMPILE_DEFINITIONS_PUBLIC})
 target_compile_options(${PROJECT_NAME}_environment PRIVATE ${TESSERACT_COMPILE_OPTIONS})
 target_clang_tidy(${PROJECT_NAME}_environment ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS} ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
 target_cxx_version(${PROJECT_NAME}_environment PUBLIC VERSION ${TESSERACT_CXX_VERSION})
@@ -41,6 +43,8 @@ target_include_directories(${PROJECT_NAME}_environment PUBLIC
 
 add_executable(${PROJECT_NAME}_environment_node src/environment_monitor_node.cpp)
 target_link_libraries(${PROJECT_NAME}_environment_node PRIVATE ${PROJECT_NAME}_environment)
+target_compile_definitions(${PROJECT_NAME}_environment_node PRIVATE ${TESSERACT_COMPILE_DEFINITIONS_PRIVATE})
+target_compile_definitions(${PROJECT_NAME}_environment_node PUBLIC ${TESSERACT_COMPILE_DEFINITIONS_PUBLIC})
 target_compile_options(${PROJECT_NAME}_environment_node PRIVATE ${TESSERACT_COMPILE_OPTIONS})
 target_clang_tidy(${PROJECT_NAME}_environment_node ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS} ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
 target_cxx_version(${PROJECT_NAME}_environment_node PRIVATE VERSION ${TESSERACT_CXX_VERSION})
@@ -49,8 +53,8 @@ target_include_directories(${PROJECT_NAME}_environment_node PUBLIC
   "$<INSTALL_INTERFACE:include>")
 
 add_library(${PROJECT_NAME}_contacts src/contact_monitor.cpp)
-target_link_libraries(${PROJECT_NAME}_contacts 
-  PUBLIC 
+target_link_libraries(${PROJECT_NAME}_contacts
+  PUBLIC
     rclcpp::rclcpp
     ${sensor_msgs_TARGETS}
     ${visualization_msgs_TARGETS}
@@ -60,6 +64,8 @@ target_link_libraries(${PROJECT_NAME}_contacts
   PRIVATE
     ${tf2_eigen_TARGETS}
 )
+target_compile_definitions(${PROJECT_NAME}_contacts PRIVATE ${TESSERACT_COMPILE_DEFINITIONS_PRIVATE})
+target_compile_definitions(${PROJECT_NAME}_contacts PUBLIC ${TESSERACT_COMPILE_DEFINITIONS_PUBLIC})
 target_compile_options(${PROJECT_NAME}_contacts PRIVATE ${TESSERACT_COMPILE_OPTIONS})
 target_clang_tidy(${PROJECT_NAME}_contacts ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS} ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
 target_cxx_version(${PROJECT_NAME}_contacts PUBLIC VERSION ${TESSERACT_CXX_VERSION})
@@ -69,8 +75,10 @@ target_include_directories(${PROJECT_NAME}_contacts PRIVATE
 
 add_executable(${PROJECT_NAME}_contacts_node src/contact_monitor_node.cpp)
 target_link_libraries(${PROJECT_NAME}_contacts_node PRIVATE
-  tesseract::environment 
+  tesseract::environment
   ${PROJECT_NAME}_contacts)
+target_compile_definitions(${PROJECT_NAME}_contacts_node PRIVATE ${TESSERACT_COMPILE_DEFINITIONS_PRIVATE})
+target_compile_definitions(${PROJECT_NAME}_contacts_node PUBLIC ${TESSERACT_COMPILE_DEFINITIONS_PUBLIC})
 target_compile_options(${PROJECT_NAME}_contacts_node PRIVATE ${TESSERACT_COMPILE_OPTIONS})
 target_clang_tidy(${PROJECT_NAME}_contacts_node ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS} ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
 target_cxx_version(${PROJECT_NAME}_contacts_node PRIVATE VERSION ${TESSERACT_CXX_VERSION})
@@ -82,6 +90,8 @@ add_library(${PROJECT_NAME}_environment_interface SHARED src/environment_monitor
 target_link_libraries(${PROJECT_NAME}_environment_interface PUBLIC
   tesseract_rosutils::tesseract_rosutils
 )
+target_compile_definitions(${PROJECT_NAME}_environment_interface PRIVATE ${TESSERACT_COMPILE_DEFINITIONS_PRIVATE})
+target_compile_definitions(${PROJECT_NAME}_environment_interface PUBLIC ${TESSERACT_COMPILE_DEFINITIONS_PUBLIC})
 target_compile_options(${PROJECT_NAME}_environment_interface PRIVATE ${TESSERACT_COMPILE_OPTIONS})
 target_clang_tidy(${PROJECT_NAME}_environment_interface ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS} ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
 target_cxx_version(${PROJECT_NAME}_environment_interface PUBLIC VERSION ${TESSERACT_CXX_VERSION})

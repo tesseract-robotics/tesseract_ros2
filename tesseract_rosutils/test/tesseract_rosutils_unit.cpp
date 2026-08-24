@@ -23,6 +23,8 @@ TESSERACT_COMMON_IGNORE_WARNINGS_POP
 #include <tesseract_msgs/msg/environment.h>
 #include <tesseract_msgs/msg/environment_state.h>
 #include <tesseract_msgs/msg/joint_trajectory.h>
+#include <tesseract_msgs/msg/transform_map.h>
+#include <sensor_msgs/msg/joint_state.hpp>
 #include <trajectory_msgs/msg/joint_trajectory.h>
 
 using namespace tesseract::environment;
@@ -68,8 +70,8 @@ TEST_F(TesseractROSUtilsUnit, processEnvironmentStateMsg)  // NOLINT
 
   Joint joint_1(joint_name1);
   joint_1.parent_to_joint_origin_transform.translation()(0) = 1.25;
-  joint_1.parent_link_name = "base_link";
-  joint_1.child_link_name = link_name1;
+  joint_1.parent_link_id = "base_link";
+  joint_1.child_link_id = link_name1;
   joint_1.type = JointType::FIXED;
   auto cmd = std::make_shared<AddLinkCommand>(link_1, joint_1);
 
@@ -84,6 +86,45 @@ TEST_F(TesseractROSUtilsUnit, processEnvironmentStateMsg)  // NOLINT
   EXPECT_EQ(environment_state_msg2.id, env_->getName());
   EXPECT_EQ(environment_state_msg2.revision, env_->getRevision());
   EXPECT_EQ(environment_state_msg.revision + 1, environment_state_msg2.revision);
+}
+
+TEST_F(TesseractROSUtilsUnit, processJointStateMsg)  // NOLINT
+{
+  const std::vector<std::string> joint_names = tesseract::common::toNames(env_->getActiveJointIds());
+  ASSERT_FALSE(joint_names.empty());
+
+  sensor_msgs::msg::JointState joint_state_msg;
+  joint_state_msg.name = joint_names;
+  joint_state_msg.position.resize(joint_names.size());
+  for (std::size_t i = 0; i < joint_names.size(); ++i)
+    joint_state_msg.position[i] = 0.1 * static_cast<double>(i + 1);
+
+  const tesseract_msgs::msg::TransformMap floating_joint_state_msg;
+
+  EXPECT_TRUE(processMsg(*env_, joint_state_msg, floating_joint_state_msg));
+
+  const tesseract::scene_graph::SceneState state = env_->getState();
+  for (std::size_t i = 0; i < joint_names.size(); ++i)
+  {
+    auto it = state.joints.find(tesseract::common::JointId(joint_names[i]));
+    ASSERT_NE(it, state.joints.end());
+    EXPECT_NEAR(it->second, joint_state_msg.position[i], 1e-12);
+  }
+
+  // A message whose name and position arrays disagree is malformed: it must be rejected, not applied.
+  sensor_msgs::msg::JointState mismatched_msg;
+  mismatched_msg.name = joint_names;
+  mismatched_msg.position.resize(joint_names.size() - 1, 0.0);
+
+  EXPECT_FALSE(processMsg(*env_, mismatched_msg, floating_joint_state_msg));
+
+  const tesseract::scene_graph::SceneState unchanged_state = env_->getState();
+  for (std::size_t i = 0; i < joint_names.size(); ++i)
+  {
+    auto it = unchanged_state.joints.find(tesseract::common::JointId(joint_names[i]));
+    ASSERT_NE(it, unchanged_state.joints.end());
+    EXPECT_NEAR(it->second, joint_state_msg.position[i], 1e-12);
+  }
 }
 
 TEST_F(TesseractROSUtilsUnit, toFromMsgTesseract)  // NOLINT
@@ -171,6 +212,104 @@ TEST_F(TesseractROSUtilsUnit, toTransformMsgs)  // NOLINT
 
   // The tool0 frame is typically attached via a fixed joint to link_6, so should be static
   EXPECT_TRUE(found_link_6_to_tool0);
+}
+
+TEST_F(TesseractROSUtilsUnit, fromMsgJointIdTransformMap)  // NOLINT
+{
+  using tesseract::common::JointId;
+
+  // Round-trip: populate a JointIdTransformMap, convert to msg, convert back, compare.
+  tesseract::common::JointIdTransformMap original;
+  Eigen::Isometry3d pose_a{ Eigen::Isometry3d::Identity() };
+  pose_a.translation() << 1.0, 2.0, 3.0;
+  Eigen::Isometry3d pose_b{ Eigen::Isometry3d::Identity() };
+  pose_b.translation() << -4.5, 0.25, 7.125;
+  original["joint_a"] = pose_a;
+  original["joint_b"] = pose_b;
+
+  tesseract_msgs::msg::TransformMap msg;
+  EXPECT_TRUE(toMsg(msg, original));
+  EXPECT_EQ(msg.names.size(), original.size());
+  EXPECT_EQ(msg.transforms.size(), original.size());
+
+  tesseract::common::JointIdTransformMap round_trip;
+  EXPECT_TRUE(fromMsg(round_trip, msg));
+  ASSERT_EQ(round_trip.size(), original.size());
+  for (const auto& [id, tf] : original)
+  {
+    auto it = round_trip.find(id);
+    ASSERT_NE(it, round_trip.end());
+    EXPECT_TRUE(tf.isApprox(it->second));
+  }
+
+  // Failure: size mismatch between names and transforms must return false without populating the map.
+  tesseract_msgs::msg::TransformMap bad_msg;
+  bad_msg.names = { "joint_a", "joint_b" };
+  bad_msg.transforms.resize(1);
+  tesseract::common::JointIdTransformMap bad_result;
+  EXPECT_FALSE(fromMsg(bad_result, bad_msg));
+  EXPECT_TRUE(bad_result.empty());
+}
+
+TEST_F(TesseractROSUtilsUnit, fromMsgLinkIdTransformMap)  // NOLINT
+{
+  using tesseract::common::LinkId;
+
+  // Round-trip: populate a LinkIdTransformMap, convert to msg, convert back, compare.
+  tesseract::common::LinkIdTransformMap original;
+  Eigen::Isometry3d pose_a{ Eigen::Isometry3d::Identity() };
+  pose_a.translation() << 1.0, 2.0, 3.0;
+  Eigen::Isometry3d pose_b{ Eigen::Isometry3d::Identity() };
+  pose_b.translation() << -4.5, 0.25, 7.125;
+  original["link_a"] = pose_a;
+  original["link_b"] = pose_b;
+
+  tesseract_msgs::msg::TransformMap msg;
+  EXPECT_TRUE(toMsg(msg, original));
+  EXPECT_EQ(msg.names.size(), original.size());
+  EXPECT_EQ(msg.transforms.size(), original.size());
+
+  tesseract::common::LinkIdTransformMap round_trip;
+  EXPECT_TRUE(fromMsg(round_trip, msg));
+  ASSERT_EQ(round_trip.size(), original.size());
+  for (const auto& [id, tf] : original)
+  {
+    auto it = round_trip.find(id);
+    ASSERT_NE(it, round_trip.end());
+    EXPECT_TRUE(tf.isApprox(it->second));
+  }
+
+  // Failure: size mismatch between names and transforms must return false without populating the map.
+  tesseract_msgs::msg::TransformMap bad_msg;
+  bad_msg.names = { "link_a", "link_b" };
+  bad_msg.transforms.resize(1);
+  tesseract::common::LinkIdTransformMap bad_result;
+  EXPECT_FALSE(fromMsg(bad_result, bad_msg));
+  EXPECT_TRUE(bad_result.empty());
+}
+
+TEST_F(TesseractROSUtilsUnit, toMsgEmitsPairNamesAlphabetically)  // NOLINT
+{
+  // A LinkIdPair stores its two ids ordered by hash value, which is a runtime property that varies
+  // between standard library implementations. A ROS message is a format boundary, so the two names
+  // must leave in alphabetical order no matter how they hashed.
+  std::vector<tesseract_msgs::msg::AllowedCollisionEntry> acm_msg;
+  ASSERT_TRUE(toMsg(acm_msg, *env_->getAllowedCollisionMatrix()));
+  ASSERT_FALSE(acm_msg.empty());
+  for (const auto& entry : acm_msg)
+    EXPECT_LE(entry.link_1, entry.link_2);
+
+  tesseract::common::PairsCollisionMarginData margins;
+  for (const auto& entry : env_->getAllowedCollisionMatrix()->getAllAllowedCollisions())
+    margins[entry.first] = 0.025;
+  ASSERT_FALSE(margins.empty());
+
+  for (const auto& cmp : toMsg(margins))
+    EXPECT_LE(cmp.first.first, cmp.first.second);
+
+  const tesseract::common::CollisionMarginData margin_data(0.01, tesseract::common::CollisionMarginPairData(margins));
+  for (const auto& cmp : toMsg(margin_data).margin_pairs)
+    EXPECT_LE(cmp.first.first, cmp.first.second);
 }
 
 TEST_F(TesseractROSUtilsUnit, toFromFile)  // NOLINT
@@ -394,7 +533,7 @@ TEST_F(TesseractROSUtilsUnit, toRosJointTrajectory)  // NOLINT
   ros_joint_state.accelerations = std::vector<double>{ 0, 0, 0, 0 };
   ros_joint_state.effort = std::vector<double>{ 0, 0, 0, 0 };
 
-  tesseract_joint_state.joint_names = std::vector<std::string>{ "joint1", "joint2", "joint3" };
+  tesseract_joint_state.joint_ids = { "joint1", "joint2", "joint3" };
   tesseract_joint_state.position.resize(3);
   tesseract_joint_state.position << 40, 40, 2;
   ros_joint_trajectory.points.push_back(ros_joint_state);
@@ -406,7 +545,7 @@ TEST_F(TesseractROSUtilsUnit, toRosJointTrajectory)  // NOLINT
   ros_joint_state.accelerations = std::vector<double>{ 0, 1, 0, 1 };
   ros_joint_state.effort = std::vector<double>{ 0, 1, 0, 1 };
 
-  tesseract_joint_state.joint_names = std::vector<std::string>{ "joint2", "joint4" };
+  tesseract_joint_state.joint_ids = { "joint2", "joint4" };
   tesseract_joint_state.position.resize(2);
   tesseract_joint_state.position << 10, 40.1;
   tesseract_joint_state.velocity.resize(2);
@@ -422,6 +561,56 @@ TEST_F(TesseractROSUtilsUnit, toRosJointTrajectory)  // NOLINT
       tesseract_rosutils::toMsg(tesseract_joint_trajectory, env_state);
 
   EXPECT_EQ(ros_joint_trajectory, calculated_trajectory);
+}
+
+TEST_F(TesseractROSUtilsUnit, FromMsgJointStateToJointValues)  // NOLINT
+{
+  sensor_msgs::msg::JointState msg;
+  msg.name = { "joint_1", "joint_2" };
+  msg.position = { 1.5, -0.25 };
+
+  tesseract::scene_graph::SceneState::JointValues joints;
+  EXPECT_TRUE(tesseract_rosutils::fromMsg(joints, msg));
+  ASSERT_EQ(joints.size(), 2U);
+  EXPECT_DOUBLE_EQ(joints.at("joint_1"), 1.5);
+  EXPECT_DOUBLE_EQ(joints.at("joint_2"), -0.25);
+
+  // A name/position size mismatch is rejected rather than silently truncated.
+  sensor_msgs::msg::JointState bad_msg;
+  bad_msg.name = { "joint_1", "joint_2" };
+  bad_msg.position = { 1.5 };
+
+  tesseract::scene_graph::SceneState::JointValues bad_joints;
+  EXPECT_FALSE(tesseract_rosutils::fromMsg(bad_joints, bad_msg));
+}
+
+TEST_F(TesseractROSUtilsUnit, FromMsgStringDoublePairToJointValues)  // NOLINT
+{
+  std::vector<tesseract_msgs::msg::StringDoublePair> msg(2);
+  msg[0].first = "joint_1";
+  msg[0].second = 1.5;
+  msg[1].first = "joint_2";
+  msg[1].second = -0.25;
+
+  tesseract::scene_graph::SceneState::JointValues joints;
+  EXPECT_TRUE(tesseract_rosutils::fromMsg(joints, msg));
+  ASSERT_EQ(joints.size(), 2U);
+  EXPECT_DOUBLE_EQ(joints.at("joint_1"), 1.5);
+  EXPECT_DOUBLE_EQ(joints.at("joint_2"), -0.25);
+}
+
+TEST_F(TesseractROSUtilsUnit, ToEigenOrdersByJointId)  // NOLINT
+{
+  sensor_msgs::msg::JointState msg;
+  msg.name = { "joint_1", "joint_2", "joint_3" };
+  msg.position = { 1.0, 2.0, 3.0 };
+
+  const std::vector<tesseract::common::JointId> joint_ids{ "joint_3", "joint_1" };
+
+  const Eigen::VectorXd position = tesseract_rosutils::toEigen(msg, joint_ids);
+  ASSERT_EQ(position.size(), 2);
+  EXPECT_DOUBLE_EQ(position[0], 3.0);
+  EXPECT_DOUBLE_EQ(position[1], 1.0);
 }
 
 int main(int argc, char** argv)

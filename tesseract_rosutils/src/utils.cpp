@@ -1022,8 +1022,9 @@ toMsg(const tesseract::common::PairsCollisionMarginData& contact_margin_pairs)
   for (const auto& [key, margin] : contact_margin_pairs)
   {
     tesseract_msgs::msg::ContactMarginPair cmp;
-    cmp.first.first = key.first().name();
-    cmp.first.second = key.second().name();
+    const auto [link1, link2] = key.orderedNameView();
+    cmp.first.first = link1;
+    cmp.first.second = link2;
     cmp.second = margin;
     contact_margin_pairs_msg.push_back(cmp);
   }
@@ -1044,8 +1045,9 @@ tesseract_msgs::msg::CollisionMarginData toMsg(const tesseract::common::Collisio
   for (const auto& [key, margin] : contact_margin_data.getCollisionMarginPairData().getCollisionMargins())
   {
     tesseract_msgs::msg::ContactMarginPair cmp;
-    cmp.first.first = key.first().name();
-    cmp.first.second = key.second().name();
+    const auto [link1, link2] = key.orderedNameView();
+    cmp.first.first = link1;
+    cmp.first.second = link2;
     cmp.second = margin;
     contact_margin_data_msg.margin_pairs.push_back(cmp);
   }
@@ -1111,8 +1113,9 @@ bool toMsg(std::vector<tesseract_msgs::msg::AllowedCollisionEntry>& acm_msg,
   for (const auto& entry : acm.getAllAllowedCollisions())
   {
     tesseract_msgs::msg::AllowedCollisionEntry entry_msg;
-    entry_msg.link_1 = entry.first.first().name();
-    entry_msg.link_2 = entry.first.second().name();
+    const auto [link1, link2] = entry.first.orderedNameView();
+    entry_msg.link_1 = link1;
+    entry_msg.link_2 = link2;
     entry_msg.reason = entry.second;
     acm_msg.push_back(entry_msg);
   }
@@ -1378,7 +1381,7 @@ bool toMsg(tesseract_msgs::msg::EnvironmentCommand& command_msg, const tesseract
     }
     default:
     {
-      CONSOLE_BRIDGE_logWarn("Unhandled CommandType '%d' in toMsg", command.getType());
+      CONSOLE_BRIDGE_logWarn("Unhandled CommandType '%d' in toMsg", static_cast<int>(command.getType()));
     }
   }
 
@@ -2074,6 +2077,23 @@ tesseract::common::PluginInfo fromMsg(const tesseract_msgs::msg::PluginInfo& inf
 }
 
 bool toMsg(tesseract_msgs::msg::TransformMap& transform_map_msg,
+           const tesseract::common::LinkIdTransformMap& transform_map)
+{
+  transform_map_msg.names.reserve(transform_map.size());
+  transform_map_msg.transforms.reserve(transform_map.size());
+  for (const auto& pair : transform_map)
+  {
+    transform_map_msg.names.push_back(pair.first.name());
+    geometry_msgs::msg::Pose pose;
+    if (!toMsg(pose, pair.second))
+      return false;
+
+    transform_map_msg.transforms.push_back(pose);
+  }
+  return true;
+}
+
+bool toMsg(tesseract_msgs::msg::TransformMap& transform_map_msg,
            const tesseract::common::JointIdTransformMap& transform_map)
 {
   transform_map_msg.names.reserve(transform_map.size());
@@ -2087,6 +2107,28 @@ bool toMsg(tesseract_msgs::msg::TransformMap& transform_map_msg,
 
     transform_map_msg.transforms.push_back(pose);
   }
+  return true;
+}
+
+bool fromMsg(tesseract::common::LinkIdTransformMap& transform_map,
+             const tesseract_msgs::msg::TransformMap& transform_map_msg)
+{
+  using tesseract::common::LinkId;
+  if (transform_map_msg.names.size() != transform_map_msg.transforms.size())
+    return false;
+
+  tesseract::common::LinkIdTransformMap result;
+  result.reserve(transform_map_msg.names.size());
+  for (std::size_t i = 0; i < transform_map_msg.names.size(); ++i)
+  {
+    Eigen::Isometry3d pose;
+    if (!fromMsg(pose, transform_map_msg.transforms.at(i)))
+      return false;
+
+    result[LinkId(transform_map_msg.names.at(i))] = pose;
+  }
+
+  transform_map = std::move(result);
   return true;
 }
 

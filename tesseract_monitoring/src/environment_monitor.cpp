@@ -1055,23 +1055,19 @@ void ROSEnvironmentMonitor::getEnvironmentInformationCallback(
   tesseract::scene_graph::SceneState state = env_->getState();
   if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::LINK_TRANSFORMS)  // NOLINT
   {
-    for (const auto& link_pair : state.link_transforms)
+    if (!tesseract_rosutils::toMsg(res->link_transforms, state.link_transforms))
     {
-      res->link_transforms.names.push_back(link_pair.first.name());
-      geometry_msgs::msg::Pose pose;
-      tesseract_rosutils::toMsg(pose, link_pair.second);
-      res->link_transforms.transforms.push_back(pose);
+      res->success = false;
+      return;
     }
   }
 
   if (req->flags & tesseract_msgs::srv::GetEnvironmentInformation::Request::JOINT_TRANSFORMS)  // NOLINT
   {
-    for (const auto& joint_pair : state.joint_transforms)
+    if (!tesseract_rosutils::toMsg(res->joint_transforms, state.joint_transforms))
     {
-      res->joint_transforms.names.push_back(joint_pair.first.name());
-      geometry_msgs::msg::Pose pose;
-      tesseract_rosutils::toMsg(pose, joint_pair.second);
-      res->joint_transforms.transforms.push_back(pose);
+      res->success = false;
+      return;
     }
   }
 

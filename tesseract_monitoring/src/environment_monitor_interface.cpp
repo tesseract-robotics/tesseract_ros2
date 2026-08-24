@@ -304,22 +304,17 @@ ROSEnvironmentMonitorInterface::getEnvironmentState(const std::string& monitor_n
       throw std::runtime_error("getEnvironmentState: Failed to get monitor environment information!");
     tesseract::scene_graph::SceneState env_state;
 
-    tesseract_rosutils::fromMsg(env_state.joints, res->joint_states);
+    if (!tesseract_rosutils::fromMsg(env_state.joints, res->joint_states))
+      throw std::runtime_error("getEnvironmentState: Failed to convert joint states from message!");
 
-    tesseract_rosutils::fromMsg(env_state.floating_joints, res->floating_joint_states);
+    if (!tesseract_rosutils::fromMsg(env_state.floating_joints, res->floating_joint_states))
+      throw std::runtime_error("getEnvironmentState: Failed to convert floating joint states from message!");
 
-    if (res->link_transforms.names.size() != res->link_transforms.transforms.size())
-      throw std::runtime_error("getEnvironmentState: link_transforms names/transforms size mismatch!");
+    if (!tesseract_rosutils::fromMsg(env_state.link_transforms, res->link_transforms))
+      throw std::runtime_error("getEnvironmentState: Failed to convert link transforms from message!");
 
-    for (std::size_t i = 0; i < res->link_transforms.names.size(); ++i)
-    {
-      Eigen::Isometry3d pose;
-      if (!tesseract_rosutils::fromMsg(pose, res->link_transforms.transforms.at(i)))
-        throw std::runtime_error("getEnvironmentState: Failed to convert link transform from message!");
-      env_state.link_transforms[tesseract::common::LinkId(res->link_transforms.names.at(i))] = pose;
-    }
-
-    tesseract_rosutils::fromMsg(env_state.joint_transforms, res->joint_transforms);
+    if (!tesseract_rosutils::fromMsg(env_state.joint_transforms, res->joint_transforms))
+      throw std::runtime_error("getEnvironmentState: Failed to convert joint transforms from message!");
 
     return env_state;
   }

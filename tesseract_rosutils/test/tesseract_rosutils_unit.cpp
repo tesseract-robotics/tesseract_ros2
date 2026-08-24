@@ -251,6 +251,67 @@ TEST_F(TesseractROSUtilsUnit, fromMsgJointIdTransformMap)  // NOLINT
   EXPECT_TRUE(bad_result.empty());
 }
 
+TEST_F(TesseractROSUtilsUnit, fromMsgLinkIdTransformMap)  // NOLINT
+{
+  using tesseract::common::LinkId;
+
+  // Round-trip: populate a LinkIdTransformMap, convert to msg, convert back, compare.
+  tesseract::common::LinkIdTransformMap original;
+  Eigen::Isometry3d pose_a{ Eigen::Isometry3d::Identity() };
+  pose_a.translation() << 1.0, 2.0, 3.0;
+  Eigen::Isometry3d pose_b{ Eigen::Isometry3d::Identity() };
+  pose_b.translation() << -4.5, 0.25, 7.125;
+  original["link_a"] = pose_a;
+  original["link_b"] = pose_b;
+
+  tesseract_msgs::msg::TransformMap msg;
+  EXPECT_TRUE(toMsg(msg, original));
+  EXPECT_EQ(msg.names.size(), original.size());
+  EXPECT_EQ(msg.transforms.size(), original.size());
+
+  tesseract::common::LinkIdTransformMap round_trip;
+  EXPECT_TRUE(fromMsg(round_trip, msg));
+  ASSERT_EQ(round_trip.size(), original.size());
+  for (const auto& [id, tf] : original)
+  {
+    auto it = round_trip.find(id);
+    ASSERT_NE(it, round_trip.end());
+    EXPECT_TRUE(tf.isApprox(it->second));
+  }
+
+  // Failure: size mismatch between names and transforms must return false without populating the map.
+  tesseract_msgs::msg::TransformMap bad_msg;
+  bad_msg.names = { "link_a", "link_b" };
+  bad_msg.transforms.resize(1);
+  tesseract::common::LinkIdTransformMap bad_result;
+  EXPECT_FALSE(fromMsg(bad_result, bad_msg));
+  EXPECT_TRUE(bad_result.empty());
+}
+
+TEST_F(TesseractROSUtilsUnit, toMsgEmitsPairNamesAlphabetically)  // NOLINT
+{
+  // A LinkIdPair stores its two ids ordered by hash value, which is a runtime property that varies
+  // between standard library implementations. A ROS message is a format boundary, so the two names
+  // must leave in alphabetical order no matter how they hashed.
+  std::vector<tesseract_msgs::msg::AllowedCollisionEntry> acm_msg;
+  ASSERT_TRUE(toMsg(acm_msg, *env_->getAllowedCollisionMatrix()));
+  ASSERT_FALSE(acm_msg.empty());
+  for (const auto& entry : acm_msg)
+    EXPECT_LE(entry.link_1, entry.link_2);
+
+  tesseract::common::PairsCollisionMarginData margins;
+  for (const auto& entry : env_->getAllowedCollisionMatrix()->getAllAllowedCollisions())
+    margins[entry.first] = 0.025;
+  ASSERT_FALSE(margins.empty());
+
+  for (const auto& cmp : toMsg(margins))
+    EXPECT_LE(cmp.first.first, cmp.first.second);
+
+  const tesseract::common::CollisionMarginData margin_data(0.01, tesseract::common::CollisionMarginPairData(margins));
+  for (const auto& cmp : toMsg(margin_data).margin_pairs)
+    EXPECT_LE(cmp.first.first, cmp.first.second);
+}
+
 TEST_F(TesseractROSUtilsUnit, toFromFile)  // NOLINT
 {
   std_msgs::msg::ColorRGBA msg;

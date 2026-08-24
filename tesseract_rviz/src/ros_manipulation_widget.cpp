@@ -484,7 +484,7 @@ void ROSManipulationWidget::onRender(float dt)
                                            data_->render_states_collision_material[i]);
             data_->scene_node->addChild(sn);
             if (i == 0)
-              link_vis_props[link_name] = tesseract::gui::LinkVisibilityProperties();
+              link_vis_props[link_id.name()] = tesseract::gui::LinkVisibilityProperties();
           }
         }
       }

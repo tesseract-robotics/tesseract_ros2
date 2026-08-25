@@ -36,7 +36,7 @@ jobs:
             distro: jazzy
             vcs-file: .github/workflows/dependencies.repos
           - os: noble
-            distro: rolling
+            distro: kilted
             vcs-file: .github/workflows/dependencies.repos
     container:
       image: ghcr.io/tesseract-robotics/tesseract_qt:${{ matrix.os }}-master

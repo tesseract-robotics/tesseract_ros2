@@ -30,7 +30,7 @@ jobs:
             os: jammy
           - distro: jazzy
             os: noble
-          - distro: rolling
+          - distro: kilted
             os: noble
     env:
       REGISTRY: ghcr.io

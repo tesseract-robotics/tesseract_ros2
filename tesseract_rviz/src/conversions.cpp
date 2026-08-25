@@ -75,6 +75,38 @@ namespace tesseract_rviz
 {
 static Ogre::NameGenerator material_name_generator("tesseract::material::");
 
+namespace detail
+{
+/**
+ * @brief Load a mesh resource into Ogre, dispatching on which loadMeshFromResource exists.
+ *
+ * rviz_rendering 15 takes the resource_retriever from the caller and kept no overload for the
+ * older single-argument form. Each function's template parameter exists solely to make its call
+ * dependent, so the signature that is absent is discarded during substitution instead of being
+ * rejected outright; spelling either parameter as its concrete type breaks that. The int/long
+ * tag settles the ambiguity should a version ever offer both.
+ */
+template <typename String = std::string>
+auto loadMesh(const String& model_name, int) -> decltype(rviz_rendering::loadMeshFromResource(model_name), void())
+{
+  rviz_rendering::loadMeshFromResource(model_name);
+}
+
+template <typename Retriever = resource_retriever::Retriever>
+void loadMesh(const std::string& model_name, long)
+{
+  Retriever retriever;
+  rviz_rendering::loadMeshFromResource(&retriever, model_name);
+}
+}  // namespace detail
+
+/**
+ * @brief Register a mesh resource with Ogre so it can be instantiated by name.
+ *
+ * Throws Ogre::InvalidParametersException if the resource cannot be loaded.
+ */
+static void registerMeshResource(const std::string& model_name) { detail::loadMesh(model_name, 0); }
+
 void toEigen(Eigen::Isometry3d& transform, const Ogre::Vector3& position, const Ogre::Quaternion& orientation)
 {
   transform.linear() = Eigen::Quaterniond(orientation.w, orientation.x, orientation.y, orientation.z).matrix();
@@ -510,7 +542,7 @@ Ogre::Entity* loadMesh(Ogre::SceneManager& scene,
 
     try
     {
-      rviz_rendering::loadMeshFromResource(model_name);
+      registerMeshResource(model_name);
       auto entity = entity_container.addUntrackedEntity(tesseract::gui::EntityContainer::RESOURCE_NS);
       return scene.createEntity(entity.unique_name, model_name);
     }
@@ -683,7 +715,7 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
 
         try
         {
-          rviz_rendering::loadMeshFromResource(model_name);
+          registerMeshResource(model_name);
           auto entity = entity_container.addUntrackedEntity(tesseract::gui::EntityContainer::RESOURCE_NS);
           auto* mesh_entity = scene.createEntity(entity.unique_name, model_name);
           ogre_entity.push_back(mesh_entity);

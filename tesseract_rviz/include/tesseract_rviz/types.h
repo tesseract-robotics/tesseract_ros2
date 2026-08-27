@@ -1,18 +1,20 @@
 #ifndef TESSERACT_RVIZ_TYPES_H
 #define TESSERACT_RVIZ_TYPES_H
 
+#include <cstdint>
+
 #include <rviz_rendering/objects/point_cloud.hpp>
 #include <tesseract/geometry/impl/octree.h>
 
 namespace tesseract_rviz
 {
-enum OctreeVoxelRenderMode
+enum OctreeVoxelRenderMode : std::uint8_t
 {
   OCTOMAP_FREE_VOXELS = 1,
   OCTOMAP_OCCUPIED_VOXELS = 2
 };
 
-enum OctreeVoxelColorMode
+enum OctreeVoxelColorMode : std::uint8_t
 {
   OCTOMAP_Z_AXIS_COLOR,
   OCTOMAP_PROBABLILTY_COLOR,

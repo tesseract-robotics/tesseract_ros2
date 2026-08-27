@@ -1,0 +1,286 @@
+#include <tesseract/common/macros.h>
+TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
+#include <gtest/gtest.h>
+#include <filesystem>
+#include <memory>
+#include <string>
+#include <Eigen/Eigen>
+#include <OgreRoot.h>
+#include <OgreSceneManager.h>
+#include <OgreSceneNode.h>
+#include <OgreEntity.h>
+#include <OgreMaterialManager.h>
+#include <OgreLogManager.h>
+#include <OgreRenderWindow.h>
+TESSERACT_COMMON_IGNORE_WARNINGS_POP
+
+#include <tesseract_rviz/conversions.h>
+#include <tesseract/geometry/geometries.h>
+#include <tesseract/scene_graph/link.h>
+
+#include <tesseract_qt/common/entity_container.h>
+#include <tesseract_qt/common/entity_manager.h>
+
+/**
+ * @brief Fixture providing a headless Ogre root backed by a hidden render window
+ *
+ * Tests using this fixture skip when no GL render system can be brought up, which is the
+ * normal case in CI. Anything that must run in CI belongs in a fixture-free test.
+ */
+class TesseractRvizConversionsUnit : public ::testing::Test
+{
+protected:
+  std::unique_ptr<Ogre::LogManager> log_manager_;
+  std::unique_ptr<Ogre::Root> ogre_root_;
+  Ogre::RenderWindow* render_window_{ nullptr };
+  Ogre::SceneManager* scene_manager_{ nullptr };
+  // EntityManager derives from enable_shared_from_this, so getEntityContainer() throws unless
+  // the manager is owned by a shared_ptr
+  std::shared_ptr<tesseract::gui::EntityManager> entity_manager_;
+
+  /** @brief Ogre hands a bare plugin name to dlopen, whose search path never covers the vendored
+   *         plugin directory, so the render system must be loaded by resolved full path */
+  bool loadRenderSystemPlugin()
+  {
+#ifdef TESSERACT_RVIZ_OGRE_PLUGIN_DIR
+    for (const char* plugin : { "RenderSystem_GL", "RenderSystem_GL3Plus" })
+    {
+      const std::filesystem::path path =
+          std::filesystem::path(TESSERACT_RVIZ_OGRE_PLUGIN_DIR) / (std::string(plugin) + ".so");
+      if (!std::filesystem::exists(path))
+        continue;
+
+      try
+      {
+        ogre_root_->loadPlugin(path.string());
+        return true;
+      }
+      catch (const Ogre::Exception& e)
+      {
+        Ogre::LogManager::getSingleton().logMessage("Could not load " + path.string() + ": " + e.getDescription());
+      }
+    }
+#endif
+    return false;
+  }
+
+  void SetUp() override
+  {
+    // The Ogre singletons are process wide, so a second fixture must not create a second LogManager
+    if (Ogre::LogManager::getSingletonPtr() == nullptr)
+    {
+      log_manager_ = std::make_unique<Ogre::LogManager>();
+      log_manager_->createLog("OgreTest.log", true, false, true);
+    }
+
+    ogre_root_ = std::make_unique<Ogre::Root>("", "", "");
+    entity_manager_ = std::make_shared<tesseract::gui::EntityManager>();
+
+    if (!loadRenderSystemPlugin())
+      return;
+
+    const Ogre::RenderSystemList& render_systems = ogre_root_->getAvailableRenderers();
+    if (render_systems.empty())
+      return;
+
+    ogre_root_->setRenderSystem(render_systems[0]);
+    ogre_root_->initialise(false);
+
+    // Mesh generation needs a hardware buffer manager, which the GL render system only creates
+    // along with its first render context
+    try
+    {
+      Ogre::NameValuePairList params;
+      params["hidden"] = "true";
+      render_window_ = ogre_root_->createRenderWindow("TesseractRvizConversionsUnit", 32, 32, false, &params);
+    }
+    catch (const Ogre::Exception& e)
+    {
+      Ogre::LogManager::getSingleton().logMessage("Could not create a render window: " + e.getDescription());
+      return;
+    }
+
+    scene_manager_ = ogre_root_->createSceneManager();
+  }
+
+  void TearDown() override
+  {
+    entity_manager_.reset();
+    scene_manager_ = nullptr;
+    render_window_ = nullptr;
+    ogre_root_.reset();
+    log_manager_.reset();
+  }
+
+  bool ogreReady() const { return render_window_ != nullptr && scene_manager_ != nullptr; }
+
+  /** @brief Name the material after the running test so no process-wide counter is needed */
+  static Ogre::MaterialPtr createTestMaterial()
+  {
+    const std::string name =
+        std::string("TestMaterial_") + ::testing::UnitTest::GetInstance()->current_test_info()->name();
+    return Ogre::MaterialManager::getSingleton().create(name, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
+  }
+};
+
+/** @brief An unsupported geometry must be skipped, while the supported ones still render */
+TEST_F(TesseractRvizConversionsUnit, UnsupportedGeometryIsSkipped)  // NOLINT
+{
+  if (!ogreReady())
+    GTEST_SKIP() << "No Ogre render system available";
+
+  tesseract::scene_graph::Link link("test_link");
+
+  // POLYGON_MESH is the only geometry type loadLinkGeometry's switch does not handle
+  auto unsupported = std::make_shared<tesseract::scene_graph::Visual>();
+  unsupported->geometry = std::make_shared<tesseract::geometry::PolygonMesh>(
+      std::make_shared<tesseract::common::VectorVector3d>(), std::make_shared<Eigen::VectorXi>());
+  unsupported->origin = Eigen::Isometry3d::Identity();
+  link.visual.push_back(unsupported);
+
+  // Pairing it with a supported visual is what makes the test fail without the null guard: the
+  // unsupported one must contribute no child, the supported one exactly one. A raw triangle MESH
+  // is used rather than a BOX because it needs no installed ogre_media asset.
+  auto vertices = std::make_shared<tesseract::common::VectorVector3d>();
+  vertices->emplace_back(0.0, 0.0, 0.0);
+  vertices->emplace_back(1.0, 0.0, 0.0);
+  vertices->emplace_back(0.0, 1.0, 0.0);
+  auto faces = std::make_shared<Eigen::VectorXi>(4);
+  *faces << 3, 0, 1, 2;
+
+  auto supported = std::make_shared<tesseract::scene_graph::Visual>();
+  supported->geometry = std::make_shared<tesseract::geometry::Mesh>(vertices, faces);
+  supported->origin = Eigen::Isometry3d::Identity();
+  link.visual.push_back(supported);
+
+  auto entity_container = entity_manager_->getEntityContainer("test");
+
+  Ogre::SceneNode* result = tesseract_rviz::loadLinkVisuals(*scene_manager_, *entity_container, link, nullptr);
+  ASSERT_NE(result, nullptr) << "loadLinkVisuals must always return a valid scene node";
+  EXPECT_EQ(result->numChildren(), 1U) << "only the supported visual may contribute a child node";
+}
+
+/** @brief Every returned origin must satisfy a*x + b*y + c*z - d = 0 */
+static void expectOnPlane(const tesseract::geometry::Plane& plane, const Eigen::Isometry3d& t)
+{
+  const Eigen::Vector3d& p = t.translation();
+  const double residual = plane.getA() * p.x() + plane.getB() * p.y() + plane.getC() * p.z() - plane.getD();
+  EXPECT_NEAR(residual, 0.0, 1e-9);
+}
+
+/** @brief The quad's +Z axis must map onto the plane's unit normal */
+static void expectNormalAligned(const tesseract::geometry::Plane& plane, const Eigen::Isometry3d& t)
+{
+  const Eigen::Vector3d expected = Eigen::Vector3d(plane.getA(), plane.getB(), plane.getC()).normalized();
+  const Eigen::Vector3d actual = t.linear() * Eigen::Vector3d::UnitZ();
+  EXPECT_TRUE(actual.isApprox(expected, 1e-9)) << "expected " << expected.transpose() << " got " << actual.transpose();
+}
+
+TEST(TesseractRvizPlaneTransform, GroundPlaneThroughOrigin)  // NOLINT
+{
+  const tesseract::geometry::Plane plane(0.0, 0.0, 1.0, 0.0);
+  Eigen::Isometry3d t;
+  ASSERT_TRUE(tesseract_rviz::computePlaneTransform(plane, t));
+  expectOnPlane(plane, t);
+  expectNormalAligned(plane, t);
+  EXPECT_TRUE(t.translation().isApprox(Eigen::Vector3d::Zero(), 1e-9));
+}
+
+TEST(TesseractRvizPlaneTransform, OffsetAlongNormal)  // NOLINT
+{
+  // z + 2 = 0  ->  the plane sits at z = -2
+  const tesseract::geometry::Plane plane(0.0, 0.0, 1.0, -2.0);
+  Eigen::Isometry3d t;
+  ASSERT_TRUE(tesseract_rviz::computePlaneTransform(plane, t));
+  expectOnPlane(plane, t);
+  expectNormalAligned(plane, t);
+  EXPECT_TRUE(t.translation().isApprox(Eigen::Vector3d(0.0, 0.0, -2.0), 1e-9));
+}
+
+TEST(TesseractRvizPlaneTransform, NonUnitNormalIsNormalized)  // NOLINT
+{
+  // 2z + 4 = 0  ->  still z = -2, despite the un-normalized coefficients
+  const tesseract::geometry::Plane plane(0.0, 0.0, 2.0, -4.0);
+  Eigen::Isometry3d t;
+  ASSERT_TRUE(tesseract_rviz::computePlaneTransform(plane, t));
+  expectOnPlane(plane, t);
+  expectNormalAligned(plane, t);
+  EXPECT_TRUE(t.translation().isApprox(Eigen::Vector3d(0.0, 0.0, -2.0), 1e-9));
+}
+
+TEST(TesseractRvizPlaneTransform, VerticalPlane)  // NOLINT
+{
+  // x = 0 plane, normal +X
+  const tesseract::geometry::Plane plane(1.0, 0.0, 0.0, 0.0);
+  Eigen::Isometry3d t;
+  ASSERT_TRUE(tesseract_rviz::computePlaneTransform(plane, t));
+  expectOnPlane(plane, t);
+  expectNormalAligned(plane, t);
+}
+
+TEST(TesseractRvizPlaneTransform, AntiparallelNormal)  // NOLINT
+{
+  // Normal is exactly -Z, the degenerate case for naive axis-angle construction
+  const tesseract::geometry::Plane plane(0.0, 0.0, -1.0, 1.0);
+  Eigen::Isometry3d t;
+  ASSERT_TRUE(tesseract_rviz::computePlaneTransform(plane, t));
+  expectOnPlane(plane, t);
+  expectNormalAligned(plane, t);
+}
+
+TEST(TesseractRvizPlaneTransform, ObliquePlane)  // NOLINT
+{
+  const tesseract::geometry::Plane plane(1.0, 2.0, 3.0, -4.0);
+  Eigen::Isometry3d t;
+  ASSERT_TRUE(tesseract_rviz::computePlaneTransform(plane, t));
+  expectOnPlane(plane, t);
+  expectNormalAligned(plane, t);
+}
+
+TEST(TesseractRvizPlaneTransform, DegenerateNormalRejected)  // NOLINT
+{
+  // Default-constructed Plane is a=b=c=d=0 and has no defined orientation
+  const tesseract::geometry::Plane plane(0.0, 0.0, 0.0, 0.0);
+  Eigen::Isometry3d t = Eigen::Isometry3d::Identity();
+  t.translation() = Eigen::Vector3d(9.0, 9.0, 9.0);
+  EXPECT_FALSE(tesseract_rviz::computePlaneTransform(plane, t));
+  // Output must be left untouched on failure
+  EXPECT_TRUE(t.translation().isApprox(Eigen::Vector3d(9.0, 9.0, 9.0), 1e-9));
+}
+
+/** @brief A PLANE must now produce a scene node with an attached entity */
+TEST_F(TesseractRvizConversionsUnit, PlaneGeometryProducesSceneNode)  // NOLINT
+{
+  if (!ogreReady())
+    GTEST_SKIP() << "No Ogre render system available";
+
+  // The plane mesh is generated on demand into the default resource group, so this test
+  // does not depend on an ament lookup finding an installed tesseract_rviz share directory.
+  const tesseract::geometry::Plane plane(0.0, 0.0, 1.0, -0.5);
+  auto entity_container = entity_manager_->getEntityContainer("test");
+
+  Ogre::SceneNode* result = tesseract_rviz::loadLinkGeometry(*scene_manager_,
+                                                             *entity_container,
+                                                             plane,
+                                                             Eigen::Vector3d::Ones(),
+                                                             Eigen::Isometry3d::Identity(),
+                                                             createTestMaterial(),
+                                                             true);
+
+  ASSERT_NE(result, nullptr) << "PLANE geometry should be supported";
+  // Two quads with opposing normals, so the plane stays visible and lit from either side
+  ASSERT_EQ(result->numAttachedObjects(), 2U);
+  // d = -0.5 with a +Z normal puts the quad half a metre down
+  EXPECT_NEAR(result->getPosition().z, -0.5F, 1e-5F);
+
+  // The mesh is a unit quad, so the node scale IS the drawn extent, exactly as for the
+  // other primitives whose shipped meshes are also 1x1x1
+  EXPECT_NEAR(result->getScale().x, 10.0F, 1e-5F) << "plane should be drawn at PLANE_VISUAL_EXTENT metres";
+  EXPECT_NEAR(result->getScale().y, 10.0F, 1e-5F);
+}
+
+int main(int argc, char** argv)
+{
+  testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
+}

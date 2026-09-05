@@ -71,11 +71,7 @@ ContactMonitor::ContactMonitor(std::string monitor_namespace,
   manager_->setActiveCollisionObjects(monitored_link_ids_);
   manager_->setDefaultCollisionMargin(contact_distance_);
 
-  std::unordered_map<tesseract::common::LinkId, bool> disabled;
-  disabled.reserve(disabled_link_ids_.size());
-  for (const auto& disabled_link_id : disabled_link_ids_)
-    disabled[disabled_link_id] = false;
-  manager_->setCollisionObjectsEnabled(disabled);
+  manager_->setCollisionObjectsEnabled(disabled_link_ids_, false);
 
   std::cout << ((disabled_link_ids_.empty()) ? "Empty" : "Not Empty") << "\n";
 
@@ -158,11 +154,7 @@ void ContactMonitor::computeCollisionReportThread()
         manager_->setCollisionMarginData(contact_margin_data);
         manager_->setContactAllowedValidator(fn);
 
-        std::unordered_map<tesseract::common::LinkId, bool> disabled;
-        disabled.reserve(disabled_link_ids_.size());
-        for (const auto& disabled_link_id : disabled_link_ids_)
-          disabled[disabled_link_id] = false;
-        manager_->setCollisionObjectsEnabled(disabled);
+        manager_->setCollisionObjectsEnabled(disabled_link_ids_, false);
       }
 
       if (!current_joint_states_)
@@ -263,11 +255,7 @@ void ContactMonitor::callbackModifyTesseractEnv(
   manager_->setCollisionMarginData(contact_margin_data);
   manager_->setContactAllowedValidator(fn);
 
-  std::unordered_map<tesseract::common::LinkId, bool> disabled;
-  disabled.reserve(disabled_link_ids_.size());
-  for (const auto& disabled_link_id : disabled_link_ids_)
-    disabled[disabled_link_id] = false;
-  manager_->setCollisionObjectsEnabled(disabled);
+  manager_->setCollisionObjectsEnabled(disabled_link_ids_, false);
 }
 
 void ContactMonitor::callbackComputeContactResultVector(

@@ -73,8 +73,6 @@ ContactMonitor::ContactMonitor(std::string monitor_namespace,
 
   manager_->setCollisionObjectsEnabled(disabled_link_ids_, false);
 
-  std::cout << ((disabled_link_ids_.empty()) ? "Empty" : "Not Empty") << "\n";
-
   joint_states_sub_ = internal_node_->create_subscription<sensor_msgs::msg::JointState>(
       joint_state_topic,
       rclcpp::QoS(20),

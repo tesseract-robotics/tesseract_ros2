@@ -6,7 +6,7 @@ repositories:
   boost_plugin_loader:
     type: git
     url: https://github.com/tesseract-robotics/boost_plugin_loader.git
-    version: 0.4.3
+    version: 0.4.5
   tesseract:
     type: git
     url: https://github.com/tesseract-robotics/tesseract.git
@@ -35,7 +35,7 @@ repositories:
     type: git
     url: https://github.com/taskflow/taskflow.git
     version: v3.5.0
-  cereal
+  cereal:
     type: git
     url: https://github.com/Levi-Armstrong/cereal.git
     version: catkin

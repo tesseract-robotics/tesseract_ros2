@@ -25,7 +25,8 @@ Lint  (Clang Tidy)   | [![Build Status](https://github.com/tesseract-robotics/te
 This package contains ROS examples using tesseract and tesseract_ros for motion planning and collision checking.
 
 ### `tesseract_rosutils`
-This package contains the utilities like converting from ROS message types to native Tesseract types and the reverse.
+This package contains utilities for converting between ROS messages and native Tesseract types, and for forwarding
+Tesseract structured log records to ROS 2 logging.
 
 ### `tesseract_msgs`
 This package contains the ROS message types used by Tesseract ROS.

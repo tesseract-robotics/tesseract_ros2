@@ -1,3 +1,3 @@
 string port
-string[] keys
+string[] storage_keys
 uint8 type_index

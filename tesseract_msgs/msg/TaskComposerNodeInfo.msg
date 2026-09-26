@@ -12,11 +12,11 @@ string[] inbound_edges
 # Outbound Edges
 string[] outbound_edges
 
-# Input keys
-TaskComposerKey[] input_keys
+# Input port mappings
+TaskComposerPortMapping[] input_port_mappings
 
-# Output keys
-TaskComposerKey[] output_keys
+# Output port mappings
+TaskComposerPortMapping[] output_port_mappings
 
 # Value returned from the Task on completion
 int32 return_value

@@ -76,7 +76,7 @@ set(message_files
   "msg/StringLimitsPair.msg"
   "msg/StringPair.msg"
   "msg/StringPluginInfoPair.msg"
-  "msg/TaskComposerKey.msg"
+  "msg/TaskComposerPortMapping.msg"
   "msg/TaskComposerNodeInfo.msg"
   "msg/Trajectory.msg"
   "msg/TransformMap.msg"

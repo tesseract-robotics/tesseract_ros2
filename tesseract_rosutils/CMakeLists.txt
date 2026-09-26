@@ -8,6 +8,7 @@ project(${pkg_extracted_name} VERSION ${pkg_extracted_version} LANGUAGES C CXX)
 # ROS
 find_package(ament_index_cpp REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(rcutils REQUIRED)
 find_package(tf2_eigen REQUIRED)
 find_package(octomap_msgs REQUIRED)
 find_package(trajectory_msgs REQUIRED)
@@ -20,7 +21,7 @@ find_package(tesseract_msgs REQUIRED)
 
 # Load variable for clang tidy args, compiler options and cxx version
 tesseract_variables()
-add_library(${PROJECT_NAME} SHARED src/plotting.cpp src/conversions.cpp src/utils.cpp)
+add_library(${PROJECT_NAME} SHARED src/plotting.cpp src/conversions.cpp src/log_record_handler.cpp src/utils.cpp)
 target_link_libraries(${PROJECT_NAME}
   PUBLIC
     rclcpp::rclcpp
@@ -33,6 +34,7 @@ target_link_libraries(${PROJECT_NAME}
     tesseract::motion_planners
   PRIVATE
     ament_index_cpp::ament_index_cpp
+    rcutils::rcutils
     ${tf2_eigen_TARGETS}
     ${octomap_msgs_TARGETS}
 )
@@ -50,6 +52,7 @@ ament_export_dependencies(
   rclcpp
   trajectory_msgs
   visualization_msgs
+  tesseract
   tesseract_msgs
   tesseract_planning
 )

@@ -58,7 +58,6 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <tesseract_msgs/msg/string_double_pair.hpp>
 #include <tesseract_msgs/msg/transform_map.hpp>
 #include <tesseract_msgs/msg/visual_geometry.hpp>
-#include <tesseract_msgs/msg/task_composer_key.hpp>
 #include <tesseract_msgs/msg/task_composer_node_info.hpp>
 #include <geometry_msgs/msg/pose.hpp>
 #include <geometry_msgs/msg/pose_array.hpp>

@@ -98,7 +98,7 @@ Example Explanation
 
    .. Note::
 
-      ``createSignedDistanceField`` returns a lazy field that samples the grid on demand; use ``createDiscreteSignedDistanceField`` to sample it eagerly. A field can also be loaded from a standard OpenVDB ``.vdb`` file via the URDF ``tesseract:signed_distance_field`` tag.
+      ``createSignedDistanceField`` returns a lazy field that samples the grid on demand; use ``createDiscreteSignedDistanceField`` to sample it eagerly. A field can also be loaded from a ``.vdb`` file via the URDF ``tesseract:signed_distance_field`` tag.
 
 #. Create a convex mesh.
 

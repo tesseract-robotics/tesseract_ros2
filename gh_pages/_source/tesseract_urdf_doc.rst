@@ -87,9 +87,9 @@ Create Signed Distance Field
 
 .. code-block:: xml
 
-   <tesseract:signed_distance_field filename="package://tesseract_support/meshes/sphere.vdb" scale="1 1 1" margin="0.0" />
+    <tesseract:signed_distance_field filename="package://tesseract_support/meshes/sphere.vdb" scale="1 1 1" />
 
-This creates a volumetric signed distance field collision shape from a standard OpenVDB FloatGrid file (``.vdb``); the file must contain one FloatGrid with an axis-aligned, uniform transform. The field stores the signed distance to the surface (negative inside) on a dense grid, which SDF-aware collision backends sample directly. It only affects collision shapes.
+  This creates a volumetric signed distance field collision shape from a precomputed OpenVDB field file (``.vdb``). The field stores the signed distance to the surface (negative inside) on a dense grid, which SDF-aware collision backends sample directly. It only affects collision shapes.
 
 .. list-table::
    :widths: 25 25 50
@@ -104,10 +104,6 @@ This creates a volumetric signed distance field collision shape from a standard 
    * - scale
      - Optional
      - Scales each axis of the field. Must be positive. Default scale = [1, 1, 1].
-   * - margin
-     - Optional
-     - Distance margin applied around the surface. Must be non-negative. Default margin = 0.0.
-
 Create Octree/Octomap
 ---------------------
 

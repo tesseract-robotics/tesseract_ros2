@@ -31,7 +31,6 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <tesseract_msgs/msg/string_limits_pair.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/lexical_cast.hpp>
-#include <console_bridge/console.h>
 #include <cmath>
 #include <algorithm>
 #include <vector>
@@ -1381,7 +1380,8 @@ bool toMsg(tesseract_msgs::msg::EnvironmentCommand& command_msg, const tesseract
     }
     default:
     {
-      CONSOLE_BRIDGE_logWarn("Unhandled CommandType '%d' in toMsg", static_cast<int>(command.getType()));
+      RCLCPP_WARN(
+          rclcpp::get_logger(LOGGER_ID), "Unhandled CommandType '%d' in toMsg", static_cast<int>(command.getType()));
     }
   }
 
@@ -2282,38 +2282,40 @@ bool toMsg(tesseract_msgs::msg::TaskComposerNodeInfo& node_info_msg,
   for (const auto& edge : node_info.outbound_edges)
     node_info_msg.outbound_edges.push_back(boost::uuids::to_string(edge));
 
-  for (const auto& pair : node_info.input_keys.data())
+  for (const auto& pair : node_info.input_port_mappings.data())
   {
-    tesseract_msgs::msg::TaskComposerKey key_msg;
-    key_msg.port = pair.first;
-    if (pair.second.index() == 0)
+    tesseract_msgs::msg::TaskComposerPortMapping mapping_msg;
+    mapping_msg.port = pair.first;
+    if (std::holds_alternative<std::string>(pair.second))
     {
-      key_msg.keys.push_back(std::get<std::string>(pair.second));
+      mapping_msg.type_index = 0;
+      mapping_msg.storage_keys.push_back(std::get<std::string>(pair.second));
     }
     else
     {
+      mapping_msg.type_index = 1;
       for (const auto& key : std::get<std::vector<std::string>>(pair.second))
-        key_msg.keys.push_back(key);
+        mapping_msg.storage_keys.push_back(key);
     }
-    node_info_msg.input_keys.push_back(key_msg);
+    node_info_msg.input_port_mappings.push_back(mapping_msg);
   }
 
-  for (const auto& pair : node_info.output_keys.data())
+  for (const auto& pair : node_info.output_port_mappings.data())
   {
-    tesseract_msgs::msg::TaskComposerKey key_msg;
-    key_msg.port = pair.first;
-    if (pair.second.index() == 0)
+    tesseract_msgs::msg::TaskComposerPortMapping mapping_msg;
+    mapping_msg.port = pair.first;
+    if (std::holds_alternative<std::string>(pair.second))
     {
-      key_msg.type_index = 0;
-      key_msg.keys.push_back(std::get<std::string>(pair.second));
+      mapping_msg.type_index = 0;
+      mapping_msg.storage_keys.push_back(std::get<std::string>(pair.second));
     }
     else
     {
-      key_msg.type_index = 1;
+      mapping_msg.type_index = 1;
       for (const auto& key : std::get<std::vector<std::string>>(pair.second))
-        key_msg.keys.push_back(key);
+        mapping_msg.storage_keys.push_back(key);
     }
-    node_info_msg.output_keys.push_back(key_msg);
+    node_info_msg.output_port_mappings.push_back(mapping_msg);
   }
 
   node_info_msg.return_value = node_info.return_value;
@@ -2336,20 +2338,20 @@ tesseract::task_composer::TaskComposerNodeInfo fromMsg(const tesseract_msgs::msg
   for (const auto& edge : node_info_msg.outbound_edges)
     node_info.outbound_edges.push_back(boost::lexical_cast<boost::uuids::uuid>(edge));
 
-  for (const auto& key_msg : node_info_msg.input_keys)
+  for (const auto& mapping_msg : node_info_msg.input_port_mappings)
   {
-    if (key_msg.type_index == 0)
-      node_info.input_keys.add(key_msg.port, key_msg.keys.front());
+    if (mapping_msg.type_index == 0)
+      node_info.input_port_mappings.set(mapping_msg.port, mapping_msg.storage_keys.front());
     else
-      node_info.input_keys.add(key_msg.port, key_msg.keys);
+      node_info.input_port_mappings.set(mapping_msg.port, mapping_msg.storage_keys);
   }
 
-  for (const auto& key_msg : node_info_msg.output_keys)
+  for (const auto& mapping_msg : node_info_msg.output_port_mappings)
   {
-    if (key_msg.type_index == 0)
-      node_info.output_keys.add(key_msg.port, key_msg.keys.front());
+    if (mapping_msg.type_index == 0)
+      node_info.output_port_mappings.set(mapping_msg.port, mapping_msg.storage_keys.front());
     else
-      node_info.output_keys.add(key_msg.port, key_msg.keys);
+      node_info.output_port_mappings.set(mapping_msg.port, mapping_msg.storage_keys);
   }
 
   node_info.return_value = node_info_msg.return_value;

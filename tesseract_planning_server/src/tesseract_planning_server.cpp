@@ -31,7 +31,6 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #else
 #include <tf2_eigen/tf2_eigen.h>
 #endif
-#include <console_bridge/console.h>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract_planning_server/tesseract_planning_server.h>
@@ -271,8 +270,8 @@ void TesseractPlanningServer::onMotionPlanningCallback(
   try
   {
     const tesseract::task_composer::TaskComposerNode& task = planning_server_->getTask(plan_future->context->name);
-    tesseract::common::AnyPoly results = plan_future->context->data_storage->getData(task.getOutputKeys().get("progra"
-                                                                                                              "m"));
+    tesseract::common::AnyPoly results =
+        plan_future->context->data_storage->getData(task.getOutputPortMappings().single("program"));
     result->response.results = Serialization::toArchiveStringXML<tesseract::command_language::InstructionPoly>(
         results.as<tesseract::command_language::CompositeInstruction>());
   }

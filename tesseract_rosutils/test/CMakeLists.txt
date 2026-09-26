@@ -13,3 +13,10 @@ target_compile_options(${PROJECT_NAME}_geometry_msg_conversions PRIVATE ${TESSER
 target_clang_tidy(${PROJECT_NAME}_geometry_msg_conversions ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS} ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
 target_cxx_version(${PROJECT_NAME}_geometry_msg_conversions PUBLIC VERSION 17)
 add_gtest_discover_tests(${PROJECT_NAME}_geometry_msg_conversions)
+
+add_executable(${PROJECT_NAME}_logging_unit log_record_handler_unit.cpp)
+target_link_libraries(${PROJECT_NAME}_logging_unit GTest::GTest GTest::Main rcutils::rcutils ${PROJECT_NAME})
+target_compile_options(${PROJECT_NAME}_logging_unit PRIVATE ${TESSERACT_COMPILE_OPTIONS})
+target_clang_tidy(${PROJECT_NAME}_logging_unit ARGUMENTS ${TESSERACT_CLANG_TIDY_ARGS} ENABLE ${TESSERACT_ENABLE_CLANG_TIDY})
+target_cxx_version(${PROJECT_NAME}_logging_unit PUBLIC VERSION 17)
+add_gtest_discover_tests(${PROJECT_NAME}_logging_unit)

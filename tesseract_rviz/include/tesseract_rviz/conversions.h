@@ -51,6 +51,15 @@ void toEigen(Eigen::Isometry3d& transform, const Ogre::Vector3& position, const 
 
 void toOgre(Ogre::Vector3& position, Ogre::Quaternion& orientation, const Eigen::Isometry3d& transform);
 
+/**
+ * @brief Compute the rigid transform placing the canonical +Z-normal plane quad onto ax+by+cz-d=0
+ * @details The -d convention matches how the FCL and Coal collision backends construct their planes
+ * @param plane Plane geometry supplying the coefficients
+ * @param transform Output transform; left untouched when the function returns false
+ * @return False when (a,b,c) is zero, which leaves the plane orientation undefined
+ */
+bool computePlaneTransform(const tesseract::geometry::Plane& plane, Eigen::Isometry3d& transform);
+
 bool isMeshWithColor(const std::string& file_path);
 
 /** @brief Add tesseract resources to ogre */

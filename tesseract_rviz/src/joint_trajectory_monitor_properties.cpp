@@ -171,6 +171,13 @@ struct JointTrajectoryMonitorProperties::Implementation
             Qt::QueuedConnection);
       }
     }
+    catch (const std::exception& e)
+    {
+      RCLCPP_ERROR(rclcpp::get_logger("tesseract_rviz"), "Failed to process trajectory message: %s", e.what());
+      parent->setStatus(rviz_common::properties::StatusProperty::Error,
+                        "Tesseract",
+                        QString("Failed to process trajectory message: ") + e.what());
+    }
     catch (...)
     {
       parent->setStatus(

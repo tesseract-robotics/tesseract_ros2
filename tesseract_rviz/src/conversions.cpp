@@ -881,18 +881,23 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
       // at the surface, coloured by height (see tesseract_rosutils::sdfSurfaceShellPoints).
       const auto& sdf = static_cast<const tesseract::geometry::SignedDistanceField&>(geometry);
       const Eigen::AlignedBox3d& domain = sdf.getDomain();
-      const Eigen::Vector3i& dims = sdf.getDimensions();
+      // A multi-level field's boxes take its coarsest level's spacing, so its coarse shell has no gaps.
+      const auto& lattice = sdf.getLevels().empty() ? sdf : *sdf.getLevels().back();
+      const Eigen::Vector3i& dims = lattice.getDimensions();
+      const Eigen::Vector3d sizes = lattice.getDomain().sizes();
 
       const int nx = dims.x(), ny = dims.y(), nz = dims.z();
       // Grid sample spacing (guard single-sample axes).
-      const Eigen::Vector3d spacing(domain.sizes().x() / std::max(nx - 1, 1),
-                                    domain.sizes().y() / std::max(ny - 1, 1),
-                                    domain.sizes().z() / std::max(nz - 1, 1));
+      const Eigen::Vector3d spacing(
+          sizes.x() / std::max(nx - 1, 1), sizes.y() / std::max(ny - 1, 1), sizes.z() / std::max(nz - 1, 1));
       const auto box_size = static_cast<float>(spacing.minCoeff());
       const double color_factor = 0.8;
-      // Half-width of the rendered surface shell (metres): one voxel of the largest
-      // axis spacing, so the shell is ~2 samples thick and never leaves gaps.
-      const double surface_band = spacing.maxCoeff();
+      // Half-width of the rendered surface shell (metres): one voxel of the largest axis spacing (of
+      // the finest level), so the shell is ~2 samples thick and never leaves gaps.
+      const Eigen::Vector3i& field_dims = sdf.getDimensions();
+      const double surface_band = std::max({ domain.sizes().x() / std::max(field_dims.x() - 1, 1),
+                                             domain.sizes().y() / std::max(field_dims.y() - 1, 1),
+                                             domain.sizes().z() / std::max(field_dims.z() - 1, 1) });
 
       std::vector<rviz_rendering::PointCloud::Point> points;
       std::vector<Eigen::Vector3d> shell = tesseract_rosutils::sdfSurfaceShellPoints(sdf, surface_band);

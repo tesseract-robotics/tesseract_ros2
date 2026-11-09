@@ -297,6 +297,7 @@ inline SignedDistanceField::ConstPtr expectSparseMsgRoundTrip(const SignedDistan
   EXPECT_EQ(geom_new->getType(), tesseract::geometry::GeometryType::SIGNED_DISTANCE_FIELD);
   auto sdf = std::static_pointer_cast<const SignedDistanceField>(geom_new);
   EXPECT_TRUE(sdf->isSparse());
+  EXPECT_EQ(sdf->getLevels().size(), expected.getLevels().size());
   EXPECT_DOUBLE_EQ(sdf->getBandClamp(), expected.getBandClamp());
   EXPECT_TRUE(sdf->getScale().isApprox(expected.getScale()));
   EXPECT_TRUE(sdf->getDomain().min().isApprox(expected.getDomain().min(), 1e-6));
@@ -327,6 +328,24 @@ TEST(TesseractRosutilsGeometryMsgConversions, SignedDistanceFieldSparse)  // NOL
   EXPECT_EQ(sdf->getNVDB(), field->getNVDB());
 }
 
+TEST(TesseractRosutilsGeometryMsgConversions, SignedDistanceFieldLevels)  // NOLINT
+{
+  // A fine level (0.05 m) around the middle and a coarse one (0.1 m) over the whole sphere.
+  const SignedDistanceField levels({ sparseSphere(0.6, 25, 2.0), sparseSphere(0.8, 17, 4.0) });
+  tesseract_msgs::msg::Geometry msg;
+  EXPECT_TRUE(toMsg(msg, levels));
+  EXPECT_EQ(msg.signed_distance_field.band_clamps, (std::vector<double>{ 2.0, 4.0 }));
+
+  const auto sdf = expectSparseMsgRoundTrip(levels);
+  ASSERT_NE(sdf, nullptr);
+  ASSERT_EQ(sdf->getLevels().size(), 2U);
+  for (std::size_t i = 0; i < 2; ++i)
+  {
+    EXPECT_EQ(sdf->getLevels()[i]->getNVDB(), levels.getLevels()[i]->getNVDB());
+    EXPECT_DOUBLE_EQ(sdf->getLevels()[i]->getBandClamp(), levels.getLevels()[i]->getBandClamp());
+  }
+}
+
 TEST(TesseractRosutilsGeometryMsgConversions, SignedDistanceFieldBandClampsWithoutNVDBThrows)  // NOLINT
 {
   // Band clamps describe NanoVDB grids; with only an OpenVDB payload there is nothing to read in place.
@@ -342,13 +361,12 @@ TEST(TesseractRosutilsGeometryMsgConversions, SignedDistanceFieldBandClampsWitho
   EXPECT_THROW(fromMsg(geom_new, msg), std::runtime_error);  // NOLINT
 }
 
-TEST(TesseractRosutilsGeometryMsgConversions, SignedDistanceFieldSeveralBandClampsThrows)  // NOLINT
+TEST(TesseractRosutilsGeometryMsgConversions, SignedDistanceFieldGridCountMismatchThrows)  // NOLINT
 {
-  // One band clamp per grid; a sparse field is one grid.
-  const auto field = sparseSphere(0.7, 15);
+  const SignedDistanceField levels({ sparseSphere(0.6, 25), sparseSphere(0.8, 17) });
   tesseract_msgs::msg::Geometry msg;
-  EXPECT_TRUE(toMsg(msg, *field));
-  msg.signed_distance_field.band_clamps.push_back(0.0);
+  EXPECT_TRUE(toMsg(msg, levels));
+  msg.signed_distance_field.band_clamps.push_back(0.0);  // three clamps, two grids
 
   tesseract::geometry::Geometry::Ptr geom_new;
   EXPECT_THROW(fromMsg(geom_new, msg), std::runtime_error);  // NOLINT
@@ -363,6 +381,39 @@ TEST(TesseractRosutilsGeometryMsgConversions, SdfSurfaceShellPointsSparse)  // N
   ASSERT_FALSE(shell.empty());
   for (const Eigen::Vector3d& p : shell)
     EXPECT_LE(std::abs(field->getDistance(p)), band + 1e-6);
+}
+
+TEST(TesseractRosutilsGeometryMsgConversions, SdfSurfaceShellPointsLevels)  // NOLINT
+{
+  // The fine level covers only x < 0: the coarse level fills in the rest of the shell, and no
+  // coarse point lands where the fine level holds data.
+  const SignedDistanceFunction sphere = [](const Eigen::Vector3d& p) { return p.norm() - 0.5; };
+  auto fine_dense = createDiscreteSignedDistanceField(
+      sphere, Eigen::Vector3d(-0.7, -0.7, -0.7), Eigen::Vector3d(0, 0.7, 0.7), Eigen::Vector3i(15, 29, 29));
+  const auto fine = std::make_shared<SignedDistanceField>(writeSignedDistanceFieldNVDB(*fine_dense), 0.0);
+  const auto coarse = sparseSphere(0.8, 17);  // 0.1 m voxels
+  const SignedDistanceField levels({ fine, coarse });
+
+  const double band = 0.05;
+  const std::vector<Eigen::Vector3d> shell = sdfSurfaceShellPoints(levels, band);
+  std::size_t fine_points = 0;
+  std::size_t coarse_points = 0;
+  for (const Eigen::Vector3d& p : shell)
+  {
+    if (std::isfinite(fine->getDistance(p)))
+    {
+      ++fine_points;
+      EXPECT_LE(std::abs(fine->getDistance(p)), band + 1e-6);
+    }
+    else
+    {
+      ++coarse_points;
+      EXPECT_LE(std::abs(coarse->getDistance(p)), (band * 2) + 1e-6);
+      EXPECT_GT(p.x(), -1e-6);
+    }
+  }
+  EXPECT_GT(fine_points, 0U);
+  EXPECT_GT(coarse_points, 0U);
 }
 
 TEST(TesseractRosutilsGeometryMsgConversions, Sphere)  // NOLINT

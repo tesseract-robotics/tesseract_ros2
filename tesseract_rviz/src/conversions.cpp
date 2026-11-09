@@ -878,7 +878,7 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
     case tesseract::geometry::GeometryType::SIGNED_DISTANCE_FIELD:
     {
       // Render the field as a voxel box cloud: one box per grid sample
-      // at the surface, coloured by height. Discretizes a lazy field via getDistances().
+      // at the surface, coloured by height (see tesseract_rosutils::sdfSurfaceShellPoints).
       const auto& sdf = static_cast<const tesseract::geometry::SignedDistanceField&>(geometry);
       const Eigen::AlignedBox3d& domain = sdf.getDomain();
       const Eigen::Vector3i& dims = sdf.getDimensions();

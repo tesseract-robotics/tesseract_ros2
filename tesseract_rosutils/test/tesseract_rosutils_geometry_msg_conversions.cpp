@@ -272,6 +272,99 @@ TEST(TesseractRosutilsGeometryMsgConversions, SdfSurfaceShellPoints)  // NOLINT
   EXPECT_LT(shell.size(), interior);
 }
 
+/** @brief A sparse sphere field (radius 0.5) on a cubic lattice over [-half, half]^3 with @p n samples per axis. */
+inline SignedDistanceField::Ptr sparseSphere(double half, int n, double band_clamp = 0)
+{
+  const SignedDistanceFunction sphere = [](const Eigen::Vector3d& p) { return p.norm() - 0.5; };
+  auto dense = createDiscreteSignedDistanceField(
+      sphere, Eigen::Vector3d::Constant(-half), Eigen::Vector3d::Constant(half), Eigen::Vector3i::Constant(n));
+  return std::make_shared<SignedDistanceField>(writeSignedDistanceFieldNVDB(*dense), band_clamp);
+}
+
+/** @brief Round-trip @p expected through a message and check the result answers the same at a few points. */
+inline SignedDistanceField::ConstPtr expectSparseMsgRoundTrip(const SignedDistanceField& expected)
+{
+  tesseract_msgs::msg::Geometry msg;
+  EXPECT_TRUE(toMsg(msg, expected));
+  EXPECT_TRUE(msg.signed_distance_field.vdb.empty());
+  EXPECT_FALSE(msg.signed_distance_field.nvdb.empty());
+
+  tesseract::geometry::Geometry::Ptr geom_new;
+  EXPECT_TRUE(fromMsg(geom_new, msg));
+  EXPECT_NE(geom_new, nullptr);
+  if (geom_new == nullptr)
+    return nullptr;
+  EXPECT_EQ(geom_new->getType(), tesseract::geometry::GeometryType::SIGNED_DISTANCE_FIELD);
+  auto sdf = std::static_pointer_cast<const SignedDistanceField>(geom_new);
+  EXPECT_TRUE(sdf->isSparse());
+  EXPECT_DOUBLE_EQ(sdf->getBandClamp(), expected.getBandClamp());
+  EXPECT_TRUE(sdf->getScale().isApprox(expected.getScale()));
+  EXPECT_TRUE(sdf->getDomain().min().isApprox(expected.getDomain().min(), 1e-6));
+  EXPECT_TRUE(sdf->getDomain().max().isApprox(expected.getDomain().max(), 1e-6));
+  for (const Eigen::Vector3d& p : { Eigen::Vector3d(0.5, 0, 0),
+                                    Eigen::Vector3d(0.1, 0.2, -0.3),
+                                    Eigen::Vector3d(0, -0.62, 0.05),
+                                    Eigen::Vector3d(0.9, 0.9, 0.9) })
+  {
+    const double want = expected.getDistance(p);
+    if (std::isfinite(want))
+      EXPECT_NEAR(sdf->getDistance(p), want, 1e-9) << p.transpose();
+    else
+      EXPECT_FALSE(std::isfinite(sdf->getDistance(p))) << p.transpose();
+  }
+  return sdf;
+}
+
+TEST(TesseractRosutilsGeometryMsgConversions, SignedDistanceFieldSparse)  // NOLINT
+{
+  const auto field = sparseSphere(0.7, 15, 3.0);
+  tesseract_msgs::msg::Geometry msg;
+  EXPECT_TRUE(toMsg(msg, *field));
+  EXPECT_EQ(msg.signed_distance_field.band_clamps, std::vector<double>{ 3.0 });
+
+  const auto sdf = expectSparseMsgRoundTrip(*field);
+  ASSERT_NE(sdf, nullptr);
+  EXPECT_EQ(sdf->getNVDB(), field->getNVDB());
+}
+
+TEST(TesseractRosutilsGeometryMsgConversions, SignedDistanceFieldBandClampsWithoutNVDBThrows)  // NOLINT
+{
+  // Band clamps describe NanoVDB grids; with only an OpenVDB payload there is nothing to read in place.
+  const SignedDistanceFunction sphere = [](const Eigen::Vector3d& p) { return p.norm() - 0.5; };
+  auto object = createDiscreteSignedDistanceField(
+      sphere, Eigen::Vector3d(-1, -1, -1), Eigen::Vector3d(1, 1, 1), Eigen::Vector3i(5, 5, 5));
+  tesseract_msgs::msg::Geometry msg;
+  EXPECT_TRUE(toMsg(msg, *object));
+  ASSERT_FALSE(msg.signed_distance_field.vdb.empty());
+  msg.signed_distance_field.band_clamps = { 0.0 };
+
+  tesseract::geometry::Geometry::Ptr geom_new;
+  EXPECT_THROW(fromMsg(geom_new, msg), std::runtime_error);  // NOLINT
+}
+
+TEST(TesseractRosutilsGeometryMsgConversions, SignedDistanceFieldSeveralBandClampsThrows)  // NOLINT
+{
+  // One band clamp per grid; a sparse field is one grid.
+  const auto field = sparseSphere(0.7, 15);
+  tesseract_msgs::msg::Geometry msg;
+  EXPECT_TRUE(toMsg(msg, *field));
+  msg.signed_distance_field.band_clamps.push_back(0.0);
+
+  tesseract::geometry::Geometry::Ptr geom_new;
+  EXPECT_THROW(fromMsg(geom_new, msg), std::runtime_error);  // NOLINT
+}
+
+TEST(TesseractRosutilsGeometryMsgConversions, SdfSurfaceShellPointsSparse)  // NOLINT
+{
+  // A sparse field has no dense grid (getDistances throws); its shell is sampled on its own lattice.
+  const auto field = sparseSphere(0.7, 29);  // 0.05 m voxels
+  const double band = 0.05;
+  const std::vector<Eigen::Vector3d> shell = sdfSurfaceShellPoints(*field, band);
+  ASSERT_FALSE(shell.empty());
+  for (const Eigen::Vector3d& p : shell)
+    EXPECT_LE(std::abs(field->getDistance(p)), band + 1e-6);
+}
+
 TEST(TesseractRosutilsGeometryMsgConversions, Sphere)  // NOLINT
 {
   auto object = std::make_shared<Sphere>(3.3);

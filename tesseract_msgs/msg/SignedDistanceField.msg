@@ -8,5 +8,12 @@
 uint8[] vdb
 uint8[] nvdb
 
+# How the field is held, by the number of band clamps (each in grid units; see the sparse
+# SignedDistanceField constructor). NanoVDB has no field for them, so they travel here.
+#   0 - a dense grid: one FloatGrid in vdb or nvdb, read into a full box
+#   1 - a sparse field: the one FloatGrid in nvdb, read in place
+# A sparse field always travels in nvdb.
+float64[] band_clamps
+
 # Scale is not part of the blob (carried like the URDF attribute).
 float64[3] scale

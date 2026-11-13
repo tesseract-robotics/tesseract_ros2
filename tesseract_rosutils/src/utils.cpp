@@ -453,6 +453,11 @@ bool toMsg(tesseract_msgs::msg::Geometry& geometry_msgs, const tesseract::geomet
       geometry_msgs.signed_distance_field.scale[0] = scale.x();
       geometry_msgs.signed_distance_field.scale[1] = scale.y();
       geometry_msgs.signed_distance_field.scale[2] = scale.z();
+      static_assert(tesseract_msgs::msg::SignedDistanceField::TRICUBIC ==
+                    static_cast<std::uint8_t>(tesseract::geometry::SignedDistanceFieldInterpolation::TRICUBIC));
+      geometry_msgs.signed_distance_field.interpolation = static_cast<std::uint8_t>(sdf.getInterpolation());
+      geometry_msgs.signed_distance_field.gradient_interpolation =
+          static_cast<std::uint8_t>(sdf.getGradientInterpolation());
       break;
     }
     case tesseract::geometry::GeometryType::MESH:
@@ -636,8 +641,9 @@ bool fromMsg(tesseract::geometry::Geometry::Ptr& geometry, const tesseract_msgs:
     const auto& band_clamps = sdf_msg.band_clamps;
     if (!band_clamps.empty() && !has_nvdb)
       throw std::runtime_error("fromMsg: a sparse or multi-level SignedDistanceField message needs an nvdb payload");
+    tesseract::geometry::SignedDistanceField::Ptr sdf;
     if (band_clamps.size() == 1)
-      geometry = tesseract::geometry::readSparseSignedDistanceFieldNVDB(sdf_msg.nvdb, band_clamps.front(), sdf_scale);
+      sdf = tesseract::geometry::readSparseSignedDistanceFieldNVDB(sdf_msg.nvdb, band_clamps.front(), sdf_scale);
     else if (band_clamps.size() > 1)
     {
       const std::size_t grids = tesseract::geometry::getSignedDistanceFieldNVDBGridNames(sdf_msg.nvdb).size();
@@ -649,14 +655,24 @@ bool fromMsg(tesseract::geometry::Geometry::Ptr& geometry, const tesseract_msgs:
       for (std::size_t i = 0; i < grids; ++i)
         levels.push_back(
             tesseract::geometry::readSparseSignedDistanceFieldNVDB(sdf_msg.nvdb, band_clamps[i], sdf_scale, i));
-      geometry = std::make_shared<tesseract::geometry::SignedDistanceField>(std::move(levels));
+      sdf = std::make_shared<tesseract::geometry::SignedDistanceField>(std::move(levels));
     }
     else if (has_vdb)
-      geometry = tesseract::geometry::readSignedDistanceFieldVDB(sdf_msg.vdb, sdf_scale);
+      sdf = tesseract::geometry::readSignedDistanceFieldVDB(sdf_msg.vdb, sdf_scale);
     else if (has_nvdb)
-      geometry = tesseract::geometry::readSignedDistanceFieldNVDB(sdf_msg.nvdb, sdf_scale);
+      sdf = tesseract::geometry::readSignedDistanceFieldNVDB(sdf_msg.nvdb, sdf_scale);
     else
       throw std::runtime_error("fromMsg: SignedDistanceField message has neither a vdb nor an nvdb payload");
+
+    const auto interpolation = [](std::uint8_t value) {
+      if (value > tesseract_msgs::msg::SignedDistanceField::TRICUBIC)
+        throw std::runtime_error("fromMsg: SignedDistanceField message has unknown interpolation " +
+                                 std::to_string(value));
+      return static_cast<tesseract::geometry::SignedDistanceFieldInterpolation>(value);
+    };
+    sdf->setInterpolation(interpolation(sdf_msg.interpolation));
+    sdf->setGradientInterpolation(interpolation(sdf_msg.gradient_interpolation));
+    geometry = sdf;
   }
   else if (geometry_msg.type == tesseract_msgs::msg::Geometry::COMPOUND_MESH)
   {

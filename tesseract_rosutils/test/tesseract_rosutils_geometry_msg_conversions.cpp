@@ -300,6 +300,8 @@ inline SignedDistanceField::ConstPtr expectSparseMsgRoundTrip(const SignedDistan
   EXPECT_EQ(sdf->getLevels().size(), expected.getLevels().size());
   EXPECT_DOUBLE_EQ(sdf->getBandClamp(), expected.getBandClamp());
   EXPECT_TRUE(sdf->getScale().isApprox(expected.getScale()));
+  EXPECT_EQ(sdf->getInterpolation(), expected.getInterpolation());
+  EXPECT_EQ(sdf->getGradientInterpolation(), expected.getGradientInterpolation());
   EXPECT_TRUE(sdf->getDomain().min().isApprox(expected.getDomain().min(), 1e-6));
   EXPECT_TRUE(sdf->getDomain().max().isApprox(expected.getDomain().max(), 1e-6));
   for (const Eigen::Vector3d& p : { Eigen::Vector3d(0.5, 0, 0),
@@ -331,7 +333,9 @@ TEST(TesseractRosutilsGeometryMsgConversions, SignedDistanceFieldSparse)  // NOL
 TEST(TesseractRosutilsGeometryMsgConversions, SignedDistanceFieldLevels)  // NOLINT
 {
   // A fine level (0.05 m) around the middle and a coarse one (0.1 m) over the whole sphere.
-  const SignedDistanceField levels({ sparseSphere(0.6, 25, 2.0), sparseSphere(0.8, 17, 4.0) });
+  SignedDistanceField levels({ sparseSphere(0.6, 25, 2.0), sparseSphere(0.8, 17, 4.0) });
+  // A tricubic gradient over trilinear distances, which the message must keep.
+  levels.setGradientInterpolation(tesseract::geometry::SignedDistanceFieldInterpolation::TRICUBIC);
   tesseract_msgs::msg::Geometry msg;
   EXPECT_TRUE(toMsg(msg, levels));
   EXPECT_EQ(msg.signed_distance_field.band_clamps, (std::vector<double>{ 2.0, 4.0 }));
@@ -344,6 +348,16 @@ TEST(TesseractRosutilsGeometryMsgConversions, SignedDistanceFieldLevels)  // NOL
     EXPECT_EQ(sdf->getLevels()[i]->getNVDB(), levels.getLevels()[i]->getNVDB());
     EXPECT_DOUBLE_EQ(sdf->getLevels()[i]->getBandClamp(), levels.getLevels()[i]->getBandClamp());
   }
+}
+
+TEST(TesseractRosutilsGeometryMsgConversions, SignedDistanceFieldUnknownInterpolationThrows)  // NOLINT
+{
+  tesseract_msgs::msg::Geometry msg;
+  EXPECT_TRUE(toMsg(msg, *sparseSphere(0.7, 15, 3.0)));
+  msg.signed_distance_field.gradient_interpolation = tesseract_msgs::msg::SignedDistanceField::TRICUBIC + 1;
+
+  tesseract::geometry::Geometry::Ptr geom_new;
+  EXPECT_THROW(fromMsg(geom_new, msg), std::runtime_error);  // NOLINT
 }
 
 TEST(TesseractRosutilsGeometryMsgConversions, SignedDistanceFieldBandClampsWithoutNVDBThrows)  // NOLINT

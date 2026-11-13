@@ -19,3 +19,10 @@ float64[] band_clamps
 
 # Scale is not part of the blob (carried like the URDF attribute).
 float64[3] scale
+
+# How the field reads between samples (tesseract::geometry::SignedDistanceFieldInterpolation): the
+# distance, and the gradient, which may be read differently. Not part of either blob.
+uint8 TRILINEAR=0
+uint8 TRICUBIC=1
+uint8 interpolation
+uint8 gradient_interpolation

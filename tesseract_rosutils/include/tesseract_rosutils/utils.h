@@ -123,6 +123,9 @@ bool fromMsg(std::shared_ptr<tesseract::geometry::Geometry>& geometry,
  * not visible, but throttles the renderer. The zero-crossing shell (this function) is both far cheaper and
  * what one actually wants to see (the surface).
  *
+ * A sparse or multi-level field is sampled with getDistance on its grids' own lattices instead; each
+ * level of a multi-level field contributes where no finer level holds data.
+ *
  * @param sdf   The field (discretized on read if lazy, via getDistances()).
  * @param band  Shell half-width in the field's distance units (metres); typically ~1 voxel.
  * @return Sample positions with ``|phi| <= band``.

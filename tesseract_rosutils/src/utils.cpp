@@ -32,6 +32,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/lexical_cast.hpp>
 #include <cmath>
+#include <functional>
 #include <algorithm>
 #include <vector>
 #if __has_include(<tf2_eigen/tf2_eigen.hpp>)
@@ -264,8 +265,71 @@ inline bool toMsg(tesseract_msgs::msg::Mesh& mesh_msgs, const tesseract::geometr
   return true;
 }
 
+namespace
+{
+/**
+ * @brief Shell points of a sparse single-grid field, sampled with getDistance on its own lattice
+ * (+inf where the grid holds no data, so the band filter drops it). @p skip drops points another
+ * field answers for.
+ */
+void sparseShellPoints(const tesseract::geometry::SignedDistanceField& sdf,
+                       double band,
+                       const std::function<bool(const Eigen::Vector3d&)>& skip,
+                       std::vector<Eigen::Vector3d>& points)
+{
+  // shortcut: reads every lattice point of the field's bounding box (no access to its active voxels from
+  // here); past this budget it strides, widening the band so the shell stays closed. Walk the grid's
+  // active voxels instead if large fields render too coarsely or slowly.
+  constexpr double max_samples = 2e7;
+  const Eigen::AlignedBox3d& domain = sdf.getDomain();
+  const Eigen::Vector3i& dims = sdf.getDimensions();
+  const Eigen::Vector3d voxel(domain.sizes().x() / std::max(dims.x() - 1, 1),
+                              domain.sizes().y() / std::max(dims.y() - 1, 1),
+                              domain.sizes().z() / std::max(dims.z() - 1, 1));
+  const double samples = static_cast<double>(dims.x()) * dims.y() * dims.z();
+  const int stride = std::max(1, static_cast<int>(std::ceil(std::cbrt(samples / max_samples))));
+  const double shell = std::max(band, stride * voxel.maxCoeff());
+  for (int k = 0; k < dims.z(); k += stride)
+    for (int j = 0; j < dims.y(); j += stride)
+      for (int i = 0; i < dims.x(); i += stride)
+      {
+        const Eigen::Vector3d p = domain.min() + Eigen::Vector3d(i, j, k).cwiseProduct(voxel);
+        if (std::abs(sdf.getDistance(p)) <= shell && !skip(p))
+          points.push_back(p);
+      }
+}
+}  // namespace
+
 std::vector<Eigen::Vector3d> sdfSurfaceShellPoints(const tesseract::geometry::SignedDistanceField& sdf, double band)
 {
+  if (sdf.isSparse())
+  {
+    std::vector<Eigen::Vector3d> points;
+    const auto& levels = sdf.getLevels();
+    if (levels.empty())
+    {
+      sparseShellPoints(sdf, band, [](const Eigen::Vector3d&) { return false; }, points);
+      return points;
+    }
+    // Each level on its own lattice, where no finer level holds data; the band grows with the
+    // level's spacing relative to the finest.
+    const double finest =
+        levels.front()->getDomain().sizes().maxCoeff() / std::max(levels.front()->getDimensions().maxCoeff() - 1, 1);
+    for (std::size_t l = 0; l < levels.size(); ++l)
+    {
+      const double spacing =
+          levels[l]->getDomain().sizes().maxCoeff() / std::max(levels[l]->getDimensions().maxCoeff() - 1, 1);
+      const auto finer_answers = [&levels, l](const Eigen::Vector3d& p) {
+        for (std::size_t f = 0; f < l; ++f)
+          if (std::isfinite(levels[f]->getDistance(p)))
+            return true;
+        return false;
+      };
+      sparseShellPoints(*levels[l], band * spacing / finest, finer_answers, points);
+    }
+    return points;
+  }
+
   const Eigen::AlignedBox3d& domain = sdf.getDomain();
   const Eigen::Vector3i& dims = sdf.getDimensions();
   const std::vector<double>& distances = sdf.getDistances();  // discretizes a lazy field
@@ -374,11 +438,26 @@ bool toMsg(tesseract_msgs::msg::Geometry& geometry_msgs, const tesseract::geomet
       const auto& sdf = static_cast<const tesseract::geometry::SignedDistanceField&>(geometry);
 
       geometry_msgs.type = tesseract_msgs::msg::Geometry::SIGNED_DISTANCE_FIELD;
-      geometry_msgs.signed_distance_field.vdb = tesseract::geometry::writeSignedDistanceFieldVDB(sdf);
+      auto& band_clamps = geometry_msgs.signed_distance_field.band_clamps;
+      band_clamps.clear();
+      for (const auto& level : sdf.getLevels())
+        band_clamps.push_back(level->getBandClamp());
+      if (band_clamps.empty() && sdf.isSparse())
+        band_clamps.push_back(sdf.getBandClamp());
+      // A sparse or multi-level field has no dense grid to write as OpenVDB; it travels as stored.
+      if (band_clamps.empty())
+        geometry_msgs.signed_distance_field.vdb = tesseract::geometry::writeSignedDistanceFieldVDB(sdf);
+      else
+        geometry_msgs.signed_distance_field.nvdb = tesseract::geometry::writeSignedDistanceFieldNVDB(sdf);
       const Eigen::Vector3d& scale = sdf.getScale();
       geometry_msgs.signed_distance_field.scale[0] = scale.x();
       geometry_msgs.signed_distance_field.scale[1] = scale.y();
       geometry_msgs.signed_distance_field.scale[2] = scale.z();
+      static_assert(tesseract_msgs::msg::SignedDistanceField::TRICUBIC ==
+                    static_cast<std::uint8_t>(tesseract::geometry::SignedDistanceFieldInterpolation::TRICUBIC));
+      geometry_msgs.signed_distance_field.interpolation = static_cast<std::uint8_t>(sdf.getInterpolation());
+      geometry_msgs.signed_distance_field.gradient_interpolation =
+          static_cast<std::uint8_t>(sdf.getGradientInterpolation());
       break;
     }
     case tesseract::geometry::GeometryType::MESH:
@@ -559,12 +638,41 @@ bool fromMsg(tesseract::geometry::Geometry::Ptr& geometry, const tesseract_msgs:
     if (has_vdb && has_nvdb)
       throw std::runtime_error("fromMsg: SignedDistanceField message has both a vdb and an nvdb payload; "
                                "exactly one is expected");
-    if (has_vdb)
-      geometry = tesseract::geometry::readSignedDistanceFieldVDB(sdf_msg.vdb, sdf_scale);
+    const auto& band_clamps = sdf_msg.band_clamps;
+    if (!band_clamps.empty() && !has_nvdb)
+      throw std::runtime_error("fromMsg: a sparse or multi-level SignedDistanceField message needs an nvdb payload");
+    tesseract::geometry::SignedDistanceField::Ptr sdf;
+    if (band_clamps.size() == 1)
+      sdf = tesseract::geometry::readSparseSignedDistanceFieldNVDB(sdf_msg.nvdb, band_clamps.front(), sdf_scale);
+    else if (band_clamps.size() > 1)
+    {
+      const std::size_t grids = tesseract::geometry::getSignedDistanceFieldNVDBGridNames(sdf_msg.nvdb).size();
+      if (grids != band_clamps.size())
+        throw std::runtime_error("fromMsg: SignedDistanceField message has " + std::to_string(grids) + " grids but " +
+                                 std::to_string(band_clamps.size()) + " band clamps");
+      std::vector<tesseract::geometry::SignedDistanceField::ConstPtr> levels;
+      levels.reserve(grids);
+      for (std::size_t i = 0; i < grids; ++i)
+        levels.push_back(
+            tesseract::geometry::readSparseSignedDistanceFieldNVDB(sdf_msg.nvdb, band_clamps[i], sdf_scale, i));
+      sdf = std::make_shared<tesseract::geometry::SignedDistanceField>(std::move(levels));
+    }
+    else if (has_vdb)
+      sdf = tesseract::geometry::readSignedDistanceFieldVDB(sdf_msg.vdb, sdf_scale);
     else if (has_nvdb)
-      geometry = tesseract::geometry::readSignedDistanceFieldNVDB(sdf_msg.nvdb, sdf_scale);
+      sdf = tesseract::geometry::readSignedDistanceFieldNVDB(sdf_msg.nvdb, sdf_scale);
     else
       throw std::runtime_error("fromMsg: SignedDistanceField message has neither a vdb nor an nvdb payload");
+
+    const auto interpolation = [](std::uint8_t value) {
+      if (value > tesseract_msgs::msg::SignedDistanceField::TRICUBIC)
+        throw std::runtime_error("fromMsg: SignedDistanceField message has unknown interpolation " +
+                                 std::to_string(value));
+      return static_cast<tesseract::geometry::SignedDistanceFieldInterpolation>(value);
+    };
+    sdf->setInterpolation(interpolation(sdf_msg.interpolation));
+    sdf->setGradientInterpolation(interpolation(sdf_msg.gradient_interpolation));
+    geometry = sdf;
   }
   else if (geometry_msg.type == tesseract_msgs::msg::Geometry::COMPOUND_MESH)
   {

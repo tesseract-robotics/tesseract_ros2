@@ -880,6 +880,10 @@ Ogre::SceneNode* loadLinkGeometry(Ogre::SceneManager& scene,
       // Render the field as a voxel box cloud: one box per grid sample
       // at the surface, coloured by height (see tesseract_rosutils::sdfSurfaceShellPoints).
       const auto& sdf = static_cast<const tesseract::geometry::SignedDistanceField&>(geometry);
+      // The shell below is in the field's local (unscaled) frame, as for a mesh.
+      const Eigen::Vector3d& sdf_scale = sdf.getScale();
+      ogre_scale = Ogre::Vector3(
+          static_cast<float>(sdf_scale.x()), static_cast<float>(sdf_scale.y()), static_cast<float>(sdf_scale.z()));
       const Eigen::AlignedBox3d& domain = sdf.getDomain();
       // A multi-level field's boxes take its coarsest level's spacing, so its coarse shell has no gaps.
       const auto& lattice = sdf.getLevels().empty() ? sdf : *sdf.getLevels().back();
